@@ -1,12 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-/* Tailwind starter defaults */
-:root {
-  color-scheme: dark;
+@theme {
+  --color-primary: #e64919;
+  --color-bg-light: #f8f6f6;
+  --color-bg-dark: #211511;
+  --color-text-main: #1b110e;
+  --color-text-muted: #975f4e;
 }
 
+/* Reset and base styles */
 html,
 body,
 #root {
@@ -15,4 +18,6 @@ body,
 
 body {
   margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f8f6f6;
 }
