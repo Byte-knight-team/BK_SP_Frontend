@@ -14,7 +14,7 @@ export default function App() {
 
   const handleLogin = (userData) => { // this function is called when the user logs in.
     setUser(userData); // we set the user data to the user state.
-    setActivePage("dashboard"); // we set the active page to dashboard.
+    setActivePage("users"); // we set the active page to users.
     setIsAuthenticated(true); // we set the isAuthenticated state to true.
   };
 
@@ -33,10 +33,6 @@ export default function App() {
         return <BranchManagement />;
       case "settings":
         return <SystemSettings />;
-      case "dashboard":
-        return <div className="flex-1 p-6 text-gray-500">Dashboard coming soon...</div>;
-      case "menu":
-        return <div className="flex-1 p-6 text-gray-500">Menu Management coming soon...</div>;
       default:
         return <UserManagement />;
     }

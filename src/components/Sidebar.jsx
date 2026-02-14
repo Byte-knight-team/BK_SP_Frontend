@@ -1,20 +1,13 @@
 import PropTypes from "prop-types";
 
 const navItems = [
-  { icon: "grid", label: "Dashboard", page: "dashboard" },
   { icon: "users", label: "User Management", page: "users" },
   { icon: "shield", label: "Roles & Permissions", page: "roles" },
-  { icon: "utensils", label: "Menu Management", page: "menu" },
   { icon: "building", label: "Branch Management", page: "branches" },
   { icon: "settings", label: "System Settings", page: "settings" },
 ];
 
 const icons = {
-  grid: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-    </svg>
-  ),
   users: (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -23,11 +16,6 @@ const icons = {
   shield: (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  ),
-  utensils: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
     </svg>
   ),
   building: (
@@ -96,7 +84,7 @@ export default function Sidebar({ activePage, onPageChange, onLogout, user }) {
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-800">{user?.email?.split("@")[0] || "Staff"}</p>
-            <p className="text-xs text-orange-500">{roleLabels[user?.role] || "STAFF"}</p>
+            <p className="text-xs text-orange-500">{roleLabels[user?.role] || "SUPER ADMIN"}</p>
           </div>
         </div>
         <button onClick={onLogout} className="flex items-center gap-2 mt-4 text-red-500 text-sm font-medium hover:text-red-600">

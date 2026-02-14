@@ -9,11 +9,10 @@ const settingsCards = [
 
 export default function SystemSettings() {
   const [config, setConfig] = useState({
-    restaurantName: "Crave House",
     serviceTax: "8",
     defaultCurrency: "LKR",
     qrTableOrdering: true,
-    loyaltyProgram: false,
+    loyaltyProgram: true,
   });
 
   return (
