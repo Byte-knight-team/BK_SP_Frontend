@@ -1,29 +1,58 @@
+import { useState } from "react";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import UserManagement from "./pages/UserManagement";
+import RolesPermissions from "./pages/RolesPermissions";
+import BranchManagement from "./pages/BranchManagement";
+import SystemSettings from "./pages/SystemSettings";
+import Login from "./pages/Login";
+
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // what we did here is we created a state to check whether the user is authenticated or not.
+  const [user, setUser] = useState(null); // we created a state to store the user data.
+  const [activePage, setActivePage] = useState("users"); // we created a state to store the active page.
+
+  const handleLogin = (userData) => { // this function is called when the user logs in.
+    setUser(userData); // we set the user data to the user state.
+    setActivePage("dashboard"); // we set the active page to dashboard.
+    setIsAuthenticated(true); // we set the isAuthenticated state to true.
+  };
+
+  const handleLogout = () => { // this function is called when the user logs out.
+    setUser(null); // we set the user state to null.
+    setIsAuthenticated(false); // we set the isAuthenticated state to false.
+  };
+
+  const renderPage = () => {
+    switch (activePage) {
+      case "users":
+        return <UserManagement />;
+      case "roles":
+        return <RolesPermissions />;
+      case "branches":
+        return <BranchManagement />;
+      case "settings":
+        return <SystemSettings />;
+      case "dashboard":
+        return <div className="flex-1 p-6 text-gray-500">Dashboard coming soon...</div>;
+      case "menu":
+        return <div className="flex-1 p-6 text-gray-500">Menu Management coming soon...</div>;
+      default:
+        return <UserManagement />;
+    }
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
-    <div className="min-h-screen">
-      <header className="mx-auto max-w-4xl px-6 py-10">
-        <h1 className="text-3xl font-bold tracking-tight">React + Tailwind</h1>
-        <p className="mt-2 text-slate-300">
-          Starter defaults (dark background, readable text, full height).
-        </p>
-      </header>
-
-      <main className="mx-auto max-w-4xl px-6 pb-16">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 shadow">
-          <p className="text-slate-200">
-            Edit <span className="font-mono">src/App.jsx</span> and save.
-          </p>
-
-          <div className="mt-6 flex gap-3">
-            <button className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500">
-              Primary
-            </button>
-            <button className="rounded-lg border border-slate-700 px-4 py-2 font-semibold text-slate-100 hover:bg-slate-900">
-              Secondary
-            </button>
-          </div>
-        </div>
-      </main>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar activePage={activePage} onPageChange={setActivePage} onLogout={handleLogout} user={user} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        {renderPage()}
+      </div>
     </div>
   );
 }
