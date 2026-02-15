@@ -134,7 +134,7 @@ export default function Layout({ children }) {
                     <img src="/logo.png" alt="User" className="w-9 h-9 rounded-full object-contain flex-shrink-0 bg-slate-600 p-0.5" />
                     {!collapsed && (
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold truncate">Marcus Vane</p>
+                            <p className="text-sm font-semibold truncate">Isuru Udara</p>
                             <p className="text-xs text-slate-400 truncate">Chief Chef</p>
                         </div>
                     )}
@@ -174,13 +174,6 @@ export default function Layout({ children }) {
                             <Bell className="w-5 h-5 text-[var(--color-text-muted)]" />
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[var(--color-primary)] rounded-full" />
                         </button>
-                        <div className="flex items-center gap-2.5">
-                            <div className="text-right hidden sm:block">
-                                <p className="text-xs text-[var(--color-primary)] font-semibold uppercase">Chef Alexander</p>
-                                <p className="text-xs text-[var(--color-text-muted)]">Executive Chef</p>
-                            </div>
-                            <img src="/logo.png" alt="User" className="w-9 h-9 rounded-full object-contain border-2 border-[var(--color-border)] bg-[var(--color-bg-light)] p-0.5" />
-                        </div>
                     </div>
                 </header>
 

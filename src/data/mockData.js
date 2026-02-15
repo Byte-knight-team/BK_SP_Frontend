@@ -4,12 +4,12 @@
 
 // ---------- CHEFS ----------
 export const chefs = [
-    { id: 1, name: 'Felix Arvid', role: 'Executive Chef', status: 'available', mealsAssigned: 42, avgPrepTime: '11m 40s', avgPrepChange: -2, phone: '0771234567', email: 'felix@kitchen.com', shift: 'Morning', image: null },
-    { id: 2, name: 'Sarah Jenkins', role: 'Sous Chef', status: 'busy', mealsAssigned: 28, avgPrepTime: '14m 15s', avgPrepChange: 0, phone: '0779876543', email: 'sarah@kitchen.com', shift: 'Morning', image: null },
-    { id: 3, name: 'Miguel Rivera', role: 'Line Cook', status: 'offline', mealsAssigned: 0, avgPrepTime: 'N/A', avgPrepChange: 0, phone: '0775551234', email: 'miguel@kitchen.com', shift: 'Evening', image: null },
-    { id: 4, name: 'Emily Zhang', role: 'Pastry Chef', status: 'available', mealsAssigned: 12, avgPrepTime: '18m 05s', avgPrepChange: 0, phone: '0771112233', email: 'emily@kitchen.com', shift: 'Morning', image: null },
-    { id: 5, name: 'Chef Nimal', role: 'Line Cook', status: 'available', mealsAssigned: 8, avgPrepTime: '12m 30s', avgPrepChange: -1, phone: '0774445566', email: 'nimal@kitchen.com', shift: 'Morning', image: null },
-    { id: 6, name: 'Chef Kamal', role: 'Grill Master', status: 'busy', mealsAssigned: 15, avgPrepTime: '10m 20s', avgPrepChange: 3, phone: '0777889900', email: 'kamal@kitchen.com', shift: 'Evening', image: null },
+    { id: 1, name: 'Amal', role: 'Executive Chef', status: 'available', mealsAssigned: 42, avgPrepTime: '11m 40s', avgPrepChange: -2, phone: '0771234567', email: 'felix@kitchen.com', shift: 'Morning', image: null },
+    { id: 2, name: 'Kamal', role: 'Sous Chef', status: 'busy', mealsAssigned: 28, avgPrepTime: '14m 15s', avgPrepChange: 0, phone: '0779876543', email: 'sarah@kitchen.com', shift: 'Morning', image: null },
+    { id: 3, name: 'Nimal', role: 'Line Cook', status: 'offline', mealsAssigned: 0, avgPrepTime: 'N/A', avgPrepChange: 0, phone: '0775551234', email: 'miguel@kitchen.com', shift: 'Evening', image: null },
+    { id: 4, name: 'Ashen', role: 'Pastry Chef', status: 'available', mealsAssigned: 12, avgPrepTime: '18m 05s', avgPrepChange: 0, phone: '0771112233', email: 'emily@kitchen.com', shift: 'Morning', image: null },
+    { id: 5, name: 'Suresh', role: 'Line Cook', status: 'available', mealsAssigned: 8, avgPrepTime: '12m 30s', avgPrepChange: -1, phone: '0774445566', email: 'nimal@kitchen.com', shift: 'Morning', image: null },
+    { id: 6, name: 'Gayan', role: 'Grill Master', status: 'busy', mealsAssigned: 15, avgPrepTime: '10m 20s', avgPrepChange: 3, phone: '0777889900', email: 'kamal@kitchen.com', shift: 'Evening', image: null },
 ];
 
 // ---------- INVENTORY ----------

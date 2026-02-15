@@ -70,16 +70,14 @@ export default function Orders() {
 
     // ── Helper: recompute order status after a meal-level change ──
     const recomputeOrderStatus = (order) => {
-        const nonCancelledMeals = order.meals.filter(m => m.status !== 'cancelled');
         const allCancelled = order.meals.every(m => m.status === 'cancelled');
-        const allDone = nonCancelledMeals.every(m => m.status === 'completed');
-        const anyActionTaken = order.meals.some(
-            m => m.status === 'preparing' || m.status === 'completed' || m.status === 'cancelled' || m.assignedChef
-        );
+        const nonCancelledMeals = order.meals.filter(m => m.status !== 'cancelled');
+        const allDone = nonCancelledMeals.length > 0 && nonCancelledMeals.every(m => m.status === 'completed');
+        const noPendingLeft = order.meals.every(m => m.status !== 'pending');
 
         if (allCancelled) return 'cancelled';
-        if (allDone && nonCancelledMeals.length > 0) return 'completed';
-        if (anyActionTaken && order.status === 'pending') return 'preparing';
+        if (allDone) return 'completed';
+        if (noPendingLeft && nonCancelledMeals.length > 0) return 'preparing';
         return order.status;
     };
 
@@ -188,8 +186,8 @@ export default function Orders() {
                         key={tab}
                         onClick={() => { setActiveTab(tab); setSelectedOrderId(null); }}
                         className={`flex items-center gap-2 pb-1 text-sm font-semibold transition-colors border-b-2 -mb-[13px] ${activeTab === tab
-                                ? `${statusColors[tab].text} ${statusColors[tab].border}`
-                                : 'text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-main)]'
+                            ? `${statusColors[tab].text} ${statusColors[tab].border}`
+                            : 'text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-main)]'
                             }`}
                     >
                         <span className="capitalize">{tab}</span>
@@ -234,8 +232,8 @@ export default function Orders() {
                                     key={order.id}
                                     onClick={() => setSelectedOrderId(order.id)}
                                     className={`w-full text-left p-4 rounded-xl border-2 transition-all hover:shadow-sm ${selectedOrderId === order.id
-                                            ? `${statusColors[activeTab].border} ${statusColors[activeTab].bg}`
-                                            : 'border-[var(--color-border)] bg-white hover:border-slate-300'
+                                        ? `${statusColors[activeTab].border} ${statusColors[activeTab].bg}`
+                                        : 'border-[var(--color-border)] bg-white hover:border-slate-300'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between mb-1.5">
@@ -308,7 +306,7 @@ export default function Orders() {
                                             <div key={step} className="flex items-center flex-1">
                                                 <div className="flex flex-col items-center">
                                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${selectedOrder.status === 'cancelled' ? 'bg-red-100 border-red-300' :
-                                                            isDone ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'bg-white border-[var(--color-border)]'
+                                                        isDone ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'bg-white border-[var(--color-border)]'
                                                         }`}>
                                                         {selectedOrder.status === 'cancelled' ? (
                                                             <XCircle className="w-4 h-4 text-red-500" />
@@ -319,7 +317,7 @@ export default function Orders() {
                                                         )}
                                                     </div>
                                                     <span className={`text-[10px] mt-1 font-semibold ${selectedOrder.status === 'cancelled' ? 'text-red-400' :
-                                                            isCurrent ? 'text-[var(--color-primary)]' : isDone ? 'text-[var(--color-text-main)]' : 'text-[var(--color-text-light)]'
+                                                        isCurrent ? 'text-[var(--color-primary)]' : isDone ? 'text-[var(--color-text-main)]' : 'text-[var(--color-text-light)]'
                                                         }`}>
                                                         {selectedOrder.status === 'cancelled' && i === 0 ? 'Cancelled' : step}
                                                     </span>
@@ -363,15 +361,12 @@ export default function Orders() {
                                             {selectedOrder.meals.map(meal => (
                                                 <tr key={meal.id} className={`border-t border-[var(--color-border)] ${meal.status === 'cancelled' ? 'opacity-40' : ''}`}>
                                                     <td className="px-4 py-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-2xl">{meal.image}</span>
-                                                            <div>
-                                                                <p className={`font-semibold text-[var(--color-text-main)] ${meal.status === 'cancelled' ? 'line-through' : ''}`}>{meal.name}</p>
-                                                                <p className="text-xs text-[var(--color-text-muted)]">{meal.category}</p>
-                                                                {meal.assignedChef && (
-                                                                    <p className="text-xs text-blue-600 mt-0.5">👨‍🍳 {meal.assignedChef}</p>
-                                                                )}
-                                                            </div>
+                                                        <div>
+                                                            <p className={`font-semibold text-[var(--color-text-main)] ${meal.status === 'cancelled' ? 'line-through' : ''}`}>{meal.name}</p>
+                                                            <p className="text-xs text-[var(--color-text-muted)]">{meal.category}</p>
+                                                            {meal.assignedChef && (
+                                                                <p className="text-xs text-blue-600 mt-0.5">{meal.assignedChef}</p>
+                                                            )}
                                                         </div>
                                                     </td>
                                                     <td className="text-center font-bold">x{meal.qty}</td>
