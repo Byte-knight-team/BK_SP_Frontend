@@ -258,3 +258,4 @@ export const peakHoursData = [
     { hour: '09 PM', orders: 15 },
     { hour: '10 PM', orders: 8 },
 ];
+

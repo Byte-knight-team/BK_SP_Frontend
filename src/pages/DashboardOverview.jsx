@@ -54,9 +54,9 @@ export default function DashboardOverview() {
                             <div className="mt-3 h-1 rounded-full bg-[var(--color-bg-light)] overflow-hidden">
                                 <div
                                     className={`h-full rounded-full ${kpi.color === 'orange' ? 'bg-[var(--color-primary)]' :
-                                            kpi.color === 'blue' ? 'bg-blue-500' :
-                                                kpi.color === 'green' ? 'bg-green-500' :
-                                                    'bg-purple-500'
+                                        kpi.color === 'blue' ? 'bg-blue-500' :
+                                            kpi.color === 'green' ? 'bg-green-500' :
+                                                'bg-purple-500'
                                         }`}
                                     style={{ width: `${Math.min(100, (typeof kpi.value === 'number' ? kpi.value * 3 : 65))}%` }}
                                 />
@@ -146,9 +146,6 @@ export default function DashboardOverview() {
                             </div>
                         ))}
                     </div>
-                    <button className="w-full mt-4 py-2.5 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-xl text-sm font-semibold hover:bg-[var(--color-primary)] hover:text-white transition-colors">
-                        Create Restock Order
-                    </button>
                 </div>
             </div>
 
@@ -159,16 +156,16 @@ export default function DashboardOverview() {
                     {activityFeed.map((item) => (
                         <div key={item.id} className="flex items-start gap-3">
                             <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${item.dot === 'orange' ? 'bg-[var(--color-primary)]' :
-                                    item.dot === 'green' ? 'bg-green-500' :
-                                        item.dot === 'red' ? 'bg-red-500' :
-                                            'bg-blue-500'
+                                item.dot === 'green' ? 'bg-green-500' :
+                                    item.dot === 'red' ? 'bg-red-500' :
+                                        'bg-blue-500'
                                 }`} />
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm text-[var(--color-text-main)]">
                                     {item.text}{' '}
                                     <span className={`font-bold ${item.highlight === 'PREPARING' ? 'bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs' :
-                                            item.dot === 'red' ? 'text-[var(--color-primary)]' :
-                                                'text-[var(--color-primary)]'
+                                        item.dot === 'red' ? 'text-[var(--color-primary)]' :
+                                            'text-[var(--color-primary)]'
                                         }`}>{item.highlight}</span>
                                     {item.suffix && <span> {item.suffix}</span>}
                                 </p>

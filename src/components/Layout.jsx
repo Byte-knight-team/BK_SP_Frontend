@@ -8,7 +8,7 @@ import {
     BookOpen,
     ShieldCheck,
     Settings,
-    Search,
+    LogOut,
     Bell,
     ChevronLeft,
     ChevronRight,
@@ -133,11 +133,18 @@ export default function Layout({ children }) {
                 <div className={`px-4 py-4 border-t border-white/10 flex items-center gap-3 ${collapsed ? 'justify-center px-2' : ''}`}>
                     <img src="/logo.png" alt="User" className="w-9 h-9 rounded-full object-contain flex-shrink-0 bg-slate-600 p-0.5" />
                     {!collapsed && (
-                        <div className="min-w-0">
+                        <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold truncate">Marcus Vane</p>
                             <p className="text-xs text-slate-400 truncate">Chief Chef</p>
                         </div>
                     )}
+                    <button
+                        onClick={() => { /* TODO: wire to actual logout logic */ console.log('Logout clicked'); }}
+                        title="Logout"
+                        className="p-2 rounded-xl text-slate-400 hover:bg-red-500/20 hover:text-red-400 transition-all flex-shrink-0"
+                    >
+                        <LogOut className="w-4.5 h-4.5" />
+                    </button>
                 </div>
 
                 {/* Collapse toggle */}
@@ -160,15 +167,7 @@ export default function Layout({ children }) {
                         >
                             <Menu className="w-5 h-5" />
                         </button>
-                        <span className="text-sm font-semibold text-[var(--color-text-main)] hidden md:block">Gourmet Kitchen</span>
-                        <div className="relative">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-light)]" />
-                            <input
-                                type="text"
-                                placeholder="Search orders, ingredients..."
-                                className="pl-9 pr-4 py-2 bg-[var(--color-bg-light)] border border-[var(--color-border)] rounded-xl text-sm w-64 md:w-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
-                            />
-                        </div>
+
                     </div>
                     <div className="flex items-center gap-4">
                         <button className="relative p-2 hover:bg-[var(--color-bg-light)] rounded-xl transition-colors">
