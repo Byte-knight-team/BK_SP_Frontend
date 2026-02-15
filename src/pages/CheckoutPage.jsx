@@ -8,21 +8,26 @@ import {
   CreditCard,
   Banknote,
   ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
+const API_BASE = 'http://localhost:8080';
 const DELIVERY_FEE = 300;
 const TAX_RATE = 0.08;
+const DEFAULT_BRANCH_ID = 1; // seeded main branch
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { cartItems, cartCount, cartTotal } = useCart();
+  const { cartItems, cartCount, cartTotal, clearCart } = useCart();
 
   const [orderType, setOrderType] = useState('pickup');
   const [paymentMethod, setPaymentMethod] = useState('pay-now');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const subtotal = cartTotal;
   const deliveryFee = orderType === 'delivery' ? DELIVERY_FEE : 0;
@@ -181,30 +186,99 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {/* ───── Error Message ───── */}
+        {error && (
+          <div style={{
+            background: '#FEE2E2', color: '#991B1B', padding: '12px 16px',
+            borderRadius: '10px', marginBottom: '16px', fontSize: '14px'
+          }}>
+            {error}
+          </div>
+        )}
+
         {/* ───── Place Order ───── */}
         <button
           className="checkout-place-btn"
-          onClick={() => {
-            const orderId = Math.floor(100000 + Math.random() * 900000).toString();
-            navigate('/order-confirmation', {
-              state: {
-                orderId,
-                orderDate: new Date().toLocaleString(),
-                items: cartItems,
-                subtotal,
-                deliveryFee,
-                tax,
-                total,
+          disabled={isSubmitting}
+          onClick={async () => {
+            // Validate required fields
+            if (!fullName.trim() || !phone.trim()) {
+              setError('Please fill in your name and phone number.');
+              return;
+            }
+            if (orderType === 'delivery' && !address.trim()) {
+              setError('Please enter your delivery address.');
+              return;
+            }
+            if (cartItems.length === 0) {
+              setError('Your cart is empty.');
+              return;
+            }
+
+            setError(null);
+            setIsSubmitting(true);
+
+            try {
+              // Build the request payload matching CreateOrderRequest.java
+              const payload = {
+                customerName: fullName,
+                customerPhone: phone,
+                deliveryAddress: orderType === 'delivery' ? address : null,
                 orderType,
-                fullName,
-                phone,
-                address,
                 paymentMethod,
-              },
-            });
+                branchId: DEFAULT_BRANCH_ID,
+                items: cartItems.map((item) => ({
+                  menuItemId: item.id,
+                  quantity: item.quantity,
+                })),
+              };
+
+              const res = await fetch(`${API_BASE}/api/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              });
+
+              if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Failed to place order');
+              }
+
+              const data = await res.json();
+
+              // Clear the cart after successful order
+              clearCart();
+
+              // Navigate to confirmation with server response data
+              navigate('/order-confirmation', {
+                state: {
+                  orderId: data.orderNumber,
+                  orderDate: data.createdAt,
+                  items: cartItems,
+                  subtotal,
+                  deliveryFee,
+                  tax,
+                  total,
+                  orderType,
+                  fullName,
+                  phone,
+                  address,
+                  paymentMethod,
+                  serverOrder: data, // full server response for future use
+                },
+              });
+            } catch (err) {
+              setError(err.message || 'Something went wrong. Please try again.');
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
         >
-          Place Order • LKR {total.toLocaleString()} <ChevronRight size={18} />
+          {isSubmitting ? (
+            <>Placing Order… <Loader2 size={18} className="spin" /></>
+          ) : (
+            <>Place Order • LKR {total.toLocaleString()} <ChevronRight size={18} /></>
+          )}
         </button>
       </div>
     </div>
