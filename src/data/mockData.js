@@ -190,6 +190,30 @@ const completedOrders = Array.from({ length: 28 }, (_, i) => ({
 
 export const allOrders = [...orders, ...completedOrders];
 
+// Generate a couple of cancelled orders for the Cancelled tab
+const cancelledOrders = [
+    {
+        id: 'ORD-1098', time: '10:15 AM', date: 'October 24, 2023', type: 'Delivery', table: null, status: 'cancelled',
+        customerNotes: 'Customer cancelled — waited too long.',
+        meals: [
+            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 1, assignedChef: null, status: 'cancelled', cancelReason: 'Customer request', image: '🍝' },
+            { id: 2, name: 'Lava Cake', category: 'Dessert', qty: 1, assignedChef: null, status: 'cancelled', cancelReason: 'Customer request', image: '🍫' },
+        ],
+        timeline: { received: '10:15 AM', preparing: null, completed: null },
+    },
+    {
+        id: 'ORD-1095', time: '09:40 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 02', status: 'cancelled',
+        customerNotes: '',
+        meals: [
+            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'cancelled', cancelReason: 'Out of ingredients', image: '🍔' },
+        ],
+        timeline: { received: '09:40 AM', preparing: null, completed: null },
+    },
+];
+
+export { cancelledOrders };
+allOrders.push(...cancelledOrders);
+
 // ---------- APPROVALS ----------
 export const approvals = [
     { id: 1, type: 'Add Chef', title: 'New Chef: David Perera', details: 'Role: Line Cook, Shift: Evening', submittedAt: '2 hours ago', status: 'pending' },

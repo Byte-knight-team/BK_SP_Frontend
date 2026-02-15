@@ -3,15 +3,15 @@ import {
     ClipboardList,
     ChevronRight,
     MessageSquare,
-    Filter,
     AlertCircle,
     CheckCircle2,
     XCircle,
     ChefHat,
     Play,
-    Trash2,
     Clock,
     X,
+    Ban,
+    UserPlus,
 } from 'lucide-react';
 import { allOrders, chefs } from '../data/mockData';
 
@@ -38,63 +38,87 @@ export default function Orders() {
     const [mealCountFilter, setMealCountFilter] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
     const [cancelModal, setCancelModal] = useState({ open: false, mealId: null, orderId: null });
+    const [cancelOrderModal, setCancelOrderModal] = useState({ open: false, orderId: null });
     const [cancelReason, setCancelReason] = useState('');
     const [cancelReasonText, setCancelReasonText] = useState('');
     const [successToast, setSuccessToast] = useState('');
     const [errorModal, setErrorModal] = useState({ open: false, items: [] });
+    // Per-meal chef assign dropdown: tracks which meal row has the dropdown open
+    const [assigningMealId, setAssigningMealId] = useState(null);
+
+    const availableChefs = chefs.filter(c => c.status === 'available' || c.status === 'busy');
 
     const tabCounts = {
         pending: orders.filter(o => o.status === 'pending').length,
         preparing: orders.filter(o => o.status === 'preparing').length,
         completed: orders.filter(o => o.status === 'completed').length,
+        cancelled: orders.filter(o => o.status === 'cancelled').length,
     };
 
     let filteredOrders = orders.filter(o => o.status === activeTab);
-
     if (mealCountFilter === '1-2') filteredOrders = filteredOrders.filter(o => o.meals.length <= 2);
     else if (mealCountFilter === '3-5') filteredOrders = filteredOrders.filter(o => o.meals.length >= 3 && o.meals.length <= 5);
     else if (mealCountFilter === '6+') filteredOrders = filteredOrders.filter(o => o.meals.length >= 6);
-
     if (sortBy === 'oldest') filteredOrders = [...filteredOrders].reverse();
 
     const selectedOrder = orders.find(o => o.id === selectedOrderId);
-    const availableChefs = chefs.filter(c => c.status === 'available' || c.status === 'busy');
 
     const showToast = (msg) => {
         setSuccessToast(msg);
         setTimeout(() => setSuccessToast(''), 3000);
     };
 
+    // ── Helper: recompute order status after a meal-level change ──
+    const recomputeOrderStatus = (order) => {
+        const nonCancelledMeals = order.meals.filter(m => m.status !== 'cancelled');
+        const allCancelled = order.meals.every(m => m.status === 'cancelled');
+        const allDone = nonCancelledMeals.every(m => m.status === 'completed');
+        const anyActionTaken = order.meals.some(
+            m => m.status === 'preparing' || m.status === 'completed' || m.status === 'cancelled' || m.assignedChef
+        );
+
+        if (allCancelled) return 'cancelled';
+        if (allDone && nonCancelledMeals.length > 0) return 'completed';
+        if (anyActionTaken && order.status === 'pending') return 'preparing';
+        return order.status;
+    };
+
+    const updateOrderAfterMealChange = (updatedOrder) => {
+        const newStatus = recomputeOrderStatus(updatedOrder);
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        let timeline = { ...updatedOrder.timeline };
+        if (newStatus === 'preparing' && !timeline.preparing) timeline.preparing = now;
+        if (newStatus === 'completed' && !timeline.completed) timeline.completed = now;
+        return { ...updatedOrder, status: newStatus, timeline };
+    };
+
+    // ── Actions ──
     const handleAssignChef = (orderId, mealId, chefName) => {
         setOrders(prev => prev.map(o => {
             if (o.id !== orderId) return o;
-            const updatedMeals = o.meals.map(m =>
-                m.id === mealId ? { ...m, assignedChef: chefName } : m
-            );
-            return { ...o, meals: updatedMeals };
+            const updated = {
+                ...o,
+                meals: o.meals.map(m => m.id === mealId ? { ...m, assignedChef: chefName } : m),
+            };
+            return updateOrderAfterMealChange(updated);
         }));
+        setAssigningMealId(null);
         showToast(`Chef ${chefName} assigned successfully`);
     };
 
     const handleStartPrepare = (orderId, mealId) => {
-        // Mock inventory check — randomly fail 20% of the time
-        const shouldFail = Math.random() < 0.2;
+        const shouldFail = Math.random() < 0.15;
         if (shouldFail) {
             setErrorModal({ open: true, items: ['Truffle Oil (need 10ml, have 0ml)', 'Fresh Chicken (need 200g, have 50g)'] });
             return;
         }
         setOrders(prev => prev.map(o => {
             if (o.id !== orderId) return o;
-            const updatedMeals = o.meals.map(m =>
-                m.id === mealId ? { ...m, status: 'preparing' } : m
-            );
-            const allPreparing = updatedMeals.every(m => m.status === 'preparing' || m.status === 'completed' || m.status === 'cancelled');
-            return {
+            const updated = {
                 ...o,
-                meals: updatedMeals,
-                status: allPreparing && o.status === 'pending' ? 'preparing' : o.status,
-                timeline: allPreparing && o.status === 'pending' ? { ...o.timeline, preparing: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : o.timeline,
+                meals: o.meals.map(m => m.id === mealId ? { ...m, status: 'preparing' } : m),
             };
+            return updateOrderAfterMealChange(updated);
         }));
         showToast('Meal preparation started!');
     };
@@ -102,16 +126,11 @@ export default function Orders() {
     const handleMarkCompleted = (orderId, mealId) => {
         setOrders(prev => prev.map(o => {
             if (o.id !== orderId) return o;
-            const updatedMeals = o.meals.map(m =>
-                m.id === mealId ? { ...m, status: 'completed' } : m
-            );
-            const allCompleted = updatedMeals.every(m => m.status === 'completed' || m.status === 'cancelled');
-            return {
+            const updated = {
                 ...o,
-                meals: updatedMeals,
-                status: allCompleted ? 'completed' : o.status,
-                timeline: allCompleted ? { ...o.timeline, completed: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : o.timeline,
+                meals: o.meals.map(m => m.id === mealId ? { ...m, status: 'completed' } : m),
             };
+            return updateOrderAfterMealChange(updated);
         }));
         showToast('Meal marked as completed!');
     };
@@ -121,13 +140,33 @@ export default function Orders() {
         const reason = cancelReasonText.trim() || cancelReason;
         setOrders(prev => prev.map(o => {
             if (o.id !== cancelModal.orderId) return o;
-            const updatedMeals = o.meals.map(m =>
-                m.id === cancelModal.mealId ? { ...m, status: 'cancelled', cancelReason: reason } : m
-            );
-            return { ...o, meals: updatedMeals };
+            const updated = {
+                ...o,
+                meals: o.meals.map(m =>
+                    m.id === cancelModal.mealId ? { ...m, status: 'cancelled', cancelReason: reason } : m
+                ),
+            };
+            return updateOrderAfterMealChange(updated);
         }));
-        showToast('Meal cancelled. Reason sent to receptionist & customer.');
+        showToast('Meal cancelled. Notification sent to receptionist & customer.');
         setCancelModal({ open: false, mealId: null, orderId: null });
+        setCancelReason('');
+        setCancelReasonText('');
+    };
+
+    const handleCancelOrder = () => {
+        if (!cancelReason && !cancelReasonText.trim()) return;
+        const reason = cancelReasonText.trim() || cancelReason;
+        setOrders(prev => prev.map(o => {
+            if (o.id !== cancelOrderModal.orderId) return o;
+            return {
+                ...o,
+                status: 'cancelled',
+                meals: o.meals.map(m => m.status !== 'completed' ? { ...m, status: 'cancelled', cancelReason: reason } : m),
+            };
+        }));
+        showToast('Order cancelled. Notification sent to receptionist & customer.');
+        setCancelOrderModal({ open: false, orderId: null });
         setCancelReason('');
         setCancelReasonText('');
     };
@@ -142,15 +181,15 @@ export default function Orders() {
                 </div>
             </div>
 
-            {/* Tabs */}
+            {/* Tabs — now includes Cancelled */}
             <div className="flex items-center gap-6 mb-4 border-b border-[var(--color-border)] pb-3">
-                {['pending', 'preparing', 'completed'].map(tab => (
+                {['pending', 'preparing', 'completed', 'cancelled'].map(tab => (
                     <button
                         key={tab}
                         onClick={() => { setActiveTab(tab); setSelectedOrderId(null); }}
                         className={`flex items-center gap-2 pb-1 text-sm font-semibold transition-colors border-b-2 -mb-[13px] ${activeTab === tab
-                            ? `${statusColors[tab].text} ${statusColors[tab].border}`
-                            : 'text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-main)]'
+                                ? `${statusColors[tab].text} ${statusColors[tab].border}`
+                                : 'text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-main)]'
                             }`}
                     >
                         <span className="capitalize">{tab}</span>
@@ -164,7 +203,6 @@ export default function Orders() {
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 min-h-0">
                 {/* Left: Order List */}
                 <div className="flex flex-col min-h-0">
-                    {/* Filters */}
                     <div className="flex flex-wrap gap-2 mb-3">
                         <select value={timeFilter} onChange={e => setTimeFilter(e.target.value)} className="text-xs px-3 py-1.5 border border-[var(--color-border)] rounded-lg bg-white text-[var(--color-text-main)] focus:outline-none">
                             <option value="all">All Time</option>
@@ -184,12 +222,11 @@ export default function Orders() {
                         </select>
                     </div>
 
-                    {/* Order cards */}
                     <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                         {filteredOrders.length === 0 ? (
                             <div className="text-center py-12 text-[var(--color-text-muted)]">
                                 <ClipboardList className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                                <p className="font-medium">No orders found</p>
+                                <p className="font-medium">No {activeTab} orders</p>
                             </div>
                         ) : (
                             filteredOrders.map(order => (
@@ -197,8 +234,8 @@ export default function Orders() {
                                     key={order.id}
                                     onClick={() => setSelectedOrderId(order.id)}
                                     className={`w-full text-left p-4 rounded-xl border-2 transition-all hover:shadow-sm ${selectedOrderId === order.id
-                                        ? `${statusColors[activeTab].border} ${statusColors[activeTab].bg}`
-                                        : 'border-[var(--color-border)] bg-white hover:border-slate-300'
+                                            ? `${statusColors[activeTab].border} ${statusColors[activeTab].bg}`
+                                            : 'border-[var(--color-border)] bg-white hover:border-slate-300'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between mb-1.5">
@@ -243,14 +280,18 @@ export default function Orders() {
                                         {selectedOrder.table && ` • ${selectedOrder.table}`}
                                     </p>
                                 </div>
-                                <div className="text-right">
+                                <div className="flex items-center gap-2">
                                     <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full ${statusColors[selectedOrder.status].bg} ${statusColors[selectedOrder.status].text}`}>
                                         {selectedOrder.status === 'pending' ? 'Awaiting Preparation' : statusColors[selectedOrder.status].label}
                                     </span>
+                                    {/* Cancel Order Button — only for pending orders */}
                                     {selectedOrder.status === 'pending' && (
-                                        <p className="text-xs text-[var(--color-primary)] mt-1 flex items-center justify-end gap-1">
-                                            <Clock className="w-3 h-3" /> 12m elapsed
-                                        </p>
+                                        <button
+                                            onClick={() => setCancelOrderModal({ open: true, orderId: selectedOrder.id })}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-500 border border-red-200 rounded-full text-xs font-semibold hover:bg-red-100 transition-colors"
+                                        >
+                                            <Ban className="w-3.5 h-3.5" /> Cancel Order
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -266,16 +307,21 @@ export default function Orders() {
                                         return (
                                             <div key={step} className="flex items-center flex-1">
                                                 <div className="flex flex-col items-center">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${isDone ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'bg-white border-[var(--color-border)]'
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${selectedOrder.status === 'cancelled' ? 'bg-red-100 border-red-300' :
+                                                            isDone ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'bg-white border-[var(--color-border)]'
                                                         }`}>
-                                                        {isDone ? (
+                                                        {selectedOrder.status === 'cancelled' ? (
+                                                            <XCircle className="w-4 h-4 text-red-500" />
+                                                        ) : isDone ? (
                                                             isCurrent ? <ChefHat className="w-4 h-4 text-white" /> : <CheckCircle2 className="w-4 h-4 text-white" />
                                                         ) : (
                                                             <div className="w-2 h-2 rounded-full bg-[var(--color-border)]" />
                                                         )}
                                                     </div>
-                                                    <span className={`text-[10px] mt-1 font-semibold ${isCurrent ? 'text-[var(--color-primary)]' : isDone ? 'text-[var(--color-text-main)]' : 'text-[var(--color-text-light)]'}`}>
-                                                        {step}
+                                                    <span className={`text-[10px] mt-1 font-semibold ${selectedOrder.status === 'cancelled' ? 'text-red-400' :
+                                                            isCurrent ? 'text-[var(--color-primary)]' : isDone ? 'text-[var(--color-text-main)]' : 'text-[var(--color-text-light)]'
+                                                        }`}>
+                                                        {selectedOrder.status === 'cancelled' && i === 0 ? 'Cancelled' : step}
                                                     </span>
                                                 </div>
                                                 {i < 2 && (
@@ -298,33 +344,10 @@ export default function Orders() {
                                 </div>
                             )}
 
-                            {/* Assign Chef dropdown — above table */}
-                            {selectedOrder.meals.some(m => m.status === 'pending') && (
-                                <div className="flex items-center gap-3">
-                                    <label className="text-xs font-bold text-[var(--color-text-main)] whitespace-nowrap">Assign Chef</label>
-                                    <select
-                                        onChange={(e) => {
-                                            if (e.target.value) {
-                                                const pendingMeal = selectedOrder.meals.find(m => m.status === 'pending' && !m.assignedChef);
-                                                if (pendingMeal) handleAssignChef(selectedOrder.id, pendingMeal.id, e.target.value);
-                                                e.target.value = '';
-                                            }
-                                        }}
-                                        className="text-sm px-3 py-2 border border-[var(--color-border)] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 min-w-[200px]"
-                                    >
-                                        <option value="">Select a chef...</option>
-                                        {availableChefs.map(c => (
-                                            <option key={c.id} value={c.name}>{c.name} ({c.mealsAssigned} meals)</option>
-                                        ))}
-                                    </select>
-                                    <p className="text-[10px] text-green-600 whitespace-nowrap">🟢 {availableChefs.filter(c => c.status === 'available').length} available</p>
-                                </div>
-                            )}
-
                             {/* Meals table with per-row actions */}
                             <div>
                                 <h3 className="text-sm font-bold text-[var(--color-text-main)] mb-3">
-                                    Meal List ({selectedOrder.meals.filter(m => m.status !== 'cancelled').length} items)
+                                    Meal List ({selectedOrder.meals.filter(m => m.status !== 'cancelled').length} active / {selectedOrder.meals.length} total)
                                 </h3>
                                 <div className="border border-[var(--color-border)] rounded-xl overflow-hidden">
                                     <table className="w-full text-sm">
@@ -344,7 +367,7 @@ export default function Orders() {
                                                             <span className="text-2xl">{meal.image}</span>
                                                             <div>
                                                                 <p className={`font-semibold text-[var(--color-text-main)] ${meal.status === 'cancelled' ? 'line-through' : ''}`}>{meal.name}</p>
-                                                                <p className="text-xs text-[var(--color-text-muted)]">Category: {meal.category}</p>
+                                                                <p className="text-xs text-[var(--color-text-muted)]">{meal.category}</p>
                                                                 {meal.assignedChef && (
                                                                     <p className="text-xs text-blue-600 mt-0.5">👨‍🍳 {meal.assignedChef}</p>
                                                                 )}
@@ -358,27 +381,52 @@ export default function Orders() {
                                                         </span>
                                                     </td>
                                                     <td className="px-2 py-2">
-                                                        <div className="flex items-center justify-center gap-1.5">
-                                                            {/* Pending: Show Start Prepare + Cancel */}
+                                                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                                            {/* ── PENDING: Assign Chef + Start + Cancel ── */}
                                                             {meal.status === 'pending' && (
                                                                 <>
+                                                                    {/* Assign Chef */}
+                                                                    {assigningMealId === `${selectedOrder.id}-${meal.id}` ? (
+                                                                        <select
+                                                                            autoFocus
+                                                                            onChange={(e) => {
+                                                                                if (e.target.value) handleAssignChef(selectedOrder.id, meal.id, e.target.value);
+                                                                                else setAssigningMealId(null);
+                                                                            }}
+                                                                            onBlur={() => setAssigningMealId(null)}
+                                                                            className="text-[11px] px-2 py-1.5 border border-blue-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 min-w-[120px]"
+                                                                        >
+                                                                            <option value="">Pick a chef...</option>
+                                                                            {availableChefs.map(c => (
+                                                                                <option key={c.id} value={c.name}>{c.name}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    ) : (
+                                                                        <button
+                                                                            onClick={() => setAssigningMealId(`${selectedOrder.id}-${meal.id}`)}
+                                                                            className="flex items-center gap-1 px-2 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg text-[11px] font-semibold hover:bg-blue-100 transition-colors"
+                                                                            title="Assign Chef"
+                                                                        >
+                                                                            <UserPlus className="w-3 h-3" /> Assign
+                                                                        </button>
+                                                                    )}
                                                                     <button
                                                                         onClick={() => handleStartPrepare(selectedOrder.id, meal.id)}
-                                                                        className="flex items-center gap-1 px-2.5 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-[11px] font-semibold hover:bg-[var(--color-primary-dark)] transition-colors"
+                                                                        className="flex items-center gap-1 px-2 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-[11px] font-semibold hover:bg-[var(--color-primary-dark)] transition-colors"
                                                                         title="Start Prepare"
                                                                     >
                                                                         <Play className="w-3 h-3" /> Start
                                                                     </button>
                                                                     <button
                                                                         onClick={() => setCancelModal({ open: true, mealId: meal.id, orderId: selectedOrder.id })}
-                                                                        className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 text-red-500 border border-red-200 rounded-lg text-[11px] font-semibold hover:bg-red-100 transition-colors"
+                                                                        className="flex items-center gap-1 px-2 py-1.5 bg-red-50 text-red-500 border border-red-200 rounded-lg text-[11px] font-semibold hover:bg-red-100 transition-colors"
                                                                         title="Cancel Meal"
                                                                     >
                                                                         <XCircle className="w-3 h-3" /> Cancel
                                                                     </button>
                                                                 </>
                                                             )}
-                                                            {/* Preparing: Show Mark Completed */}
+                                                            {/* ── PREPARING: Complete ── */}
                                                             {meal.status === 'preparing' && (
                                                                 <button
                                                                     onClick={() => handleMarkCompleted(selectedOrder.id, meal.id)}
@@ -388,11 +436,11 @@ export default function Orders() {
                                                                     <CheckCircle2 className="w-3 h-3" /> Complete
                                                                 </button>
                                                             )}
-                                                            {/* Completed: Show checkmark */}
+                                                            {/* ── COMPLETED ── */}
                                                             {meal.status === 'completed' && (
-                                                                <span className="text-green-500"><CheckCircle2 className="w-4 h-4" /></span>
+                                                                <span className="text-green-500 flex items-center gap-1 text-xs"><CheckCircle2 className="w-3.5 h-3.5" /> Done</span>
                                                             )}
-                                                            {/* Cancelled: Show X */}
+                                                            {/* ── CANCELLED ── */}
                                                             {meal.status === 'cancelled' && (
                                                                 <span className="text-red-400 text-xs">Cancelled</span>
                                                             )}
@@ -409,7 +457,7 @@ export default function Orders() {
                 </div>
             </div>
 
-            {/* Cancel Meal Modal */}
+            {/* ── Cancel Meal Modal ── */}
             {cancelModal.open && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setCancelModal({ open: false, mealId: null, orderId: null })}>
                     <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-slide-up" onClick={e => e.stopPropagation()}>
@@ -419,7 +467,7 @@ export default function Orders() {
                                 <X className="w-5 h-5 text-[var(--color-text-muted)]" />
                             </button>
                         </div>
-                        <p className="text-sm text-[var(--color-text-muted)] mb-4">Please provide a reason for cancellation. This will be sent to the receptionist and customer.</p>
+                        <p className="text-sm text-[var(--color-text-muted)] mb-4">Please provide a reason. This will be sent to the receptionist and customer.</p>
                         <select
                             value={cancelReason}
                             onChange={e => setCancelReason(e.target.value)}
@@ -435,21 +483,66 @@ export default function Orders() {
                             className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                         />
                         <div className="flex gap-3 mt-5">
-                            <button
-                                onClick={() => setCancelModal({ open: false, mealId: null, orderId: null })}
-                                className="flex-1 py-2.5 bg-slate-100 text-[var(--color-text-main)] rounded-xl font-semibold text-sm hover:bg-slate-200 transition-colors"
-                            >Cancel</button>
+                            <button onClick={() => setCancelModal({ open: false, mealId: null, orderId: null })} className="flex-1 py-2.5 bg-slate-100 text-[var(--color-text-main)] rounded-xl font-semibold text-sm hover:bg-slate-200 transition-colors">
+                                Back
+                            </button>
                             <button
                                 onClick={handleCancelMeal}
                                 disabled={!cancelReason && !cancelReasonText.trim()}
                                 className="flex-1 py-2.5 bg-[var(--color-status-cancelled)] text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            >Submit</button>
+                            >
+                                Cancel Meal
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Error Modal (Not enough ingredients) */}
+            {/* ── Cancel ORDER Modal ── */}
+            {cancelOrderModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setCancelOrderModal({ open: false, orderId: null })}>
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-slide-up" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                                <Ban className="w-5 h-5 text-red-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-[var(--color-text-main)]">Cancel Entire Order</h3>
+                                <p className="text-xs text-[var(--color-text-muted)]">Order #{cancelOrderModal.orderId}</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-[var(--color-text-muted)] mb-4">This will cancel <strong>all meals</strong> in this order. A notification will be sent to the receptionist and customer.</p>
+                        <select
+                            value={cancelReason}
+                            onChange={e => setCancelReason(e.target.value)}
+                            className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                        >
+                            <option value="">Select a reason...</option>
+                            {cancelReasons.map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                        <textarea
+                            value={cancelReasonText}
+                            onChange={e => setCancelReasonText(e.target.value)}
+                            placeholder="Additional details (optional)..."
+                            className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                        />
+                        <div className="flex gap-3 mt-5">
+                            <button onClick={() => setCancelOrderModal({ open: false, orderId: null })} className="flex-1 py-2.5 bg-slate-100 text-[var(--color-text-main)] rounded-xl font-semibold text-sm hover:bg-slate-200 transition-colors">
+                                Back
+                            </button>
+                            <button
+                                onClick={handleCancelOrder}
+                                disabled={!cancelReason && !cancelReasonText.trim()}
+                                className="flex-1 py-2.5 bg-[var(--color-status-cancelled)] text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                Cancel Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Error Modal (Not enough ingredients) ── */}
             {errorModal.open && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setErrorModal({ open: false, items: [] })}>
                     <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-slide-up" onClick={e => e.stopPropagation()}>
@@ -473,7 +566,7 @@ export default function Orders() {
                 </div>
             )}
 
-            {/* Success Toast */}
+            {/* ── Success Toast ── */}
             {successToast && (
                 <div className="fixed top-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg animate-slide-in text-sm font-semibold flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
