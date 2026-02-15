@@ -68,9 +68,7 @@ export default function Layout({ children }) {
             >
                 {/* Logo */}
                 <div className={`flex items-center gap-3 px-5 py-5 border-b border-white/10 ${collapsed ? 'justify-center px-3' : ''}`}>
-                    <div className="w-9 h-9 bg-[var(--color-primary)] rounded-xl flex items-center justify-center flex-shrink-0">
-                        <ChefHat className="w-5 h-5 text-white" />
-                    </div>
+                    <img src="/logo.png" alt="Logo" className="w-9 h-9 rounded-xl object-contain flex-shrink-0" />
                     {!collapsed && (
                         <div className="min-w-0">
                             <h1 className="text-sm font-bold truncate">Chief Chef Panel</h1>
@@ -133,9 +131,7 @@ export default function Layout({ children }) {
 
                 {/* User info */}
                 <div className={`px-4 py-4 border-t border-white/10 flex items-center gap-3 ${collapsed ? 'justify-center px-2' : ''}`}>
-                    <div className="w-9 h-9 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
-                        <User className="w-5 h-5 text-slate-300" />
-                    </div>
+                    <img src="/logo.png" alt="User" className="w-9 h-9 rounded-full object-contain flex-shrink-0 bg-slate-600 p-0.5" />
                     {!collapsed && (
                         <div className="min-w-0">
                             <p className="text-sm font-semibold truncate">Marcus Vane</p>
@@ -184,9 +180,7 @@ export default function Layout({ children }) {
                                 <p className="text-xs text-[var(--color-primary)] font-semibold uppercase">Chef Alexander</p>
                                 <p className="text-xs text-[var(--color-text-muted)]">Executive Chef</p>
                             </div>
-                            <div className="w-9 h-9 rounded-full bg-[var(--color-bg-light)] border-2 border-[var(--color-border)] flex items-center justify-center">
-                                <User className="w-4 h-4 text-[var(--color-text-muted)]" />
-                            </div>
+                            <img src="/logo.png" alt="User" className="w-9 h-9 rounded-full object-contain border-2 border-[var(--color-border)] bg-[var(--color-bg-light)] p-0.5" />
                         </div>
                     </div>
                 </header>
