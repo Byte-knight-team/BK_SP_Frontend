@@ -176,7 +176,16 @@ export default function Chefs() {
                         </div>
                         <div className="space-y-3">
                             <input value={newChef.name} onChange={e => setNewChef({ ...newChef, name: e.target.value })} placeholder="Chef Name" className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" />
-                            <input value={newChef.role} onChange={e => setNewChef({ ...newChef, role: e.target.value })} placeholder="Role (e.g., Line Cook)" className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" />
+                            <select
+                                value={newChef.role}
+                                onChange={e => setNewChef({ ...newChef, role: e.target.value })}
+                                className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 bg-white"
+                            >
+                                <option value="" disabled>Select Role</option>
+                                {['Executive Chef', 'Sous Chef', 'Line Cook', 'Pastry Chef', 'Grill Master', 'Trainee'].map(role => (
+                                    <option key={role} value={role}>{role}</option>
+                                ))}
+                            </select>
                             <input value={newChef.phone} onChange={e => setNewChef({ ...newChef, phone: e.target.value })} placeholder="Phone" className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" />
                             <input value={newChef.email} onChange={e => setNewChef({ ...newChef, email: e.target.value })} placeholder="Email" className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" />
                             <select value={newChef.shift} onChange={e => setNewChef({ ...newChef, shift: e.target.value })} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none">
