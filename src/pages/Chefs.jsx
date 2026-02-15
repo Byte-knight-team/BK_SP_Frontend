@@ -52,6 +52,18 @@ export default function Chefs() {
         setNewChef({ name: '', role: '', phone: '', email: '', shift: 'Morning' });
     };
 
+    const handleStatusToggle = (chefId) => {
+        setChefList(prevList => prevList.map(chef => {
+            if (chef.id === chefId) {
+                const newStatus = chef.status === 'available' ? 'busy'
+                    : chef.status === 'busy' ? 'offline'
+                        : 'available';
+                return { ...chef, status: newStatus };
+            }
+            return chef;
+        }));
+    };
+
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
@@ -130,10 +142,14 @@ export default function Chefs() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.bg} ${style.text}`}>
+                                            <button
+                                                onClick={() => handleStatusToggle(chef.id)}
+                                                title="Click to change status"
+                                                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.bg} ${style.text} hover:opacity-80 transition-opacity`}
+                                            >
                                                 <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                                                 {style.label}
-                                            </span>
+                                            </button>
                                         </td>
                                         <td className="px-4 py-4 text-center font-bold text-[var(--color-text-main)]">{chef.mealsAssigned}</td>
                                         <td className="px-4 py-4">
