@@ -1,0 +1,363 @@
+/* ===== ADD MENU ITEM PAGE ===== */
+.add-menu-item {
+    padding: 32px;
+    max-width: 1200px;
+}
+
+/* Header */
+.add-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+}
+
+.add-menu-header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.add-menu-back-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #1a1a2e;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-top: 2px;
+    transition: background 0.15s;
+}
+
+.add-menu-back-btn:hover {
+    background: #f0f0f0;
+}
+
+.add-menu-header-text h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.add-menu-header-text p {
+    font-size: 14px;
+    color: #8e8ea9;
+    font-weight: 400;
+}
+
+.add-menu-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-cancel {
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: 1px solid #e5e5ea;
+    background: #ffffff;
+    color: #1a1a2e;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.btn-cancel:hover {
+    background: #f5f5f7;
+}
+
+.btn-create-item {
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: none;
+    background: #ff6b00;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.btn-create-item:hover {
+    background: #e55f00;
+}
+
+/* ===== FORM LAYOUT ===== */
+.add-menu-content {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+}
+
+/* ===== GENERAL INFORMATION CARD ===== */
+.general-info-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 28px;
+    border: 1px solid #f0f0f2;
+}
+
+.general-info-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 24px;
+}
+
+.general-info-title-icon {
+    width: 22px;
+    height: 22px;
+    color: #ff6b00;
+}
+
+/* Form fields */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #e5e5ea;
+    background: #ffffff;
+    font-size: 14px;
+    color: #1a1a2e;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.form-input::placeholder {
+    color: #b0b0c0;
+}
+
+.form-input:focus {
+    border-color: #ff6b00;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #e5e5ea;
+    background: #ffffff;
+    font-size: 14px;
+    color: #1a1a2e;
+    font-family: inherit;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.form-select:focus {
+    border-color: #ff6b00;
+}
+
+.form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #e5e5ea;
+    background: #ffffff;
+    font-size: 14px;
+    color: #1a1a2e;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.form-textarea::placeholder {
+    color: #b0b0c0;
+}
+
+.form-textarea:focus {
+    border-color: #ff6b00;
+}
+
+/* ===== RIGHT COLUMN ===== */
+.add-menu-right {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Item Image Card */
+.image-upload-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #f0f0f2;
+}
+
+.image-upload-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+}
+
+.image-upload-area {
+    border: 2px dashed #e5e5ea;
+    border-radius: 12px;
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.image-upload-area:hover {
+    border-color: #ff6b00;
+    background: #fff9f5;
+}
+
+.image-upload-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f5f5f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8e8ea9;
+    margin-bottom: 12px;
+}
+
+.image-upload-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.image-upload-sub {
+    font-size: 12px;
+    color: #8e8ea9;
+}
+
+/* Visibility Card */
+.visibility-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #f0f0f2;
+}
+
+.visibility-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 16px;
+}
+
+.visibility-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.visibility-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: 1px solid #f0f0f2;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: -1px;
+    background: #ffffff;
+}
+
+.visibility-option:first-child {
+    border-radius: 10px 10px 0 0;
+}
+
+.visibility-option:last-child {
+    border-radius: 0 0 10px 10px;
+    margin-bottom: 0;
+}
+
+.visibility-option:hover {
+    background: #fafafa;
+}
+
+.visibility-option.selected {
+    background: #fff9f5;
+    border-color: #ff6b00;
+    z-index: 1;
+}
+
+.visibility-option-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a2e;
+}
+
+.visibility-option.selected .visibility-option-label {
+    color: #ff6b00;
+    font-weight: 600;
+}
+
+.visibility-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #e5e5ea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+
+.visibility-option.selected .visibility-radio {
+    border-color: #ff6b00;
+}
+
+.visibility-radio-inner {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background 0.15s;
+}
+
+.visibility-option.selected .visibility-radio-inner {
+    background: #ff6b00;
+}
