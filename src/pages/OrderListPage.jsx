@@ -78,8 +78,8 @@ export default function OrderListPage() {
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.key
-                                ? "text-orange-500 border-orange-500"
-                                : "text-gray-400 border-transparent hover:text-gray-600"
+                            ? "text-orange-500 border-orange-500"
+                            : "text-gray-400 border-transparent hover:text-gray-600"
                             }`}
                     >
                         {tabIcons[tab.icon]}

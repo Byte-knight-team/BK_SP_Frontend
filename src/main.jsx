@@ -8,6 +8,7 @@ import ReceptionistDashboard from "./pages/ReceptionistDashboard";
 import OrderListPage from "./pages/OrderListPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import TableManagementPage from "./pages/TableManagementPage";
+import StatisticsPage from "./pages/StatisticsPage";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -20,8 +21,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="orders" element={<OrderListPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
           <Route path="tables" element={<TableManagementPage />} />
+          <Route path="statistics" element={<StatisticsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
 );
+
