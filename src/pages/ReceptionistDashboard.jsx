@@ -86,6 +86,7 @@ export default function ReceptionistDashboard() {
             label: "REQUIRES ACTION",
             value: stats.openCount,
             subtitle: "Open Orders",
+            link: "/reception/orders?tab=OPEN",
             icon: (
                 <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -97,6 +98,7 @@ export default function ReceptionistDashboard() {
             label: "READY TO CLOSE",
             value: stats.paidCount,
             subtitle: "Paid Tabs",
+            link: "/reception/orders?tab=PAID",
             icon: (
                 <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -108,6 +110,7 @@ export default function ReceptionistDashboard() {
             label: "COMPLETED",
             value: stats.closedCount,
             subtitle: "Closed Today",
+            link: "/reception/orders?tab=CLOSED",
             icon: (
                 <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -119,6 +122,7 @@ export default function ReceptionistDashboard() {
             label: "VOIDED",
             value: stats.cancelledCount,
             subtitle: "Cancelled",
+            link: "/reception/orders?tab=CANCELLED",
             icon: (
                 <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -179,7 +183,8 @@ export default function ReceptionistDashboard() {
                 {statCards.map((card, i) => (
                     <div
                         key={i}
-                        className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow"
+                        onClick={() => navigate(card.link)}
+                        className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow cursor-pointer"
                     >
                         <div className="flex items-center justify-between mb-4">
                             <div className={`w-10 h-10 rounded-lg ${card.iconBg} flex items-center justify-center`}>

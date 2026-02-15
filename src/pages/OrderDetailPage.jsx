@@ -214,33 +214,56 @@ export default function OrderDetailPage() {
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
                         <h3 className="text-base font-bold text-gray-900 mb-4">Actions</h3>
                         <div className="space-y-3">
-                            <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-yellow-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-yellow-50 transition-colors">
-                                <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
-                                Send to Kitchen
-                            </button>
+                            {/* Send to Kitchen — only for OPEN */}
+                            {order.status === "OPEN" && (
+                                <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-yellow-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-yellow-50 transition-colors">
+                                    <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                    Send to Kitchen
+                                </button>
+                            )}
+
+                            {/* Print Receipt — always visible */}
                             <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-yellow-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-yellow-50 transition-colors">
                                 <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                 </svg>
                                 Print Receipt
                             </button>
-                            <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-green-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-green-50 transition-colors">
-                                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Mark as Paid
-                            </button>
-                            <button
-                                onClick={() => setShowCancelModal(true)}
-                                className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-500 text-white rounded-lg font-medium text-sm hover:bg-red-600 transition-colors"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Cancel Order
-                            </button>
+
+                            {/* Mark as Paid — only for OPEN */}
+                            {order.status === "OPEN" && (
+                                <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-green-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-green-50 transition-colors">
+                                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Mark as Paid
+                                </button>
+                            )}
+
+                            {/* Close Order — only for PAID */}
+                            {order.status === "PAID" && (
+                                <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-blue-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-blue-50 transition-colors">
+                                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    Close Order
+                                </button>
+                            )}
+
+                            {/* Cancel Order — only for OPEN or PAID */}
+                            {(order.status === "OPEN" || order.status === "PAID") && (
+                                <button
+                                    onClick={() => setShowCancelModal(true)}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-500 text-white rounded-lg font-medium text-sm hover:bg-red-600 transition-colors"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Cancel Order
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
