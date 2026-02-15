@@ -7,6 +7,7 @@ import ReceptionLayout from "./components/layout/ReceptionLayout";
 import ReceptionistDashboard from "./pages/ReceptionistDashboard";
 import OrderListPage from "./pages/OrderListPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
+import TableManagementPage from "./pages/TableManagementPage";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="dashboard" element={<ReceptionistDashboard />} />
           <Route path="orders" element={<OrderListPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+          <Route path="tables" element={<TableManagementPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
