@@ -1,4 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap');
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;800&display=swap');
+
+@theme {
+  --color-primary: #e64919;
+  --color-bg-light: #f8f6f6;
+  --color-bg-dark: #211511;
+  --color-text-main: #1b110e;
+  --color-text-muted: #975f4e;
+}
 
 :root {
   --orange: #FF6B35;
@@ -36,6 +45,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 html {
