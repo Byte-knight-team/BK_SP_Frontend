@@ -40,16 +40,38 @@ const roleLabels = {
   delivery_driver: "DELIVERY DRIVER",
 };
 
-export default function Sidebar({ activePage, onPageChange, onLogout, user }) {
+export default function Sidebar({ activePage, 
+                                  onPageChange, 
+                                  onLogout, 
+                                  user,
+                                  isCollapsed,
+                                  onToggle}) {
   return (
-    <div className="w-56 bg-white h-screen flex flex-col border-r border-gray-100">
+    <div
+      className={`${
+      isCollapsed ? "w-20 items-center" : "w-56"
+      } bg-white h-screen flex flex-col border-r border-gray-100 transition-all duration-300`}
+    >
+
+
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-100">
         <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-          <span className="text-white text-lg">🔥</span>
+          <span className="text-white text-xl">🔥</span>
         </div>
-        <span className="font-bold text-gray-800">CRAVE<span className="text-orange-500">HOUSE</span></span>
-        <button className="ml-auto text-gray-400 hover:text-gray-600">×</button>
+        {!isCollapsed && (
+          <span className="font-bold text-gray-800">
+          CRAVE<span className="text-orange-500">HOUSE</span>
+          </span>
+        )}
+
+        <button
+          onClick={onToggle}
+          className="ml-auto w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+        >
+          {isCollapsed ? "☰" : "X"}
+        </button>
+
       </div>
 
       {/* Navigation */}
@@ -60,14 +82,15 @@ export default function Sidebar({ activePage, onPageChange, onLogout, user }) {
             <button
               key={item.label}
               onClick={() => onPageChange(item.page)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-orange-500 text-white"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
+              className={`w-full flex items-center ${
+                isCollapsed ? "justify-center" : "gap-3"
+              } px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                isActive ? "bg-orange-500 text-white" : "text-gray-700 hover:bg-orange-500 hover:text-white"
+
+              }`}              
             >
               {icons[item.icon]}
-              <span>{item.label}</span>
+              {!isCollapsed && <span classname= "font-bold">{item.label}</span>}
               {isActive && (
                 <span className="ml-auto w-2 h-2 bg-white rounded-full"></span>
               )}
@@ -77,21 +100,47 @@ export default function Sidebar({ activePage, onPageChange, onLogout, user }) {
       </nav>
 
       {/* User Profile */}
-      <div className="px-4 py-4 border-t border-gray-100">
-        <div className="flex items-center gap-3">
+      <div className="px-4 py-4 border-t border-gray-100"> {/*if the sidebar is collapsed, then center the user profile.*/}
+        <div className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3"}`}>  
+
           <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
             <img src="https://i.pravatar.cc/40?img=3" alt="User" className="w-full h-full object-cover" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-800">{user?.email?.split("@")[0] || "Staff"}</p>
-            <p className="text-xs text-orange-500">{roleLabels[user?.role] || "SUPER ADMIN"}</p>
-          </div>
+        
+          {!isCollapsed && ( // if the sidebar is not collapsed, then show the user profile.
+            <div>
+              <p className="text-sm font-semibold text-gray-800">
+                {user?.email?.split("@")[0] || "User"}
+              </p>
+              <p className="text-sm font-bold text-orange-500">
+                {roleLabels[user?.role] || "SUPER ADMIN"}
+              </p>
+            </div>
+          )}
+
         </div>
-        <button onClick={onLogout} className="flex items-center gap-2 mt-4 text-red-500 text-sm font-medium hover:text-red-600">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        <button
+          onClick={onLogout}
+          className={`mt-4 w-full flex items-center ${
+            isCollapsed
+              ? "justify-center"
+              : "gap-3"
+          } px-3 py-2.5 rounded-lg text-sm font-bold transition-colors
+          text-red-500 hover:text-white hover:bg-red-500`}
+          
+        >
+
+          <svg className="w-5 h-5" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24">
+
+            <path strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          Logout
+          {!isCollapsed && "Logout"}
         </button>
       </div>
     </div>

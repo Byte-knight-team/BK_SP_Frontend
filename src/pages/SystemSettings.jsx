@@ -48,17 +48,6 @@ export default function SystemSettings() {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Restaurant Name
-              </label>
-              <input
-                type="text"
-                value={config.restaurantName}
-                onChange={(e) => setConfig({ ...config, restaurantName: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Service Tax (%)
               </label>
               <input

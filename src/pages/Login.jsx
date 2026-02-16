@@ -104,7 +104,7 @@ export default function Login({ onLogin }) {
                 </button>
               </form>
             </div>
-            <p className="text-center text-sm text-gray-500 mt-8">Don&apos;t have an account? <a href="#" className="text-orange-500 hover:text-orange-600 font-medium">Register</a></p>
+            <p className="text-center text-sm text-gray-500 mt-8">Don&apos;t have an account? <a href="#" className="text-orange-500 hover:text-orange-600 font-medium">Activate Your Account</a></p>
           </div>
         </div>
       </div>

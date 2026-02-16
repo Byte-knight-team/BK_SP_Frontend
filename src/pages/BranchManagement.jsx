@@ -10,7 +10,7 @@ const branches = [
     revenue: "1,245,000",
     orders: 142,
     workingHours: "08:00 AM - 08:00 PM",
-    manager: "Nimal Kumara",
+    // manager: "Nimal Kumara",
     phone: "+94-770404174",
     image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=300&fit=crop",
   },
@@ -23,7 +23,7 @@ const branches = [
     revenue: "812,000",
     orders: 89,
     workingHours: "08:00 AM - 08:00 PM",
-    manager: "Sumudu Saman",
+    // manager: "Sumudu Saman",
     phone: "+94-771548652",
     image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&h=300&fit=crop",
   },
@@ -51,9 +51,6 @@ export default function BranchManagement() {
             {/* Image */}
             <div className="relative h-48">
               <img src={branch.image} alt={branch.name} className="w-full h-full object-cover" />
-              <span className={`absolute top-4 left-4 px-3 py-1 ${branch.statusColor} text-white text-xs font-bold rounded-md uppercase`}>
-                {branch.status}
-              </span>
               <button className="absolute top-4 right-4 p-2 bg-white/80 rounded-lg hover:bg-white">
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
@@ -105,15 +102,14 @@ export default function BranchManagement() {
                   </span>
                   <span className="font-medium text-gray-900">{branch.workingHours}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                 {/* className="flex items-center justify-between">
                   <span className="text-gray-500 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    Branch Manager
                   </span>
-                  <span className="font-medium text-gray-900">{branch.manager}</span>
-                </div>
+                  {/* <span className="font-medium text-gray-900">{branch.manager}</span> */}
+          
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
