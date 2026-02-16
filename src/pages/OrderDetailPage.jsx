@@ -269,17 +269,53 @@ export default function OrderDetailPage() {
                 </div>
             </div>
 
-            {/* Footer Info — only for OPEN */}
-            {order.status === "OPEN" && (
-                <div className="bg-orange-50 border border-orange-200 rounded-xl px-5 py-4 flex items-center gap-3">
-                    <svg className="w-5 h-5 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-sm text-gray-600">
-                        Waiting for chef assignment. The chief chef will assign chefs to prepare this order soon.
-                    </p>
-                </div>
-            )}
+            {/* Footer Info */}
+            <div className={`border rounded-xl px-5 py-4 flex items-center gap-3 ${order.status === "OPEN" ? "bg-orange-50 border-orange-200" :
+                    order.status === "PAID" ? "bg-green-50 border-green-200" :
+                        order.status === "CLOSED" ? "bg-gray-50 border-gray-200" :
+                            "bg-red-50 border-red-200"
+                }`}>
+                {order.status === "OPEN" && (
+                    <>
+                        <svg className="w-5 h-5 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-sm text-gray-600">
+                            Waiting for chef assignment. The chief chef will assign chefs to prepare this order soon.
+                        </p>
+                    </>
+                )}
+                {order.status === "PAID" && (
+                    <>
+                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-sm text-green-700">
+                            Payment received. Validated by cashier. You can now close this order.
+                        </p>
+                    </>
+                )}
+                {order.status === "CLOSED" && (
+                    <>
+                        <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <p className="text-sm text-gray-600">
+                            This order has been completed and archived. No further actions are required.
+                        </p>
+                    </>
+                )}
+                {order.status === "CANCELLED" && (
+                    <>
+                        <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-sm text-red-600">
+                            This order was cancelled. Reason: {order.cancellationReason || "No reason provided."}
+                        </p>
+                    </>
+                )}
+            </div>
 
             {/* Modals */}
             {showEditModal && (
