@@ -59,10 +59,29 @@ export default function MenuRecipes() {
         }));
     };
 
+    const handleAddNewItem = () => {
+        setEditData({
+            id: Date.now(), // Temporary ID for new item
+            name: '',
+            category: 'Main Course',
+            price: 0,
+            status: 'draft',
+            ingredients: [{ name: '', qty: 0, unit: 'g' }],
+            prepSteps: '',
+            totalCost: 0,
+            foodCostPercent: 0
+        });
+    };
+
     const handleSubmitForApproval = () => {
-        setMenuList(prev => prev.map(i =>
-            i.id === editData.id ? { ...editData, status: 'pending' } : i
-        ));
+        setMenuList(prev => {
+            const exists = prev.find(i => i.id === editData.id);
+            if (exists) {
+                return prev.map(i => i.id === editData.id ? { ...editData, status: 'pending' } : i);
+            } else {
+                return [...prev, { ...editData, status: 'pending' }];
+            }
+        });
         showToast('Changes submitted for admin approval');
         setSelectedItem(null);
         setEditData(null);
@@ -78,10 +97,18 @@ export default function MenuRecipes() {
     return (
         <div className="animate-fade-in h-full flex flex-col">
             {/* Header */}
-            <div className="mb-5">
-                <p className="text-xs text-[var(--color-text-muted)] mb-1">Management &gt; Menu & Recipes</p>
-                <h1 className="text-2xl font-bold text-[var(--color-text-main)]">Recipe Library</h1>
-                <p className="text-sm text-[var(--color-text-muted)]">Manage ingredients and costing for your active menu items.</p>
+            <div className="mb-5 flex items-center justify-between">
+                <div>
+                    <p className="text-xs text-[var(--color-text-muted)] mb-1">Management &gt; Menu & Recipes</p>
+                    <h1 className="text-2xl font-bold text-[var(--color-text-main)]">Recipe Library</h1>
+                    <p className="text-sm text-[var(--color-text-muted)]">Manage ingredients and costing for your active menu items.</p>
+                </div>
+                <button
+                    onClick={handleAddNewItem}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors shadow-lg shadow-[var(--color-primary)]/20"
+                >
+                    <Plus className="w-4 h-4" /> Request New Menu Item
+                </button>
             </div>
 
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-4 min-h-0">
@@ -110,7 +137,6 @@ export default function MenuRecipes() {
                                         >
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-2xl">{item.image}</span>
                                                     <span className="font-semibold text-[var(--color-text-main)]">{item.name}</span>
                                                 </div>
                                             </td>
@@ -137,9 +163,10 @@ export default function MenuRecipes() {
                     <div className="bg-white rounded-2xl border border-[var(--color-border)] overflow-y-auto animate-slide-in flex flex-col">
                         <div className="p-5 border-b border-[var(--color-border)] flex items-start justify-between">
                             <div className="flex items-center gap-3">
-                                <span className="text-3xl">{editData.image}</span>
                                 <div>
-                                    <h3 className="font-bold text-[var(--color-text-main)]">Edit Recipe: {editData.name}</h3>
+                                    <h3 className="font-bold text-[var(--color-text-main)]">
+                                        {editData.name ? `Edit: ${editData.name}` : 'New Menu Item'}
+                                    </h3>
                                     <p className="text-xs text-[var(--color-text-muted)]">Category: {editData.category}</p>
                                 </div>
                             </div>
@@ -154,6 +181,44 @@ export default function MenuRecipes() {
                         </div>
 
                         <div className="p-5 flex-1 overflow-y-auto space-y-5">
+                            {/* Basic Info for New Items */}
+                            {!editData.name && (
+                                <div className="space-y-3 p-4 bg-slate-50 rounded-xl">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]">Basic Details</p>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Recipe Name</label>
+                                        <input
+                                            value={editData.name}
+                                            onChange={e => setEditData({ ...editData, name: e.target.value })}
+                                            className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                            placeholder="e.g. Spicy Chicken Pasta"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Category</label>
+                                        <select
+                                            value={editData.category}
+                                            onChange={e => setEditData({ ...editData, category: e.target.value })}
+                                            className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                        >
+                                            <option>Main Course</option>
+                                            <option>Appetizer</option>
+                                            <option>Dessert</option>
+                                            <option>Beverage</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Selling Price ($)</label>
+                                        <input
+                                            type="number"
+                                            value={editData.price}
+                                            onChange={e => setEditData({ ...editData, price: parseFloat(e.target.value) || 0 })}
+                                            className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Ingredient Mapping */}
                             <div>
                                 <div className="flex items-center justify-between mb-3">

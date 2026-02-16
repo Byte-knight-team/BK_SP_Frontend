@@ -10,6 +10,7 @@ import {
     Eye,
     ChevronLeft,
     ChevronRight,
+    AlertTriangle,
 } from 'lucide-react';
 import { chefs as initialChefs } from '../data/mockData';
 
@@ -210,7 +211,10 @@ export default function Chefs() {
                                 <option>Night</option>
                             </select>
                         </div>
-                        <p className="text-xs text-[var(--color-text-muted)] mt-3">⚠️ This request will be sent to admin for approval.</p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-3 flex items-center gap-1.5">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                            This request will be sent to admin for approval.
+                        </p>
                         <div className="flex gap-3 mt-5">
                             <button onClick={() => setShowAddModal(false)} className="flex-1 py-2.5 bg-slate-100 rounded-xl font-semibold text-sm">Cancel</button>
                             <button onClick={handleAddChef} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors">Submit Request</button>

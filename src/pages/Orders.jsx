@@ -12,6 +12,7 @@ import {
     X,
     Ban,
     UserPlus,
+    Utensils,
 } from 'lucide-react';
 import { allOrders, chefs } from '../data/mockData';
 import orderService from '../services/orderService';
@@ -82,7 +83,7 @@ export default function Orders() {
                         category: i.categoryName || 'Main Course',
                         qty: i.quantity,
                         status: orderStatus === 'placed' ? 'pending' : orderStatus, // Inherit order status
-                        image: '🍔' // Placeholder
+                        // image: placeholder removed
                     })) : [],
                     timeline: {
                         received: o.createdAt,
@@ -110,10 +111,33 @@ export default function Orders() {
     };
 
     let filteredOrders = orders.filter(o => o.status === activeTab);
+
+    // Time Filter
+    const now = new Date();
+    if (timeFilter === '30m') {
+        const thirtyMinsAgo = new Date(now - 30 * 60 * 1000);
+        filteredOrders = filteredOrders.filter(o => new Date(o.timeline.received) >= thirtyMinsAgo);
+    } else if (timeFilter === '1h') {
+        const oneHourAgo = new Date(now - 60 * 60 * 1000);
+        filteredOrders = filteredOrders.filter(o => new Date(o.timeline.received) >= oneHourAgo);
+    } else if (timeFilter === 'today') {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        filteredOrders = filteredOrders.filter(o => new Date(o.timeline.received) >= todayStart);
+    }
+
+    // Meal Count Filter
     if (mealCountFilter === '1-2') filteredOrders = filteredOrders.filter(o => o.meals.length <= 2);
     else if (mealCountFilter === '3-5') filteredOrders = filteredOrders.filter(o => o.meals.length >= 3 && o.meals.length <= 5);
     else if (mealCountFilter === '6+') filteredOrders = filteredOrders.filter(o => o.meals.length >= 6);
-    if (sortBy === 'oldest') filteredOrders = [...filteredOrders].reverse();
+
+    // Sorting
+    filteredOrders.sort((a, b) => {
+        const dateA = new Date(a.timeline.received);
+        const dateB = new Date(b.timeline.received);
+        if (sortBy === 'newest') return dateB - dateA; // Descending
+        return dateA - dateB; // Ascending
+    });
 
     const selectedOrder = orders.find(o => o.id === selectedOrderId);
 
@@ -323,7 +347,7 @@ export default function Orders() {
                                     <p className="text-base font-bold text-[var(--color-text-main)]">{order.orderNumber}</p>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
-                                            🍽️ {order.meals.length} Items
+                                            <Utensils className="w-3 h-3" /> {order.meals.length} Items
                                         </span>
                                         <div className="flex items-center gap-1">
                                             {order.customerNotes && <MessageSquare className="w-3.5 h-3.5 text-[var(--color-status-pending)]" />}

@@ -59,7 +59,7 @@ export default function Layout({ children }) {
             <aside
                 className={`
           fixed lg:static inset-y-0 left-0 z-50
-          bg-[var(--color-sidebar)] text-white
+          bg-[var(--color-sidebar)] text-[var(--color-text-main)] border-r border-[var(--color-border)]
           flex flex-col
           transition-all duration-300
           ${collapsed ? 'w-[72px]' : 'w-[250px]'}
@@ -67,7 +67,7 @@ export default function Layout({ children }) {
         `}
             >
                 {/* Logo */}
-                <div className={`flex items-center gap-3 px-5 py-5 border-b border-white/10 ${collapsed ? 'justify-center px-3' : ''}`}>
+                <div className={`flex items-center gap-3 px-5 py-5 border-b border-[var(--color-border)] ${collapsed ? 'justify-center px-3' : ''}`}>
                     <img src="/logo.png" alt="Logo" className="w-9 h-9 rounded-xl object-contain flex-shrink-0" />
                     {!collapsed && (
                         <div className="min-w-0">
@@ -91,7 +91,7 @@ export default function Layout({ children }) {
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                   ${active
                                         ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/30'
-                                        : 'text-slate-300 hover:bg-[var(--color-sidebar-hover)] hover:text-white'
+                                        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-primary)]'
                                     }
                   ${collapsed ? 'justify-center px-2' : ''}
                 `}
@@ -117,7 +117,7 @@ export default function Layout({ children }) {
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                   ${active
                                         ? 'bg-[var(--color-primary)] text-white'
-                                        : 'text-slate-300 hover:bg-[var(--color-sidebar-hover)] hover:text-white'
+                                        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-primary)]'
                                     }
                   ${collapsed ? 'justify-center px-2' : ''}
                 `}
@@ -130,21 +130,25 @@ export default function Layout({ children }) {
                 </div>
 
                 {/* User info */}
-                <div className={`px-4 py-4 border-t border-white/10 flex items-center gap-3 ${collapsed ? 'justify-center px-2' : ''}`}>
-                    <img src="/logo.png" alt="User" className="w-9 h-9 rounded-full object-contain flex-shrink-0 bg-slate-600 p-0.5" />
+                <div className={`mx-3 mb-3 p-3 bg-slate-50 border border-[var(--color-border)] rounded-2xl flex items-center gap-3 ${collapsed ? 'justify-center p-2' : ''}`}>
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                        IU
+                    </div>
                     {!collapsed && (
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold truncate">Isuru Udara</p>
-                            <p className="text-xs text-slate-400 truncate">Chief Chef</p>
+                            <h4 className="text-sm font-bold text-[var(--color-text-main)] truncate">Isuru Udara</h4>
+                            <p className="text-xs text-[var(--color-text-muted)] truncate">Chief Chef</p>
                         </div>
                     )}
-                    <button
-                        onClick={() => { /* TODO: wire to actual logout logic */ console.log('Logout clicked'); }}
-                        title="Logout"
-                        className="p-2 rounded-xl text-slate-400 hover:bg-red-500/20 hover:text-red-400 transition-all flex-shrink-0"
-                    >
-                        <LogOut className="w-4.5 h-4.5" />
-                    </button>
+                    {!collapsed && (
+                        <button
+                            onClick={() => { console.log('Logout clicked'); }}
+                            title="Logout"
+                            className="p-1.5 text-slate-400 hover:text-[var(--color-primary)] transition-colors"
+                        >
+                            <LogOut className="w-5 h-5" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Collapse toggle */}
