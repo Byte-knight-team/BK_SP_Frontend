@@ -1,24 +1,32 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import AdminLayout from './layouts/AdminLayout';
-import AdminDashboard from './pages/AdminDashboard';
-import TableManagement from './pages/TableManagement';
-import MenuManagement from './pages/MenuManagement';
-import AddMenuItem from './pages/AddMenuItem';
-import EditMenuItem from './pages/EditMenuItem';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CartProvider } from './context/CartContext';
+import HomePage from './pages/HomePage';
+import MenuPage from './pages/MenuPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import KitchenDashboard from './pages/kitchen/KitchenDashboard';
+import ChefManagement from './pages/kitchen/ChefManagement';
+import OrderDetails from './pages/kitchen/OrderDetails';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AdminLayout />}>
-          <Route path="/" element={<AdminDashboard />} />
-          <Route path="/tables" element={<TableManagement />} />
-          <Route path="/menu" element={<MenuManagement />} />
-          <Route path="/menu/add" element={<AddMenuItem />} />
-          <Route path="/menu/edit" element={<EditMenuItem />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <Router>
+      <CartProvider>
+        <Routes>
+          {/* Online Customer Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/menu" element={<MenuPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+
+          {/* Kitchen Routes */}
+          <Route path="/kitchen" element={<KitchenDashboard />} />
+          <Route path="/kitchen/chef-management" element={<ChefManagement />} />
+          <Route path="/kitchen/order/:orderId" element={<OrderDetails />} />
+        </Routes>
+      </CartProvider>
+    </Router>
   );
 }
