@@ -17,3 +17,6 @@ export const updateOrder = (id, data) => api.put(`/orders/${id}`, data);
 
 export const cancelOrder = (id, reason) =>
     api.put(`/orders/${id}/cancel`, { reason });
+
+export const updateOrderStatus = (id, status) =>
+    api.patch(`/orders/${id}/status`, { status });

@@ -5,6 +5,8 @@ const initialTables = [
     {
         id: 1,
         name: "Main Dining Area",
+        area: "Main Dining",
+        details: "",
         status: "OCCUPIED",
         guests: 4,
         capacity: 4,
@@ -14,6 +16,8 @@ const initialTables = [
     {
         id: 2,
         name: "Window Side",
+        area: "Window Side",
+        details: "",
         status: "AVAILABLE",
         guests: 0,
         capacity: 2,
@@ -23,6 +27,8 @@ const initialTables = [
     {
         id: 3,
         name: "Booth Area",
+        area: "Booth Area",
+        details: "Reserved from 6.30 p.m",
         status: "RESERVED",
         guests: 0,
         capacity: 6,
@@ -32,6 +38,8 @@ const initialTables = [
     {
         id: 4,
         name: "Terrace",
+        area: "Terrace",
+        details: "",
         status: "OCCUPIED",
         guests: 2,
         capacity: 4,
@@ -41,6 +49,8 @@ const initialTables = [
     {
         id: 5,
         name: "Main Dining Area",
+        area: "Main Dining",
+        details: "",
         status: "AVAILABLE",
         guests: 0,
         capacity: 4,
@@ -50,6 +60,8 @@ const initialTables = [
     {
         id: 6,
         name: "Private Booth",
+        area: "Private Booth",
+        details: "",
         status: "OCCUPIED",
         guests: 3,
         capacity: 6,
@@ -59,6 +71,8 @@ const initialTables = [
     {
         id: 7,
         name: "Bar Table",
+        area: "Bar Table",
+        details: "",
         status: "AVAILABLE",
         guests: 0,
         capacity: 2,
@@ -68,6 +82,8 @@ const initialTables = [
     {
         id: 8,
         name: "Bar Table",
+        area: "Bar Table",
+        details: "",
         status: "OCCUPIED",
         guests: 2,
         capacity: 2,
@@ -99,8 +115,12 @@ const statusConfig = {
 };
 
 export default function TableManagementPage() {
-    const [tables] = useState(initialTables);
+    const [tables, setTables] = useState(initialTables);
     const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
+    const [editingTable, setEditingTable] = useState(null); // table being edited
+    const [editStatus, setEditStatus] = useState(""); // selected status in the modal
+    const [editArea, setEditArea] = useState("");
+    const [editDetails, setEditDetails] = useState("");
 
     // ── Computed stats ──
     const available = tables.filter((t) => t.status === "AVAILABLE").length;
@@ -112,6 +132,33 @@ export default function TableManagementPage() {
         { label: "OCCUPIED", value: occupied, change: "+12%", changeColor: "text-orange-500", ...statusConfig.OCCUPIED },
         { label: "RESERVED", value: reserved, change: "-5%", changeColor: "text-red-500", ...statusConfig.RESERVED },
     ];
+
+    // ── Modal handlers ──
+    const openEditModal = (table) => {
+        setEditingTable(table);
+        setEditStatus(table.status);
+        setEditArea(table.area || table.name);
+        setEditDetails(table.details || "");
+    };
+
+    const closeEditModal = () => {
+        setEditingTable(null);
+        setEditStatus("");
+        setEditArea("");
+        setEditDetails("");
+    };
+
+    const handleSaveChanges = () => {
+        if (!editingTable) return;
+        setTables((prev) =>
+            prev.map((t) =>
+                t.id === editingTable.id
+                    ? { ...t, status: editStatus, area: editArea, details: editDetails }
+                    : t
+            )
+        );
+        closeEditModal();
+    };
 
     return (
         <div className="flex flex-col h-full min-h-0 max-w-[1200px] mx-auto w-full">
@@ -186,6 +233,7 @@ export default function TableManagementPage() {
                         return (
                             <div
                                 key={table.id}
+                                onClick={() => openEditModal(table)}
                                 className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all duration-200 cursor-pointer group"
                             >
                                 {/* Top Row: Number badge + Status badge */}
@@ -258,7 +306,11 @@ export default function TableManagementPage() {
                             {tables.map((table) => {
                                 const config = statusConfig[table.status] || statusConfig.AVAILABLE;
                                 return (
-                                    <tr key={table.id} className="border-t border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer">
+                                    <tr
+                                        key={table.id}
+                                        onClick={() => openEditModal(table)}
+                                        className="border-t border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                                    >
                                         <td className="px-6 py-4">
                                             <div className={`w-9 h-9 rounded-lg ${config.circle} flex items-center justify-center text-white font-bold text-xs`}>
                                                 #{table.id}
@@ -284,7 +336,137 @@ export default function TableManagementPage() {
                 </div>
             )}
 
+            {/* ─── Table Status Edit Modal ─── */}
+            {editingTable && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={closeEditModal}
+                    />
 
+                    {/* Modal Card */}
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[480px] mx-4 overflow-hidden">
+                        {/* ── Header ── */}
+                        <div className="px-7 pt-6 pb-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    {/* Back Arrow */}
+                                    <button
+                                        onClick={closeEditModal}
+                                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    {/* Table Icon */}
+                                    <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center">
+                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-bold text-gray-900">
+                                            Table #{editingTable.id} Status
+                                        </h2>
+                                        <p className="text-xs text-gray-400">Update table status and details</p>
+                                    </div>
+                                </div>
+                                {/* Close X */}
+                                <button
+                                    onClick={closeEditModal}
+                                    className="text-red-400 hover:text-red-600 transition-colors"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* ── Divider ── */}
+                        <div className="border-t border-gray-100" />
+
+                        {/* ── Body ── */}
+                        <div className="px-7 py-5 space-y-6">
+                            {/* TABLE DETAILS */}
+                            <div>
+                                <h3 className="text-[11px] font-semibold tracking-wider text-gray-400 uppercase mb-3">
+                                    Table Details
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-semibold tracking-wider text-gray-400 uppercase mb-1.5">
+                                            Area
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editArea}
+                                            onChange={(e) => setEditArea(e.target.value)}
+                                            className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-semibold tracking-wider text-gray-400 uppercase mb-1.5">
+                                            Details
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editDetails}
+                                            onChange={(e) => setEditDetails(e.target.value)}
+                                            placeholder="e.g. Reserved from 6.30 p.m"
+                                            className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 font-medium placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* UPDATE TABLE STATUS */}
+                            <div>
+                                <h3 className="text-[11px] font-semibold tracking-wider text-gray-400 uppercase mb-3">
+                                    Update Table Status
+                                </h3>
+                                <div className="flex items-center gap-3">
+                                    {[
+                                        { key: "AVAILABLE", label: "Available", activeBg: "bg-green-500 text-white shadow-md shadow-green-200", inactiveBg: "bg-white text-gray-600 border border-gray-200 hover:border-green-300 hover:text-green-600" },
+                                        { key: "OCCUPIED", label: "Occupied", activeBg: "bg-red-500 text-white shadow-md shadow-red-200", inactiveBg: "bg-white text-gray-600 border border-gray-200 hover:border-red-300 hover:text-red-600" },
+                                        { key: "RESERVED", label: "Reserved", activeBg: "bg-blue-500 text-white shadow-md shadow-blue-200", inactiveBg: "bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-600" },
+                                    ].map((btn) => (
+                                        <button
+                                            key={btn.key}
+                                            onClick={() => setEditStatus(btn.key)}
+                                            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${editStatus === btn.key ? btn.activeBg : btn.inactiveBg
+                                                }`}
+                                        >
+                                            {btn.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── Divider ── */}
+                        <div className="border-t border-gray-100" />
+
+                        {/* ── Footer Actions ── */}
+                        <div className="px-7 py-4 flex items-center gap-3">
+                            <button
+                                onClick={closeEditModal}
+                                className="px-6 py-2.5 border-2 border-red-400 text-red-500 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveChanges}
+                                className="px-6 py-2.5 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition-colors shadow-sm"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

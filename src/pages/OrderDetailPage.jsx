@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getOrderById } from "../api/qrOrdersApi";
+import { getOrderById, updateOrderStatus } from "../api/qrOrdersApi";
 import EditOrderModal from "../components/modals/EditOrderModal";
 import CancelOrderConfirmModal from "../components/modals/CancelOrderConfirmModal";
 
@@ -9,8 +9,49 @@ export default function OrderDetailPage() {
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [sentToKitchen, setSentToKitchen] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
+
+    const handleMarkAsPaid = async () => {
+        try {
+            setActionLoading(true);
+            await updateOrderStatus(id, "PAID");
+            await fetchOrder();
+        } catch (err) {
+            console.error("Error marking as paid:", err);
+            alert(err.response?.data?.error || "Failed to mark as paid");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleSendToKitchen = async () => {
+        try {
+            setActionLoading(true);
+            // Simulate sending to kitchen (no status change, just a confirmation)
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            setSentToKitchen(true);
+        } catch (err) {
+            console.error("Error sending to kitchen:", err);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleCloseOrder = async () => {
+        try {
+            setActionLoading(true);
+            await updateOrderStatus(id, "CLOSED");
+            await fetchOrder();
+        } catch (err) {
+            console.error("Error closing order:", err);
+            alert(err.response?.data?.error || "Failed to close order");
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchOrder();
@@ -258,11 +299,29 @@ export default function OrderDetailPage() {
                         <div className="space-y-3">
                             {/* Send to Kitchen — only for OPEN */}
                             {order.status === "OPEN" && (
-                                <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-yellow-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-yellow-50 transition-colors">
-                                    <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
-                                    Send to Kitchen
+                                <button
+                                    onClick={handleSendToKitchen}
+                                    disabled={actionLoading || sentToKitchen}
+                                    className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium text-sm transition-colors disabled:cursor-not-allowed ${sentToKitchen
+                                        ? "bg-green-50 border-2 border-green-300 text-green-600 opacity-80"
+                                        : "border-2 border-yellow-300 text-gray-700 hover:bg-yellow-50 disabled:opacity-50"
+                                        }`}
+                                >
+                                    {sentToKitchen ? (
+                                        <>
+                                            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Already Sent to Kitchen
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                            {actionLoading ? "Sending..." : "Send to Kitchen"}
+                                        </>
+                                    )}
                                 </button>
                             )}
 
@@ -276,21 +335,29 @@ export default function OrderDetailPage() {
 
                             {/* Mark as Paid — only for OPEN */}
                             {order.status === "OPEN" && (
-                                <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-green-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-green-50 transition-colors">
+                                <button
+                                    onClick={handleMarkAsPaid}
+                                    disabled={actionLoading || sentToKitchen}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-green-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
                                     <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Mark as Paid
+                                    {actionLoading ? "Processing..." : "Mark as Paid"}
                                 </button>
                             )}
 
                             {/* Close Order — only for PAID */}
                             {order.status === "PAID" && (
-                                <button className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-blue-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-blue-50 transition-colors">
+                                <button
+                                    onClick={handleCloseOrder}
+                                    disabled={actionLoading}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-blue-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
                                     <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                     </svg>
-                                    Close Order
+                                    {actionLoading ? "Closing..." : "Close Order"}
                                 </button>
                             )}
 
@@ -298,7 +365,8 @@ export default function OrderDetailPage() {
                             {order.status === "OPEN" && (
                                 <button
                                     onClick={() => setShowCancelModal(true)}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-500 text-white rounded-lg font-medium text-sm hover:bg-red-600 transition-colors"
+                                    disabled={actionLoading || sentToKitchen}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-500 text-white rounded-lg font-medium text-sm hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
