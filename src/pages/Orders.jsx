@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     ClipboardList,
     ChevronRight,
@@ -14,6 +14,7 @@ import {
     UserPlus,
 } from 'lucide-react';
 import { allOrders, chefs } from '../data/mockData';
+import orderService from '../services/orderService';
 
 const statusColors = {
     pending: { bg: 'bg-[var(--color-status-pending-bg)]', text: 'text-[var(--color-status-pending)]', border: 'border-[var(--color-status-pending)]', label: 'PENDING' },
@@ -31,7 +32,8 @@ const cancelReasons = [
 ];
 
 export default function Orders() {
-    const [orders, setOrders] = useState(allOrders);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('pending');
     const [selectedOrderId, setSelectedOrderId] = useState(null);
     const [timeFilter, setTimeFilter] = useState('all');
@@ -47,6 +49,50 @@ export default function Orders() {
     const [assigningMealId, setAssigningMealId] = useState(null);
 
     const availableChefs = chefs.filter(c => c.status === 'available' || c.status === 'busy');
+
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            const data = await orderService.getAllOrders();
+            // Map backend data to frontend model if necessary
+            // For now assuming direct mapping or we might need adjustments
+            // Backend Order doesn't come with 'meals' populated like mock data unless fetched with Eager or DTO
+            // Let's assume for now we get what we need or mock missing parts
+
+            // Transform backend data to match frontend structure if needed
+            const formattedOrders = data.map(o => ({
+                id: o.id, // ID is Long now
+                orderNumber: o.orderNumber, // Use orderNumber for display if needed
+                time: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
+                date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'Today',
+                type: o.orderType === 'QR' ? 'Dine-in' : 'Delivery', // Map enum
+                table: o.table ? `Table ${o.table.tableNumber}` : null,
+                status: o.status === 'PLACED' ? 'pending' : o.status.toLowerCase(), // Map PLACED to pending
+                customerNotes: '', // Add field if needed
+                meals: o.items ? o.items.map(i => ({
+                    id: i.id,
+                    name: i.menuItem ? i.menuItem.name : 'Unknown Item',
+                    category: i.menuItem ? i.menuItem.category.name : 'Main Course',
+                    qty: i.quantity,
+                    status: 'pending', // Default status for items as backend doesn't track item status yet
+                    image: '🍔' // Placeholder
+                })) : [],
+                timeline: { received: o.createdAt, preparing: null, completed: null }
+            }));
+
+            setOrders(formattedOrders);
+        } catch (error) {
+            console.error("Failed to fetch orders", error);
+            // Fallback to mock data if API fails (for demo/dev)
+            // setOrders(allOrders); 
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const tabCounts = {
         pending: orders.filter(o => o.status === 'pending').length,
@@ -152,21 +198,32 @@ export default function Orders() {
         setCancelReasonText('');
     };
 
-    const handleCancelOrder = () => {
+    const handleCancelOrder = async () => {
         if (!cancelReason && !cancelReasonText.trim()) return;
         const reason = cancelReasonText.trim() || cancelReason;
-        setOrders(prev => prev.map(o => {
-            if (o.id !== cancelOrderModal.orderId) return o;
-            return {
-                ...o,
-                status: 'cancelled',
-                meals: o.meals.map(m => m.status !== 'completed' ? { ...m, status: 'cancelled', cancelReason: reason } : m),
-            };
-        }));
-        showToast('Order cancelled. Notification sent to receptionist & customer.');
-        setCancelOrderModal({ open: false, orderId: null });
-        setCancelReason('');
-        setCancelReasonText('');
+
+        try {
+            await orderService.cancelOrder(cancelOrderModal.orderId, reason);
+
+            // Update local state to reflect change without full reload
+            setOrders(prev => prev.map(o => {
+                if (o.id !== cancelOrderModal.orderId) return o;
+                return {
+                    ...o,
+                    status: 'cancelled',
+                    // Also cancel meals visually
+                    meals: o.meals.map(m => m.status !== 'completed' ? { ...m, status: 'cancelled', cancelReason: reason } : m),
+                };
+            }));
+
+            showToast('Order cancelled. Notification sent to receptionist & customer.');
+            setCancelOrderModal({ open: false, orderId: null });
+            setCancelReason('');
+            setCancelReasonText('');
+        } catch (error) {
+            console.error('Failed to cancel order:', error);
+            showToast('Failed to cancel order. Please try again.');
+        }
     };
 
     return (

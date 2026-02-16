@@ -86,14 +86,13 @@ export const menuItems = [
 
 // ---------- ORDERS ----------
 export const orders = [
+    // --- 3 PENDING ORDERS ---
     {
         id: 'ORD-1204', time: '12:45 PM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 08', status: 'pending',
-        customerNotes: 'No onions, extra spicy please. The kid\'s burger needs to be well done.',
+        customerNotes: 'No onions, extra spicy please.',
         meals: [
             { id: 1, name: 'Classic Beef Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending', image: '🍔' },
             { id: 2, name: 'Large Crispy Fries', category: 'Sides', qty: 1, assignedChef: null, status: 'pending', image: '🍟' },
-            { id: 3, name: 'Grilled Chicken Burger', category: 'Main Course', qty: 1, assignedChef: null, status: 'pending', image: '🍔' },
-            { id: 4, name: 'Garden Salad', category: 'Appetizer', qty: 1, assignedChef: null, status: 'pending', image: '🥗' },
         ],
         timeline: { received: '12:45 PM', preparing: null, completed: null },
     },
@@ -108,36 +107,21 @@ export const orders = [
     },
     {
         id: 'ORD-1206', time: '12:50 PM', date: 'October 24, 2023', type: 'Delivery', table: null, status: 'pending',
-        customerNotes: 'Pack carefully for delivery. Add extra napkins.',
+        customerNotes: 'Pack carefully for delivery.',
         meals: [
             { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending', image: '🍔' },
-            { id: 2, name: 'Large Crispy Fries', category: 'Sides', qty: 2, assignedChef: null, status: 'pending', image: '🍟' },
-            { id: 3, name: 'Garden Salad', category: 'Appetizer', qty: 1, assignedChef: null, status: 'pending', image: '🥗' },
-            { id: 4, name: 'Chicken Kottu', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending', image: '🍛' },
-            { id: 5, name: 'Truffle Pasta', category: 'Main Course', qty: 1, assignedChef: null, status: 'pending', image: '🍝' },
-            { id: 6, name: 'Lava Cake', category: 'Dessert', qty: 1, assignedChef: null, status: 'pending', image: '🍫' },
-            { id: 7, name: 'Classic Beef Burger', category: 'Main Course', qty: 1, assignedChef: null, status: 'pending', image: '🍔' },
-            { id: 8, name: 'Grilled Chicken Burger', category: 'Main Course', qty: 1, assignedChef: null, status: 'pending', image: '🍔' },
+            { id: 2, name: 'Chicken Kottu', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending', image: '🍛' },
         ],
         timeline: { received: '12:50 PM', preparing: null, completed: null },
     },
-    {
-        id: 'ORD-1207', time: '01:05 PM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 05', status: 'pending',
-        customerNotes: '',
-        meals: [
-            { id: 1, name: 'Chicken Kottu', category: 'Main Course', qty: 1, assignedChef: null, status: 'pending', image: '🍛' },
-            { id: 2, name: 'Garden Salad', category: 'Appetizer', qty: 1, assignedChef: null, status: 'pending', image: '🥗' },
-            { id: 3, name: 'Lava Cake', category: 'Dessert', qty: 1, assignedChef: null, status: 'pending', image: '🍫' },
-        ],
-        timeline: { received: '01:05 PM', preparing: null, completed: null },
-    },
+
+    // --- 3 PREPARING ORDERS ---
     {
         id: 'ORD-1200', time: '11:30 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 01', status: 'preparing',
-        customerNotes: 'Birthday celebration — candle on the lava cake please!',
+        customerNotes: 'Birthday celebration!',
         meals: [
-            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 2, assignedChef: 'Felix Arvid', status: 'preparing', image: '🍝' },
-            { id: 2, name: 'Signature Burger', category: 'Main Course', qty: 1, assignedChef: 'Sarah Jenkins', status: 'preparing', image: '🍔' },
-            { id: 3, name: 'Lava Cake', category: 'Dessert', qty: 2, assignedChef: 'Emily Zhang', status: 'preparing', image: '🍫' },
+            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 2, assignedChef: 'Amal', status: 'preparing', image: '🍝' },
+            { id: 2, name: 'Signature Burger', category: 'Main Course', qty: 1, assignedChef: 'Kamal', status: 'preparing', image: '🍔' },
         ],
         timeline: { received: '11:30 AM', preparing: '11:35 AM', completed: null },
     },
@@ -145,8 +129,8 @@ export const orders = [
         id: 'ORD-1201', time: '11:40 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 10', status: 'preparing',
         customerNotes: 'Medium rare steaks.',
         meals: [
-            { id: 1, name: 'Classic Beef Burger', category: 'Main Course', qty: 3, assignedChef: 'Chef Kamal', status: 'preparing', image: '🍔' },
-            { id: 2, name: 'Large Crispy Fries', category: 'Sides', qty: 3, assignedChef: 'Chef Nimal', status: 'preparing', image: '🍟' },
+            { id: 1, name: 'Classic Beef Burger', category: 'Main Course', qty: 3, assignedChef: 'Gayan', status: 'preparing', image: '🍔' },
+            { id: 2, name: 'Large Crispy Fries', category: 'Sides', qty: 3, assignedChef: 'Suresh', status: 'preparing', image: '🍟' },
         ],
         timeline: { received: '11:40 AM', preparing: '11:48 AM', completed: null },
     },
@@ -154,39 +138,31 @@ export const orders = [
         id: 'ORD-1202', time: '11:45 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 06', status: 'preparing',
         customerNotes: '',
         meals: [
-            { id: 1, name: 'Chicken Kottu', category: 'Main Course', qty: 2, assignedChef: 'Chef Nimal', status: 'preparing', image: '🍛' },
+            { id: 1, name: 'Chicken Kottu', category: 'Main Course', qty: 2, assignedChef: 'Nimal', status: 'preparing', image: '🍛' },
         ],
         timeline: { received: '11:45 AM', preparing: '11:50 AM', completed: null },
     },
-    {
-        id: 'ORD-1203', time: '11:50 AM', date: 'October 24, 2023', type: 'Delivery', table: null, status: 'preparing',
-        customerNotes: 'Deliver before 1 PM.',
-        meals: [
-            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 2, assignedChef: 'Felix Arvid', status: 'preparing', image: '🍔' },
-            { id: 2, name: 'Garden Salad', category: 'Appetizer', qty: 2, assignedChef: 'Chef Nimal', status: 'preparing', image: '🥗' },
-        ],
-        timeline: { received: '11:50 AM', preparing: '11:55 AM', completed: null },
-    },
 ];
 
-// Generate completed orders for history
-const completedOrders = Array.from({ length: 28 }, (_, i) => ({
-    id: `ORD-${1100 + i}`,
-    time: `${9 + Math.floor(i / 4)}:${String((i * 15) % 60).padStart(2, '0')} AM`,
-    date: 'October 24, 2023',
-    type: i % 3 === 0 ? 'Delivery' : 'Dine-in',
-    table: i % 3 === 0 ? null : `Table ${String(1 + (i % 12)).padStart(2, '0')}`,
-    status: 'completed',
-    customerNotes: '',
-    meals: [
-        { id: 1, name: menuItems[i % menuItems.length].name, category: 'Main Course', qty: 1 + (i % 3), assignedChef: chefs[i % chefs.length].name, status: 'completed', image: menuItems[i % menuItems.length].image },
-    ],
-    timeline: {
-        received: `${9 + Math.floor(i / 4)}:${String((i * 15) % 60).padStart(2, '0')} AM`,
-        preparing: `${9 + Math.floor(i / 4)}:${String(((i * 15) + 5) % 60).padStart(2, '0')} AM`,
-        completed: `${9 + Math.floor(i / 4)}:${String(((i * 15) + 18) % 60).padStart(2, '0')} AM`,
+// Generate completed orders for history (2 Completed)
+const completedOrders = [
+    {
+        id: 'ORD-1199', time: '10:15 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 04', status: 'completed',
+        customerNotes: '',
+        meals: [
+            { id: 1, name: 'Garden Salad', category: 'Appetizer', qty: 1, assignedChef: 'Ashen', status: 'completed', image: '🥗' },
+        ],
+        timeline: { received: '10:15 AM', preparing: '10:20 AM', completed: '10:35 AM' },
     },
-}));
+    {
+        id: 'ORD-1198', time: '10:00 AM', date: 'October 24, 2023', type: 'Delivery', table: null, status: 'completed',
+        customerNotes: '',
+        meals: [
+            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 1, assignedChef: 'Kamal', status: 'completed', image: '🍔' },
+        ],
+        timeline: { received: '10:00 AM', preparing: '10:05 AM', completed: '10:25 AM' },
+    },
+];
 
 export const allOrders = [...orders, ...completedOrders];
 
