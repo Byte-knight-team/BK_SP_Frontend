@@ -64,25 +64,32 @@ export default function Orders() {
             // Let's assume for now we get what we need or mock missing parts
 
             // Transform backend data to match frontend structure if needed
-            const formattedOrders = data.map(o => ({
-                id: o.id, // ID is Long now
-                orderNumber: o.orderNumber, // Use orderNumber for display if needed
-                time: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
-                date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'Today',
-                type: o.orderType === 'QR' ? 'Dine-in' : 'Delivery', // Map enum
-                table: o.table ? `Table ${o.table.tableNumber}` : null,
-                status: o.status === 'PLACED' ? 'pending' : o.status.toLowerCase(), // Map PLACED to pending
-                customerNotes: '', // Add field if needed
-                meals: o.items ? o.items.map(i => ({
-                    id: i.id,
-                    name: i.menuItem ? i.menuItem.name : 'Unknown Item',
-                    category: i.menuItem ? i.menuItem.category.name : 'Main Course',
-                    qty: i.quantity,
-                    status: 'pending', // Default status for items as backend doesn't track item status yet
-                    image: '🍔' // Placeholder
-                })) : [],
-                timeline: { received: o.createdAt, preparing: null, completed: null }
-            }));
+            const formattedOrders = data.map(o => {
+                const orderStatus = o.status === 'PLACED' ? 'pending' : o.status.toLowerCase();
+                return {
+                    id: o.id, // ID is Long now
+                    orderNumber: o.orderNumber, // Use orderNumber for display if needed
+                    time: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
+                    date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'Today',
+                    type: o.orderType === 'QR' ? 'Dine-in' : 'Delivery', // Map enum
+                    table: o.tableNumber ? `Table ${o.tableNumber}` : null,
+                    status: orderStatus,
+                    customerNotes: o.cancelReason || '', // Use cancelReason if present, or add note field later
+                    meals: o.items ? o.items.map(i => ({
+                        id: i.id,
+                        name: i.menuItemName || 'Unknown Item',
+                        category: i.categoryName || 'Main Course',
+                        qty: i.quantity,
+                        status: orderStatus === 'placed' ? 'pending' : orderStatus, // Inherit order status
+                        image: '🍔' // Placeholder
+                    })) : [],
+                    timeline: {
+                        received: o.createdAt,
+                        preparing: orderStatus === 'preparing' || orderStatus === 'completed' ? 'Now' : null,
+                        completed: orderStatus === 'completed' ? 'Now' : null
+                    }
+                };
+            });
 
             setOrders(formattedOrders);
         } catch (error) {
@@ -299,7 +306,7 @@ export default function Orders() {
                                         </span>
                                         <span className="text-xs text-[var(--color-text-muted)]">{order.time}</span>
                                     </div>
-                                    <p className="text-base font-bold text-[var(--color-text-main)]">#{order.id}</p>
+                                    <p className="text-base font-bold text-[var(--color-text-main)]">{order.orderNumber}</p>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
                                             🍽️ {order.meals.length} Items
@@ -329,7 +336,7 @@ export default function Orders() {
                             {/* Order header */}
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <h2 className="text-xl font-bold text-[var(--color-text-main)]">Order #{selectedOrder.id}</h2>
+                                    <h2 className="text-xl font-bold text-[var(--color-text-main)]">Order {selectedOrder.orderNumber}</h2>
                                     <p className="text-xs text-[var(--color-text-muted)] mt-1">
                                         Placed on {selectedOrder.date} at {selectedOrder.time} • {selectedOrder.type}
                                         {selectedOrder.table && ` • ${selectedOrder.table}`}
@@ -352,41 +359,43 @@ export default function Orders() {
                             </div>
 
                             {/* Timeline */}
-                            <div className="bg-[var(--color-bg-light)] rounded-xl p-4">
-                                <p className="text-[10px] font-bold uppercase text-[var(--color-text-muted)] tracking-wider mb-3">Preparation Status</p>
-                                <div className="flex items-center justify-between">
-                                    {['Received', 'Preparing', 'Completed'].map((step, i) => {
-                                        const timelineValues = [selectedOrder.timeline.received, selectedOrder.timeline.preparing, selectedOrder.timeline.completed];
-                                        const isDone = !!timelineValues[i];
-                                        const isCurrent = isDone && !timelineValues[i + 1] && i < 2;
-                                        return (
-                                            <div key={step} className="flex items-center flex-1">
-                                                <div className="flex flex-col items-center">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${selectedOrder.status === 'cancelled' ? 'bg-red-100 border-red-300' :
-                                                        isDone ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'bg-white border-[var(--color-border)]'
-                                                        }`}>
-                                                        {selectedOrder.status === 'cancelled' ? (
-                                                            <XCircle className="w-4 h-4 text-red-500" />
-                                                        ) : isDone ? (
-                                                            isCurrent ? <ChefHat className="w-4 h-4 text-white" /> : <CheckCircle2 className="w-4 h-4 text-white" />
-                                                        ) : (
-                                                            <div className="w-2 h-2 rounded-full bg-[var(--color-border)]" />
-                                                        )}
+                            {selectedOrder.status !== 'cancelled' && (
+                                <div className="bg-[var(--color-bg-light)] rounded-xl p-4">
+                                    <p className="text-[10px] font-bold uppercase text-[var(--color-text-muted)] tracking-wider mb-3">Preparation Status</p>
+                                    <div className="flex items-center justify-between">
+                                        {['Received', 'Preparing', 'Completed'].map((step, i) => {
+                                            const timelineValues = [selectedOrder.timeline.received, selectedOrder.timeline.preparing, selectedOrder.timeline.completed];
+                                            const isDone = !!timelineValues[i];
+                                            const isCurrent = isDone && !timelineValues[i + 1] && i < 2;
+                                            return (
+                                                <div key={step} className="flex items-center flex-1">
+                                                    <div className="flex flex-col items-center">
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${selectedOrder.status === 'cancelled' ? 'bg-red-100 border-red-300' :
+                                                            isDone ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'bg-white border-[var(--color-border)]'
+                                                            }`}>
+                                                            {selectedOrder.status === 'cancelled' ? (
+                                                                <XCircle className="w-4 h-4 text-red-500" />
+                                                            ) : isDone ? (
+                                                                isCurrent ? <ChefHat className="w-4 h-4 text-white" /> : <CheckCircle2 className="w-4 h-4 text-white" />
+                                                            ) : (
+                                                                <div className="w-2 h-2 rounded-full bg-[var(--color-border)]" />
+                                                            )}
+                                                        </div>
+                                                        <span className={`text-[10px] mt-1 font-semibold ${selectedOrder.status === 'cancelled' ? 'text-red-400' :
+                                                            isCurrent ? 'text-[var(--color-primary)]' : isDone ? 'text-[var(--color-text-main)]' : 'text-[var(--color-text-light)]'
+                                                            }`}>
+                                                            {selectedOrder.status === 'cancelled' && i === 0 ? 'Cancelled' : step}
+                                                        </span>
                                                     </div>
-                                                    <span className={`text-[10px] mt-1 font-semibold ${selectedOrder.status === 'cancelled' ? 'text-red-400' :
-                                                        isCurrent ? 'text-[var(--color-primary)]' : isDone ? 'text-[var(--color-text-main)]' : 'text-[var(--color-text-light)]'
-                                                        }`}>
-                                                        {selectedOrder.status === 'cancelled' && i === 0 ? 'Cancelled' : step}
-                                                    </span>
+                                                    {i < 2 && (
+                                                        <div className={`flex-1 h-0.5 mx-2 rounded ${isDone && timelineValues[i + 1] ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
+                                                    )}
                                                 </div>
-                                                {i < 2 && (
-                                                    <div className={`flex-1 h-0.5 mx-2 rounded ${isDone && timelineValues[i + 1] ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Customer Notes */}
                             {selectedOrder.customerNotes && (
@@ -560,7 +569,7 @@ export default function Orders() {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-[var(--color-text-main)]">Cancel Entire Order</h3>
-                                <p className="text-xs text-[var(--color-text-muted)]">Order #{cancelOrderModal.orderId}</p>
+                                <p className="text-xs text-[var(--color-text-muted)]">Order {orders.find(o => o.id === cancelOrderModal.orderId)?.orderNumber}</p>
                             </div>
                         </div>
                         <p className="text-sm text-[var(--color-text-muted)] mb-4">This will cancel <strong>all meals</strong> in this order. A notification will be sent to the receptionist and customer.</p>
