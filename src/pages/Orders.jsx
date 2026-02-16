@@ -44,6 +44,7 @@ export default function Orders() {
     const [cancelReason, setCancelReason] = useState('');
     const [cancelReasonText, setCancelReasonText] = useState('');
     const [successToast, setSuccessToast] = useState('');
+    const [errorToast, setErrorToast] = useState('');
     const [errorModal, setErrorModal] = useState({ open: false, items: [] });
     // Per-meal chef assign dropdown: tracks which meal row has the dropdown open
     const [assigningMealId, setAssigningMealId] = useState(null);
@@ -121,6 +122,11 @@ export default function Orders() {
         setTimeout(() => setSuccessToast(''), 3000);
     };
 
+    const showErrorToast = (msg) => {
+        setErrorToast(msg);
+        setTimeout(() => setErrorToast(''), 3000);
+    };
+
     // ── Helper: recompute order status after a meal-level change ──
     const recomputeOrderStatus = (order) => {
         const allCancelled = order.meals.every(m => m.status === 'cancelled');
@@ -158,6 +164,14 @@ export default function Orders() {
     };
 
     const handleStartPrepare = (orderId, mealId) => {
+        // Validation: Must assign a chef first
+        const order = orders.find(o => o.id === orderId);
+        const meal = order?.meals.find(m => m.id === mealId);
+        if (!meal?.assignedChef) {
+            showErrorToast('Please assign a chef before starting preparation!');
+            return;
+        }
+
         const shouldFail = Math.random() < 0.15;
         if (shouldFail) {
             setErrorModal({ open: true, items: ['Truffle Oil (need 10ml, have 0ml)', 'Fresh Chicken (need 200g, have 50g)'] });
@@ -632,6 +646,14 @@ export default function Orders() {
                 <div className="fixed top-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg animate-slide-in text-sm font-semibold flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
                     {successToast}
+                </div>
+            )}
+
+            {/* ── Error Toast ── */}
+            {errorToast && (
+                <div className="fixed top-20 right-6 z-50 bg-red-500 text-white px-5 py-3 rounded-xl shadow-lg animate-slide-in text-sm font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    {errorToast}
                 </div>
             )}
         </div>
