@@ -2,7 +2,7 @@ import React from "react";
 
 const users = [
   { id: 1, name: "Vibhath Kalsara", email: "shiranthi.r@cravehouse.com", role: "Admin", status: "Active", lastLogin: "2 hours ago", initial: "S", color: "bg-orange-100 text-orange-600" },
-  { id: 2, name: "Dileepa Prabhath", email: "m.rajapksha@cravehouse.com", role: "Kitchen Staff", status: "Active", lastLogin: "10 mins ago", initial: "M", color: "bg-purple-100 text-purple-600" },
+  { id: 2, name: "Dileepa Prabhath", email: "m.rajapksha@cravehouse.com", role: "Chief Chef", status: "Active", lastLogin: "10 mins ago", initial: "M", color: "bg-purple-100 text-purple-600" },
   { id: 3, name: "Venuri Perera", email: "namal.r@cravehouse.com", role: "Receptionist", status: "Active", lastLogin: "1 day ago", initial: "E", color: "bg-green-100 text-green-600" },
   { id: 4, name: "Ashen Randira", email: "basil.r@cravehouse.com", role: "Manager", status: "Inactive", lastLogin: "3 days ago", initial: "D", color: "bg-yellow-100 text-yellow-600" },
   { id: 5, name: "Isuru Adikaram", email: "gotabaya.r@cravehouse.com", role: "Delivery Driver", status: "Active", lastLogin: "5 mins ago", initial: "J", color: "bg-teal-100 text-teal-600" },

@@ -24,7 +24,7 @@ export default function CreateBranch({ onPageChange }) {
       {/* Card */}
       <div className="mt-6 flex justify-center">
         <div className="w-full max-w-5xl bg-white rounded-[28px] border border-gray-100 shadow-sm px-10 py-10">
-          <h1 className="text-3xl font-extrabold text-gray-900">Register New Branch</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Register New Branch</h1>
 
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-7">
             {/* Branch Name */}

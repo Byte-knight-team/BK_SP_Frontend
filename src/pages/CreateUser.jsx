@@ -26,7 +26,7 @@ export default function CreateUser({ onPageChange }) {
       {/* Card */}
       <div className="mt-6 flex justify-center">
         <div className="w-full max-w-5xl bg-white rounded-[28px] border border-gray-100 shadow-sm px-10 py-10">
-          <h1 className="text-3xl font-extrabold text-gray-900">Register New Staff</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Register New Staff</h1>
 
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-7">
             {/* Full Name */}
@@ -105,11 +105,10 @@ export default function CreateUser({ onPageChange }) {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, status: "ACTIVE" })}
-                  className={`flex-1 h-12 rounded-xl border text-xs font-bold tracking-widest uppercase transition-colors ${
-                    form.status === "ACTIVE"
+                  className={`flex-1 h-12 rounded-xl border text-xs font-bold tracking-widest uppercase transition-colors ${form.status === "ACTIVE"
                       ? "bg-green-50 border-green-100 text-green-700"
                       : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   <span className="inline-flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${form.status === "ACTIVE" ? "bg-green-500" : "bg-gray-300"}`} />
@@ -119,11 +118,10 @@ export default function CreateUser({ onPageChange }) {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, status: "INACTIVE" })}
-                  className={`flex-1 h-12 rounded-xl border text-xs font-bold tracking-widest uppercase transition-colors ${
-                    form.status === "INACTIVE"
+                  className={`flex-1 h-12 rounded-xl border text-xs font-bold tracking-widest uppercase transition-colors ${form.status === "INACTIVE"
                       ? "bg-gray-100 border-gray-200 text-gray-700"
                       : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   <span className="inline-flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${form.status === "INACTIVE" ? "bg-gray-500" : "bg-gray-300"}`} />
@@ -133,7 +131,7 @@ export default function CreateUser({ onPageChange }) {
               </div>
             </div>
 
-            {/* Role (Full width like your screenshot) */}
+            {/* Role*/}
             <div className="md:col-span-2 max-w-xl">
               <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2">
                 Designated Role

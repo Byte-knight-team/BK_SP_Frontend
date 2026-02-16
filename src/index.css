@@ -2,7 +2,7 @@
 
 @layer base {
   html {
-    font-size: 12px; /* try 17px or 18px */
+    font-size: 14px;
   }
 }
 html,

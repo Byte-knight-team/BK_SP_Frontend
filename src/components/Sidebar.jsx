@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 
 const navItems = [
+  { icon: "dashboard", label: "Dashboard", page: "dashboard" },
   { icon: "users", label: "User Management", page: "users" },
   { icon: "shield", label: "Roles & Permissions", page: "roles" },
   { icon: "building", label: "Branch Management", page: "branches" },
@@ -8,6 +9,11 @@ const navItems = [
 ];
 
 const icons = {
+  dashboard: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1m-2 0h2" />
+    </svg>
+  ),
   users: (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -40,28 +46,25 @@ const roleLabels = {
   delivery_driver: "DELIVERY DRIVER",
 };
 
-export default function Sidebar({ activePage, 
-                                  onPageChange, 
-                                  onLogout, 
-                                  user,
-                                  isCollapsed,
-                                  onToggle}) {
+export default function Sidebar({ activePage,
+  onPageChange,
+  onLogout,
+  user,
+  isCollapsed,
+  onToggle }) {
   return (
     <div
-      className={`${
-      isCollapsed ? "w-20 items-center" : "w-56"
-      } bg-white h-screen flex flex-col border-r border-gray-100 transition-all duration-300`}
+      className={`${isCollapsed ? "w-20 items-center" : "w-56"
+        } bg-white h-screen flex flex-col border-r border-gray-100 transition-all duration-300`}
     >
 
 
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-100">
-        <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-          <span className="text-white text-xl">🔥</span>
-        </div>
+        <img src="/logo.png" alt="CraveHouse Logo" className="w-8 h-8 rounded-lg object-cover" />
         {!isCollapsed && (
           <span className="font-bold text-gray-800">
-          CRAVE<span className="text-orange-500">HOUSE</span>
+            CRAVE<span className="text-orange-500">HOUSE</span>
           </span>
         )}
 
@@ -69,7 +72,7 @@ export default function Sidebar({ activePage,
           onClick={onToggle}
           className="ml-auto w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
         >
-          {isCollapsed ? "☰" : "X"}
+          {isCollapsed ? "☰" : "✕"}
         </button>
 
       </div>
@@ -82,15 +85,16 @@ export default function Sidebar({ activePage,
             <button
               key={item.label}
               onClick={() => onPageChange(item.page)}
-              className={`w-full flex items-center ${
-                isCollapsed ? "justify-center" : "gap-3"
-              } px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-                isActive ? "bg-orange-500 text-white" : "text-gray-700 hover:bg-orange-500 hover:text-white"
+              className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-3"
+                } px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${isActive ? "bg-orange-500 text-white" : "text-gray-700 hover:bg-orange-500 hover:text-white"
 
-              }`}              
+                }`}
             >
               {icons[item.icon]}
-              {!isCollapsed && <span classname= "font-bold">{item.label}</span>}
+              {!isCollapsed && <span className="font-bold whitespace-nowrap">
+                {item.label}
+              </span>
+              }
               {isActive && (
                 <span className="ml-auto w-2 h-2 bg-white rounded-full"></span>
               )}
@@ -101,12 +105,12 @@ export default function Sidebar({ activePage,
 
       {/* User Profile */}
       <div className="px-4 py-4 border-t border-gray-100"> {/*if the sidebar is collapsed, then center the user profile.*/}
-        <div className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3"}`}>  
+        <div className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3"}`}>
 
           <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
             <img src="https://i.pravatar.cc/40?img=3" alt="User" className="w-full h-full object-cover" />
           </div>
-        
+
           {!isCollapsed && ( // if the sidebar is not collapsed, then show the user profile.
             <div>
               <p className="text-sm font-semibold text-gray-800">
@@ -121,24 +125,23 @@ export default function Sidebar({ activePage,
         </div>
         <button
           onClick={onLogout}
-          className={`mt-4 w-full flex items-center ${
-            isCollapsed
+          className={`mt-4 w-full flex items-center ${isCollapsed
               ? "justify-center"
               : "gap-3"
-          } px-3 py-2.5 rounded-lg text-sm font-bold transition-colors
+            } px-3 py-2.5 rounded-lg text-sm font-bold transition-colors
           text-red-500 hover:text-white hover:bg-red-500`}
-          
+
         >
 
-          <svg className="w-5 h-5" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24">
+          <svg className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
 
-            <path strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <path strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           {!isCollapsed && "Logout"}
         </button>

@@ -78,8 +78,8 @@ export default function SystemSettings() {
           <div className="grid grid-cols-2 gap-6">
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <h3 className="font-medium text-gray-900">QR Table Ordering</h3>
-                <p className="text-sm text-gray-500">Allow customers to order from tables</p>
+                <h3 className="font-medium text-gray-900">Online Ordering</h3>
+                <p className="text-sm text-gray-500">Allow customers to order from website</p>
               </div>
               <button
                 onClick={() => setConfig({ ...config, qrTableOrdering: !config.qrTableOrdering })}

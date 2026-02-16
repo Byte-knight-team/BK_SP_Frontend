@@ -7,6 +7,8 @@ import BranchManagement from "./pages/BranchManagement";
 import SystemSettings from "./pages/SystemSettings";
 import CreateUser from "./pages/CreateUser";
 import CreateBranch from "./pages/CreateBranch";
+import Dashboard from "./pages/Dashboard";
+import CreateRole from "./pages/CreateRole";
 import Login from "./pages/Login";
 import ActivateAccount from "./pages/ActivateAccount";
 
@@ -16,11 +18,11 @@ export default function App() {
   const [authPage, setAuthPage] = useState("login"); // tracks which auth page to show: "login" or "activate"
   const [isAuthenticated, setIsAuthenticated] = useState(false); // what we did here is we created a state to check whether the user is authenticated or not.
   const [user, setUser] = useState(null); // we created a state to store the user data.
-  const [activePage, setActivePage] = useState("users"); // we created a state to store the active page.
+  const [activePage, setActivePage] = useState("dashboard"); // we created a state to store the active page.
 
   const handleLogin = (userData) => { // this function is called when the user logs in.
     setUser(userData); // we set the user data to the user state.
-    setActivePage("users"); // we set the active page to users.
+    setActivePage("dashboard"); // we set the active page to dashboard.
     setIsAuthenticated(true); // we set the isAuthenticated state to true.
   };
 
@@ -31,20 +33,22 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
+      case "dashboard":
+        return <Dashboard />;
       case "users":
         return <UserManagement onPageChange={setActivePage} />;
-
       case "roles":
-        return <RolesPermissions />;
+        return <RolesPermissions onPageChange={setActivePage} />;
       case "branches":
         return <BranchManagement onPageChange={setActivePage} />;
-
       case "settings":
         return <SystemSettings />;
       case "create-user":
         return <CreateUser onPageChange={setActivePage} />;
       case "create-branch":
         return <CreateBranch onPageChange={setActivePage} />;
+      case "create-role":
+        return <CreateRole onPageChange={setActivePage} />;
       default:
         return <UserManagement />;
     }
@@ -52,7 +56,7 @@ export default function App() {
 
   const toggleSidebar = () => { // this function is called when the user clicks the toggle button.
     setIsSidebarCollapsed((prev) => !prev);
-  };  
+  };
 
   if (!isAuthenticated) {
     if (authPage === "activate") {
@@ -63,7 +67,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar 
+      <Sidebar
         activePage={activePage}
         onPageChange={setActivePage}
         onLogout={handleLogout}
