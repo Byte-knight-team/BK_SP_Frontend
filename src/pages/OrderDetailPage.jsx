@@ -294,8 +294,8 @@ export default function OrderDetailPage() {
                                 </button>
                             )}
 
-                            {/* Cancel Order — only for OPEN or PAID */}
-                            {(order.status === "OPEN" || order.status === "PAID") && (
+                            {/* Cancel Order — only for OPEN */}
+                            {order.status === "OPEN" && (
                                 <button
                                     onClick={() => setShowCancelModal(true)}
                                     className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-500 text-white rounded-lg font-medium text-sm hover:bg-red-600 transition-colors"
