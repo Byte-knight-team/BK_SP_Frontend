@@ -487,8 +487,8 @@ export default function Orders() {
                                                                     </button>
                                                                 </>
                                                             )}
-                                                            {/* ── PREPARING: Complete ── */}
-                                                            {meal.status === 'preparing' && (
+                                                            {/* ── PREPARING: Complete (Only in Preparing Tab) ── */}
+                                                            {meal.status === 'preparing' && activeTab === 'preparing' && (
                                                                 <button
                                                                     onClick={() => handleMarkCompleted(selectedOrder.id, meal.id)}
                                                                     className="flex items-center gap-1 px-2.5 py-1.5 bg-green-50 text-green-600 border border-green-200 rounded-lg text-[11px] font-semibold hover:bg-green-100 transition-colors"
