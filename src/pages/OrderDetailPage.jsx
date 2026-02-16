@@ -35,10 +35,54 @@ export default function OrderDetailPage() {
     };
 
     const statusConfig = {
-        OPEN: { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-300", label: "Waiting Assignment", iconBg: "bg-orange-400" },
-        PAID: { bg: "bg-green-50", text: "text-green-600", border: "border-green-300", label: "Payment Received", iconBg: "bg-green-400" },
-        CLOSED: { bg: "bg-gray-50", text: "text-gray-500", border: "border-gray-300", label: "Order Closed", iconBg: "bg-gray-400" },
-        CANCELLED: { bg: "bg-red-50", text: "text-red-500", border: "border-red-300", label: "Order Cancelled", iconBg: "bg-red-400" },
+        OPEN: {
+            bg: "bg-orange-50",
+            text: "text-orange-600",
+            border: "border-orange-300",
+            label: "Waiting Assignment",
+            iconBg: "bg-orange-400",
+            icon: (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            )
+        },
+        PAID: {
+            bg: "bg-green-50",
+            text: "text-green-600",
+            border: "border-green-300",
+            label: "Payment Received",
+            iconBg: "bg-green-400",
+            icon: (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            )
+        },
+        CLOSED: {
+            bg: "bg-gray-50",
+            text: "text-gray-500",
+            border: "border-gray-300",
+            label: "Order Closed",
+            iconBg: "bg-gray-400",
+            icon: (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+            )
+        },
+        CANCELLED: {
+            bg: "bg-red-50",
+            text: "text-red-500",
+            border: "border-red-300",
+            label: "Order Cancelled",
+            iconBg: "bg-red-400",
+            icon: (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            )
+        },
     };
 
     if (loading) {
@@ -79,9 +123,7 @@ export default function OrderDetailPage() {
             {/* Status Banner */}
             <div className={`rounded-xl ${sc.bg} border ${sc.border} p-5 mb-6 flex items-center gap-4`}>
                 <div className={`w-12 h-12 rounded-xl ${sc.iconBg} flex items-center justify-center`}>
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    {sc.icon}
                 </div>
                 <div>
                     <p className="text-sm text-gray-500">Current Status</p>
@@ -271,9 +313,9 @@ export default function OrderDetailPage() {
 
             {/* Footer Info */}
             <div className={`border rounded-xl px-5 py-4 flex items-center gap-3 ${order.status === "OPEN" ? "bg-orange-50 border-orange-200" :
-                    order.status === "PAID" ? "bg-green-50 border-green-200" :
-                        order.status === "CLOSED" ? "bg-gray-50 border-gray-200" :
-                            "bg-red-50 border-red-200"
+                order.status === "PAID" ? "bg-green-50 border-green-200" :
+                    order.status === "CLOSED" ? "bg-gray-50 border-gray-200" :
+                        "bg-red-50 border-red-200"
                 }`}>
                 {order.status === "OPEN" && (
                     <>
