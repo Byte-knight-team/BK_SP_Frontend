@@ -337,7 +337,7 @@ export default function OrderDetailPage() {
                             {order.status === "OPEN" && (
                                 <button
                                     onClick={handleMarkAsPaid}
-                                    disabled={actionLoading || sentToKitchen}
+                                    disabled={actionLoading}
                                     className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-green-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
