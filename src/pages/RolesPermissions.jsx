@@ -9,21 +9,118 @@ const roles = [
   { id: 6, name: "Delivery Driver", type: "RESTRICTED", typeColor: "text-gray-500", description: "Manage delivery status and navigate to customer locations.", activeUsers: 12, permissions: 4 },
 ];
 
-const permissions = {
-  orderManagement: [
-    { name: "View Orders", description: "Ability to see all orders in real-time", enabled: true },
-    { name: "Edit Orders", description: "Modify order items or details", enabled: true },
-    { name: "Cancel Orders", description: "Cancel active or pending orders", enabled: true },
-  ],
-  menuManagement: [
-    { name: "View Menu", description: "See full menu structure", enabled: true },
-    { name: "Modify Items", description: "Add, edit or delete menu items", enabled: false },
-    { name: "Change Prices", description: "Update pricing for menu items", enabled: false },
-  ],
+const permissionCategories = [
+  {
+    key: "orderManagement",
+    label: "Order Management",
+    items: [
+      { name: "View Orders", description: "Ability to see all orders in real-time" },
+      { name: "Edit Orders", description: "Modify order items or details" },
+      { name: "Cancel Orders", description: "Cancel active or pending orders" },
+    ],
+  },
+  {
+    key: "menuManagement",
+    label: "Menu Management",
+    items: [
+      { name: "View Menu", description: "See full menu structure" },
+      { name: "Modify Items", description: "Add, edit or delete menu items" },
+      { name: "Change Prices", description: "Update pricing for menu items" },
+    ],
+  },
+  {
+    key: "userManagement",
+    label: "User Management",
+    items: [
+      { name: "View Users", description: "See all staff members and their roles" },
+      { name: "Create Users", description: "Add new staff accounts" },
+      { name: "Edit Users", description: "Modify staff details and roles" },
+      { name: "Delete Users", description: "Remove staff accounts from the system" },
+    ],
+  },
+  {
+    key: "branchManagement",
+    label: "Branch Management",
+    items: [
+      { name: "View Branches", description: "See all branch locations and details" },
+      { name: "Create Branches", description: "Register new branch locations" },
+      { name: "Edit Branches", description: "Modify branch settings and info" },
+    ],
+  },
+  {
+    key: "reports",
+    label: "Reports & Analytics",
+    items: [
+      { name: "View Reports", description: "Access sales and performance reports" },
+      { name: "Export Data", description: "Download reports in CSV or PDF" },
+    ],
+  },
+  {
+    key: "delivery",
+    label: "Delivery",
+    items: [
+      { name: "View Deliveries", description: "See all active and past deliveries" },
+      { name: "Assign Drivers", description: "Assign delivery drivers to orders" },
+      { name: "Update Status", description: "Change delivery status in real-time" },
+    ],
+  },
+];
+
+// Build default permissions per role
+const buildDefaults = () => {
+  const defaults = {};
+  roles.forEach((role) => {
+    const perms = {};
+    permissionCategories.forEach((cat) => {
+      cat.items.forEach((item) => {
+        // Super Admin gets everything on
+        if (role.name === "Super Admin") { perms[`${cat.key}.${item.name}`] = true; return; }
+        if (role.name === "Admin") {
+          perms[`${cat.key}.${item.name}`] = !["Delete Users", "Create Branches"].includes(item.name);
+          return;
+        }
+        if (role.name === "Manager") {
+          const on = ["View Orders", "Edit Orders", "Cancel Orders", "View Menu", "Modify Items", "View Users", "View Branches", "View Reports", "View Deliveries", "Assign Drivers"];
+          perms[`${cat.key}.${item.name}`] = on.includes(item.name);
+          return;
+        }
+        if (role.name === "Receptionist") {
+          const on = ["View Orders", "Edit Orders", "Cancel Orders", "View Menu", "View Deliveries"];
+          perms[`${cat.key}.${item.name}`] = on.includes(item.name);
+          return;
+        }
+        if (role.name === "Chief Chef") {
+          const on = ["View Orders", "Edit Orders", "View Menu"];
+          perms[`${cat.key}.${item.name}`] = on.includes(item.name);
+          return;
+        }
+        if (role.name === "Delivery Driver") {
+          const on = ["View Orders", "View Deliveries", "Update Status"];
+          perms[`${cat.key}.${item.name}`] = on.includes(item.name);
+          return;
+        }
+        perms[`${cat.key}.${item.name}`] = false;
+      });
+    });
+    defaults[role.name] = perms;
+  });
+  return defaults;
 };
 
 export default function RolesPermissions() {
   const [selectedRole, setSelectedRole] = useState("Receptionist");
+  const [rolePermissions, setRolePermissions] = useState(buildDefaults);
+
+  const togglePermission = (categoryKey, permName) => {
+    const key = `${categoryKey}.${permName}`;
+    setRolePermissions((prev) => ({
+      ...prev,
+      [selectedRole]: {
+        ...prev[selectedRole],
+        [key]: !prev[selectedRole][key],
+      },
+    }));
+  };
 
   return (
     <div className="flex-1 bg-gray-50 p-6 overflow-auto">
@@ -101,41 +198,35 @@ export default function RolesPermissions() {
         </div>
 
         {/* Right - Permission Preview */}
-        <div className="w-72">
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <div className="w-80">
+          <div className="bg-white rounded-xl border border-gray-100 p-5 max-h-[calc(100vh-120px)] overflow-y-auto">
             <h3 className="font-semibold text-gray-900">Permission Preview</h3>
             <p className="text-sm text-gray-500 mb-4">Currently viewing: {selectedRole}</p>
 
             <div className="space-y-4">
-              <div>
-                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Order Management</h4>
-                {permissions.orderManagement.map((perm) => (
-                  <div key={perm.name} className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{perm.name}</p>
-                      <p className="text-xs text-gray-400">{perm.description}</p>
-                    </div>
-                    <div className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${perm.enabled ? "bg-orange-500" : "bg-gray-200"}`}>
-                      <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${perm.enabled ? "translate-x-4" : ""}`}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Menu Management</h4>
-                {permissions.menuManagement.map((perm) => (
-                  <div key={perm.name} className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{perm.name}</p>
-                      <p className="text-xs text-gray-400">{perm.description}</p>
-                    </div>
-                    <div className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${perm.enabled ? "bg-orange-500" : "bg-gray-200"}`}>
-                      <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${perm.enabled ? "translate-x-4" : ""}`}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {permissionCategories.map((cat) => (
+                <div key={cat.key}>
+                  <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{cat.label}</h4>
+                  {cat.items.map((perm) => {
+                    const isEnabled = rolePermissions[selectedRole]?.[`${cat.key}.${perm.name}`] ?? false;
+                    return (
+                      <div key={perm.name} className="flex items-center justify-between py-2">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">{perm.name}</p>
+                          <p className="text-xs text-gray-400">{perm.description}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => togglePermission(cat.key, perm.name)}
+                          className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors shrink-0 ${isEnabled ? "bg-orange-500" : "bg-gray-200"}`}
+                        >
+                          <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${isEnabled ? "translate-x-4" : ""}`}></div>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
 
             <button className="w-full mt-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">

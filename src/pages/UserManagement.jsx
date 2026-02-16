@@ -9,7 +9,8 @@ const users = [
   { id: 6, name: "Thilakarathna Dilshan", email: "r.rajapaksha@cravehouse.com", role: "Admin", status: "Active", lastLogin: "4 hours ago", initial: "R", color: "bg-red-100 text-red-600" },
 ];
 
-export default function UserManagement() {
+export default function UserManagement({ onPageChange }) {
+
   return (
     <div className="flex-1 bg-gray-50 p-6 overflow-auto">
       {/* Page Header */}
@@ -18,7 +19,8 @@ export default function UserManagement() {
           <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
           <p className="text-sm text-gray-500">Manage staff access and permissions</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors" onClick={() => onPageChange("create-user")}
+>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
           </svg>

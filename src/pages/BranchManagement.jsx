@@ -29,7 +29,8 @@ const branches = [
   },
 ];
 
-export default function BranchManagement() {
+export default function BranchManagement({ onPageChange }) {
+
   return (
     <div className="flex-1 bg-gray-50 p-6 overflow-auto">
       <div className="flex items-center justify-between mb-6">
@@ -37,7 +38,8 @@ export default function BranchManagement() {
           <h1 className="text-2xl font-bold text-gray-900">Branch Management</h1>
           <p className="text-sm text-gray-500">Monitor and configure all restaurant locations</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800">
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800" onClick={() => onPageChange("create-branch")}
+>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>

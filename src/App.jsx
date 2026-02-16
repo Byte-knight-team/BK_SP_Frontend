@@ -5,11 +5,15 @@ import UserManagement from "./pages/UserManagement";
 import RolesPermissions from "./pages/RolesPermissions";
 import BranchManagement from "./pages/BranchManagement";
 import SystemSettings from "./pages/SystemSettings";
+import CreateUser from "./pages/CreateUser";
+import CreateBranch from "./pages/CreateBranch";
 import Login from "./pages/Login";
+import ActivateAccount from "./pages/ActivateAccount";
 
 
 export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // we created a state to check whether the sidebar is collapsed or not.
+  const [authPage, setAuthPage] = useState("login"); // tracks which auth page to show: "login" or "activate"
   const [isAuthenticated, setIsAuthenticated] = useState(false); // what we did here is we created a state to check whether the user is authenticated or not.
   const [user, setUser] = useState(null); // we created a state to store the user data.
   const [activePage, setActivePage] = useState("users"); // we created a state to store the active page.
@@ -28,13 +32,19 @@ export default function App() {
   const renderPage = () => {
     switch (activePage) {
       case "users":
-        return <UserManagement />;
+        return <UserManagement onPageChange={setActivePage} />;
+
       case "roles":
         return <RolesPermissions />;
       case "branches":
-        return <BranchManagement />;
+        return <BranchManagement onPageChange={setActivePage} />;
+
       case "settings":
         return <SystemSettings />;
+      case "create-user":
+        return <CreateUser onPageChange={setActivePage} />;
+      case "create-branch":
+        return <CreateBranch onPageChange={setActivePage} />;
       default:
         return <UserManagement />;
     }
@@ -45,13 +55,16 @@ export default function App() {
   };  
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+    if (authPage === "activate") {
+      return <ActivateAccount onBackToLogin={() => setAuthPage("login")} />;
+    }
+    return <Login onLogin={handleLogin} onActivate={() => setAuthPage("activate")} />;
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar 
-        active page={activePage}
+        activePage={activePage}
         onPageChange={setActivePage}
         onLogout={handleLogout}
         user={user}
