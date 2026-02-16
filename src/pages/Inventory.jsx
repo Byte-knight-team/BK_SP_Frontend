@@ -25,8 +25,14 @@ export default function Inventory() {
     const [items, setItems] = useState(initialItems);
     const [filterLow, setFilterLow] = useState(false);
     const [updateModal, setUpdateModal] = useState({ open: false, item: null });
+    const [requestModal, setRequestModal] = useState({ open: false, item: null });
+    const [newItemModal, setNewItemModal] = useState(false);
     const [bulkModal, setBulkModal] = useState(false);
     const [updateQty, setUpdateQty] = useState('');
+    const [newItemData, setNewItemData] = useState({ name: '', unit: 'kg', threshold: '', reason: '' });
+    const [requestQty, setRequestQty] = useState('');
+    const [requestUrgency, setRequestUrgency] = useState('normal');
+    const [requestNotes, setRequestNotes] = useState('');
     const [successToast, setSuccessToast] = useState('');
 
     const lowItems = items.filter(i => i.status === 'critical' || i.status === 'low');
@@ -53,6 +59,32 @@ export default function Inventory() {
         showToast(`${updateModal.item.name} updated to ${qty} ${updateModal.item.unit}`);
         setUpdateModal({ open: false, item: null });
         setUpdateQty('');
+    };
+
+    const handleRequestNewItem = () => {
+        if (!newItemData.name || !newItemData.reason) return;
+
+        console.log('New Item Request:', newItemData);
+        showToast(`Request sent for new item: ${newItemData.name}`);
+        setNewItemModal(false);
+        setNewItemData({ name: '', unit: 'kg', threshold: '', reason: '' });
+    };
+
+    const handleRequestStock = () => {
+        if (!requestQty || isNaN(requestQty)) return;
+        // In a real app, this would call an API to create a request
+        console.log('Restock Request:', {
+            item: requestModal.item.name,
+            qty: requestQty,
+            urgency: requestUrgency,
+            notes: requestNotes
+        });
+
+        showToast(`Request sent: ${requestModal.item.name} (${requestQty} ${requestModal.item.unit})`);
+        setRequestModal({ open: false, item: null });
+        setRequestQty('');
+        setRequestNotes('');
+        setRequestUrgency('normal');
     };
 
     return (
@@ -91,12 +123,20 @@ export default function Inventory() {
                         <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${filterLow ? 'translate-x-5' : 'translate-x-0.5'}`} />
                     </button>
                 </div>
-                <button
-                    onClick={() => setBulkModal(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors shadow-lg shadow-[var(--color-primary)]/20"
-                >
-                    <Zap className="w-4 h-4" /> Start-of-day Update
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setNewItemModal(true)}
+                        className="px-5 py-2.5 bg-white border border-[var(--color-primary)] text-[var(--color-primary)] rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors"
+                    >
+                        + Request New Item
+                    </button>
+                    <button
+                        onClick={() => setBulkModal(true)}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors shadow-lg shadow-[var(--color-primary)]/20"
+                    >
+                        <Zap className="w-4 h-4" /> Start-of-day Update
+                    </button>
+                </div>
             </div>
 
             {/* Inventory Table */}
@@ -140,6 +180,10 @@ export default function Inventory() {
                                                 onClick={() => { setUpdateModal({ open: true, item }); setUpdateQty(String(item.currentQty)); }}
                                                 className="text-[var(--color-primary)] text-sm font-semibold hover:underline"
                                             >Update</button>
+                                            <button
+                                                onClick={() => { setRequestModal({ open: true, item }); setRequestQty(''); setRequestNotes(''); }}
+                                                className="ml-3 text-amber-600 text-sm font-semibold hover:underline"
+                                            >Request</button>
                                         </td>
                                     </tr>
                                 );
@@ -188,65 +232,194 @@ export default function Inventory() {
             </div>
 
             {/* Update Qty Modal */}
-            {updateModal.open && updateModal.item && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setUpdateModal({ open: false, item: null })}>
+            {
+                updateModal.open && updateModal.item && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setUpdateModal({ open: false, item: null })}>
+                        <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-slide-up" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold">Update: {updateModal.item.name}</h3>
+                                <button onClick={() => setUpdateModal({ open: false, item: null })} className="p-1 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5" /></button>
+                            </div>
+                            <p className="text-sm text-[var(--color-text-muted)] mb-3">Current: {updateModal.item.currentQty} {updateModal.item.unit}</p>
+                            <input
+                                type="number"
+                                value={updateQty}
+                                onChange={e => setUpdateQty(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                placeholder="New quantity"
+                            />
+                            <div className="flex gap-3 mt-5">
+                                <button onClick={() => setUpdateModal({ open: false, item: null })} className="flex-1 py-2.5 bg-slate-100 rounded-xl font-semibold text-sm">Cancel</button>
+                                <button onClick={handleUpdate} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Bulk Update Modal */}
+            {
+                bulkModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setBulkModal(false)}>
+                        <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg animate-slide-up max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-5">
+                                <h3 className="text-lg font-bold">Start-of-Day Bulk Update</h3>
+                                <button onClick={() => setBulkModal(false)} className="p-1 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5" /></button>
+                            </div>
+                            <div className="space-y-3">
+                                {items.map(item => (
+                                    <div key={item.id} className="flex items-center gap-3 p-3 bg-[var(--color-bg-light)] rounded-xl">
+                                        <span className="text-xl">{item.image}</span>
+                                        <span className="flex-1 text-sm font-medium">{item.name}</span>
+                                        <input
+                                            type="number"
+                                            defaultValue={item.currentQty}
+                                            className="w-20 px-2 py-1.5 border border-[var(--color-border)] rounded-lg text-sm text-center focus:outline-none"
+                                        />
+                                        <span className="text-xs text-[var(--color-text-muted)]">{item.unit}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex gap-3 mt-5">
+                                <button onClick={() => setBulkModal(false)} className="flex-1 py-2.5 bg-slate-100 rounded-xl font-semibold text-sm">Cancel</button>
+                                <button onClick={() => { setBulkModal(false); showToast('Bulk update saved!'); }} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm">Save All</button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Request Stock Modal */}
+            {requestModal.open && requestModal.item && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setRequestModal({ open: false, item: null })}>
                     <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-slide-up" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold">Update: {updateModal.item.name}</h3>
-                            <button onClick={() => setUpdateModal({ open: false, item: null })} className="p-1 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5" /></button>
+                            <h3 className="text-lg font-bold">Request Restock</h3>
+                            <button onClick={() => setRequestModal({ open: false, item: null })} className="p-1 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5" /></button>
                         </div>
-                        <p className="text-sm text-[var(--color-text-muted)] mb-3">Current: {updateModal.item.currentQty} {updateModal.item.unit}</p>
-                        <input
-                            type="number"
-                            value={updateQty}
-                            onChange={e => setUpdateQty(e.target.value)}
-                            className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                            placeholder="New quantity"
-                        />
+                        <div className="mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <p className="text-sm font-semibold text-[var(--color-text-main)]">{requestModal.item.name}</p>
+                            <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
+                                <span>Current: {requestModal.item.currentQty} {requestModal.item.unit}</span>
+                                <span>Threshold: {requestModal.item.threshold}</span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Quantity Needed ({requestModal.item.unit})</label>
+                                <input
+                                    type="number"
+                                    value={requestQty}
+                                    onChange={e => setRequestQty(e.target.value)}
+                                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                    placeholder="e.g. 5"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Urgency</label>
+                                <select
+                                    value={requestUrgency}
+                                    onChange={e => setRequestUrgency(e.target.value)}
+                                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                >
+                                    <option value="normal">Normal</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Notes</label>
+                                <textarea
+                                    value={requestNotes}
+                                    onChange={e => setRequestNotes(e.target.value)}
+                                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                    placeholder="Any specific instructions..."
+                                />
+                            </div>
+                        </div>
+
                         <div className="flex gap-3 mt-5">
-                            <button onClick={() => setUpdateModal({ open: false, item: null })} className="flex-1 py-2.5 bg-slate-100 rounded-xl font-semibold text-sm">Cancel</button>
-                            <button onClick={handleUpdate} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors">Update</button>
+                            <button onClick={() => setRequestModal({ open: false, item: null })} className="flex-1 py-2.5 bg-slate-100 rounded-xl font-semibold text-sm">Cancel</button>
+                            <button onClick={handleRequestStock} className="flex-1 py-2.5 bg-amber-500 text-white rounded-xl font-semibold text-sm hover:bg-amber-600 transition-colors">Send Request</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Bulk Update Modal */}
-            {bulkModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setBulkModal(false)}>
-                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg animate-slide-up max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-5">
-                            <h3 className="text-lg font-bold">Start-of-Day Bulk Update</h3>
-                            <button onClick={() => setBulkModal(false)} className="p-1 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5" /></button>
+            {/* New Item Modal */}
+            {newItemModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setNewItemModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-slide-up" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold">Request New Item</h3>
+                            <button onClick={() => setNewItemModal(false)} className="p-1 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5" /></button>
                         </div>
                         <div className="space-y-3">
-                            {items.map(item => (
-                                <div key={item.id} className="flex items-center gap-3 p-3 bg-[var(--color-bg-light)] rounded-xl">
-                                    <span className="text-xl">{item.image}</span>
-                                    <span className="flex-1 text-sm font-medium">{item.name}</span>
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Item Name</label>
+                                <input
+                                    type="text"
+                                    value={newItemData.name}
+                                    onChange={e => setNewItemData({ ...newItemData, name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                    placeholder="e.g. Saffron"
+                                />
+                            </div>
+                            <div className="flex gap-3">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Unit</label>
+                                    <select
+                                        value={newItemData.unit}
+                                        onChange={e => setNewItemData({ ...newItemData, unit: e.target.value })}
+                                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                    >
+                                        <option value="kg">kg</option>
+                                        <option value="g">g</option>
+                                        <option value="liters">liters</option>
+                                        <option value="ml">ml</option>
+                                        <option value="pcs">pcs</option>
+                                        <option value="packs">packs</option>
+                                        <option value="cans">cans</option>
+                                    </select>
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Threshold</label>
                                     <input
                                         type="number"
-                                        defaultValue={item.currentQty}
-                                        className="w-20 px-2 py-1.5 border border-[var(--color-border)] rounded-lg text-sm text-center focus:outline-none"
+                                        value={newItemData.threshold}
+                                        onChange={e => setNewItemData({ ...newItemData, threshold: e.target.value })}
+                                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                        placeholder="Min Qty"
                                     />
-                                    <span className="text-xs text-[var(--color-text-muted)]">{item.unit}</span>
                                 </div>
-                            ))}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Reason for Request</label>
+                                <textarea
+                                    value={newItemData.reason}
+                                    onChange={e => setNewItemData({ ...newItemData, reason: e.target.value })}
+                                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                    placeholder="Why do we need this item?"
+                                />
+                            </div>
                         </div>
                         <div className="flex gap-3 mt-5">
-                            <button onClick={() => setBulkModal(false)} className="flex-1 py-2.5 bg-slate-100 rounded-xl font-semibold text-sm">Cancel</button>
-                            <button onClick={() => { setBulkModal(false); showToast('Bulk update saved!'); }} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm">Save All</button>
+                            <button onClick={() => setNewItemModal(false)} className="flex-1 py-2.5 bg-slate-100 rounded-xl font-semibold text-sm">Cancel</button>
+                            <button onClick={handleRequestNewItem} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors">Submit Request</button>
                         </div>
                     </div>
                 </div>
             )}
 
             {/* Toast */}
-            {successToast && (
-                <div className="fixed top-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg animate-slide-in text-sm font-semibold flex items-center gap-2">
-                    <Check className="w-4 h-4" /> {successToast}
-                </div>
-            )}
-        </div>
+            {
+                successToast && (
+                    <div className="fixed top-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg animate-slide-in text-sm font-semibold flex items-center gap-2">
+                        <Check className="w-4 h-4" /> {successToast}
+                    </div>
+                )
+            }
+        </div >
     );
 }

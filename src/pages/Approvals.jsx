@@ -27,7 +27,18 @@ export default function Approvals() {
     const [successToast, setSuccessToast] = useState('');
 
     const filtered = list.filter(a => a.status === activeTab);
-    const pendingCount = list.filter(a => a.status === 'pending').length;
+    const counts = {
+        pending: list.filter(a => a.status === 'pending').length,
+        approved: list.filter(a => a.status === 'approved').length,
+        rejected: list.filter(a => a.status === 'rejected').length,
+    };
+
+    // Status color mapping for badges
+    const statusBadges = {
+        pending: 'bg-amber-100 text-amber-700',
+        approved: 'bg-green-100 text-green-700',
+        rejected: 'bg-red-100 text-red-700',
+    };
 
     const showToast = (msg) => {
         setSuccessToast(msg);
@@ -40,9 +51,9 @@ export default function Approvals() {
             <div>
                 <h1 className="text-2xl font-bold text-[var(--color-text-main)] flex items-center gap-2">
                     <ShieldCheck className="w-6 h-6 text-[var(--color-primary)]" />
-                    Pending Approvals
+                    Approvals
                 </h1>
-                <p className="text-sm text-[var(--color-text-muted)]">Items awaiting admin review and approval.</p>
+                <p className="text-sm text-[var(--color-text-muted)]">Requests sent for Admin review and approval.</p>
             </div>
 
             {/* Tabs */}
@@ -55,8 +66,8 @@ export default function Approvals() {
                             }`}
                     >
                         {tab}
-                        {tab === 'pending' && pendingCount > 0 && (
-                            <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">{pendingCount}</span>
+                        {counts[tab] > 0 && (
+                            <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-bold ${statusBadges[tab]}`}>{counts[tab]}</span>
                         )}
                     </button>
                 ))}
@@ -67,7 +78,7 @@ export default function Approvals() {
                 {filtered.length === 0 ? (
                     <div className="text-center py-16 text-[var(--color-text-muted)]">
                         <ShieldCheck className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                        <p className="font-medium">No {activeTab} approvals</p>
+                        <p className="font-medium">No {activeTab} requests</p>
                     </div>
                 ) : (
                     filtered.map(item => {
@@ -87,24 +98,6 @@ export default function Approvals() {
                                         <p className="text-xs text-[var(--color-text-light)] mt-1">Submitted {item.submittedAt}</p>
                                     </div>
                                 </div>
-                                {item.status === 'pending' && (
-                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                        <button
-                                            onClick={() => { setList(prev => prev.map(a => a.id === item.id ? { ...a, status: 'approved' } : a)); showToast('Approved!'); }}
-                                            className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors"
-                                            title="Approve"
-                                        >
-                                            <Check className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => { setList(prev => prev.map(a => a.id === item.id ? { ...a, status: 'rejected' } : a)); showToast('Rejected'); }}
-                                            className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
-                                            title="Reject"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         );
                     })

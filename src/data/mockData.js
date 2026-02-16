@@ -14,22 +14,22 @@ export const chefs = [
 
 // ---------- INVENTORY ----------
 export const inventoryItems = [
-    { id: 1, name: 'Wagyu Beef (A5)', unit: 'kg', currentQty: 0.5, threshold: 2.0, status: 'critical', image: '🥩' },
-    { id: 2, name: 'Maldon Sea Salt', unit: 'kg', currentQty: 1.2, threshold: 3.0, status: 'low', image: '🧂' },
-    { id: 3, name: 'Truffle Oil', unit: 'liters', currentQty: 0.8, threshold: 1.5, status: 'low', image: '🫒' },
-    { id: 4, name: 'Organic Flour', unit: 'bags (25kg)', currentQty: 12, threshold: 5, status: 'ok', image: '🌾' },
-    { id: 5, name: 'Heavy Cream', unit: 'liters', currentQty: 45, threshold: 15, status: 'ok', image: '🥛' },
-    { id: 6, name: 'Fresh Chicken', unit: 'kg', currentQty: 1.5, threshold: 10, status: 'critical', image: '🍗' },
-    { id: 7, name: 'Roma Tomatoes', unit: 'kg', currentQty: 2, threshold: 12, status: 'low', image: '🍅' },
-    { id: 8, name: 'Mozzarella Cheese', unit: 'kg', currentQty: 8, threshold: 5, status: 'ok', image: '🧀' },
-    { id: 9, name: 'Olive Oil', unit: 'liters', currentQty: 20, threshold: 10, status: 'ok', image: '🫒' },
-    { id: 10, name: 'Basmati Rice', unit: 'kg', currentQty: 25, threshold: 10, status: 'ok', image: '🍚' },
+    { id: 1, name: 'Wagyu Beef (A5)', unit: 'kg', currentQty: 0.5, threshold: 2.0, status: 'critical' },
+    { id: 2, name: 'Maldon Sea Salt', unit: 'kg', currentQty: 1.2, threshold: 3.0, status: 'low' },
+    { id: 3, name: 'Truffle Oil', unit: 'liters', currentQty: 0.8, threshold: 1.5, status: 'low' },
+    { id: 4, name: 'Organic Flour', unit: 'bags (25kg)', currentQty: 12, threshold: 5, status: 'ok' },
+    { id: 5, name: 'Heavy Cream', unit: 'liters', currentQty: 45, threshold: 15, status: 'ok' },
+    { id: 6, name: 'Fresh Chicken', unit: 'kg', currentQty: 1.5, threshold: 10, status: 'critical' },
+    { id: 7, name: 'Roma Tomatoes', unit: 'kg', currentQty: 2, threshold: 12, status: 'low' },
+    { id: 8, name: 'Mozzarella Cheese', unit: 'kg', currentQty: 8, threshold: 5, status: 'ok' },
+    { id: 9, name: 'Olive Oil', unit: 'liters', currentQty: 20, threshold: 10, status: 'ok' },
+    { id: 10, name: 'Basmati Rice', unit: 'kg', currentQty: 25, threshold: 10, status: 'ok' },
 ];
 
 // ---------- MENU ITEMS ----------
 export const menuItems = [
     {
-        id: 1, name: 'Signature Burger', category: 'Main Course', price: 18.50, cookTime: '15 min', status: 'approved', image: '🍔',
+        id: 1, name: 'Signature Burger', category: 'Main Course', price: 18.50, cookTime: '15 min', status: 'approved',
         ingredients: [
             { name: 'Beef Patty (Premium)', qty: 1, unit: 'pcs' },
             { name: 'Brioche Bun', qty: 1, unit: 'pcs' },
@@ -40,7 +40,7 @@ export const menuItems = [
         totalCost: 4.25, foodCostPercent: 23.6,
     },
     {
-        id: 2, name: 'Truffle Pasta', category: 'Main Course', price: 24.00, cookTime: '20 min', status: 'approved', image: '🍝',
+        id: 2, name: 'Truffle Pasta', category: 'Main Course', price: 24.00, cookTime: '20 min', status: 'approved',
         ingredients: [
             { name: 'Fresh Pasta', qty: 200, unit: 'g' },
             { name: 'Truffle Oil', qty: 10, unit: 'ml' },
@@ -51,7 +51,7 @@ export const menuItems = [
         totalCost: 6.80, foodCostPercent: 28.3,
     },
     {
-        id: 3, name: 'Garden Salad', category: 'Appetizer', price: 12.00, cookTime: '5 min', status: 'approved', image: '🥗',
+        id: 3, name: 'Garden Salad', category: 'Appetizer', price: 12.00, cookTime: '5 min', status: 'approved',
         ingredients: [
             { name: 'Mixed Greens', qty: 100, unit: 'g' },
             { name: 'Cherry Tomatoes', qty: 50, unit: 'g' },
@@ -61,7 +61,7 @@ export const menuItems = [
         totalCost: 2.10, foodCostPercent: 17.5,
     },
     {
-        id: 4, name: 'Lava Cake', category: 'Dessert', price: 14.00, cookTime: '12 min', status: 'pending', image: '🍫',
+        id: 4, name: 'Lava Cake', category: 'Dessert', price: 14.00, cookTime: '12 min', status: 'pending',
         ingredients: [
             { name: 'Dark Chocolate', qty: 100, unit: 'g' },
             { name: 'Butter', qty: 50, unit: 'g' },
@@ -72,7 +72,7 @@ export const menuItems = [
         totalCost: 3.50, foodCostPercent: 25.0,
     },
     {
-        id: 5, name: 'Chicken Kottu', category: 'Main Course', price: 16.00, cookTime: '18 min', status: 'approved', image: '🍛',
+        id: 5, name: 'Chicken Kottu', category: 'Main Course', price: 16.00, cookTime: '18 min', status: 'approved',
         ingredients: [
             { name: 'Fresh Chicken', qty: 200, unit: 'g' },
             { name: 'Roti', qty: 2, unit: 'pcs' },
@@ -91,8 +91,8 @@ export const orders = [
         id: 'ORD-1204', time: '12:45 PM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 08', status: 'pending',
         customerNotes: 'No onions, extra spicy please.',
         meals: [
-            { id: 1, name: 'Classic Beef Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending', image: '🍔' },
-            { id: 2, name: 'Large Crispy Fries', category: 'Sides', qty: 1, assignedChef: null, status: 'pending', image: '🍟' },
+            { id: 1, name: 'Classic Beef Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending' },
+            { id: 2, name: 'Large Crispy Fries', category: 'Sides', qty: 1, assignedChef: null, status: 'pending' },
         ],
         timeline: { received: '12:45 PM', preparing: null, completed: null },
     },
@@ -100,8 +100,8 @@ export const orders = [
         id: 'ORD-1205', time: '12:48 PM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 03', status: 'pending',
         customerNotes: 'Gluten free options if available.',
         meals: [
-            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 1, assignedChef: null, status: 'pending', image: '🍝' },
-            { id: 2, name: 'Lava Cake', category: 'Dessert', qty: 1, assignedChef: null, status: 'pending', image: '🍫' },
+            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 1, assignedChef: null, status: 'pending' },
+            { id: 2, name: 'Lava Cake', category: 'Dessert', qty: 1, assignedChef: null, status: 'pending' },
         ],
         timeline: { received: '12:48 PM', preparing: null, completed: null },
     },
@@ -109,8 +109,8 @@ export const orders = [
         id: 'ORD-1206', time: '12:50 PM', date: 'October 24, 2023', type: 'Delivery', table: null, status: 'pending',
         customerNotes: 'Pack carefully for delivery.',
         meals: [
-            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending', image: '🍔' },
-            { id: 2, name: 'Chicken Kottu', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending', image: '🍛' },
+            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending' },
+            { id: 2, name: 'Chicken Kottu', category: 'Main Course', qty: 2, assignedChef: null, status: 'pending' },
         ],
         timeline: { received: '12:50 PM', preparing: null, completed: null },
     },
@@ -120,8 +120,8 @@ export const orders = [
         id: 'ORD-1200', time: '11:30 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 01', status: 'preparing',
         customerNotes: 'Birthday celebration!',
         meals: [
-            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 2, assignedChef: 'Amal', status: 'preparing', image: '🍝' },
-            { id: 2, name: 'Signature Burger', category: 'Main Course', qty: 1, assignedChef: 'Kamal', status: 'preparing', image: '🍔' },
+            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 2, assignedChef: 'Amal', status: 'preparing' },
+            { id: 2, name: 'Signature Burger', category: 'Main Course', qty: 1, assignedChef: 'Kamal', status: 'preparing' },
         ],
         timeline: { received: '11:30 AM', preparing: '11:35 AM', completed: null },
     },
@@ -129,8 +129,8 @@ export const orders = [
         id: 'ORD-1201', time: '11:40 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 10', status: 'preparing',
         customerNotes: 'Medium rare steaks.',
         meals: [
-            { id: 1, name: 'Classic Beef Burger', category: 'Main Course', qty: 3, assignedChef: 'Gayan', status: 'preparing', image: '🍔' },
-            { id: 2, name: 'Large Crispy Fries', category: 'Sides', qty: 3, assignedChef: 'Suresh', status: 'preparing', image: '🍟' },
+            { id: 1, name: 'Classic Beef Burger', category: 'Main Course', qty: 3, assignedChef: 'Gayan', status: 'preparing' },
+            { id: 2, name: 'Large Crispy Fries', category: 'Sides', qty: 3, assignedChef: 'Suresh', status: 'preparing' },
         ],
         timeline: { received: '11:40 AM', preparing: '11:48 AM', completed: null },
     },
@@ -138,7 +138,7 @@ export const orders = [
         id: 'ORD-1202', time: '11:45 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 06', status: 'preparing',
         customerNotes: '',
         meals: [
-            { id: 1, name: 'Chicken Kottu', category: 'Main Course', qty: 2, assignedChef: 'Nimal', status: 'preparing', image: '🍛' },
+            { id: 1, name: 'Chicken Kottu', category: 'Main Course', qty: 2, assignedChef: 'Nimal', status: 'preparing' },
         ],
         timeline: { received: '11:45 AM', preparing: '11:50 AM', completed: null },
     },
@@ -150,7 +150,7 @@ const completedOrders = [
         id: 'ORD-1199', time: '10:15 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 04', status: 'completed',
         customerNotes: '',
         meals: [
-            { id: 1, name: 'Garden Salad', category: 'Appetizer', qty: 1, assignedChef: 'Ashen', status: 'completed', image: '🥗' },
+            { id: 1, name: 'Garden Salad', category: 'Appetizer', qty: 1, assignedChef: 'Ashen', status: 'completed' },
         ],
         timeline: { received: '10:15 AM', preparing: '10:20 AM', completed: '10:35 AM' },
     },
@@ -158,7 +158,7 @@ const completedOrders = [
         id: 'ORD-1198', time: '10:00 AM', date: 'October 24, 2023', type: 'Delivery', table: null, status: 'completed',
         customerNotes: '',
         meals: [
-            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 1, assignedChef: 'Kamal', status: 'completed', image: '🍔' },
+            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 1, assignedChef: 'Kamal', status: 'completed' },
         ],
         timeline: { received: '10:00 AM', preparing: '10:05 AM', completed: '10:25 AM' },
     },
@@ -172,8 +172,8 @@ const cancelledOrders = [
         id: 'ORD-1098', time: '10:15 AM', date: 'October 24, 2023', type: 'Delivery', table: null, status: 'cancelled',
         customerNotes: 'Customer cancelled — waited too long.',
         meals: [
-            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 1, assignedChef: null, status: 'cancelled', cancelReason: 'Customer request', image: '🍝' },
-            { id: 2, name: 'Lava Cake', category: 'Dessert', qty: 1, assignedChef: null, status: 'cancelled', cancelReason: 'Customer request', image: '🍫' },
+            { id: 1, name: 'Truffle Pasta', category: 'Main Course', qty: 1, assignedChef: null, status: 'cancelled', cancelReason: 'Customer request' },
+            { id: 2, name: 'Lava Cake', category: 'Dessert', qty: 1, assignedChef: null, status: 'cancelled', cancelReason: 'Customer request' },
         ],
         timeline: { received: '10:15 AM', preparing: null, completed: null },
     },
@@ -181,7 +181,7 @@ const cancelledOrders = [
         id: 'ORD-1095', time: '09:40 AM', date: 'October 24, 2023', type: 'Dine-in', table: 'Table 02', status: 'cancelled',
         customerNotes: '',
         meals: [
-            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'cancelled', cancelReason: 'Out of ingredients', image: '🍔' },
+            { id: 1, name: 'Signature Burger', category: 'Main Course', qty: 2, assignedChef: null, status: 'cancelled', cancelReason: 'Out of ingredients' },
         ],
         timeline: { received: '09:40 AM', preparing: null, completed: null },
     },

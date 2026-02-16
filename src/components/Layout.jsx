@@ -22,7 +22,7 @@ const navItems = [
     { path: '/chefs', label: 'Chefs', icon: ChefHat },
     { path: '/inventory', label: 'Inventory', icon: Package },
     { path: '/menu-recipes', label: 'Menu & Recipes', icon: BookOpen },
-    { path: '/approvals', label: 'Approvals (Pending Admin)', icon: ShieldCheck },
+    { path: '/approvals', label: 'Approvals', icon: ShieldCheck },
 ];
 
 const bottomNav = [
