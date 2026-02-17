@@ -7,11 +7,11 @@ export default function ActivateAccount({ onBackToLogin }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e) => { // This is a placeholder for the actual form submission
     e.preventDefault();
-    if (form.email && form.password && form.password === form.confirmPassword) {
-      setIsSuccess(true);
-    }
+    // if (form.email && form.password && form.password === form.confirmPassword) {
+    setIsSuccess(true); // This does not validate the form, it just sets the state to true
+    // }
   };
 
   if (isSuccess) {
@@ -29,12 +29,11 @@ export default function ActivateAccount({ onBackToLogin }) {
               <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Successfully activated account</h2>
-            <p className="text-sm text-gray-500 mb-8">Your staff credentials have been verified. You can now access the Crave House management portal.</p>
+            <p className="text-sm text-gray-500 mb-8">Your staff credentials have been verified. You can now access the Crave House Staff portal.</p>
             <button onClick={onBackToLogin} className="w-full py-3.5 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
               SIGN IN NOW
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
             </button>
-            <p className="text-xs text-gray-400 mt-6">© CraveHouse 2026</p>
           </div>
         </div>
       </div>
@@ -67,7 +66,7 @@ export default function ActivateAccount({ onBackToLogin }) {
                     className="w-full px-4 py-3 pl-11 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
                   <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Use the email provided by your manager</p>
+                <p className="text-xs text-gray-400 mt-1">Use the email you have submitted before</p>
               </div>
               {/* Set Password */}
               <div>

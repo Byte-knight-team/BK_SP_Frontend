@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 export default function Login({ onLogin, onActivate }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); 
   const [rememberMe, setRememberMe] = useState(false);
 
   const handleSubmit = (e) => {
@@ -65,6 +65,7 @@ export default function Login({ onLogin, onActivate }) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                   <div className="relative">
                     <input type={showPassword ? "text" : "password"} value={formData.password}
+                    
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       placeholder="Enter your password"
                       className="w-full px-4 py-3 pl-11 pr-11 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />

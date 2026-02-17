@@ -48,7 +48,7 @@ export default function BranchManagement({ onPageChange }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {branches.map((branch) => (
+        {branches.map((branch) => ( // this is for loop
           <div key={branch.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
             {/* Image */}
             <div className="relative h-48">
