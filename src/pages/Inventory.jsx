@@ -37,7 +37,7 @@ export default function Inventory() {
 
     const lowItems = items.filter(i => i.status === 'critical' || i.status === 'low');
     const filtered = filterLow ? lowItems : items;
-    const totalAssets = items.reduce((acc, i) => acc + i.currentQty * 10.5, 0).toFixed(2);
+    const totalAssets = items.reduce((acc, i) => acc + i.currentQty * 1050, 0).toLocaleString();
     const itemsOut = lowItems.length;
 
     const showToast = (msg) => {
@@ -93,8 +93,8 @@ export default function Inventory() {
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-[var(--color-text-main)]">Inventory Management</h1>
                 <div className="flex items-center gap-2">
-                    <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-slate-50"><SlidersHorizontal className="w-4 h-4 text-[var(--color-text-muted)]" /></button>
-                    <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-slate-50"><Download className="w-4 h-4 text-[var(--color-text-muted)]" /></button>
+                    <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-slate-50 cursor-default"><SlidersHorizontal className="w-4 h-4 text-[var(--color-text-muted)]" /></button>
+                    <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-slate-50 cursor-default"><Download className="w-4 h-4 text-[var(--color-text-muted)]" /></button>
                 </div>
             </div>
 
@@ -112,28 +112,21 @@ export default function Inventory() {
                 </div>
             )}
 
-            {/* Filter + Bulk Update */}
+
+
+            {/* Filter + Bulk Update (Static) */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <label className="text-sm text-[var(--color-text-muted)]">Filter by Low Status</label>
-                    <button
-                        onClick={() => setFilterLow(!filterLow)}
-                        className={`w-10 h-5 rounded-full transition-colors relative ${filterLow ? 'bg-[var(--color-primary)]' : 'bg-slate-300'}`}
-                    >
-                        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${filterLow ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                    </button>
+                    <div className="w-10 h-6 rounded-full bg-slate-300 relative cursor-default">
+                        <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                    </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setNewItemModal(true)}
-                        className="px-5 py-2.5 bg-white border border-[var(--color-primary)] text-[var(--color-primary)] rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors"
-                    >
+                    <button className="px-5 py-2.5 bg-white border border-[var(--color-primary)] text-[var(--color-primary)] rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors cursor-default">
                         + Request New Item
                     </button>
-                    <button
-                        onClick={() => setBulkModal(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors shadow-lg shadow-[var(--color-primary)]/20"
-                    >
+                    <button className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors shadow-lg shadow-[var(--color-primary)]/20 cursor-default">
                         <Zap className="w-4 h-4" /> Start-of-day Update
                     </button>
                 </div>
@@ -154,7 +147,7 @@ export default function Inventory() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map(item => {
+                            {filtered.slice(0, 6).map(item => {
                                 const style = statusStyles[item.status];
                                 return (
                                     <tr key={item.id} className="border-t border-[var(--color-border)] hover:bg-slate-50/50 transition-colors">
@@ -176,14 +169,8 @@ export default function Inventory() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => { setUpdateModal({ open: true, item }); setUpdateQty(String(item.currentQty)); }}
-                                                className="text-[var(--color-primary)] text-sm font-semibold hover:underline"
-                                            >Update</button>
-                                            <button
-                                                onClick={() => { setRequestModal({ open: true, item }); setRequestQty(''); setRequestNotes(''); }}
-                                                className="ml-3 text-amber-600 text-sm font-semibold hover:underline"
-                                            >Request</button>
+                                            <button className="text-[var(--color-primary)] text-sm font-semibold hover:underline cursor-default">Update</button>
+                                            <button className="ml-3 text-amber-600 text-sm font-semibold hover:underline cursor-default">Request</button>
                                         </td>
                                     </tr>
                                 );
@@ -192,13 +179,13 @@ export default function Inventory() {
                     </table>
                 </div>
                 <div className="flex items-center justify-between px-6 py-3 border-t border-[var(--color-border)]">
-                    <p className="text-xs text-[var(--color-text-muted)]">Showing {filtered.length} of {items.length} items</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">Showing {Math.min(filtered.length, 6)} of {items.length} items</p>
                     <div className="flex items-center gap-1">
-                        <button className="px-2 py-1 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50"><ChevronLeft className="w-3 h-3" /></button>
-                        <button className="px-2.5 py-1 text-xs bg-[var(--color-primary)] text-white rounded-lg font-semibold">1</button>
-                        <button className="px-2.5 py-1 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50">2</button>
-                        <button className="px-2.5 py-1 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50">3</button>
-                        <button className="px-2 py-1 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50"><ChevronRight className="w-3 h-3" /></button>
+                        <button className="px-2 py-1 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 cursor-default"><ChevronLeft className="w-3 h-3" /></button>
+                        <button className="px-2.5 py-1 text-xs bg-[var(--color-primary)] text-white rounded-lg font-semibold cursor-default">1</button>
+                        <button className="px-2.5 py-1 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 cursor-default">2</button>
+                        <button className="px-2.5 py-1 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 cursor-default">3</button>
+                        <button className="px-2 py-1 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 cursor-default"><ChevronRight className="w-3 h-3" /></button>
                     </div>
                 </div>
             </div>
@@ -210,7 +197,7 @@ export default function Inventory() {
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Total Assets</p>
                         <TrendingUp className="w-4 h-4 text-green-500" />
                     </div>
-                    <p className="text-2xl font-bold text-[var(--color-text-main)]">${totalAssets}</p>
+                    <p className="text-2xl font-bold text-[var(--color-text-main)]">LKR {totalAssets}</p>
                     <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                         <TrendingUp className="w-3 h-3" /> 3.2% from last week
                     </p>

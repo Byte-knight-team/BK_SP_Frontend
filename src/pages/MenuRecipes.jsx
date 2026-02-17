@@ -104,8 +104,7 @@ export default function MenuRecipes() {
                     <p className="text-sm text-[var(--color-text-muted)]">Manage ingredients and costing for your active menu items.</p>
                 </div>
                 <button
-                    onClick={handleAddNewItem}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors shadow-lg shadow-[var(--color-primary)]/20"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors shadow-lg shadow-[var(--color-primary)]/20 cursor-default"
                 >
                     <Plus className="w-4 h-4" /> Request New Menu Item
                 </button>
@@ -131,9 +130,7 @@ export default function MenuRecipes() {
                                     return (
                                         <tr
                                             key={item.id}
-                                            onClick={() => handleSelectItem(item)}
-                                            className={`border-t border-[var(--color-border)] cursor-pointer transition-colors ${selectedItem?.id === item.id ? 'bg-orange-50' : 'hover:bg-slate-50/50'
-                                                }`}
+                                            className="border-t border-[var(--color-border)] transition-colors hover:bg-slate-50/50 cursor-default"
                                         >
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -141,14 +138,13 @@ export default function MenuRecipes() {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 text-[var(--color-text-muted)]">{item.category}</td>
-                                            <td className="px-4 py-4 text-center font-bold text-[var(--color-text-main)]">${item.price.toFixed(2)}</td>
+                                            <td className="px-4 py-4 text-center font-bold text-[var(--color-text-main)]">LKR {item.price}</td>
                                             <td className="px-4 py-4 text-center">
                                                 <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full ${style.bg} ${style.text}`}>
                                                     {style.label}
                                                 </span>
                                             </td>
                                             <td className="px-2 py-4">
-                                                <ChevronRight className="w-4 h-4 text-[var(--color-text-light)]" />
                                             </td>
                                         </tr>
                                     );
@@ -208,7 +204,7 @@ export default function MenuRecipes() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Selling Price ($)</label>
+                                        <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1">Selling Price (LKR)</label>
                                         <input
                                             type="number"
                                             value={editData.price}
@@ -278,7 +274,7 @@ export default function MenuRecipes() {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-[10px] text-[var(--color-text-muted)]">TOTAL COST</p>
-                                        <p className="text-xl font-bold text-[var(--color-text-main)]">${editData.totalCost.toFixed(2)}</p>
+                                        <p className="text-xl font-bold text-[var(--color-text-main)]">LKR {editData.totalCost}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[10px] text-[var(--color-text-muted)]">FOOD COST %</p>
