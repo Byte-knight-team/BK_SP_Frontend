@@ -107,6 +107,23 @@ export default function Layout({ children }) {
                 <div className="px-3 pb-3 space-y-1">
                     {bottomNav.map((item) => {
                         const Icon = item.icon;
+                        const isSettings = item.path === '/settings';
+
+                        if (isSettings) {
+                            return (
+                                <div
+                                    key={item.path}
+                                    className={`
+                                        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--color-text-muted)] cursor-default
+                                        ${collapsed ? 'justify-center px-2' : ''}
+                                    `}
+                                >
+                                    <Icon className="w-5 h-5 flex-shrink-0" />
+                                    {!collapsed && <span>{item.label}</span>}
+                                </div>
+                            );
+                        }
+
                         const active = isActive(item.path);
                         return (
                             <button
