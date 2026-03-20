@@ -1,6 +1,6 @@
-import axios from 'axios';
+import api from '../api/axios';
 
-const API_URL = 'http://localhost:8080/api/orders';
+const API_URL = '/orders';
 
 // Configure axios defaults if needed (e.g., auth headers)
 // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -8,7 +8,7 @@ const API_URL = 'http://localhost:8080/api/orders';
 const orderService = {
     getAllOrders: async () => {
         try {
-            const response = await axios.get(API_URL);
+            const response = await api.get(API_URL);
             return response.data;
         } catch (error) {
             console.error('Error fetching orders:', error);
@@ -18,7 +18,7 @@ const orderService = {
 
     getOrderById: async (id) => {
         try {
-            const response = await axios.get(`${API_URL}/${id}`);
+            const response = await api.get(`${API_URL}/${id}`);
             return response.data;
         } catch (error) {
             console.error(`Error fetching order ${id}:`, error);
@@ -28,7 +28,7 @@ const orderService = {
 
     cancelOrder: async (orderId, reason) => {
         try {
-            const response = await axios.put(`${API_URL}/${orderId}/cancel`, { reason });
+            const response = await api.put(`${API_URL}/${orderId}/cancel`, { reason });
             return response.data;
         } catch (error) {
             console.error(`Error cancelling order ${orderId}:`, error);
