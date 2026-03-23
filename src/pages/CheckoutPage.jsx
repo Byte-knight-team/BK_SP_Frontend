@@ -129,17 +129,17 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="bg-navy rounded-[16px] p-6 mb-4 text-white">
+        <div className="mb-4 rounded-[16px] bg-slate-900 p-6 text-white shadow-sm">
           <h3 className="font-heading text-[1.05rem] font-bold mb-4">Order Summary</h3>
-          <div className="flex justify-between items-center text-[0.88rem] text-white/70 mb-2.5"><span>Subtotal ({cartCount} items)</span><span>LKR {subtotal.toLocaleString()}</span></div>
-          {orderType === 'delivery' && <div className="flex justify-between items-center text-[0.88rem] text-white/70 mb-2.5"><span>Delivery Fee</span><span>LKR {deliveryFee.toLocaleString()}</span></div>}
-          <div className="flex justify-between items-center text-[0.88rem] text-white/70 mb-2.5"><span>Tax (8%)</span><span>LKR {tax.toLocaleString()}</span></div>
-          <div className="flex justify-between items-center mt-3.5 pt-3.5 border-t border-white/15 font-heading text-[1.05rem] font-bold"><span>Total</span><span className="text-orange text-[1.15rem]">LKR {total.toLocaleString()}</span></div>
+          <div className="mb-2.5 flex items-center justify-between text-[0.88rem] text-slate-300"><span>Subtotal ({cartCount} items)</span><span>LKR {subtotal.toLocaleString()}</span></div>
+          {orderType === 'delivery' && <div className="mb-2.5 flex items-center justify-between text-[0.88rem] text-slate-300"><span>Delivery Fee</span><span>LKR {deliveryFee.toLocaleString()}</span></div>}
+          <div className="mb-2.5 flex items-center justify-between text-[0.88rem] text-slate-300"><span>Tax (8%)</span><span>LKR {tax.toLocaleString()}</span></div>
+          <div className="mt-3.5 flex items-center justify-between border-t border-white/15 pt-3.5 font-heading text-[1.05rem] font-bold"><span>Total</span><span className="text-[1.15rem] text-orange-400">LKR {total.toLocaleString()}</span></div>
         </div>
 
         {error && <div className="bg-red-100 text-red-800 py-3 px-4 rounded-[10px] mb-4 text-sm">{error}</div>}
 
-        <button className="flex items-center justify-center gap-2 w-full py-[17px] rounded-[14px] bg-orange text-white font-heading text-[1.05rem] font-bold transition-colors duration-300 ease-smooth mb-3 hover:bg-orange-hover disabled:opacity-70 disabled:cursor-not-allowed" disabled={isSubmitting} onClick={handlePlaceOrder}>
+        <button className="mb-3 flex w-full items-center justify-center gap-2 rounded-[14px] bg-orange-500 py-[17px] font-heading text-[1.05rem] font-bold text-white shadow-sm transition-colors duration-300 ease-smooth hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70" disabled={isSubmitting} onClick={handlePlaceOrder}>
           {isSubmitting ? (<>Placing Order… <Loader2 size={18} className="animate-spin-custom" /></>) : (<>Place Order • LKR {total.toLocaleString()} <ChevronRight size={18} /></>)}
         </button>
       </div>
