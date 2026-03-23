@@ -1,41 +1,32 @@
+import { Link } from 'react-router-dom';
+import { Store, ArrowRight } from 'lucide-react';
+
 export default function ExperienceSection() {
     return (
-        <section className="section" id="experience">
-            <div className="section__header">
-                <div className="section__badge badge--orange">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
-                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M23 21v-2a4 4 0 00-3-3.87" />
-                        <path d="M16 3.13a4 4 0 010 7.75" />
-                    </svg>
-                    Get Started
+        <section className="bg-slate-100 px-4 py-20 sm:px-6" id="experience">
+            <div className="mx-auto max-w-5xl">
+                <div className="mx-auto mb-12 max-w-2xl text-center">
+                    <p className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">Get Started</p>
+                    <h2 className="mt-3 text-3xl font-bold text-slate-900 sm:text-5xl">Choose Your Experience</h2>
+                    <p className="mt-4 text-slate-600">Select the option that best fits your needs</p>
                 </div>
-                <h2 className="section__title">Choose Your Experience</h2>
-                <p className="section__subtitle">
-                    Select the option that best fits your needs
-                </p>
-            </div>
 
-            <div className="experience__card">
-                <div className="experience__icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                        <line x1="3" y1="6" x2="21" y2="6" />
-                        <path d="M16 10a4 4 0 0 1-8 0" />
-                    </svg>
-                </div>
-                <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--navy)', marginBottom: 16 }}>Customer</h3>
-                <p style={{ color: 'var(--gray-500)', maxWidth: 500, margin: '0 auto 32px' }}>
-                    Order delicious food, track your delivery in real-time, and earn exclusive rewards with every purchase
-                </p>
-                <a href="#" style={{ color: 'var(--orange)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    Start Ordering
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                        <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                </a>
+                <article className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-900/10 sm:p-10">
+                    <div className="mx-auto mb-5 inline-flex rounded-2xl bg-orange-100 p-4 text-orange-700">
+                        <Store size={30} />
+                    </div>
+                    <h3 className="text-4xl font-bold text-slate-900">Customer</h3>
+                    <p className="mx-auto mt-3 max-w-xl text-slate-600">
+                        Discover dishes, customize your meal, and manage every order from one clean interface.
+                    </p>
+                    <Link
+                        to="/menu"
+                        className="mt-7 inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-semibold text-white transition-transform hover:-translate-y-0.5 hover:bg-orange-600"
+                    >
+                        Start ordering
+                        <ArrowRight size={18} />
+                    </Link>
+                </article>
             </div>
         </section>
     );
