@@ -17,6 +17,7 @@ import {
   BadgeCheck,
   CircleCheckBig,
   UserCircle2,
+  ShoppingCart,
 } from 'lucide-react';
 import brandLogo from '../assets/Crave House logo.png';
 
@@ -329,8 +330,11 @@ export default function MenuPage() {
 
                 <div className="flex items-center justify-between mt-auto">
                   <span className="font-heading text-[1.1rem] font-bold text-navy">LKR {item.price.toLocaleString()}</span>
-                  <button className="flex items-center gap-[5px] px-5 py-[9px] rounded-sm bg-navy text-white text-[0.82rem] font-semibold transition-colors duration-300 ease-smooth hover:bg-navy-light" onClick={() => addToCart(item)}>
-                    <Plus size={14} /> Add
+                  <button
+                    className="inline-flex min-w-[118px] items-center justify-center gap-1.5 rounded-lg border border-orange-600 bg-orange-500 px-4 py-2.5 text-[0.82rem] font-semibold text-white shadow-sm transition-colors duration-300 ease-smooth hover:bg-orange-600"
+                    onClick={() => addToCart(item)}
+                  >
+                    <ShoppingCart size={15} /> Add to Cart
                   </button>
                 </div>
               </div>

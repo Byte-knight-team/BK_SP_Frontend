@@ -90,7 +90,7 @@ export default function CartPage() {
               <span className="font-heading text-[1.1rem] font-bold text-orange">LKR {subtotal.toLocaleString()}</span>
             </div>
           </div>
-          <button className="flex items-center justify-center gap-2 w-full py-4 rounded-[14px] bg-orange text-white font-heading text-[1.05rem] font-bold transition-colors duration-300 ease-smooth hover:bg-orange-hover" onClick={() => navigate('/checkout')}>
+          <button className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-orange-500 py-4 font-heading text-[1.05rem] font-bold text-white shadow-sm transition-colors duration-300 ease-smooth hover:bg-orange-600" onClick={() => navigate('/checkout')}>
             Proceed to Checkout <ChevronRight size={18} />
           </button>
         </div>
