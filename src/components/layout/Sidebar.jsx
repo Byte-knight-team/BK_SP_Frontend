@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 import clsx from 'clsx'
 import { NAV_ITEMS } from '../../constants/navItems'
+import logo from '../../assets/logo.png'
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -9,9 +10,13 @@ export default function Sidebar() {
   return (
     <aside className="w-60 shrink-0 h-full bg-white border-r border-gray-100 flex flex-col">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-gray-100">
+      <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2">
+        <div className="w-9 h-9 bg-brand rounded-full overflow-hidden flex items-center justify-center">
+          <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
+        </div>
         <span className="text-xl font-bold">
-          <span className="text-brand">CRAVE</span>HOUSE
+          <span className="text-brand">CRAVE</span>
+          <span className="text-black">HOUSE</span>
         </span>
       </div>
 
@@ -31,8 +36,15 @@ export default function Sidebar() {
               )
             }
           >
-            <Icon className="w-4 h-4 shrink-0" />
-            {label}
+            {({ isActive }) => (
+              <>
+                <Icon className="w-4 h-4 shrink-0" />
+                {label}
+                {isActive && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
+                )}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
