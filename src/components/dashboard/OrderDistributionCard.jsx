@@ -1,12 +1,19 @@
+import { PieChart } from 'lucide-react'
+
 export default function OrderDistributionCard({ total, dineIn, online }) {
   return (
     <div className="card">
       <div className="flex justify-between items-start mb-3">
-        <div>
-          <p className="text-sm font-semibold text-gray-900">
-            Order Distribution
-          </p>
-          <p className="text-xs text-gray-400">Dine-in vs Online</p>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-brand-light rounded-lg">
+            <PieChart className="w-4 h-4 text-brand" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              Order Distribution
+            </p>
+            <p className="text-xs text-gray-400">Dine-in vs Online</p>
+          </div>
         </div>
         <span className="text-xl font-bold text-gray-900">{total}</span>
       </div>
