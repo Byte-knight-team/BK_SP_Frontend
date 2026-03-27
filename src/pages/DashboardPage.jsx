@@ -56,7 +56,7 @@ export default function DashboardPage() {
   if (loading) return <LoadingSkeleton />
 
   return (
-    <div className="space-y-4 max-w-5xl mx-auto">
+    <div className="space-y-6 mx-auto">
       <DashHeader />
       <StatsGrid data={data} />
 

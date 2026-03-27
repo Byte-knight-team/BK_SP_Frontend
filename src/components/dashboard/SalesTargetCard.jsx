@@ -7,10 +7,10 @@ export default function SalesTargetCard({ current, goal }) {
 
   return (
     <div className="card">
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-brand-light rounded-lg">
-            <Target className="w-4 h-4 text-brand" />
+          <div className="p-2.5 bg-brand-light rounded-xl">
+            <Target className="w-5 h-5 text-brand" />
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900">
@@ -21,12 +21,12 @@ export default function SalesTargetCard({ current, goal }) {
             </p>
           </div>
         </div>
-        <span className="text-xl font-bold text-gray-900">
+        <span className="text-2xl font-bold text-gray-900">
           ${current.toLocaleString()}
         </span>
       </div>
       <ProgressBar value={current} max={goal} />
-      <div className="flex justify-between mt-2">
+      <div className="flex justify-between mt-3">
         <span className="text-xs text-green-500 font-medium">
           {pct}% Achieved
         </span>
