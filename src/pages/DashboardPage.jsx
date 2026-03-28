@@ -15,22 +15,22 @@ function DashHeader() {
     day: 'numeric',
   })
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900">
           Good Morning, Manager
         </h1>
-        <p className="text-xs text-gray-400 mt-0.5">{now}</p>
+        <p className="text-sm text-gray-400 mt-1">{now}</p>
       </div>
-      <div className="flex items-center gap-2">
-        <button className="btn-outline flex items-center gap-1.5">
-          <Plus className="w-4 h-4" /> Add Inventory
+      <div className="flex items-center gap-3">
+        <button className="btn-outline flex items-center gap-2 text-base">
+          <Plus className="w-5 h-5" /> Add Inventory
         </button>
-        <button className="btn-outline flex items-center gap-1.5">
-          <UserCheck className="w-4 h-4" /> Assign Driver
+        <button className="btn-outline flex items-center gap-2 text-base">
+          <UserCheck className="w-5 h-5" /> Assign Driver
         </button>
-        <button className="btn-primary flex items-center gap-1.5">
-          <Eye className="w-4 h-4" /> View Live Orders
+        <button className="btn-primary flex items-center gap-2 text-base">
+          <Eye className="w-5 h-5" /> View Live Orders
         </button>
       </div>
     </div>

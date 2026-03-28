@@ -11,7 +11,7 @@ export default function Badge({ status }) {
   return (
     <span
       className={clsx(
-        'text-xs font-semibold px-2 py-0.5 rounded-full',
+        'text-sm font-semibold px-2.5 py-1 rounded-full',
         variants[status] ?? variants.active,
       )}
     >
