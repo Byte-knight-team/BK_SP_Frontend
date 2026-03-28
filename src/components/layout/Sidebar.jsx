@@ -8,7 +8,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
 
   return (
-    <aside className="w-64 shrink-0 h-full bg-white border-r border-gray-100 flex flex-col">
+    <aside className="w-72 shrink-0 h-full bg-white border-r border-gray-100 flex flex-col">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2.5">
         <div className="w-10 h-10 bg-brand rounded-full overflow-hidden flex items-center justify-center">
