@@ -1,29 +1,36 @@
-import { Package } from 'lucide-react'
+import { useInventoryData } from '../hooks/useInventoryData'
+import InventoryHeader from '../components/inventory/InventoryHeader'
+import InventorySummaryCards from '../components/inventory/InventorySummaryCards'
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-5 animate-pulse">
+      <div className="h-10 bg-gray-200 rounded w-72" />
+      <div className="grid grid-cols-3 gap-5">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-32 bg-gray-200 rounded-2xl" />
+        ))}
+      </div>
+      <div className="h-64 bg-gray-200 rounded-2xl" />
+    </div>
+  )
+}
 
 export default function InventoryPage() {
+  const { data, loading } = useInventoryData()
+
+  if (loading) return <LoadingSkeleton />
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-brand-light rounded-xl">
-            <Package className="w-7 h-7 text-brand" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Inventory Management
-            </h1>
-            <p className="text-sm text-gray-400">
-              Track levels and update stock
-            </p>
-          </div>
-        </div>
-      </div>
+      <InventoryHeader branch={data.branch} />
+      <InventorySummaryCards
+        totalValue={data.totalInventoryValue}
+        pendingDrafts={data.pendingChefDrafts}
+        lowStockAlerts={data.lowStockAlerts}
+      />
 
-      {/* Placeholder */}
-      <div className="card flex items-center justify-center h-64 text-gray-400 text-lg">
-        Inventory content coming soon…
-      </div>
+      {/* Current Stock and Chef Requests will be added in next phases */}
     </div>
   )
 }
