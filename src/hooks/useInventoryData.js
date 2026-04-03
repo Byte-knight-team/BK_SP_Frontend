@@ -62,7 +62,7 @@ const MOCK_INVENTORY = {
       item: 'Pizza Flour',
       quantity: '20.0 kg',
       note: 'Running low for dinner prep. Urgent stock needed.',
-      avatarColor: '#22C55E',
+      avatarColor: '#F97316',
     },
     {
       id: 3,

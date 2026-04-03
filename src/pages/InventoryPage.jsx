@@ -2,6 +2,7 @@ import { useInventoryData } from '../hooks/useInventoryData'
 import InventoryHeader from '../components/inventory/InventoryHeader'
 import InventorySummaryCards from '../components/inventory/InventorySummaryCards'
 import CurrentStockTable from '../components/inventory/CurrentStockTable'
+import ChefRequestsSection from '../components/inventory/ChefRequestsSection'
 
 function LoadingSkeleton() {
   return (
@@ -13,6 +14,7 @@ function LoadingSkeleton() {
         ))}
       </div>
       <div className="h-64 bg-gray-200 rounded-2xl" />
+      <div className="h-48 bg-gray-200 rounded-2xl" />
     </div>
   )
 }
@@ -31,8 +33,7 @@ export default function InventoryPage() {
         lowStockAlerts={data.lowStockAlerts}
       />
       <CurrentStockTable items={data.stockItems} />
-
-      {/* Chef Requests will be added in next phase */}
+      <ChefRequestsSection requests={data.chefRequests} />
     </div>
   )
 }
