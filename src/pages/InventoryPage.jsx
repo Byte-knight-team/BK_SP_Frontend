@@ -1,6 +1,7 @@
 import { useInventoryData } from '../hooks/useInventoryData'
 import InventoryHeader from '../components/inventory/InventoryHeader'
 import InventorySummaryCards from '../components/inventory/InventorySummaryCards'
+import CurrentStockTable from '../components/inventory/CurrentStockTable'
 
 function LoadingSkeleton() {
   return (
@@ -29,8 +30,9 @@ export default function InventoryPage() {
         pendingDrafts={data.pendingChefDrafts}
         lowStockAlerts={data.lowStockAlerts}
       />
+      <CurrentStockTable items={data.stockItems} />
 
-      {/* Current Stock and Chef Requests will be added in next phases */}
+      {/* Chef Requests will be added in next phase */}
     </div>
   )
 }
