@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useInventoryData } from '../hooks/useInventoryData'
 import InventoryHeader from '../components/inventory/InventoryHeader'
 import InventorySummaryCards from '../components/inventory/InventorySummaryCards'
 import CurrentStockTable from '../components/inventory/CurrentStockTable'
 import ChefRequestsSection from '../components/inventory/ChefRequestsSection'
+import AddInventoryItemModal from '../components/inventory/AddInventoryItemModal'
 
 function LoadingSkeleton() {
   return (
@@ -21,12 +23,22 @@ function LoadingSkeleton() {
 
 export default function InventoryPage() {
   const { data, loading } = useInventoryData()
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   if (loading) return <LoadingSkeleton />
 
+  const handleSaveItem = (itemData) => {
+    console.log('New inventory item:', itemData)
+    // TODO: POST to backend API
+    setIsAddModalOpen(false)
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <InventoryHeader branch={data.branch} />
+      <InventoryHeader
+        branch={data.branch}
+        onAddItem={() => setIsAddModalOpen(true)}
+      />
       <InventorySummaryCards
         totalValue={data.totalInventoryValue}
         pendingDrafts={data.pendingChefDrafts}
@@ -34,6 +46,13 @@ export default function InventoryPage() {
       />
       <CurrentStockTable items={data.stockItems} />
       <ChefRequestsSection requests={data.chefRequests} />
+
+      {/* Add Item Modal */}
+      <AddInventoryItemModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleSaveItem}
+      />
     </div>
   )
 }
