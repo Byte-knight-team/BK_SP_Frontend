@@ -1,94 +1,82 @@
+import { Link } from 'react-router-dom';
+import { Sparkles, ArrowRight, TrendingUp } from 'lucide-react';
 import qrLogo from '../assets/QR Logo.png';
 
 export default function HeroSection() {
-    return (
-        <section className="hero" id="home">
-            <div
-                className="hero__bg"
-                style={{ backgroundImage: `url('https://www.paytronix.com/hubfs/restaurant%20decor%20ideas.jpg')` }}
-            />
+	return (
+		<section className="relative isolate overflow-hidden">
+			<div
+				className="absolute inset-0 bg-cover bg-center"
+				style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=2200&q=80)' }}
+			/>
+			<div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/65 to-black/45" />
 
-            <div className="hero__inner">
-                <div className="hero__content">
-                    <div className="hero__badge">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                        Award-Winning Restaurant Management
-                    </div>
+			<div className="relative mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+				<div className="text-white">
+					<div className="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-300/30 bg-orange-500/15 px-4 py-1.5 text-sm font-medium text-orange-100">
+						<Sparkles size={15} />
+						Award-winning restaurant management
+					</div>
+					<h1 className="text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
+						Elevate Your
+						<br />
+						<span className="text-orange-400">Dining</span>
+						<br />
+						<span className="text-orange-400">Experience</span>
+					</h1>
+					<p className="mt-6 max-w-xl text-base leading-relaxed text-slate-200">
+						Experience seamless QR ordering, real-time tracking, and exclusive rewards from
+						dine-in to delivery.
+					</p>
+					<div className="mt-8 flex flex-wrap items-center gap-3">
+						<Link
+							to="/menu"
+							className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-semibold text-white shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-0.5 hover:bg-orange-600"
+						>
+							Start Ordering
+							<ArrowRight size={18} />
+						</Link>
+					</div>
 
-                    <h1 className="hero__title">
-                        Elevate Your<br />
-                        <span>Dining<br />Experience</span>
-                    </h1>
+					<div className="mt-8 grid max-w-md grid-cols-3 gap-3">
+						{[
+							{ value: '4.9', label: 'App Rating' },
+							{ value: '50K+', label: 'Orders' },
+							{ value: '24/7', label: 'Support' },
+						].map((stat) => (
+							<div key={stat.label} className="rounded-xl border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
+								<p className="text-xl font-bold text-white">{stat.value}</p>
+								<p className="text-xs text-slate-300">{stat.label}</p>
+							</div>
+						))}
+					</div>
+				</div>
 
-                    <p className="hero__subtitle">
-                        Experience seamless QR ordering, real-time tracking,
-                        and exclusive rewards. From dine-in to delivery, we
-                        redefine restaurant excellence.
-                    </p>
+				<div className="relative mx-auto hidden w-full max-w-xl lg:block">
+					<div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+						<img
+							src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80"
+							alt="Premium plated food"
+							className="h-[360px] w-full rounded-2xl object-cover"
+						/>
+					</div>
 
-                    <div className="hero__buttons">
-                        <button className="btn btn--primary btn--primary-lg">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                                <line x1="12" y1="18" x2="12.01" y2="18" />
-                            </svg>
-                            Start Ordering
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                                <polyline points="12 5 19 12 12 19" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+					<div className="absolute -left-10 top-10 rounded-2xl bg-white p-3 shadow-xl">
+						<div className="rounded-xl bg-orange-500 p-2">
+							<img src={qrLogo} alt="QR ordering" className="h-11 w-11 rounded-lg object-contain" />
+						</div>
+						<p className="mt-2 text-xs font-semibold text-slate-700">Scan & order</p>
+					</div>
 
-                <div className="hero__right">
-                    <div className="hero__image-card">
-                        <img
-                            src="https://images.unsplash.com/photo-1755811248279-1ab13b7d4384?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDE0fHx8ZW58MHx8fHx8"
-                            alt="Delicious Food Collage"
-                        />
-
-                        <div className="hero__qr-card">
-                            <div className="hero__qr-icon">
-                                <img src={qrLogo} alt="QR Code" />
-                            </div>
-                            <div className="hero__qr-label">Scan & Order</div>
-                        </div>
-
-                        <div className="hero__orders-badge">
-                            <div className="hero__orders-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                                    <polyline points="17 6 23 6 23 12" />
-                                </svg>
-                            </div>
-                            <div className="hero__orders-info">
-                                <h4>+2.4K Orders</h4>
-                                <p>This month</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="hero__stats">
-                <div className="hero__stat-card">
-                    <div className="hero__stat-value">
-                        <span style={{ color: '#FFD700', marginRight: 4 }}>★</span> 4.9
-                    </div>
-                    <div className="hero__stat-label">App Rating</div>
-                </div>
-                <div className="hero__stat-card">
-                    <div className="hero__stat-value">50K+</div>
-                    <div className="hero__stat-label">Orders</div>
-                </div>
-                <div className="hero__stat-card">
-                    <div className="hero__stat-value">24/7</div>
-                    <div className="hero__stat-label">Support</div>
-                </div>
-            </div>
-        </section>
-    );
+					<div className="absolute -bottom-4 left-12 rounded-xl bg-white p-3 shadow-xl">
+						<div className="flex items-center gap-2 text-emerald-600">
+							<TrendingUp size={16} />
+							<p className="text-sm font-semibold">+2.4K Orders</p>
+						</div>
+						<p className="text-[11px] text-slate-500">This month</p>
+					</div>
+				</div>
+			</div>
+		</section>
+	);
 }

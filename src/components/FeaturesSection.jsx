@@ -1,58 +1,61 @@
+import { ScanLine, ClipboardList, CreditCard, BellRing } from 'lucide-react';
+
+const QR_ORDERING_STEPS = [
+    {
+        title: 'Scan Table QR',
+        description: 'Guest scans the table QR code to open the restaurant menu instantly.',
+        icon: ScanLine,
+    },
+    {
+        title: 'Select Items',
+        description: 'Guest customizes dishes, adds notes, and reviews the order before checkout.',
+        icon: ClipboardList,
+    },
+    {
+        title: 'Pay Securely',
+        description: 'Order is confirmed via secure in-app payment or pay-at-counter options.',
+        icon: CreditCard,
+    },
+    {
+        title: 'Receive Updates',
+        description: 'Kitchen progress and order-ready notifications are shown in real time.',
+        icon: BellRing,
+    },
+];
+
 export default function FeaturesSection() {
     return (
-        <section className="section" id="features">
-            <div className="section__header">
-                <div className="section__badge badge--orange">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                    </svg>
-                    Powerful Features
-                </div>
-                <h2 className="section__title">Everything You Need in One Platform</h2>
-                <p className="section__subtitle">
-                    Built for modern restaurants with cutting-edge technology
-                </p>
-            </div>
-
-            <div className="features__grid">
-                <div className="feature-card feature-card--orange">
-                    <div className="feature-card__icon bg-orange">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="7" height="7" />
-                            <rect x="14" y="3" width="7" height="7" />
-                            <rect x="3" y="14" width="7" height="7" />
-                            <rect x="14" y="14" width="7" height="7" />
-                        </svg>
-                    </div>
-                    <h3 className="feature-card__title">QR Code Ordering</h3>
-                    <p className="feature-card__desc">
-                        Contactless menu browsing and ordering. Scan, order, and pay—all from your phone.
+        <section className="w-full bg-slate-100 px-4 py-20 sm:px-6 lg:px-8" id="features">
+            <div className="mx-auto max-w-6xl">
+                <div className="mx-auto mb-12 max-w-3xl text-center">
+                    <p className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                        In-Restaurant Flow
+                    </p>
+                    <h2 className="mt-4 text-3xl font-bold text-slate-900 sm:text-4xl">
+                        QR Ordering Steps Inside the Restaurant
+                    </h2>
+                    <p className="mt-4 text-slate-600">
+                        A clear step-by-step table ordering process designed for speed, accuracy, and low staff load.
                     </p>
                 </div>
 
-                <div className="feature-card feature-card--blue">
-                    <div className="feature-card__icon bg-blue">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 14 8 14s8-8.6 8-14a8 8 0 0 0-8-8z" />
-                            <circle cx="12" cy="10" r="3" />
-                        </svg>
-                    </div>
-                    <h3 className="feature-card__title">Live GPS Tracking</h3>
-                    <p className="feature-card__desc">
-                        Real-time delivery tracking with driver location and precise ETA updates.
-                    </p>
-                </div>
+                <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                    {QR_ORDERING_STEPS.map((step, index) => {
+                        const Icon = step.icon;
 
-                <div className="feature-card feature-card--purple">
-                    <div className="feature-card__icon bg-purple">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                    </div>
-                    <h3 className="feature-card__title">Loyalty Program</h3>
-                    <p className="feature-card__desc">
-                        Earn points, unlock tiers, and redeem exclusive rewards with every order.
-                    </p>
+                        return (
+                            <article key={step.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                                <div className="mb-5 flex items-center justify-between">
+                                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
+                                        <Icon size={18} />
+                                    </div>
+                                    <span className="text-xs font-semibold tracking-wider text-slate-400">STEP {index + 1}</span>
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-900">{step.title}</h3>
+                                <p className="mt-2 leading-relaxed text-slate-600">{step.description}</p>
+                            </article>
+                        );
+                    })}
                 </div>
             </div>
         </section>
