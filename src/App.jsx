@@ -1,3 +1,4 @@
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import HomePage from './pages/HomePage';
@@ -5,6 +6,7 @@ import MenuPage from './pages/MenuPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 export default function App() {
   return (
@@ -15,6 +17,7 @@ export default function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
       </Routes>
     </CartProvider>
   );
