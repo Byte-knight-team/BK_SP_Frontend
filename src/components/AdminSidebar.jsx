@@ -3,6 +3,7 @@ import {
   Flame, LayoutDashboard, Users, Utensils, LayoutGrid, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightSmall
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import craveHouseLogo from '../assets/Crave House logo.png';
 
 export default function AdminSidebar() {
   const location = useLocation();
@@ -44,10 +45,13 @@ export default function AdminSidebar() {
       <div>
         {/* Logo */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3 px-2'} mb-10 mt-2`}>
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 flex-shrink-0">
-            <Flame size={22} fill="currentColor" />
-          </div>
-          {!isCollapsed && <span className="font-bold text-[19px] tracking-tight text-gray-900 whitespace-nowrap">CRAVEHOUSE</span>}
+          <img src={craveHouseLogo} alt="Crave House Logo" className="w-10 h-10 object-contain flex-shrink-0" />
+          {!isCollapsed && (
+            <span className="font-bold text-[19px] tracking-tight whitespace-nowrap">
+              <span className="text-black">CRAVE</span>
+              <span className="text-orange-500">HOUSE</span>
+            </span>
+          )}
         </div>
 
         {/* Navigation */}
