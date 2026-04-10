@@ -9,6 +9,7 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import MenuManagementPage from './pages/MenuManagementPage';
 import AddMenuItemPage from './pages/AddMenuItemPage';
+import EditMenuItemPage from './pages/EditMenuItemPage';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/menu" element={<MenuManagementPage />} />
         <Route path="/admin/menu/add" element={<AddMenuItemPage />} />
+        <Route path="/admin/menu/edit" element={<EditMenuItemPage />} />
       </Routes>
     </CartProvider>
   );
