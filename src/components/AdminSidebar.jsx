@@ -58,7 +58,7 @@ export default function AdminSidebar() {
             {!isCollapsed && isExactActive('/admin') && <div className="w-1.5 h-1.5 bg-white rounded-full ml-auto"></div>}
           </Link>
           
-          <Link to="#" className={getParentLinkClass('/admin/users')}>
+          <Link to="/admin/users" className={getParentLinkClass('/admin/users')}>
             <Users size={20} className="flex-shrink-0" />
             {!isCollapsed && <span className="text-sm">User Management</span>}
             {!isCollapsed && isExactActive('/admin/users') && <div className="w-1.5 h-1.5 bg-white rounded-full ml-auto"></div>}
