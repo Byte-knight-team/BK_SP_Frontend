@@ -10,6 +10,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import MenuManagementPage from './pages/MenuManagementPage';
 import AddMenuItemPage from './pages/AddMenuItemPage';
 import EditMenuItemPage from './pages/EditMenuItemPage';
+import TableManagementPage from './pages/TableManagementPage';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/admin/menu" element={<MenuManagementPage />} />
         <Route path="/admin/menu/add" element={<AddMenuItemPage />} />
         <Route path="/admin/menu/edit" element={<EditMenuItemPage />} />
+        <Route path="/admin/tables" element={<TableManagementPage />} />
       </Routes>
     </CartProvider>
   );

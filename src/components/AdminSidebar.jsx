@@ -102,7 +102,7 @@ export default function AdminSidebar() {
             )}
           </div>
 
-          <Link to="#" className={getParentLinkClass('/admin/tables')}>
+          <Link to="/admin/tables" className={getParentLinkClass('/admin/tables')}>
             <LayoutGrid size={20} className="flex-shrink-0" />
             {!isCollapsed && <span className="text-sm">Table Management</span>}
             {!isCollapsed && isExactActive('/admin/tables') && <div className="w-1.5 h-1.5 bg-white rounded-full ml-auto"></div>}
