@@ -4,62 +4,14 @@ import {
   Search, Bell, HelpCircle, LogOut, DollarSign, ShoppingBag, 
   TrendingUp, Clock, CheckCircle, ArrowUpRight, ArrowDownRight 
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import AdminSidebar from '../components/AdminSidebar';
 
 export default function AdminDashboardPage() {
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
       {/* Sidebar */}
-      <aside className="w-[260px] bg-[#FAFAFA] flex flex-col justify-between border-r border-gray-100 p-6 flex-shrink-0 z-10">
-        <div>
-          {/* Logo */}
-          <div className="flex items-center gap-3 px-2 mb-10">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
-              <Flame size={22} fill="currentColor" />
-            </div>
-            <span className="font-bold text-[19px] tracking-tight text-gray-900">CRAVEHOUSE</span>
-          </div>
-
-          {/* Navigation */}
-          <nav className="space-y-2">
-            <a href="#" className="flex items-center gap-3 px-4 py-3.5 bg-orange-500 text-white rounded-2xl font-medium shadow-md shadow-orange-500/20">
-              <LayoutDashboard size={20} />
-              <span className="text-sm">Dashboard</span>
-              <div className="w-1.5 h-1.5 bg-white rounded-full ml-auto"></div>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-2xl font-medium transition-colors">
-              <Users size={20} />
-              <span className="text-sm">User Management</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-2xl font-medium transition-colors">
-              <Utensils size={20} />
-              <span className="text-sm">Menu Management</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-2xl font-medium transition-colors">
-              <LayoutGrid size={20} />
-              <span className="text-sm">Table Management</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-2xl font-medium transition-colors">
-              <Settings size={20} />
-              <span className="text-sm">System Settings</span>
-            </a>
-          </nav>
-        </div>
-
-        {/* User Card */}
-        <div className="mt-8">
-          <div className="bg-gray-100/80 rounded-2xl p-3 flex items-center gap-3 mb-4">
-            <img src="https://ui-avatars.com/api/?name=Vibhath+Kalsara&background=E5E7EB&color=374151" alt="Vibhath Kalsara" className="w-10 h-10 rounded-full object-cover" />
-            <div>
-              <div className="text-sm font-bold text-gray-900">Vibhath Kalsara</div>
-              <div className="text-[10px] font-bold text-orange-500 tracking-wider">ADMIN</div>
-            </div>
-          </div>
-          <button className="flex items-center gap-3 px-4 py-2 text-red-500 font-medium hover:bg-red-50 rounded-xl transition-colors w-full">
-            <LogOut size={20} />
-            <span className="text-sm">Logout</span>
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
