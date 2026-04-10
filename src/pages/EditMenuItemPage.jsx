@@ -5,16 +5,16 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 
-export default function AddMenuItemPage() {
+export default function EditMenuItemPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  const [itemName, setItemName] = useState('');
+  const [itemName, setItemName] = useState('Pepperoni Pizza');
   const [category, setCategory] = useState('');
-  const [basePrice, setBasePrice] = useState('0');
+  const [basePrice, setBasePrice] = useState('1650');
   const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState('Draft');
-  const [imagePreview, setImagePreview] = useState(null);
+  const [visibility, setVisibility] = useState('Active');
+  const [imagePreview, setImagePreview] = useState('https://images.unsplash.com/photo-1628840042765-356cda07504e?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cGVwcGVyb25pJTIwcGl6emF8ZW58MHx8MHx8fDA=');
   const [imageFile, setImageFile] = useState(null);
 
   const visibilityOptions = [
@@ -35,10 +35,10 @@ export default function AddMenuItemPage() {
     }
   };
 
-  const handleCreateItem = () => {
+  const handleSaveChanges = () => {
     // TODO: Hook up to backend API
     console.log({ itemName, category, basePrice, description, visibility, imageFile });
-    navigate('/admin/menu/edit');
+    navigate('/admin/menu');
   };
 
   const handleCancel = () => {
@@ -87,7 +87,7 @@ export default function AddMenuItemPage() {
                 <ArrowLeft size={20} />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Add New Menu Item</h1>
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Edit Menu Item</h1>
                 <p className="text-gray-500 text-sm mt-1">Configure item details, variants, and availability</p>
               </div>
             </div>
@@ -99,10 +99,10 @@ export default function AddMenuItemPage() {
                 Cancel
               </button>
               <button
-                onClick={handleCreateItem}
+                onClick={handleSaveChanges}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
               >
-                Create Item
+                Save Changes
               </button>
             </div>
           </div>
@@ -182,18 +182,18 @@ export default function AddMenuItemPage() {
                 <h2 className="text-base font-bold text-gray-900 mb-4">Item Image</h2>
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-orange-300 hover:bg-orange-50/30 transition-all min-h-[180px] group"
+                  className="rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden"
                 >
                   {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded-xl" />
+                    <img src={imagePreview} alt="Preview" className="w-full aspect-square object-cover rounded-2xl" />
                   ) : (
-                    <>
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl w-full p-6 flex flex-col items-center justify-center min-h-[180px] group-hover:border-orange-300 group-hover:bg-orange-50/30 transition-all">
                       <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3 group-hover:bg-orange-50 transition-colors">
                         <Upload size={24} className="text-gray-400 group-hover:text-orange-400 transition-colors" />
                       </div>
                       <p className="text-sm font-medium text-gray-600">Upload high-res PNG/JPG</p>
                       <p className="text-xs text-gray-400 mt-1">Min. 600x600px suggested</p>
-                    </>
+                    </div>
                   )}
                 </div>
                 <input
