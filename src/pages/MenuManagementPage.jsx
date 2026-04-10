@@ -126,10 +126,10 @@ export default function MenuManagementPage() {
               <button className="bg-white hover:bg-gray-50 text-gray-800 font-semibold px-5 py-2.5 rounded-xl border border-gray-200 text-sm transition-colors shadow-sm">
                 Manage Categories
               </button>
-              <button className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+              <Link to="/admin/menu/add" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all no-underline">
                 <Plus size={18} />
                 Add New Item
-              </button>
+              </Link>
             </div>
           </div>
 
