@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, UserCircle2, ChevronRight } from 'lucide-react';
+import { ShoppingBag, UserCircle2, ChevronRight, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import brandLogo from '../assets/Crave House logo.png';
 
 export default function Navbar() {
 	const { cartCount } = useCart();
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+	const toggleMenu = () => setIsMenuOpen(prev => !prev);
 
 	return (
 		<header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
@@ -50,11 +54,67 @@ export default function Navbar() {
 							</span>
 						)}
 					</Link>
+
+					{/*Menu Button - visible only on mobile/tablet */}
+					<button
+						onClick={toggleMenu}
+						className="inline-flex lg:hidden items-center justify-center h-10 w-10 rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+						aria-label="Toggle menu"
+					>
+						{isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+					</button>
+
 					<Link to="/menu" className="hidden rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 sm:inline-flex">
 						Menu
 					</Link>
 				</div>
 			</div>
+
+			{/* Mobile Menu Panel */}
+			{isMenuOpen && (
+				<div className="absolute left-0 right-0 top-16 border-b border-slate-200 bg-white shadow-lg lg:hidden z-40">
+					<div className="mx-auto max-w-7xl px-4 py-4 space-y-2">
+						{/* Navigation Links */}
+						<a
+							href="#features"
+						onClick={toggleMenu}
+						className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors font-medium"
+					>
+						Features
+					</a>
+					<a
+						href="#steps"
+						onClick={toggleMenu}
+						className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors font-medium"
+					>
+						How It Works
+					</a>
+					<a
+						href="#testimonials"
+						onClick={toggleMenu}
+						className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors font-medium"
+					>
+						Testimonials
+					</a>
+
+						<div className="h-px bg-slate-200 my-3" />
+
+						{/* Auth Buttons */}
+						<button className="w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:bg-slate-50 transition-colors">
+							Login
+						</button>
+						<button className="w-full text-left px-4 py-2.5 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors">
+							Sign Up
+						</button>
+						<button className="w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium hover:border-slate-400 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+							<UserCircle2 size={18} />
+							<span>Account</span>
+						</button>
+
+						<div className="h-px bg-slate-200 my-3" />
+					</div>
+				</div>
+			)}
 		</header>
 	);
 }
