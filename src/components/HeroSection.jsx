@@ -36,7 +36,7 @@ export default function HeroSection() {
 						</Link>
 					</div>
 
-					<div className="mt-8 grid max-w-md grid-cols-3 gap-3">
+					<div className="mt-8 grid max-w-md grid-cols-2 gap-3">
 						{[
 							{ value: 'Hygiene', label: 'Certified'},
 							{ value: '24/7', label: 'Support' },
@@ -49,7 +49,7 @@ export default function HeroSection() {
 					</div>
 				</div>
 
-				<div className="relative mx-auto hidden w-full max-w-xl lg:block">
+				<div className="relative mx-auto w-full max-w-xl">
 					<div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
 						<img
 							src={premiumPlatedFood}
@@ -58,9 +58,9 @@ export default function HeroSection() {
 						/>
 					</div>
 
-					<div className="absolute -left-10 top-10 rounded-2xl bg-white p-3 shadow-xl">
-						<div className="rounded-xl bg-orange-500 p-2">
-							<img src={qrLogo} alt="QR ordering" className="h-11 w-11 rounded-lg object-contain" />
+					<div className="absolute -left-10 top-10 rounded-2xl bg-white/50 p-3 shadow-xl hidden lg:grid backdrop-blur-lg">
+						<div className="flex justify-center rounded-xl  py-2">
+							<img src={qrLogo} alt="QR ordering" className="h-14 w-14 rounded-lg object-contain" />
 						</div>
 						<p className="mt-2 text-xs font-semibold text-slate-700">Scan & order</p>
 					</div>
