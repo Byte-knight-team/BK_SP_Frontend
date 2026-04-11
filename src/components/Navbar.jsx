@@ -8,6 +8,7 @@ export default function Navbar() {
 	const { cartCount } = useCart();
 	const location = useLocation();
 	const isMenuPage = location.pathname === '/menu';
+	const isHomePage = location.pathname === '/';
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	const toggleMenu = () => setIsMenuOpen(prev => !prev);
@@ -23,10 +24,10 @@ export default function Navbar() {
 					</div>
 				</Link>
 
-				<nav className="hidden items-center gap-7 text-sm font-medium text-slate-500 lg:flex">
+				{isHomePage && <nav className="hidden items-center gap-7 text-sm font-medium text-slate-500 lg:flex">
 					<a href="#restuarent" className="transition-colors hover:text-slate-900">How It Works</a>
 					<a href="#testimonials" className="transition-colors hover:text-slate-900">Testimonials</a>
-				</nav>
+				</nav>}
 
 				<div className="flex items-center gap-2.5">
 					<div className="hidden items-center gap-2 md:flex">
@@ -77,13 +78,7 @@ export default function Navbar() {
 				<div className="absolute left-0 right-0 top-16 border-b border-slate-200 bg-white shadow-lg lg:hidden z-40">
 					<div className="mx-auto max-w-7xl px-4 py-4 space-y-2">
 						{/* Navigation Links */}
-						<a
-							href="#features"
-						onClick={toggleMenu}
-						className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors font-medium"
-					>
-						Features
-					</a>
+						
 					<a
 						href="#online"
 						onClick={toggleMenu}
@@ -96,7 +91,7 @@ export default function Navbar() {
 						onClick={toggleMenu}
 						className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors font-medium"
 					>
-						Reviews
+						Testimonials
 					</a>
 
 						<div className="h-px bg-slate-200 my-3" />
