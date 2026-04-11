@@ -13,7 +13,7 @@ export default function CTASection() {
                     Experience?
                 </h2>
                 <p className="mx-auto mt-5 max-w-2xl text-orange-100">
-                     Discover dishes, customize your meal, and manage every order from one clean interface
+                     Discover dishes, customize your meal, and manage every order.
                 </p>
                 <Link
                     to="/menu"

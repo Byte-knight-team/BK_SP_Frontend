@@ -13,8 +13,7 @@ export default function Footer() {
 						</div>
 						<p className="mt-2 text-sm text-slate-400">Premium Dining Experience</p>
 						<p className="mt-4 max-w-sm text-sm text-slate-500">
-							Revolutionizing restaurant management with cutting-edge technology and exceptional
-							service.
+							Good food, warm hearts, lasting memories
 						</p>
 					</div>
 

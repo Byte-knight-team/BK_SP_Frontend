@@ -36,8 +36,7 @@ export default function HeroSection() {
 
 					<div className="mt-8 grid max-w-md grid-cols-3 gap-3">
 						{[
-							{ value: '4.9', label: 'App Rating' },
-							{ value: '50K+', label: 'Orders' },
+							{ value: 'Hygiene', label: 'Certified'},
 							{ value: '24/7', label: 'Support' },
 						].map((stat) => (
 							<div key={stat.label} className="rounded-xl border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
