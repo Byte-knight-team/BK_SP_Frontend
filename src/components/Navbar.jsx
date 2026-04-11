@@ -22,10 +22,8 @@ export default function Navbar() {
 				</Link>
 
 				<nav className="hidden items-center gap-7 text-sm font-medium text-slate-500 lg:flex">
-					<a href="#features" className="transition-colors hover:text-slate-900">Features</a>
-					<a href="#steps" className="transition-colors hover:text-slate-900">How It Works</a>
+					<a href="#restuarent" className="transition-colors hover:text-slate-900">How It Works</a>
 					<a href="#testimonials" className="transition-colors hover:text-slate-900">Testimonials</a>
-					<a href="#experience" className="transition-colors hover:text-slate-900">Get Started</a>
 				</nav>
 
 				<div className="flex items-center gap-2.5">
@@ -83,7 +81,7 @@ export default function Navbar() {
 						Features
 					</a>
 					<a
-						href="#steps"
+						href="#online"
 						onClick={toggleMenu}
 						className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors font-medium"
 					>
@@ -94,7 +92,7 @@ export default function Navbar() {
 						onClick={toggleMenu}
 						className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors font-medium"
 					>
-						Testimonials
+						Reviews
 					</a>
 
 						<div className="h-px bg-slate-200 my-3" />
