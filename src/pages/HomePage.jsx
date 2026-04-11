@@ -10,7 +10,7 @@ export default function HomePage() {
     <>
       <Navbar />
       <HeroSection />
-      <FlowSection flowKey="restaurant" />
+      <FlowSection />
       <FlowSection flowKey="online" />
       <TestimonialsSection />
       <CTASection />
