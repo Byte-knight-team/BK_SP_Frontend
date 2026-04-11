@@ -1,7 +1,6 @@
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
-import FeaturesSection from '../components/FeaturesSection';
-import StepsSection from '../components/StepsSection';
+import FlowSection from '../components/FlowSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import CTASection from '../components/CTASection';
 import Footer from '../components/Footer';
@@ -11,8 +10,8 @@ export default function HomePage() {
     <>
       <Navbar />
       <HeroSection />
-      <FeaturesSection />
-      <StepsSection />
+      <FlowSection flowKey="restaurant" />
+      <FlowSection flowKey="online" />
       <TestimonialsSection />
       <CTASection />
       <Footer />
