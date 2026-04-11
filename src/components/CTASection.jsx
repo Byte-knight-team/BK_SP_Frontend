@@ -6,14 +6,14 @@ export default function CTASection() {
         <section className="bg-orange-500 px-4 py-20 text-center sm:px-6">
             <div className="mx-auto max-w-3xl">
                 <h2 className="text-4xl font-extrabold leading-tight text-white sm:text-6xl">
-                    Ready to Transform
+                    Ready to Experience
                     <br />
-                    Your Restaurant
+                    Premium Dining
                     <br />
                     Experience?
                 </h2>
                 <p className="mx-auto mt-5 max-w-2xl text-orange-100">
-                    Join thousands of satisfied customers and restaurant owners who trust Crave House
+                     Discover dishes, customize your meal, and manage every order from one clean interface
                 </p>
                 <Link
                     to="/menu"

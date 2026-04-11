@@ -13,10 +13,6 @@ export default function HeroSection() {
 
 			<div className="relative mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
 				<div className="text-white">
-					<div className="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-300/30 bg-orange-500/15 px-4 py-1.5 text-sm font-medium text-orange-100">
-						<Sparkles size={15} />
-						Award-winning restaurant management
-					</div>
 					<h1 className="text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
 						Elevate Your
 						<br />
@@ -66,14 +62,6 @@ export default function HeroSection() {
 							<img src={qrLogo} alt="QR ordering" className="h-11 w-11 rounded-lg object-contain" />
 						</div>
 						<p className="mt-2 text-xs font-semibold text-slate-700">Scan & order</p>
-					</div>
-
-					<div className="absolute -bottom-4 left-12 rounded-xl bg-white p-3 shadow-xl">
-						<div className="flex items-center gap-2 text-emerald-600">
-							<TrendingUp size={16} />
-							<p className="text-sm font-semibold">+2.4K Orders</p>
-						</div>
-						<p className="text-[11px] text-slate-500">This month</p>
 					</div>
 				</div>
 			</div>
