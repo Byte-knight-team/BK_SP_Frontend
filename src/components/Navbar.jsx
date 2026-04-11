@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, UserCircle2, ChevronRight, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import brandLogo from '../assets/Crave House logo.png';
 
 export default function Navbar() {
 	const { cartCount } = useCart();
+	const location = useLocation();
+	const isMenuPage = location.pathname === '/menu';
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	const toggleMenu = () => setIsMenuOpen(prev => !prev);
@@ -62,9 +64,11 @@ export default function Navbar() {
 						{isMenuOpen ? <X size={20} /> : <Menu size={20} />}
 					</button>
 
-					<Link to="/menu" className="hidden rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 sm:inline-flex">
-						Menu
-					</Link>
+					{!isMenuPage && (
+						<Link to="/menu" className="hidden rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 sm:inline-flex">
+							Menu
+						</Link>
+					)}
 				</div>
 			</div>
 
