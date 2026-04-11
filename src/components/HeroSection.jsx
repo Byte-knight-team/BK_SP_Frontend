@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, TrendingUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import qrLogo from '../assets/QR Logo.png';
+import heroBackground from '../assets/Background_image_Hero.avif';
+import premiumPlatedFood from '../assets/Premium plated food.avif';
 
 export default function HeroSection() {
 	return (
 		<section className="relative isolate overflow-hidden">
 			<div
 				className="absolute inset-0 bg-cover bg-center"
-				style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=2200&q=80)' }}
+				style={{ backgroundImage: `url(${heroBackground})` }}
 			/>
 			<div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/65 to-black/45" />
 
@@ -50,7 +52,7 @@ export default function HeroSection() {
 				<div className="relative mx-auto hidden w-full max-w-xl lg:block">
 					<div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
 						<img
-							src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80"
+							src={premiumPlatedFood}
 							alt="Premium plated food"
 							className="h-[360px] w-full rounded-2xl object-cover"
 						/>
