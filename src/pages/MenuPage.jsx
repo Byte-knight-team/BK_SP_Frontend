@@ -2,22 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
+import menuCover from '../assets/menu cover image.avif';
 import {
   ArrowLeft,
   Heart,
   Search,
   Star,
   Clock,
-  Flame,
   Award,
   Leaf,
   ChefHat,
-  BadgeCheck,
   ShoppingCart,
 } from 'lucide-react';
-
-const COVER_IMAGE =
-  'https://images.unsplash.com/photo-1769773297747-bd00e31b33aa?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cHJpdmF0ZSUyMGRpbmluZ3xlbnwwfHwwfHx8MA==';
 
 const CATEGORIES = ['All', 'Burgers', 'Pizza', 'Pasta', 'Salads', 'Desserts', 'Beverages'];
 
@@ -25,7 +21,6 @@ const MENU_ITEMS = [
   {
     id: 1,
     name: 'Wagyu Beef Burger',
-    tag: "Chef's Choice",
     description: 'Premium Japanese wagyu patty, aged cheddar, caramelized onions, truffle aioli',
     rating: 4.9,
     reviews: 234,
@@ -41,7 +36,6 @@ const MENU_ITEMS = [
   {
     id: 2,
     name: 'Margherita Napoletana',
-    tag: 'Authentic',
     description: 'San Marzano tomatoes, buffalo mozzarella, fresh basil, extra virgin',
     rating: 4.9,
     reviews: 567,
@@ -57,7 +51,6 @@ const MENU_ITEMS = [
   {
     id: 3,
     name: 'Molten Chocolate Soufflé',
-    tag: 'Signature',
     description: 'Valrhona dark chocolate, vanilla bean ice cream, gold leaf, raspberry coulis',
     rating: 5,
     reviews: 412,
@@ -73,7 +66,6 @@ const MENU_ITEMS = [
   {
     id: 4,
     name: 'Signature BBQ Burger',
-    tag: 'Bestseller',
     description: 'Double angus beef, applewood bacon, aged cheddar, house BBQ sauce.',
     rating: 4.8,
     reviews: 345,
@@ -89,7 +81,6 @@ const MENU_ITEMS = [
   {
     id: 5,
     name: 'Tartufo Bianco Pizza',
-    tag: 'Luxury',
     description: 'White truffle cream, wild mushrooms, fontina cheese, arugula, white truffle oil',
     rating: 4.9,
     reviews: 278,
@@ -105,7 +96,6 @@ const MENU_ITEMS = [
   {
     id: 6,
     name: 'Truffle Carbonara',
-    tag: 'Italian',
     description: 'Fresh pasta, Italian pancetta, organic eggs, aged parmesan,',
     rating: 4.8,
     reviews: 189,
@@ -121,7 +111,6 @@ const MENU_ITEMS = [
   {
     id: 7,
     name: 'Mediterranean Quinoa Bowl',
-    tag: 'Healthy',
     description: 'Organic quinoa, roasted vegetables, feta cheese, olives, lemon herb',
     rating: 4.7,
     reviews: 123,
@@ -137,7 +126,6 @@ const MENU_ITEMS = [
   {
     id: 8,
     name: 'Artisan Lemonade',
-    tag: 'Refreshing',
     description: 'Fresh-squeezed lemons, organic honey, fresh mint, sparkling water',
     rating: 4.6,
     reviews: 89,
@@ -205,12 +193,12 @@ export default function MenuPage() {
       {/* ───── Hero Banner ───── */}
       <section
         className="relative mx-6 rounded-[16px] h-[280px] bg-cover bg-center overflow-hidden flex items-end max-md:h-[200px] max-md:mx-4"
-        style={{ backgroundImage: `url(${COVER_IMAGE})` }}
+        style={{ backgroundImage: `url(${menuCover})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/15" />
         <div className="relative z-[1] p-8 text-white">
           <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-[8px] text-[0.7rem] font-semibold tracking-[0.5px] uppercase text-white mb-3">
-            <ChefHat size={14} /> CURATED BY CHEF MICHAEL ANDERSON
+            <ChefHat size={14} /> CURATED BY Professionals
           </span>
           <h1 className="font-heading text-[2.5rem] font-extrabold leading-[1.1] mb-2.5 max-md:text-[1.6rem]">
             Culinary Excellence
@@ -257,23 +245,6 @@ export default function MenuPage() {
                   alt={item.name}
                   className="w-full h-full object-cover"
                 />
-                {/* Badges */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1">
-                  {item.badges.map((badge) => (
-                    <span
-                      key={badge}
-                      className={`inline-flex items-center gap-[3px] px-2 py-[3px] rounded text-[0.6rem] font-bold uppercase tracking-[0.3px] ${badge === "NEW" ? "bg-orange text-white" : "bg-[#22C55E] text-white"}`}
-                    >
-                      {badge === "POPULAR" && <Flame size={10} />} {badge}
-                    </span>
-                  ))}
-                </div>
-                {/* Verified */}
-                {item.isVerified && (
-                  <span className="absolute bottom-2 left-2 w-7 h-7 rounded-full bg-orange text-white flex items-center justify-center">
-                    <BadgeCheck size={18} />
-                  </span>
-                )}
                 {/* Favorite */}
                 <button
                   className={`absolute top-2 right-2 w-[30px] h-[30px] rounded-full bg-white/90 backdrop-blur-[4px] flex items-center justify-center border-none transition-all duration-300 ease-smooth ${favorites.includes(item.id) ? "text-orange" : "text-gray-400"} hover:text-orange`}
@@ -291,9 +262,6 @@ export default function MenuPage() {
                 <h3 className="font-heading text-base font-bold text-navy mb-[5px]">
                   {item.name}
                 </h3>
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[0.7rem] font-medium w-fit mb-2">
-                  {item.tag}
-                </span>
                 <p className="text-[0.78rem] text-gray-500 leading-relaxed mb-2.5 line-clamp-2">
                   {item.description}
                 </p>
@@ -309,7 +277,6 @@ export default function MenuPage() {
                   <span className="flex items-center gap-[3px]">
                     <Clock size={14} /> {item.prepTime}
                   </span>
-                  <span className="text-gray-400">{item.calories} cal</span>
                 </div>
 
                 <div className="flex items-center justify-between mt-auto">
@@ -335,7 +302,7 @@ export default function MenuPage() {
           <Award size={16} color="#FF6B35" /> Michelin Recommended
         </span>
         <span className="flex items-center gap-2 text-[0.85rem] font-medium text-gray-800 max-md:text-[0.75rem]">
-          <Star size={16} fill="#F59E0B" color="#F59E0B" /> 4.9 Rating
+          <Star size={16} fill="#F59E0B" color="#F59E0B" /> Higher Ratings
         </span>
         <span className="flex items-center gap-2 text-[0.85rem] font-medium text-gray-800 max-md:text-[0.75rem]">
           <Leaf size={16} color="#22C55E" /> Organic Ingredients
