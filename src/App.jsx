@@ -5,7 +5,7 @@ import InventoryPage from './pages/InventoryPage'
 // import StaffPage from './pages/StaffPage'
 // import SalesSummaryPage from './pages/SalesSummaryPage'
 // import StockAlertsPage from './pages/StockAlertsPage'
-// import DriversPage from './pages/DriversPage'
+import DriversPage from './pages/DriversPage'
 
 const router = createBrowserRouter([
   {
@@ -17,7 +17,7 @@ const router = createBrowserRouter([
       { path: 'inventory', element: <InventoryPage /> },
       // { path: 'sales', element: <SalesSummaryPage /> },
       // { path: 'stock-alerts', element: <StockAlertsPage /> },
-      // { path: 'drivers', element: <DriversPage /> },
+      { path: 'drivers', element: <DriversPage /> },
     ],
   },
 ])
