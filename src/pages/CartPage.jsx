@@ -14,7 +14,7 @@ export default function CartPage() {
       <header className="flex items-center gap-3.5 px-6 h-[72px] bg-white border-b border-gray-200 sticky top-0 z-[100] max-md:px-4">
         <button
           className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-800 transition-colors duration-300 hover:bg-gray-200"
-          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/menu'))}
+          onClick={() => (navigate('/menu'))}
         >
           <ArrowLeft size={20} />
         </button>
