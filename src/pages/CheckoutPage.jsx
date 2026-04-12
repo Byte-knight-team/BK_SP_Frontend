@@ -8,13 +8,18 @@ import { useCart } from '../context/CartContext';
 const API_BASE = 'http://localhost:8080';
 const DELIVERY_FEE = 300;
 const TAX_RATE = 0.08;
-const DEFAULT_BRANCH_ID = 1;
+const BRANCHES = [
+  { id: 1, name: 'Branch 01', address: '123 Restaurant St, Colombo', code: 'BRANCH-001' },
+  { id: 2, name: 'Branch 02', address: '45 Galle Road, Dehiwala', code: 'BRANCH-002' },
+  { id: 3, name: 'Branch 03', address: '88 Kandy Road, Nugegoda', code: 'BRANCH-003' },
+];
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { cartItems, cartCount, cartTotal, clearCart } = useCart();
   const [orderType, setOrderType] = useState('pickup');
   const [paymentMethod, setPaymentMethod] = useState('pay-now');
+  const [selectedBranchId, setSelectedBranchId] = useState(BRANCHES[0].id);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -25,6 +30,8 @@ export default function CheckoutPage() {
   const deliveryFee = orderType === 'delivery' ? DELIVERY_FEE : 0;
   const tax = Math.round(subtotal * TAX_RATE);
   const total = subtotal + deliveryFee + tax;
+
+  const selectedBranch = BRANCHES.find((branch) => branch.id === selectedBranchId) ?? BRANCHES[0];
 
   const inputCls = "w-full py-[13px] px-4 border border-gray-200 rounded-[10px] text-[0.9rem] font-body text-gray-800 bg-gray-50 outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-orange focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)] focus:bg-white";
 
@@ -37,7 +44,7 @@ export default function CheckoutPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const payload = { customerName: fullName, customerPhone: phone, deliveryAddress: orderType === 'delivery' ? address : null, orderType, paymentMethod, branchId: DEFAULT_BRANCH_ID, items: cartItems.map((item) => ({ menuItemId: item.id, quantity: item.quantity })) };
+      const payload = { customerName: fullName, customerPhone: phone, deliveryAddress: orderType === 'delivery' ? address : null, orderType, paymentMethod, branchId: selectedBranch.id, items: cartItems.map((item) => ({ menuItemId: item.id, quantity: item.quantity })) };
       const res = await fetch(`${API_BASE}/api/orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) { const errData = await res.json(); throw new Error(errData.error || 'Failed to place order'); }
       const data = await res.json();
@@ -70,7 +77,13 @@ export default function CheckoutPage() {
               <span className="font-heading text-[0.95rem] font-bold text-navy">Delivery</span>
               <span className="text-[0.75rem] text-gray-500">30-40 mins • LKR{DELIVERY_FEE}</span>
             </button>
-            <button className={toggleBtn(orderType === 'pickup')} onClick={() => setOrderType('pickup')}>
+            <button
+              className={toggleBtn(orderType === 'pickup')}
+              onClick={() => {
+                setOrderType('pickup');
+                setSelectedBranchId(BRANCHES[0].id);
+              }}
+            >
               <Package size={24} className={orderType === 'pickup' ? 'text-orange' : 'text-gray-500'} />
               <span className="font-heading text-[0.95rem] font-bold text-navy">Pickup</span>
               <span className="text-[0.75rem] text-gray-500">15-20 mins • Free</span>
@@ -95,13 +108,28 @@ export default function CheckoutPage() {
             </>
           ) : (
             <>
-              <div className="flex gap-3 p-4 border-2 border-blue rounded-md bg-blue-light mt-4">
-                <div className="w-9 h-9 rounded-full bg-blue text-white flex items-center justify-center shrink-0"><MapPin size={18} /></div>
-                <div>
-                  <span className="block font-heading text-[0.9rem] font-bold text-navy mb-0.5">Pickup Location</span>
-                  <span className="block text-[0.82rem] text-gray-500 leading-snug">Crave House Restaurant - Branch</span>
-                  <span className="block text-[0.82rem] text-gray-500 leading-snug">BRANCH-001</span>
-                </div>
+              <label className="block text-[0.85rem] font-semibold text-navy mb-2 mt-4">Select Branch</label>
+              <div className="grid gap-3">
+                {BRANCHES.map((branch) => {
+                  const isSelected = branch.id === selectedBranchId;
+                  return (
+                    <button
+                      key={branch.id}
+                      type="button"
+                      onClick={() => setSelectedBranchId(branch.id)}
+                      className={`flex gap-3 p-4 border-2 rounded-md text-left transition-colors duration-300 ${isSelected ? 'border-orange bg-[#FFF7F2]' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                    >
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-orange text-white' : 'bg-blue-light text-blue'}`}>
+                        <MapPin size={18} />
+                      </div>
+                      <div>
+                        <span className="block font-heading text-[0.9rem] font-bold text-navy mb-0.5">{branch.name}</span>
+                        <span className="block text-[0.82rem] text-gray-500 leading-snug">{branch.address}</span>
+                        <span className="block text-[0.82rem] text-gray-500 leading-snug">{branch.code}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
               <p className="text-[0.78rem] text-gray-400 mt-2.5 italic">We'll notify you when ready</p>
             </>
@@ -118,7 +146,7 @@ export default function CheckoutPage() {
             <button className={toggleBtn(paymentMethod === 'pay-now')} onClick={() => setPaymentMethod('pay-now')}>
               <CreditCard size={24} className={paymentMethod === 'pay-now' ? 'text-orange' : 'text-gray-500'} />
               <span className="font-heading text-[0.95rem] font-bold text-navy">Pay Now</span>
-              <span className="text-[0.75rem] text-gray-500">Card • UPI • Wallet</span>
+              <span className="text-[0.75rem] text-gray-500">Card</span>
             </button>
             <button className={toggleBtn(paymentMethod === 'pay-later')} onClick={() => setPaymentMethod('pay-later')}>
               <Banknote size={24} className={paymentMethod === 'pay-later' ? 'text-orange' : 'text-gray-500'} />
@@ -133,6 +161,7 @@ export default function CheckoutPage() {
           <h3 className="font-heading text-[1.05rem] font-bold mb-4">Order Summary</h3>
           <div className="mb-2.5 flex items-center justify-between text-[0.88rem] text-slate-300"><span>Subtotal ({cartCount} items)</span><span>LKR {subtotal.toLocaleString()}</span></div>
           {orderType === 'delivery' && <div className="mb-2.5 flex items-center justify-between text-[0.88rem] text-slate-300"><span>Delivery Fee</span><span>LKR {deliveryFee.toLocaleString()}</span></div>}
+          {orderType === 'pickup' && <div className="mb-2.5 flex items-center justify-between text-[0.88rem] text-slate-300"><span>Pickup Branch</span><span>{selectedBranch.name}</span></div>}
           <div className="mb-2.5 flex items-center justify-between text-[0.88rem] text-slate-300"><span>Tax (8%)</span><span>LKR {tax.toLocaleString()}</span></div>
           <div className="mt-3.5 flex items-center justify-between border-t border-white/15 pt-3.5 font-heading text-[1.05rem] font-bold"><span>Total</span><span className="text-[1.15rem] text-orange-400">LKR {total.toLocaleString()}</span></div>
         </div>
