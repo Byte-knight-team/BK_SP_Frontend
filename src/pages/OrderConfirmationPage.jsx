@@ -30,7 +30,7 @@ export default function OrderConfirmationPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 h-[72px] bg-white border-b border-gray-200 sticky top-0 z-[100] max-md:px-4">
         <div className="flex items-center gap-3.5">
-          <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-800 transition-colors duration-300 ease-smooth hover:bg-gray-200" onClick={() => navigate('/menu')}>
+          <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-800 transition-colors duration-300 hover:bg-gray-200" onClick={() => navigate('/menu')}>
             <ArrowLeft size={20} />
           </button>
           <div>
@@ -38,7 +38,7 @@ export default function OrderConfirmationPage() {
             <span className="text-[0.78rem] text-gray-500">{orderDate}</span>
           </div>
         </div>
-        <button className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-transparent text-orange text-[0.88rem] font-semibold transition-colors duration-300 ease-smooth hover:bg-orange-light">
+        <button className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-transparent text-orange text-[0.88rem] font-semibold transition-colors duration-300 hover:bg-orange-light">
           <MessageSquare size={16} /> Help
         </button>
       </header>
@@ -159,7 +159,7 @@ export default function OrderConfirmationPage() {
         </div>
 
         {/* Support */}
-        <button className="flex items-center justify-center gap-2 w-full py-4 rounded-[14px] bg-blue text-white font-heading text-base font-bold transition-colors duration-300 ease-smooth hover:bg-[#2563EB]">
+        <button className="flex items-center justify-center gap-2 w-full py-4 rounded-[14px] bg-blue text-white font-heading text-base font-bold transition-colors duration-300 hover:bg-[#2563EB]">
           <MessageSquare size={18} /> Contact Support
         </button>
       </div>

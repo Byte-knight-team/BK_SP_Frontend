@@ -26,9 +26,9 @@ export default function CheckoutPage() {
   const tax = Math.round(subtotal * TAX_RATE);
   const total = subtotal + deliveryFee + tax;
 
-  const inputCls = "w-full py-[13px] px-4 border border-gray-200 rounded-[10px] text-[0.9rem] font-body text-gray-800 bg-gray-50 outline-none transition-all duration-300 ease-smooth placeholder:text-gray-400 focus:border-orange focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)] focus:bg-white";
+  const inputCls = "w-full py-[13px] px-4 border border-gray-200 rounded-[10px] text-[0.9rem] font-body text-gray-800 bg-gray-50 outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-orange focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)] focus:bg-white";
 
-  const toggleBtn = (active) => `flex flex-col items-center gap-1.5 py-5 px-3 border-2 rounded-[14px] bg-white cursor-pointer transition-all duration-300 ease-smooth ${active ? 'border-orange bg-[#FFF7F2]' : 'border-gray-200 hover:border-gray-300'}`;
+  const toggleBtn = (active) => `flex flex-col items-center gap-1.5 py-5 px-3 border-2 rounded-[14px] bg-white cursor-pointer transition-all duration-300 ${active ? 'border-orange bg-[#FFF7F2]' : 'border-gray-200 hover:border-gray-300'}`;
 
   const handlePlaceOrder = async () => {
     if (!fullName.trim() || !phone.trim()) { setError('Please fill in your name and phone number.'); return; }
@@ -50,7 +50,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="flex items-center gap-3.5 px-6 h-[72px] bg-white border-b border-gray-200 sticky top-0 z-[100] max-md:px-4">
-        <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-800 transition-colors duration-300 ease-smooth hover:bg-gray-200" onClick={() => navigate('/cart')}><ArrowLeft size={20} /></button>
+        <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-800 transition-colors duration-300 hover:bg-gray-200" onClick={() => navigate('/cart')}><ArrowLeft size={20} /></button>
         <div>
           <h1 className="font-heading text-[1.25rem] font-bold text-navy leading-[1.2]">Checkout</h1>
           <span className="text-[0.82rem] text-gray-500">{cartCount} {cartCount === 1 ? 'item' : 'items'} • LKR {total.toLocaleString()}</span>
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
 
         {error && <div className="bg-red-100 text-red-800 py-3 px-4 rounded-[10px] mb-4 text-sm">{error}</div>}
 
-        <button className="mb-3 flex w-full items-center justify-center gap-2 rounded-[14px] bg-orange-500 py-[17px] font-heading text-[1.05rem] font-bold text-white shadow-sm transition-colors duration-300 ease-smooth hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70" disabled={isSubmitting} onClick={handlePlaceOrder}>
+        <button className="mb-3 flex w-full items-center justify-center gap-2 rounded-[14px] bg-orange-500 py-[17px] font-heading text-[1.05rem] font-bold text-white shadow-sm transition-colors duration-300 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70" disabled={isSubmitting} onClick={handlePlaceOrder}>
           {isSubmitting ? (<>Placing Order… <Loader2 size={18} className="animate-spin-custom" /></>) : (<>Place Order • LKR {total.toLocaleString()} <ChevronRight size={18} /></>)}
         </button>
       </div>

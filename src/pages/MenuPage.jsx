@@ -185,7 +185,7 @@ export default function MenuPage() {
             placeholder="Search our curated menu..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-[42px] pr-4 text-[0.9rem] text-gray-800 outline-none transition-all duration-300 ease-smooth placeholder:text-gray-400 focus:border-orange focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)]"
+            className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-[42px] pr-4 text-[0.9rem] text-gray-800 outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-orange focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)]"
           />
         </div>
       </div>
@@ -215,7 +215,7 @@ export default function MenuPage() {
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
-            className={`px-[22px] py-[9px] rounded-full border text-[0.875rem] font-medium transition-all duration-300 ease-smooth ${activeCategory === cat ? "bg-navy text-white border-navy" : "bg-white text-gray-800 border-gray-200 hover:border-navy hover:text-navy"}`}
+            className={`px-[22px] py-[9px] rounded-full border text-[0.875rem] font-medium transition-all duration-300 ${activeCategory === cat ? "bg-navy text-white border-navy" : "bg-white text-gray-800 border-gray-200 hover:border-navy hover:text-navy"}`}
             onClick={() => setActiveCategory(cat)}
           >
             {cat}
@@ -235,7 +235,7 @@ export default function MenuPage() {
         <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
           {filteredItems.map((item) => (
             <div
-              className="flex border border-gray-200 rounded-[14px] overflow-hidden bg-white transition-all duration-300 ease-smooth hover:shadow-card hover:-translate-y-0.5 max-[480px]:flex-col"
+              className="flex border border-gray-200 rounded-[14px] overflow-hidden bg-white transition-all duration-300 hover:shadow-card hover:-translate-y-0.5 max-[480px]:flex-col"
               key={item.id}
             >
               {/* Image */}
@@ -247,7 +247,7 @@ export default function MenuPage() {
                 />
                 {/* Favorite */}
                 <button
-                  className={`absolute top-2 right-2 w-[30px] h-[30px] rounded-full bg-white/90 backdrop-blur-[4px] flex items-center justify-center border-none transition-all duration-300 ease-smooth ${favorites.includes(item.id) ? "text-orange" : "text-gray-400"} hover:text-orange`}
+                  className={`absolute top-2 right-2 w-[30px] h-[30px] rounded-full bg-white/90 backdrop-blur-[4px] flex items-center justify-center border-none transition-all duration-300 ${favorites.includes(item.id) ? "text-orange" : "text-gray-400"} hover:text-orange`}
                   onClick={() => toggleFavorite(item.id)}
                 >
                   <Heart
@@ -284,7 +284,7 @@ export default function MenuPage() {
                     LKR {item.price.toLocaleString()}
                   </span>
                   <button
-                    className="inline-flex min-w-[118px] items-center justify-center gap-1.5 rounded-lg border border-orange-600 bg-orange-500 px-4 py-2.5 text-[0.82rem] font-semibold text-white shadow-sm transition-colors duration-300 ease-smooth hover:bg-orange-600"
+                    className="inline-flex min-w-[118px] items-center justify-center gap-1.5 rounded-lg border border-orange-600 bg-orange-500 px-4 py-2.5 text-[0.82rem] font-semibold text-white shadow-sm transition-colors duration-300 hover:bg-orange-600"
                     onClick={() => addToCart(item)}
                   >
                     <ShoppingCart size={15} /> Add to Cart
