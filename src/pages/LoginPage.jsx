@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Flame, Mail, Lock, Eye } from 'lucide-react';
+import { ArrowLeft, Mail, Lock} from 'lucide-react';
+import BrandLogo from '../components/BrandLogo';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -20,10 +21,8 @@ export default function LoginPage() {
         </button>
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-9 text-center text-white">
-            <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-              <Flame size={18} />
-            </div>
+          <div className="bg-orange-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
+              <BrandLogo />
             <h1 className="text-3xl font-bold">Welcome Back!</h1>
             <p className="mt-2 text-sm text-orange-100">Sign in to continue ordering</p>
           </div>
@@ -54,7 +53,6 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-10 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
                 />
-                <Eye size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
             </div>
 
