@@ -59,7 +59,7 @@ export default function AccountPage() {
 
         {/* Profile Card */}
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)] mb-4">
-          <div className="bg-orange-500 px-6 py-8 text-center text-white">
+          <div className="bg-orange-500 px-6 py-8 text-center text-white flex flex-col items-center">
             <BrandLogo />
             <h1 className="mt-3 text-3xl font-bold">My Account</h1>
           </div>
