@@ -117,9 +117,9 @@ export default function CheckoutPage() {
                       key={branch.id}
                       type="button"
                       onClick={() => setSelectedBranchId(branch.id)}
-                      className={`flex gap-3 p-4 border-2 rounded-md text-left transition-colors duration-300 ${isSelected ? 'border-orange bg-[#FFF7F2]' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                      className={`flex gap-3 p-4 border-2 rounded-md text-left transition-colors duration-300 ${isSelected ? 'border-orange bg-[#FFF7F2]' : 'border-gray-200 bg-white hover:border-gray-400'}`}
                     >
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-orange text-white' : 'bg-blue-light text-blue'}`}>
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-orange-300 text-white' : 'bg-blue-light text-blue'}`}>
                         <MapPin size={18} />
                       </div>
                       <div>
