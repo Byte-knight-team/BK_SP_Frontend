@@ -18,15 +18,6 @@ export default function MobileVerificationPage() {
   return (
     <div className="min-h-screen bg-[#f3f1ee] px-4 py-10">
       <div className="mx-auto w-full max-w-[360px]">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
-        >
-          <ArrowLeft size={16} />
-          Back
-        </button>
-
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
           <div className="bg-orange-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
             <BrandLogo />
