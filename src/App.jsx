@@ -11,6 +11,7 @@ import SignupAddressPage from './pages/SignupAddressPage';
 import MobileVerificationPage from './pages/MobileVerificationPage';
 import OtpVerificationPage from './pages/OtpVerificationPage';
 import AccountPage from './pages/AccountPage';
+import OrdersPage from './pages/OrdersPage';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />
         <Route path="/verify-otp" element={<OtpVerificationPage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
       </Routes>
     </CartProvider>
   );

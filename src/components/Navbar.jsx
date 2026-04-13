@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, UserCircle2, ChevronRight, Menu, X } from 'lucide-react';
+import { ShoppingBag, UserCircle2, ChevronRight, Menu, X, Package } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import BrandLogo from '../components/BrandLogo'
 import LoginButton from '../components/LoginCustomer'
@@ -32,9 +32,14 @@ export default function Navbar() {
 				</nav>}
 
 				<div className="flex items-center gap-2.5">
-					<div className="hidden items-center gap-2 md:flex">
-						<LoginButton />
-						<SignupButton />
+				<div className="flex items-center gap-2 md:flex">
+					<LoginButton />
+					<SignupButton />
+					<Link to="/orders" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
+						<Package size={18} />
+						<span>Orders</span>
+						<ChevronRight size={15} />
+					</Link>
 						<Link to="/account" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
 							<UserCircle2 size={18} />
 							<span>Account</span>
