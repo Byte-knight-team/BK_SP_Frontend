@@ -1,3 +1,4 @@
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import HomePage from './pages/HomePage';
@@ -5,6 +6,13 @@ import MenuPage from './pages/MenuPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import MenuManagementPage from './pages/MenuManagementPage';
+import AddMenuItemPage from './pages/AddMenuItemPage';
+import EditMenuItemPage from './pages/EditMenuItemPage';
+import TableManagementPage from './pages/TableManagementPage';
+import UserManagementPage from './pages/UserManagementPage';
+import AddNewUserPage from './pages/AddNewUserPage';
 import LoginPage from './pages/LoginPage';
 import SignupPersonalPage from './pages/SignupPersonalPage';
 import SignupAddressPage from './pages/SignupAddressPage';
@@ -30,6 +38,13 @@ export default function App() {
         <Route path="/verify-otp" element={<OtpVerificationPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route path="/admin/menu" element={<MenuManagementPage />} />
+        <Route path="/admin/menu/add" element={<AddMenuItemPage />} />
+        <Route path="/admin/menu/edit" element={<EditMenuItemPage />} />
+        <Route path="/admin/tables" element={<TableManagementPage />} />
+        <Route path="/admin/users" element={<UserManagementPage />} />
+        <Route path="/admin/users/add" element={<AddNewUserPage />} />
       </Routes>
     </CartProvider>
   );
