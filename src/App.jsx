@@ -10,6 +10,7 @@ import SignupPersonalPage from './pages/SignupPersonalPage';
 import SignupAddressPage from './pages/SignupAddressPage';
 import MobileVerificationPage from './pages/MobileVerificationPage';
 import OtpVerificationPage from './pages/OtpVerificationPage';
+import AccountPage from './pages/AccountPage';
 
 export default function App() {
   return (
@@ -24,7 +25,10 @@ export default function App() {
         <Route path="/signup" element={<SignupPersonalPage />} />
         <Route path="/signup/address" element={<SignupAddressPage />} />
         <Route path="/signup/qr" element={<MobileVerificationPage />} />
-        <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />        <Route path="/verify-otp" element={<OtpVerificationPage />} />      </Routes>
+        <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />
+        <Route path="/verify-otp" element={<OtpVerificationPage />} />
+        <Route path="/account" element={<AccountPage />} />
+      </Routes>
     </CartProvider>
   );
 }

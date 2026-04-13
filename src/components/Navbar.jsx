@@ -35,11 +35,11 @@ export default function Navbar() {
 					<div className="hidden items-center gap-2 md:flex">
 						<LoginButton />
 						<SignupButton />
-						<button className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
+						<Link to="/account" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
 							<UserCircle2 size={18} />
 							<span>Account</span>
 							<ChevronRight size={15} />
-						</button>
+						</Link>
 					</div>
 					<Link
 						to="/cart"
