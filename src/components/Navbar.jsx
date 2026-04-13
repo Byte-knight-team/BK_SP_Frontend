@@ -98,9 +98,9 @@ export default function Navbar() {
 						<Link to="/login" onClick={toggleMenu} className="block w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:bg-slate-50 transition-colors">
 							Login
 						</Link>
-						<button className="w-full text-left px-4 py-2.5 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors">
+						<Link to="/signup" onClick={toggleMenu} className="block w-full text-left px-4 py-2.5 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors">
 							Sign Up
-						</button>
+						</Link>
 						<button className="w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium hover:border-slate-400 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
 							<UserCircle2 size={18} />
 							<span>Account</span>

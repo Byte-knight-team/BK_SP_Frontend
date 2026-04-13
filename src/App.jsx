@@ -6,6 +6,8 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import LoginPage from './pages/LoginPage';
+import SignupPersonalPage from './pages/SignupPersonalPage';
+import SignupAddressPage from './pages/SignupAddressPage';
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPersonalPage />} />
+        <Route path="/signup/address" element={<SignupAddressPage />} />
       </Routes>
     </CartProvider>
   );
