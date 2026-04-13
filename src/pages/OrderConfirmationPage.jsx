@@ -45,7 +45,7 @@ export default function OrderConfirmationPage() {
 
       <div className="flex-1 py-5 px-6 pb-8 max-w-[720px] w-full mx-auto max-md:px-4 max-md:py-4">
         {/* Status Banner */}
-        <div className="bg-gradient-to-br from-orange to-[#FF8F40] rounded-[18px] p-7 text-white mb-4 max-md:p-[22px]">
+        <div className="bg-gradient-to-br from-orange-600 to-[#FF8F40] rounded-[18px] p-7 text-white mb-4 max-md:p-[22px]">
           <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-bold tracking-[1px] uppercase mb-2">
             <span className="w-2 h-2 rounded-full bg-[#4ADE80] inline-block animate-ocp-pulse" /> LIVE TRACKING
           </span>
@@ -157,11 +157,6 @@ export default function OrderConfirmationPage() {
             </div>
           </div>
         </div>
-
-        {/* Support */}
-        <button className="flex items-center justify-center gap-2 w-full py-4 rounded-[14px] bg-blue text-white font-heading text-base font-bold transition-colors duration-300 hover:bg-[#2563EB]">
-          <MessageSquare size={18} /> Contact Support
-        </button>
       </div>
     </div>
   );

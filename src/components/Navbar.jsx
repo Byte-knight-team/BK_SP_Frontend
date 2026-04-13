@@ -3,6 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, UserCircle2, ChevronRight, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import brandLogo from '../assets/Crave House logo.png';
+import LoginButton from '../components/LoginCustomer'
+import SignupButton from '../components/SignupCustomer'
 
 export default function Navbar() {
 	const { cartCount } = useCart();
@@ -31,12 +33,8 @@ export default function Navbar() {
 
 				<div className="flex items-center gap-2.5">
 					<div className="hidden items-center gap-2 md:flex">
-						<button className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
-							Login
-						</button>
-						<button className="inline-flex items-center rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600">
-							Sign Up
-						</button>
+						<LoginButton />
+						<SignupButton />
 						<button className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
 							<UserCircle2 size={18} />
 							<span>Account</span>
@@ -97,9 +95,9 @@ export default function Navbar() {
 						<div className="h-px bg-slate-200 my-3" />
 
 						{/* Auth Buttons */}
-						<button className="w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:bg-slate-50 transition-colors">
+						<Link to="/login" onClick={toggleMenu} className="block w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:bg-slate-50 transition-colors">
 							Login
-						</button>
+						</Link>
 						<button className="w-full text-left px-4 py-2.5 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors">
 							Sign Up
 						</button>
