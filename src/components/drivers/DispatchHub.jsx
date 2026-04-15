@@ -1,4 +1,4 @@
-import { Truck, User, MapPin, ArrowRight } from 'lucide-react'
+import { User, MapPin, ArrowRight } from 'lucide-react'
 import clsx from 'clsx'
 
 const STATUS_STYLES = {
@@ -8,7 +8,7 @@ const STATUS_STYLES = {
 
 function DispatchOrderCard({ order, onAssign }) {
   return (
-    <div className="border border-gray-100 rounded-xl p-4 hover:bg-gray-50/50 transition-colors">
+    <div className="border border-gray-100 rounded-2xl p-5 min-w-[280px] flex-1">
       {/* Order ID + Status */}
       <div className="flex items-center gap-3 mb-3">
         <span className="text-sm font-bold text-gray-900">{order.id}</span>
@@ -47,18 +47,17 @@ function DispatchOrderCard({ order, onAssign }) {
 
 export default function DispatchHub({ orders, onAssignDriver }) {
   return (
-    <div className="card flex flex-col">
+    <div className="card">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
-        <Truck className="w-5 h-5 text-gray-700" />
         <h2 className="text-xl font-bold text-gray-900">Dispatch Hub</h2>
         <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
           {orders.length}
         </span>
       </div>
 
-      {/* Orders list */}
-      <div className="space-y-3 flex-1 overflow-y-auto max-h-[420px] pr-1">
+      {/* Cards grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {orders.map((order) => (
           <DispatchOrderCard
             key={order.id}
@@ -68,10 +67,12 @@ export default function DispatchHub({ orders, onAssignDriver }) {
         ))}
       </div>
 
-      {/* Footer */}
-      <p className="text-xs text-gray-400 text-center mt-4 pt-3 border-t border-gray-100">
-        Incoming Orders will appear here
-      </p>
+      {/* View more */}
+      <div className="mt-5 text-center">
+        <button className="text-sm text-brand font-medium hover:underline inline-flex items-center gap-1">
+          View more <span>→</span>
+        </button>
+      </div>
     </div>
   )
 }
