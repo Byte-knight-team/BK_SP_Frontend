@@ -1,8 +1,14 @@
 import { useState, useMemo } from 'react'
-import { Users, Star, Clock } from 'lucide-react'
+import { Star, Clock, Search, SlidersHorizontal } from 'lucide-react'
 import clsx from 'clsx'
 
-const FILTER_TABS = ['All', 'Available', 'Delivering', 'Returning', 'Offline']
+const FILTER_OPTIONS = [
+  'All',
+  'Available',
+  'Delivering',
+  'Returning',
+  'Offline',
+]
 
 const STATUS_STYLES = {
   Available: {
@@ -40,112 +46,143 @@ function StatusBadge({ status }) {
 
 export default function DriverStatusBoard({ drivers }) {
   const [activeFilter, setActiveFilter] = useState('All')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const filteredDrivers = useMemo(() => {
-    if (activeFilter === 'All') return drivers
-    return drivers.filter((d) => d.status === activeFilter)
-  }, [drivers, activeFilter])
+    return drivers.filter((d) => {
+      const matchesFilter = activeFilter === 'All' || d.status === activeFilter
+      const matchesSearch = d.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+      return matchesFilter && matchesSearch
+    })
+  }, [drivers, activeFilter, searchQuery])
 
   return (
-    <div className="card flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
-        <Users className="w-5 h-5 text-gray-700" />
-        <h2 className="text-xl font-bold text-gray-900">Driver Status Board</h2>
-      </div>
+    <div className="card">
+      {/* Header row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-gray-900">
+            Driver Status Board
+          </h2>
+          <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
+            {drivers.length}
+          </span>
+        </div>
 
-      {/* Filter tabs */}
-      <div className="flex items-center gap-2 mb-5 flex-wrap">
-        {FILTER_TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveFilter(tab)}
-            className={clsx(
-              'text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors',
-              activeFilter === tab
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-            )}
-          >
-            {tab}
-          </button>
-        ))}
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 w-56">
+            <Search className="w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search driver..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent text-sm text-gray-600 outline-none w-full placeholder-gray-400"
+            />
+          </div>
+
+          {/* Status filter */}
+          <div className="relative">
+            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer">
+              <SlidersHorizontal className="w-4 h-4 text-gray-500" />
+              <select
+                value={activeFilter}
+                onChange={(e) => setActiveFilter(e.target.value)}
+                className="bg-transparent text-sm font-medium text-gray-700 outline-none appearance-none cursor-pointer pr-4"
+              >
+                {FILTER_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-y-auto max-h-[360px]">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
-              <th className="text-left pb-3 font-semibold">Driver</th>
-              <th className="text-left pb-3 font-semibold">Status</th>
-              <th className="text-right pb-3 font-semibold">Current Task</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filteredDrivers.map((driver) => (
-              <tr
-                key={driver.id}
-                className="hover:bg-gray-50/50 transition-colors"
-              >
-                {/* Driver info */}
-                <td className="py-3">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={driver.avatar}
-                      alt={driver.name}
-                      className="w-9 h-9 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {driver.name}
-                      </p>
-                      <div className="flex items-center gap-1 text-xs text-gray-400">
-                        <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                        {driver.rating}
-                      </div>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
+            <th className="text-left pb-3 font-semibold">Driver</th>
+            <th className="text-left pb-3 font-semibold">Status</th>
+            <th className="text-right pb-3 font-semibold">Current Task</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-50">
+          {filteredDrivers.map((driver) => (
+            <tr
+              key={driver.id}
+              className="hover:bg-gray-50/50 transition-colors"
+            >
+              {/* Driver info */}
+              <td className="py-4">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={driver.avatar}
+                    alt={driver.name}
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {driver.name}
+                    </p>
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                      {driver.rating}
                     </div>
                   </div>
-                </td>
+                </div>
+              </td>
 
-                {/* Status */}
-                <td className="py-3">
-                  <StatusBadge status={driver.status} />
-                </td>
+              {/* Status */}
+              <td className="py-4">
+                <StatusBadge status={driver.status} />
+              </td>
 
-                {/* Current task */}
-                <td className="py-3 text-right">
-                  {driver.currentTask ? (
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {driver.currentTask.orderId}
-                      </p>
-                      <div className="flex items-center gap-1 justify-end text-xs text-gray-400">
-                        <Clock className="w-3 h-3" />
-                        {driver.currentTask.eta}
-                      </div>
+              {/* Current task */}
+              <td className="py-4 text-right">
+                {driver.currentTask ? (
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {driver.currentTask.orderId}
+                    </p>
+                    <div className="flex items-center gap-1 justify-end text-xs text-gray-400">
+                      <Clock className="w-3 h-3" />
+                      {driver.currentTask.eta}
                     </div>
-                  ) : (
-                    <span className="text-xs text-gray-400 italic">
-                      No active order
-                    </span>
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-400 italic">
+                    No active order
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
 
-            {filteredDrivers.length === 0 && (
-              <tr>
-                <td
-                  colSpan={3}
-                  className="py-8 text-center text-sm text-gray-400"
-                >
-                  No drivers match this filter.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          {filteredDrivers.length === 0 && (
+            <tr>
+              <td
+                colSpan={3}
+                className="py-8 text-center text-sm text-gray-400"
+              >
+                No drivers match your search.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      {/* View more */}
+      <div className="mt-4 text-center">
+        <button className="text-sm text-brand font-medium hover:underline inline-flex items-center gap-1">
+          View more <span>→</span>
+        </button>
       </div>
     </div>
   )

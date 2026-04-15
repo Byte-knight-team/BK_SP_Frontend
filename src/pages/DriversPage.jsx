@@ -55,13 +55,11 @@ export default function DriversPage() {
         pendingDispatch={data.pendingDispatch}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DispatchHub
-          orders={data.dispatchOrders}
-          onAssignDriver={handleAssignDriver}
-        />
-        <DriverStatusBoard drivers={data.drivers} />
-      </div>
+      <DispatchHub
+        orders={data.dispatchOrders}
+        onAssignDriver={handleAssignDriver}
+      />
+      <DriverStatusBoard drivers={data.drivers} />
 
       {/* Assign Driver Modal */}
       <AssignDriverModal
