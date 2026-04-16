@@ -1,27 +1,27 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { CartProvider } from './context/CartContext';
-import HomePage from './pages/HomePage';
-import MenuPage from './pages/MenuPage';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrderConfirmationPage from './pages/OrderConfirmationPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import MenuManagementPage from './pages/MenuManagementPage';
-import AddMenuItemPage from './pages/AddMenuItemPage';
-import EditMenuItemPage from './pages/EditMenuItemPage';
-import TableManagementPage from './pages/TableManagementPage';
-import UserManagementPage from './pages/UserManagementPage';
-import AddNewUserPage from './pages/AddNewUserPage';
-import LoginPage from './pages/LoginPage';
-import SignupPersonalPage from './pages/SignupPersonalPage';
-import SignupAddressPage from './pages/SignupAddressPage';
-import MobileVerificationPage from './pages/MobileVerificationPage';
-import OtpVerificationPage from './pages/OtpVerificationPage';
-import AccountPage from './pages/AccountPage';
-import OrdersPage from './pages/OrdersPage';
-import {KitchenDashboardPage} from './pages/KitchenDashboardPage';
-import KitchenLayout from './components/layouts/kitchen/KitchenLayout';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import { CartProvider } from "./context/CartContext";
+import HomePage from "./pages/HomePage";
+import MenuPage from "./pages/MenuPage";
+import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import MenuManagementPage from "./pages/MenuManagementPage";
+import AddMenuItemPage from "./pages/AddMenuItemPage";
+import EditMenuItemPage from "./pages/EditMenuItemPage";
+import TableManagementPage from "./pages/TableManagementPage";
+import UserManagementPage from "./pages/UserManagementPage";
+import AddNewUserPage from "./pages/AddNewUserPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPersonalPage from "./pages/SignupPersonalPage";
+import SignupAddressPage from "./pages/SignupAddressPage";
+import MobileVerificationPage from "./pages/MobileVerificationPage";
+import OtpVerificationPage from "./pages/OtpVerificationPage";
+import AccountPage from "./pages/AccountPage";
+import OrdersPage from "./pages/OrdersPage";
+import { KitchenDashboardPage } from "./pages/kitchen/DashboardPage";
+import KitchenLayout from "./layouts/KitchenLayout";
 
 export default function App() {
   return (
@@ -47,12 +47,13 @@ export default function App() {
         <Route path="/admin/tables" element={<TableManagementPage />} />
         <Route path="/admin/users" element={<UserManagementPage />} />
         <Route path="/admin/users/add" element={<AddNewUserPage />} />
-        <Route path="/kitchen" element={<KitchenDashboardPage />} />
-        {/* Staff Routes wrapped in the Dashboard Layout */}
-      <Route path="/kitchen" element={<KitchenLayout />}>
-        <Route index element={<KitchenDashboardPage />} /> 
-        {/* <Route path="orders" element={<KitchenDashboardPage />} /> */}
-      </Route>
+          {/* Kitchen Layout එක parent කෙනෙක් විදිහට දානවා */}
+          <Route path="/kitchen" element={<KitchenLayout />}>
+            {/* මේවා KitchenLayout එකේ 'Outlet' කියන තැනට ලෝඩ් වෙයි */}
+            <Route index element={<KitchenDashboardPage />} />
+            {/* <Route path="orders" element={<KitchenOrdersPage />} /> */}
+            {/* <Route path="inventory" element={<KitchenInventoryPage />} /> */}
+          </Route>
       </Routes>
     </CartProvider>
   );

@@ -194,7 +194,11 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
             type={layout === "vertical" ? "number" : "category"}
             tickLine={false}
             axisLine={false}
-            className="text-xs fill-gray-500"
+            className="text-[10px] fill-gray-500"
+            interval={0}        
+            angle={-45}         
+            textAnchor="end"    
+            height={80}
           >
             {xAxisLabel && <Label position="insideBottom" offset={-20} className="fill-gray-800 font-medium">{xAxisLabel}</Label>}
           </XAxis>

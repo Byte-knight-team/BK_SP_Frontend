@@ -1,14 +1,13 @@
 import React from "react";
-import StatCard from "../components/StatCard";
-import { PageHeader } from "../components/layouts/pageHeader/PageHeader";
+import StatCard from "../../components/StatCard";
 import {
   ClipboardClock,
   CookingPot,
   CircleCheckBig,
   Clock4,
 } from "lucide-react";
-import KitchenStatBar from "../components/kitchen/KitchenStatBar";
-import { BarChart } from "../components/kitchen/BarChart";
+import KitchenStatBar from "../../components/kitchen/KitchenStatBar";
+import { BarChart } from "../../components/kitchen/BarChart";
 
 /**
  * Dataset for the hourly performance bar chart
@@ -28,10 +27,10 @@ export const KitchenDashboardPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* 1. TOP HEADER: Displays title and subtext */}
-      <PageHeader
-        title="Kitchen Dashboard Overview"
-        description="Real-time performance metrics for Crave House"
-      />
+      <div className="">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Kitchen Dashboard Overview</h1>
+        <p className="text-gray-500 text-sm mt-1">Real-time performance metrics for Crave House</p>
+      </div>
 
       {/* 2. KPI GRID: Displays key statistics using summary cards */}
       <div className="mb-8 mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -83,10 +82,10 @@ export const KitchenDashboardPage = () => {
         <div className="flex flex-col gap-6 border border-gray-100 bg-white p-6 shadow-sm rounded-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">Peak Hours</h2>
-            <span className="text-sm font-medium text-gray-400">Orders per Shift</span>
+            <span className="text-sm font-medium text-gray-400">Past 24 Hours</span>
           </div>
           
-          <div className="flex h-64 items-center justify-center">
+          <div className="flex items-center justify-center mt-2">
             <BarChart
               data={graphData}
               index="time"
