@@ -20,6 +20,8 @@ import MobileVerificationPage from './pages/MobileVerificationPage';
 import OtpVerificationPage from './pages/OtpVerificationPage';
 import AccountPage from './pages/AccountPage';
 import OrdersPage from './pages/OrdersPage';
+import {KitchenDashboardPage} from './pages/KitchenDashboardPage';
+import KitchenLayout from './components/layouts/kitchen/KitchenLayout';
 
 export default function App() {
   return (
@@ -45,6 +47,12 @@ export default function App() {
         <Route path="/admin/tables" element={<TableManagementPage />} />
         <Route path="/admin/users" element={<UserManagementPage />} />
         <Route path="/admin/users/add" element={<AddNewUserPage />} />
+        <Route path="/kitchen" element={<KitchenDashboardPage />} />
+        {/* Staff Routes wrapped in the Dashboard Layout */}
+      <Route path="/kitchen" element={<KitchenLayout />}>
+        <Route index element={<KitchenDashboardPage />} /> 
+        {/* <Route path="orders" element={<KitchenDashboardPage />} /> */}
+      </Route>
       </Routes>
     </CartProvider>
   );
