@@ -1,5 +1,5 @@
 import React from "react";
-import StatCard from "../../components/StatCard";
+import StatCard from "../../components/kitchen/StatCard";
 import {
   ClipboardClock,
   CookingPot,
@@ -23,17 +23,17 @@ const graphData = [
   { time: "8PM-10PM", Meals: 10 },
 ];
 
-export const KitchenDashboardPage = () => {
+const KitchenDashboardPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* 1. TOP HEADER: Displays title and subtext */}
-      <div className="">
+      <div className="p-4">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Kitchen Dashboard Overview</h1>
         <p className="text-gray-500 text-sm mt-1">Real-time performance metrics for Crave House</p>
       </div>
 
       {/* 2. KPI GRID: Displays key statistics using summary cards */}
-      <div className="mb-8 mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 mt-6 grid grid-cols-4 gap-4">
         <StatCard
           title="Total Orders"
           value="124"
@@ -135,3 +135,5 @@ export const KitchenDashboardPage = () => {
     </div>
   );
 };
+
+export default KitchenDashboardPage;

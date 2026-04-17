@@ -4,10 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   RiLayoutMasonryFill,
   RiClipboardLine,
-  RiUserSettingsLine,
-  RiHandbagLine,
-  RiBookOpenLine,
-  RiShieldCheckLine,
+  RiTableLine,
   RiSettings4Line,
   RiLogoutBoxRLine,
   RiArrowLeftSLine,
@@ -15,7 +12,7 @@ import {
 } from "@remixicon/react";
 import craveHouseLogo from "../../assets/Crave House logo.png";
 
-const KitchenSidebar = () => {
+const ReceptionistSidebar = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -41,11 +38,7 @@ const KitchenSidebar = () => {
         onClick={() => setIsCollapsed(!isCollapsed)}
         className="absolute top-10 -right-3 z-50 rounded-full border border-gray-200 bg-white p-1 shadow-sm hover:bg-gray-50"
       >
-        {isCollapsed ? (
-          <RiArrowRightSLine size={18} />
-        ) : (
-          <RiArrowLeftSLine size={18} />
-        )}
+        {isCollapsed ? <RiArrowRightSLine size={18} /> : <RiArrowLeftSLine size={18} />}
       </button>
 
       {/* --- LOGO SECTION --- */}
@@ -60,10 +53,10 @@ const KitchenSidebar = () => {
         {!isCollapsed && (
           <div className="flex flex-col">
             <span className="text-sm leading-none font-bold text-gray-800">
-              Chief Chef Panel
+              Receptionist Panel
             </span>
             <span className="text-[10px] font-bold tracking-tighter text-orange-600 uppercase">
-              Kitchen Operations
+              Front Desk Operations
             </span>
           </div>
         )}
@@ -71,56 +64,29 @@ const KitchenSidebar = () => {
 
       {/* --- NAVIGATION LINKS --- */}
       <nav className="mt-4 flex-1 space-y-1 px-3">
-        <Link to="/kitchen" className={getLinkClass("/kitchen")}>
+        <Link to="/receptionist" className={getLinkClass("/receptionist")}>
           <RiLayoutMasonryFill size={20} />
           {!isCollapsed && (
             <span className="text-sm font-medium">Dashboard Overview</span>
           )}
         </Link>
 
-        <Link to="/kitchen/orders" className={getLinkClass("/kitchen/orders")}>
+        <Link to="/receptionist/orders" className={getLinkClass("/receptionist/orders")}>
           <RiClipboardLine size={20} />
           {!isCollapsed && <span className="text-sm font-medium">Orders</span>}
         </Link>
 
-        <Link to="/kitchen/chefs" className={getLinkClass("/kitchen/chefs")}>
-          <RiUserSettingsLine size={20} />
-          {!isCollapsed && <span className="text-sm font-medium">Chefs</span>}
-        </Link>
-
-        <Link
-          to="/kitchen/inventory"
-          className={getLinkClass("/kitchen/inventory")}
-        >
-          <RiHandbagLine size={20} />
-          {!isCollapsed && (
-            <span className="text-sm font-medium">Inventory</span>
-          )}
-        </Link>
-
-        <Link to="/kitchen/menu" className={getLinkClass("/kitchen/menu")}>
-          <RiBookOpenLine size={20} />
-          {!isCollapsed && (
-            <span className="text-sm font-medium">Menu & Recipes</span>
-          )}
-        </Link>
-
-        <Link
-          to="/kitchen/approvals"
-          className={getLinkClass("/kitchen/approvals")}
-        >
-          <RiShieldCheckLine size={20} />
-          {!isCollapsed && (
-            <span className="text-sm font-medium">Approvals</span>
-          )}
+        <Link to="/receptionist/tables" className={getLinkClass("/receptionist/tables")}>
+          <RiTableLine size={20} />
+          {!isCollapsed && <span className="text-sm font-medium">Table Management</span>}
         </Link>
       </nav>
 
       {/* --- BOTTOM SECTION (Settings & Profile) --- */}
       <div className="space-y-4 border-t border-gray-50 p-4">
         <Link
-          to="/kitchen/settings"
-          className={getLinkClass("/kitchen/settings")}
+          to="/receptionist/settings"
+          className={getLinkClass("/receptionist/settings")}
         >
           <RiSettings4Line size={20} />
           {!isCollapsed && (
@@ -140,7 +106,7 @@ const KitchenSidebar = () => {
                 Isuru Udara
               </p>
               <p className="text-[10px] font-bold text-gray-500 uppercase">
-                Chief Chef
+                Receptionist
               </p>
             </div>
           )}
@@ -156,4 +122,4 @@ const KitchenSidebar = () => {
   );
 }
 
-export default KitchenSidebar;
+export default ReceptionistSidebar;
