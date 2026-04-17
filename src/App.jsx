@@ -20,8 +20,19 @@ import MobileVerificationPage from "./pages/MobileVerificationPage";
 import OtpVerificationPage from "./pages/OtpVerificationPage";
 import AccountPage from "./pages/AccountPage";
 import OrdersPage from "./pages/OrdersPage";
-import { KitchenDashboardPage } from "./pages/kitchen/DashboardPage";
-import KitchenLayout from "./layouts/KitchenLayout";
+import KitchenDashboardPage from "./pages/kitchen/KitchenDashboardPage";
+import MainLayout from "./layouts/MainLayout";
+import KitchenSidebar from "./components/kitchen/KitchenSidebar";
+import KitchenHeader from "./components/kitchen/KitchenHeader";
+import ReceptionistSidebar from "./components/receptionist/ReceptionistSidebar";
+import ReceptionistHeader from "./components/receptionist/ReceptionistHeader";
+import ReceptionistDashboardPage from "./pages/receptionist/ReceptionistDashboardPage";
+import ChefsPage from "./pages/kitchen/ChefsPage";
+import InventoryPage from "./pages/kitchen/InventoryPage";
+import ApprovalsPage from "./pages/kitchen/ApprovalsPage";
+import KitchenSettingsPage from "./pages/kitchen/KitchenSettingsPage";
+import KitchenOrdersPage from "./pages/kitchen/KitchenOrdersPage";
+import MenuAndRecipesPage from "./pages/kitchen/MenuAndRecipesPage";
 
 export default function App() {
   return (
@@ -47,13 +58,20 @@ export default function App() {
         <Route path="/admin/tables" element={<TableManagementPage />} />
         <Route path="/admin/users" element={<UserManagementPage />} />
         <Route path="/admin/users/add" element={<AddNewUserPage />} />
-          {/* Kitchen Layout එක parent කෙනෙක් විදිහට දානවා */}
-          <Route path="/kitchen" element={<KitchenLayout />}>
-            {/* මේවා KitchenLayout එකේ 'Outlet' කියන තැනට ලෝඩ් වෙයි */}
-            <Route index element={<KitchenDashboardPage />} />
-            {/* <Route path="orders" element={<KitchenOrdersPage />} /> */}
-            {/* <Route path="inventory" element={<KitchenInventoryPage />} /> */}
-          </Route>
+        {/* Kitchen Section */}
+        <Route path="/kitchen" element={<MainLayout Sidebar={KitchenSidebar} Header={KitchenHeader} />}>
+          <Route index element={<KitchenDashboardPage />} />
+          <Route path="orders" element={<KitchenOrdersPage />} />
+          <Route path="chefs" element={<ChefsPage />} />
+          <Route path="inventory" element={<InventoryPage />} />
+          <Route path="menu" element={<MenuAndRecipesPage />} />
+          <Route path="approvals" element={<ApprovalsPage />} />
+          <Route path="settings" element={<KitchenSettingsPage />} />
+        </Route>
+        {/*Reception Section */}
+        <Route path="/receptionist" element={<MainLayout Sidebar={ReceptionistSidebar} Header={ReceptionistHeader} />}>
+          <Route index element={<ReceptionistDashboardPage />} />
+        </Route>
       </Routes>
     </CartProvider>
   );
