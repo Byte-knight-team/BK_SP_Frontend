@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Search, Bell, HelpCircle, Settings, 
   Printer, Plus, LayoutGrid, List, Filter,
@@ -8,7 +8,10 @@ import AdminSidebar from '../components/AdminSidebar';
 import AdminHeader from '../components/AdminHeader';
 
 export default function TableManagementPage() {
-  const tables = [
+  const [viewMode, setViewMode] = useState('grid');
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  
+  const [tables, setTables] = useState([
     { id: '01', name: 'T-01', location: 'Indoor - Main', seats: 2, status: 'AVAILABLE' },
     { id: '02', name: 'T-02', location: 'Indoor - Main', seats: 4, status: 'OCCUPIED' },
     { id: '03', name: 'T-03', location: 'Indoor - Main', seats: 4, status: 'RESERVED' },
@@ -17,7 +20,24 @@ export default function TableManagementPage() {
     { id: '06', name: 'T-06', location: 'VIP Lounge', seats: 8, status: 'AVAILABLE' },
     { id: '07', name: 'T-07', location: 'Indoor - Window', seats: 4, status: 'OCCUPIED' },
     { id: '08', name: 'T-08', location: 'Indoor - Window', seats: 2, status: 'AVAILABLE' },
-  ];
+  ]);
+
+  const totalTables = tables.length;
+  const availableTables = tables.filter(t => t.status === 'AVAILABLE').length;
+  const occupiedTables = tables.filter(t => t.status === 'OCCUPIED').length;
+  const reservedTables = tables.filter(t => t.status === 'RESERVED').length;
+
+  const toggleDropdown = (id) => {
+    if (openDropdownId === id) setOpenDropdownId(null);
+    else setOpenDropdownId(id);
+  };
+
+  const handleDeleteTable = (id) => {
+    if (window.confirm("Are you sure you want to delete this table?")) {
+      setTables(prev => prev.filter(t => t.id !== id));
+    }
+    setOpenDropdownId(null);
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -70,19 +90,19 @@ export default function TableManagementPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col justify-center">
               <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">TOTAL TABLES</div>
-              <div className="text-3xl font-extrabold text-gray-900">8</div>
+              <div className="text-3xl font-extrabold text-gray-900">{totalTables}</div>
             </div>
             <div className="bg-green-50 rounded-2xl p-5 border border-green-100/50 shadow-sm flex flex-col justify-center">
               <div className="text-[11px] font-bold text-green-500 uppercase tracking-wider mb-2">AVAILABLE</div>
-              <div className="text-3xl font-extrabold text-green-600">5</div>
+              <div className="text-3xl font-extrabold text-green-600">{availableTables}</div>
             </div>
             <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100/50 shadow-sm flex flex-col justify-center">
               <div className="text-[11px] font-bold text-orange-500 uppercase tracking-wider mb-2">OCCUPIED</div>
-              <div className="text-3xl font-extrabold text-orange-600">2</div>
+              <div className="text-3xl font-extrabold text-orange-600">{occupiedTables}</div>
             </div>
             <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100/50 shadow-sm flex flex-col justify-center">
               <div className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-2">RESERVED</div>
-              <div className="text-3xl font-extrabold text-blue-600">1</div>
+              <div className="text-3xl font-extrabold text-blue-600">{reservedTables}</div>
             </div>
           </div>
 
@@ -95,10 +115,16 @@ export default function TableManagementPage() {
             
             <div className="flex items-center gap-3">
               <div className="flex bg-white rounded-xl border border-gray-100 p-1 shadow-sm">
-                <button className="p-2 bg-orange-50 text-[#FF6B00] rounded-lg">
+                <button 
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-orange-50 text-[#FF6B00]' : 'text-gray-400 hover:text-gray-600'}`}
+                >
                   <LayoutGrid size={18} />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                <button 
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg ${viewMode === 'list' ? 'bg-orange-50 text-[#FF6B00]' : 'text-gray-400 hover:text-gray-600'}`}
+                >
                   <List size={18} />
                 </button>
               </div>
@@ -108,31 +134,104 @@ export default function TableManagementPage() {
             </div>
           </div>
 
-          {/* Tables Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {tables.map((table) => (
-              <div key={table.id} className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-gray-100 flex flex-col">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)}`}>
-                    {table.id}
-                  </div>
-                  <button className="text-gray-300 hover:text-gray-500">
-                    <MoreHorizontal size={20} />
-                  </button>
-                </div>
-                
-                <h3 className="text-lg font-bold text-gray-900 mb-3">{table.name}</h3>
-                
-                <div className="space-y-2.5 mb-6">
-                  <div className="flex items-center text-gray-500 text-xs font-medium">
-                    <MapPin size={14} className="mr-2 text-gray-400" />
-                    {table.location}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-gray-500 text-xs font-medium">
-                      <Users size={14} className="mr-2 text-gray-400" />
-                      {table.seats} Seats
+          {/* Tables Grid/List */}
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {tables.map((table) => (
+                <div key={table.id} className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-gray-100 flex flex-col">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)}`}>
+                      {table.id}
                     </div>
+                    <div className="relative">
+                      <button 
+                        className="text-gray-300 hover:text-gray-500"
+                        onClick={() => toggleDropdown(table.id)}
+                      >
+                        <MoreHorizontal size={20} />
+                      </button>
+                      {openDropdownId === table.id && (
+                        <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10 overflow-hidden">
+                          <button 
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            onClick={() => handleDeleteTable(table.id)}
+                          >
+                            Delete table
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">{table.name}</h3>
+                  
+                  <div className="space-y-2.5 mb-6">
+                    <div className="flex items-center text-gray-500 text-xs font-medium">
+                      <MapPin size={14} className="mr-2 text-gray-400" />
+                      {table.location}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-gray-500 text-xs font-medium">
+                        <Users size={14} className="mr-2 text-gray-400" />
+                        {table.seats} Seats
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                        <span className={`w-2 h-2 rounded-full ${getStatusDotColor(table.status)}`}></span>
+                        <span className={
+                          table.status === 'AVAILABLE' ? 'text-green-500' :
+                          table.status === 'OCCUPIED' ? 'text-orange-500' :
+                          table.status === 'RESERVED' ? 'text-blue-500' :
+                          'text-gray-500'
+                        }>{table.status}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-auto">
+                    <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                      <Edit2 size={14} />
+                      Edit
+                    </button>
+                    <button className="w-[42px] h-[42px] flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors">
+                      <QrCode size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add New Table Card */}
+              <button className="bg-[#FFFBF7] rounded-[1.5rem] p-5 border border-dashed border-orange-200 flex flex-col items-center justify-center min-h-[220px] hover:bg-orange-50/50 transition-colors group">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#FF6B00] mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                  <Plus size={24} />
+                </div>
+                <h3 className="text-[15px] font-bold text-gray-900 mb-2">Add New Table</h3>
+                <p className="text-xs font-semibold text-[#FF6B00]">Expansion mode</p>
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {tables.map((table) => (
+                <div key={table.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-6">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)} shrink-0`}>
+                      {table.id}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{table.name}</h3>
+                      <div className="flex items-center gap-4 mt-1">
+                        <div className="flex items-center text-gray-500 text-xs font-medium">
+                          <MapPin size={14} className="mr-1.5 text-gray-400" />
+                          {table.location}
+                        </div>
+                        <div className="flex items-center text-gray-500 text-xs font-medium">
+                          <Users size={14} className="mr-1.5 text-gray-400" />
+                          {table.seats} Seats
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-6 sm:gap-10 pl-[72px] md:pl-0">
                     <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600">
                       <span className={`w-2 h-2 rounded-full ${getStatusDotColor(table.status)}`}></span>
                       <span className={
@@ -142,30 +241,47 @@ export default function TableManagementPage() {
                         'text-gray-500'
                       }>{table.status}</span>
                     </div>
+
+                    <div className="flex items-center gap-2">
+                      <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                        <Edit2 size={14} />
+                        Edit
+                      </button>
+                      <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors">
+                        <QrCode size={16} />
+                      </button>
+                      <div className="relative">
+                        <button 
+                          className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-300 hover:text-gray-500 transition-colors"
+                          onClick={() => toggleDropdown(table.id)}
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+                        {openDropdownId === table.id && (
+                          <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10 overflow-hidden">
+                            <button 
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                              onClick={() => handleDeleteTable(table.id)}
+                            >
+                              Delete table
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2 mt-auto">
-                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                    <Edit2 size={14} />
-                    Edit
-                  </button>
-                  <button className="w-[42px] h-[42px] flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors">
-                    <QrCode size={18} />
-                  </button>
+              ))}
+              
+              {/* Add New Table Button - List View */}
+              <button className="bg-[#FFFBF7] rounded-2xl py-4 border border-dashed border-orange-200 flex items-center justify-center gap-3 hover:bg-orange-50/50 transition-colors group">
+                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#FF6B00] shadow-sm group-hover:scale-110 transition-transform">
+                  <Plus size={18} />
                 </div>
-              </div>
-            ))}
-
-            {/* Add New Table Card */}
-            <button className="bg-[#FFFBF7] rounded-[1.5rem] p-5 border border-dashed border-orange-200 flex flex-col items-center justify-center min-h-[220px] hover:bg-orange-50/50 transition-colors group">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#FF6B00] mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                <Plus size={24} />
-              </div>
-              <h3 className="text-[15px] font-bold text-gray-900 mb-2">Add New Table</h3>
-              <p className="text-xs font-semibold text-[#FF6B00]">Expansion mode</p>
-            </button>
-          </div>
+                <span className="text-[15px] font-bold text-gray-900">Add New Table</span>
+              </button>
+            </div>
+          )}
 
         </div>
       </main>
