@@ -10,6 +10,7 @@ import AdminHeader from '../components/AdminHeader';
 export default function TableManagementPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [editingTable, setEditingTable] = useState(null);
   
   const [tables, setTables] = useState([
     { id: '01', name: 'T-01', location: 'Indoor - Main', seats: 2, status: 'AVAILABLE' },
@@ -37,6 +38,13 @@ export default function TableManagementPage() {
       setTables(prev => prev.filter(t => t.id !== id));
     }
     setOpenDropdownId(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingTable) {
+      setTables(prev => prev.map(t => t.id === editingTable.id ? editingTable : t));
+      setEditingTable(null);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -188,7 +196,10 @@ export default function TableManagementPage() {
                   </div>
 
                   <div className="flex items-center gap-2 mt-auto">
-                    <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <button 
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setEditingTable({...table})}
+                    >
                       <Edit2 size={14} />
                       Edit
                     </button>
@@ -243,7 +254,10 @@ export default function TableManagementPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                      <button 
+                        onClick={() => setEditingTable({...table})}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
                         <Edit2 size={14} />
                         Edit
                       </button>
@@ -284,6 +298,75 @@ export default function TableManagementPage() {
           )}
 
         </div>
+
+        {/* Edit Table Modal */}
+        {editingTable && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[1.5rem] w-full max-w-md p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Edit Table Details</h2>
+                <button onClick={() => setEditingTable(null)} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Table Name/ID</label>
+                  <input 
+                    type="text" 
+                    value={editingTable.name}
+                    onChange={(e) => setEditingTable({...editingTable, name: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
+                  <input 
+                    type="text" 
+                    value={editingTable.location}
+                    onChange={(e) => setEditingTable({...editingTable, location: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Number of Seats</label>
+                  <input 
+                    type="number" 
+                    value={editingTable.seats}
+                    onChange={(e) => setEditingTable({...editingTable, seats: parseInt(e.target.value) || 0})}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                  <select 
+                    value={editingTable.status}
+                    onChange={(e) => setEditingTable({...editingTable, status: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
+                  >
+                    <option value="AVAILABLE">AVAILABLE</option>
+                    <option value="OCCUPIED">OCCUPIED</option>
+                    <option value="RESERVED">RESERVED</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 mt-8">
+                <button 
+                  onClick={() => setEditingTable(null)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSaveEdit}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#FF6B00] hover:bg-[#e66000] shadow-md shadow-orange-500/20 transition-all"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
