@@ -13,6 +13,13 @@ import EditMenuItemPage from './pages/EditMenuItemPage';
 import TableManagementPage from './pages/TableManagementPage';
 import UserManagementPage from './pages/UserManagementPage';
 import AddNewUserPage from './pages/AddNewUserPage';
+import LoginPage from './pages/LoginPage';
+import SignupPersonalPage from './pages/SignupPersonalPage';
+import SignupAddressPage from './pages/SignupAddressPage';
+import MobileVerificationPage from './pages/MobileVerificationPage';
+import OtpVerificationPage from './pages/OtpVerificationPage';
+import AccountPage from './pages/AccountPage';
+import OrdersPage from './pages/OrdersPage';
 
 export default function App() {
   return (
@@ -23,6 +30,14 @@ export default function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPersonalPage />} />
+        <Route path="/signup/address" element={<SignupAddressPage />} />
+        <Route path="/signup/qr" element={<MobileVerificationPage />} />
+        <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />
+        <Route path="/verify-otp" element={<OtpVerificationPage />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/menu" element={<MenuManagementPage />} />
         <Route path="/admin/menu/add" element={<AddMenuItemPage />} />
