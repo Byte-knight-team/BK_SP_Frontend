@@ -13,7 +13,7 @@ export default function TableManagementPage() {
     { id: '02', name: 'T-02', location: 'Indoor - Main', seats: 4, status: 'OCCUPIED' },
     { id: '03', name: 'T-03', location: 'Indoor - Main', seats: 4, status: 'RESERVED' },
     { id: '04', name: 'T-04', location: 'Outdoor - Terrace', seats: 6, status: 'AVAILABLE' },
-    { id: '05', name: 'T-05', location: 'Outdoor - Terrace', seats: 2, status: 'CLEANING' },
+    { id: '05', name: 'T-05', location: 'Outdoor - Terrace', seats: 2, status: 'AVAILABLE' },
     { id: '06', name: 'T-06', location: 'VIP Lounge', seats: 8, status: 'AVAILABLE' },
     { id: '07', name: 'T-07', location: 'Indoor - Window', seats: 4, status: 'OCCUPIED' },
     { id: '08', name: 'T-08', location: 'Indoor - Window', seats: 2, status: 'AVAILABLE' },
@@ -24,7 +24,6 @@ export default function TableManagementPage() {
       case 'AVAILABLE': return 'text-green-500 bg-green-50';
       case 'OCCUPIED': return 'text-orange-500 bg-orange-50';
       case 'RESERVED': return 'text-blue-500 bg-blue-50';
-      case 'CLEANING': return 'text-gray-500 bg-gray-50';
       default: return 'text-gray-500 bg-gray-50';
     }
   };
@@ -34,7 +33,6 @@ export default function TableManagementPage() {
       case 'AVAILABLE': return 'bg-green-500';
       case 'OCCUPIED': return 'bg-orange-500';
       case 'RESERVED': return 'bg-blue-500';
-      case 'CLEANING': return 'bg-gray-500';
       default: return 'bg-gray-500';
     }
   };
@@ -76,7 +74,7 @@ export default function TableManagementPage() {
             </div>
             <div className="bg-green-50 rounded-2xl p-5 border border-green-100/50 shadow-sm flex flex-col justify-center">
               <div className="text-[11px] font-bold text-green-500 uppercase tracking-wider mb-2">AVAILABLE</div>
-              <div className="text-3xl font-extrabold text-green-600">4</div>
+              <div className="text-3xl font-extrabold text-green-600">5</div>
             </div>
             <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100/50 shadow-sm flex flex-col justify-center">
               <div className="text-[11px] font-bold text-orange-500 uppercase tracking-wider mb-2">OCCUPIED</div>
