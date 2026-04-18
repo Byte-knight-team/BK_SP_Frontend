@@ -1,28 +1,19 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import Navbar from '../components/Navbar';
+import menuCover from '../assets/menu cover image.avif';
 import {
   ArrowLeft,
   Heart,
-  ShoppingBag,
   Search,
   Star,
   Clock,
-  Flame,
-  ChevronRight,
-  Plus,
   Award,
   Leaf,
   ChefHat,
-  BadgeCheck,
-  CircleCheckBig,
-  UserCircle2,
   ShoppingCart,
 } from 'lucide-react';
-import brandLogo from '../assets/Crave House logo.png';
-
-const COVER_IMAGE =
-  'https://images.unsplash.com/photo-1769773297747-bd00e31b33aa?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cHJpdmF0ZSUyMGRpbmluZ3xlbnwwfHwwfHx8MA==';
 
 const CATEGORIES = ['All', 'Burgers', 'Pizza', 'Pasta', 'Salads', 'Desserts', 'Beverages'];
 
@@ -30,7 +21,6 @@ const MENU_ITEMS = [
   {
     id: 1,
     name: 'Wagyu Beef Burger',
-    tag: "Chef's Choice",
     description: 'Premium Japanese wagyu patty, aged cheddar, caramelized onions, truffle aioli',
     rating: 4.9,
     reviews: 234,
@@ -46,7 +36,6 @@ const MENU_ITEMS = [
   {
     id: 2,
     name: 'Margherita Napoletana',
-    tag: 'Authentic',
     description: 'San Marzano tomatoes, buffalo mozzarella, fresh basil, extra virgin',
     rating: 4.9,
     reviews: 567,
@@ -62,7 +51,6 @@ const MENU_ITEMS = [
   {
     id: 3,
     name: 'Molten Chocolate Soufflé',
-    tag: 'Signature',
     description: 'Valrhona dark chocolate, vanilla bean ice cream, gold leaf, raspberry coulis',
     rating: 5,
     reviews: 412,
@@ -78,7 +66,6 @@ const MENU_ITEMS = [
   {
     id: 4,
     name: 'Signature BBQ Burger',
-    tag: 'Bestseller',
     description: 'Double angus beef, applewood bacon, aged cheddar, house BBQ sauce.',
     rating: 4.8,
     reviews: 345,
@@ -94,7 +81,6 @@ const MENU_ITEMS = [
   {
     id: 5,
     name: 'Tartufo Bianco Pizza',
-    tag: 'Luxury',
     description: 'White truffle cream, wild mushrooms, fontina cheese, arugula, white truffle oil',
     rating: 4.9,
     reviews: 278,
@@ -110,7 +96,6 @@ const MENU_ITEMS = [
   {
     id: 6,
     name: 'Truffle Carbonara',
-    tag: 'Italian',
     description: 'Fresh pasta, Italian pancetta, organic eggs, aged parmesan,',
     rating: 4.8,
     reviews: 189,
@@ -126,7 +111,6 @@ const MENU_ITEMS = [
   {
     id: 7,
     name: 'Mediterranean Quinoa Bowl',
-    tag: 'Healthy',
     description: 'Organic quinoa, roasted vegetables, feta cheese, olives, lemon herb',
     rating: 4.7,
     reviews: 123,
@@ -142,7 +126,6 @@ const MENU_ITEMS = [
   {
     id: 8,
     name: 'Artisan Lemonade',
-    tag: 'Refreshing',
     description: 'Fresh-squeezed lemons, organic honey, fresh mint, sparkling water',
     rating: 4.6,
     reviews: 89,
@@ -162,7 +145,7 @@ export default function MenuPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState([]);
   const navigate = useNavigate();
-  const { addToCart, cartCount } = useCart();
+  const { addToCart } = useCart();
 
   const filteredItems = MENU_ITEMS.filter((item) => {
     const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
@@ -180,83 +163,49 @@ export default function MenuPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ───── Top Header Bar ───── */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <button
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
-              onClick={() => navigate(-1)}
-              aria-label="Go back"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <Link to="/" className="flex items-center gap-2.5">
-              <img src={brandLogo} alt="Crave House" className="h-11 w-11 shrink-0 rounded-xl object-contain" />
-              <div className="leading-tight">
-                <p className="text-sm font-bold text-slate-900 sm:text-base">Crave House</p>
-                <p className="hidden text-[11px] text-slate-500 sm:block">Premium Dining Experience</p>
-              </div>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <div className="hidden items-center gap-2 md:flex">
-              <button className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
-                Login
-              </button>
-              <button className="inline-flex items-center rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600">
-                Sign Up
-              </button>
-              <button className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
-                <UserCircle2 size={18} />
-                <span>Account</span>
-                <ChevronRight size={15} />
-              </button>
-            </div>
-
-            <Link
-              to="/cart"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-orange-400 hover:text-orange-600"
-              aria-label="Open cart"
-            >
-              <ShoppingBag size={18} />
-              {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-bold text-white">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* ───── Search Bar ───── */}
-      <div className="relative max-w-[520px] mx-6 my-4 mb-5">
-        <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search our curated menu..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full py-3 pl-[42px] pr-4 border border-gray-200 rounded-sm text-[0.9rem] text-gray-800 bg-white outline-none transition-all duration-300 ease-smooth placeholder:text-gray-400 focus:border-orange focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)]"
-        />
+      <div className="relative mx-auto mb-5 mt-4 w-full max-w-5xl px-3 sm:px-6">
+        <button
+          className="absolute left-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900 sm:left-6"
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+        >
+          <ArrowLeft size={18} />
+        </button>
+
+        <div className="relative mx-auto w-full max-w-3xl py-2">
+          <Search
+            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            type="text"
+            placeholder="Search our curated menu..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-[42px] pr-4 text-[0.9rem] text-gray-800 outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-orange focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)]"
+          />
+        </div>
       </div>
 
       {/* ───── Hero Banner ───── */}
       <section
         className="relative mx-6 rounded-[16px] h-[280px] bg-cover bg-center overflow-hidden flex items-end max-md:h-[200px] max-md:mx-4"
-        style={{ backgroundImage: `url(${COVER_IMAGE})` }}
+        style={{ backgroundImage: `url(${menuCover})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/15" />
         <div className="relative z-[1] p-8 text-white">
           <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-[8px] text-[0.7rem] font-semibold tracking-[0.5px] uppercase text-white mb-3">
-            <ChefHat size={14} /> CURATED BY CHEF MICHAEL ANDERSON
+            <ChefHat size={14} /> CURATED BY Professionals
           </span>
-          <h1 className="font-heading text-[2.5rem] font-extrabold leading-[1.1] mb-2.5 max-md:text-[1.6rem]">Culinary Excellence</h1>
+          <h1 className="font-heading text-[2.5rem] font-extrabold leading-[1.1] mb-2.5 max-md:text-[1.6rem]">
+            Culinary Excellence
+          </h1>
           <p className="text-[0.9rem] leading-relaxed opacity-[0.88] max-w-[540px]">
-            Experience the finest flavors crafted with passion, premium ingredients, and decades of
-            culinary expertise
+            Experience the finest flavors crafted with passion, premium
+            ingredients, and decades of culinary expertise
           </p>
         </div>
       </section>
@@ -266,7 +215,7 @@ export default function MenuPage() {
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
-            className={`px-[22px] py-[9px] rounded-full border text-[0.875rem] font-medium transition-all duration-300 ease-smooth ${activeCategory === cat ? 'bg-navy text-white border-navy' : 'bg-white text-gray-800 border-gray-200 hover:border-navy hover:text-navy'}`}
+            className={`px-[22px] py-[9px] rounded-full border text-[0.875rem] font-medium transition-all duration-300 ${activeCategory === cat ? "bg-navy text-white border-navy" : "bg-white text-gray-800 border-gray-200 hover:border-navy hover:text-navy"}`}
             onClick={() => setActiveCategory(cat)}
           >
             {cat}
@@ -276,62 +225,66 @@ export default function MenuPage() {
 
       {/* ───── Menu Grid ───── */}
       <section className="px-6 pt-7 pb-9 max-md:px-4 max-md:py-5">
-        <h2 className="font-heading text-[1.6rem] font-bold text-navy mb-1">Our Menu</h2>
-        <p className="text-[0.875rem] text-gray-500 mb-6">{filteredItems.length} handcrafted dishes</p>
+        <h2 className="font-heading text-[1.6rem] font-bold text-navy mb-1">
+          Our Menu
+        </h2>
+        <p className="text-[0.875rem] text-gray-500 mb-6">
+          {filteredItems.length} handcrafted dishes
+        </p>
 
         <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
           {filteredItems.map((item) => (
-            <div className="flex border border-gray-200 rounded-[14px] overflow-hidden bg-white transition-all duration-300 ease-smooth hover:shadow-card hover:-translate-y-0.5 max-[480px]:flex-col" key={item.id}>
+            <div
+              className="flex border border-gray-200 rounded-[14px] overflow-hidden bg-white transition-all duration-300 hover:shadow-card hover:-translate-y-0.5 max-[480px]:flex-col"
+              key={item.id}
+            >
               {/* Image */}
               <div className="relative w-[160px] min-h-[190px] shrink-0 max-md:w-[120px] max-md:min-h-[140px] max-[480px]:w-full max-[480px]:min-h-[180px]">
-                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                {/* Badges */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1">
-                  {item.badges.map((badge) => (
-                    <span
-                      key={badge}
-                      className={`inline-flex items-center gap-[3px] px-2 py-[3px] rounded text-[0.6rem] font-bold uppercase tracking-[0.3px] ${badge === 'NEW' ? 'bg-orange text-white' : 'bg-[#22C55E] text-white'}`}
-                    >
-                      {badge === 'POPULAR' && <Flame size={10} />} {badge}
-                    </span>
-                  ))}
-                </div>
-                {/* Verified */}
-                {item.isVerified && (
-                  <span className="absolute bottom-2 left-2 w-7 h-7 rounded-full bg-orange text-white flex items-center justify-center">
-                    <BadgeCheck size={18} />
-                  </span>
-                )}
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
                 {/* Favorite */}
                 <button
-                  className={`absolute top-2 right-2 w-[30px] h-[30px] rounded-full bg-white/90 backdrop-blur-[4px] flex items-center justify-center border-none transition-all duration-300 ease-smooth ${favorites.includes(item.id) ? 'text-orange' : 'text-gray-400'} hover:text-orange`}
+                  className={`absolute top-2 right-2 w-[30px] h-[30px] rounded-full bg-white/90 backdrop-blur-[4px] flex items-center justify-center border-none transition-all duration-300 ${favorites.includes(item.id) ? "text-orange" : "text-gray-400"} hover:text-orange`}
                   onClick={() => toggleFavorite(item.id)}
                 >
-                  <Heart size={16} fill={favorites.includes(item.id) ? '#FF6B35' : 'none'} />
+                  <Heart
+                    size={16}
+                    fill={favorites.includes(item.id) ? "#FF6B35" : "none"}
+                  />
                 </button>
               </div>
 
               {/* Info */}
               <div className="flex-1 p-4 px-[18px] flex flex-col min-w-0">
-                <h3 className="font-heading text-base font-bold text-navy mb-[5px]">{item.name}</h3>
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[0.7rem] font-medium w-fit mb-2">{item.tag}</span>
-                <p className="text-[0.78rem] text-gray-500 leading-relaxed mb-2.5 line-clamp-2">{item.description}</p>
+                <h3 className="font-heading text-base font-bold text-navy mb-[5px]">
+                  {item.name}
+                </h3>
+                <p className="text-[0.78rem] text-gray-500 leading-relaxed mb-2.5 line-clamp-2">
+                  {item.description}
+                </p>
 
                 <div className="flex items-center gap-3 text-[0.75rem] text-gray-500 mb-3 flex-wrap">
                   <span className="flex items-center gap-[3px] font-semibold text-gray-800">
-                    <Star size={14} fill="#F59E0B" color="#F59E0B" /> {item.rating}
-                    <small className="font-normal text-gray-400">({item.reviews})</small>
+                    <Star size={14} fill="#F59E0B" color="#F59E0B" />{" "}
+                    {item.rating}
+                    <small className="font-normal text-gray-400">
+                      ({item.reviews})
+                    </small>
                   </span>
                   <span className="flex items-center gap-[3px]">
                     <Clock size={14} /> {item.prepTime}
                   </span>
-                  <span className="text-gray-400">{item.calories} cal</span>
                 </div>
 
                 <div className="flex items-center justify-between mt-auto">
-                  <span className="font-heading text-[1.1rem] font-bold text-navy">LKR {item.price.toLocaleString()}</span>
+                  <span className="font-heading text-[1.1rem] font-bold text-navy">
+                    LKR {item.price.toLocaleString()}
+                  </span>
                   <button
-                    className="inline-flex min-w-[118px] items-center justify-center gap-1.5 rounded-lg border border-orange-600 bg-orange-500 px-4 py-2.5 text-[0.82rem] font-semibold text-white shadow-sm transition-colors duration-300 ease-smooth hover:bg-orange-600"
+                    className="inline-flex min-w-[118px] items-center justify-center gap-1.5 rounded-lg border border-orange-600 bg-orange-500 px-4 py-2.5 text-[0.82rem] font-semibold text-white shadow-sm transition-colors duration-300 hover:bg-orange-600"
                     onClick={() => addToCart(item)}
                   >
                     <ShoppingCart size={15} /> Add to Cart
@@ -349,7 +302,7 @@ export default function MenuPage() {
           <Award size={16} color="#FF6B35" /> Michelin Recommended
         </span>
         <span className="flex items-center gap-2 text-[0.85rem] font-medium text-gray-800 max-md:text-[0.75rem]">
-          <Star size={16} fill="#F59E0B" color="#F59E0B" /> 4.9 Rating
+          <Star size={16} fill="#F59E0B" color="#F59E0B" /> Higher Ratings
         </span>
         <span className="flex items-center gap-2 text-[0.85rem] font-medium text-gray-800 max-md:text-[0.75rem]">
           <Leaf size={16} color="#22C55E" /> Organic Ingredients
