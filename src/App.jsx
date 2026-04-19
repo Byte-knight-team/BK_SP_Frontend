@@ -21,6 +21,7 @@ import MobileVerificationPage from './pages/MobileVerificationPage';
 import OtpVerificationPage from './pages/OtpVerificationPage';
 import AccountPage from './pages/AccountPage';
 import OrdersPage from './pages/OrdersPage';
+import ScanPage from './pages/ScanPage';
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/signup/qr" element={<MobileVerificationPage />} />
         <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />
         <Route path="/verify-otp" element={<OtpVerificationPage />} />
+        <Route path="/scan/:qrToken?" element={<ScanPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
