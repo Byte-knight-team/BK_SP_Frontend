@@ -3,7 +3,7 @@ import OrderCard from "./OrderCard";
 const CompletedOrdersTab = () => {
     return (
         <div>
-            <OrderCard OrderStatus="Completed" Time="10:00 AM" OrderID="#ORD-12345" NumberOfItems="3 Items"/>
+            <OrderCard status="Completed" time="10:00 AM" id="#ORD-12345" numberOfItems={3}/>
         </div>
     );
 };
