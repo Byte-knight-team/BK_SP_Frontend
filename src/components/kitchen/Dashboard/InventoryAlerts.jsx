@@ -57,7 +57,7 @@ const InventoryAlerts = () => {
         <h2 className="text-xl font-bold text-gray-800">Inventory Alerts</h2>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 h-[380px] overflow-y-auto pr-2">
         {inventoryAlertsDetails.map((item, index) => (
           <KitchenStatBar
             key={index}

@@ -18,7 +18,7 @@ const PreparingOrders = () => {
           //enable loading
           setLoading(true);
           //api call
-          const { data, error } = await getOrdersAPI("Preparing", 3);
+          const { data, error } = await getOrdersAPI("Preparing", null);
           //handle error
           if (error) {
             console.error("Error fetching stats details:", error);
@@ -43,7 +43,7 @@ const PreparingOrders = () => {
   return (
     <>
       <h2 className="text-xl font-bold text-gray-800">New Preparing Orders</h2>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 h-[380px] overflow-y-auto pr-2">
         {preparingOrdersDetails.map((order) => (
           <OrderCard
             key={order.id}

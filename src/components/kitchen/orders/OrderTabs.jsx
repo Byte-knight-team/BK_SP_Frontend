@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PendingOrdersTab from "./PendingOrdersTab";
 import PreparingOrdersTab from "./PreparingOrdersTab";
 import CompletedOrdersTab from "./CompletedOrdersTab";
-import CancelledOrdersTab from "./CancelledOrdersTab";
+import OnHoldOrdersTab from "./OnHoldOrdersTab";
 
 const OrderTabs = ({ handleOrderClick }) => {
   const [activeTab, setActiveTab] = useState(1);
@@ -11,7 +11,7 @@ const OrderTabs = ({ handleOrderClick }) => {
     { id: 1, label: "Pending" },
     { id: 2, label: "Preparing" },
     { id: 3, label: "Completed" },
-    { id: 4, label: "Cancelled" },
+    { id: 4, label: "On Hold" },
   ];
 
   const handleTabClick = (e, id) => {
@@ -21,12 +21,12 @@ const OrderTabs = ({ handleOrderClick }) => {
 
   return (
     <div className="w-full">
-      <ul className="flex flex-wrap text-center text-sm font-medium">
+      <ul className="flex w-full justify-between text-center text-sm font-medium border-b border-gray-200">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
 
           return (
-            <li key={tab.id} className="me-2">
+            <li key={tab.id}>
               <a
                 href="#"
                 onClick={(e) => handleTabClick(e, tab.id)}
@@ -44,7 +44,7 @@ const OrderTabs = ({ handleOrderClick }) => {
       </ul>
 
       {/* Content Area */}
-      <div className="rounded-base mt-6 p-4">
+      <div className="rounded-base mt-4 p-4">
         {activeTab === 1 && (
           <PendingOrdersTab handleOrderClick={handleOrderClick} />
         )}
@@ -55,7 +55,7 @@ const OrderTabs = ({ handleOrderClick }) => {
           <CompletedOrdersTab handleOrderClick={handleOrderClick} />
         )}
         {activeTab === 4 && (
-          <CancelledOrdersTab handleOrderClick={handleOrderClick} />
+          <OnHoldOrdersTab handleOrderClick={handleOrderClick} />
         )}
       </div>
     </div>
