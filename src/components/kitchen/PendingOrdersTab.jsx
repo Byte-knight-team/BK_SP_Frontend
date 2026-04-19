@@ -29,7 +29,7 @@ const pendingOrderResponse = [
   },
 ];
 
-const PendingOrdersTab = ({ handleOrderClick }) => {
+const PendingOrdersTab = ({ handleOrderClick }) => { //destructuring the handleOrderClick method from the parent component
   const [pendingOrders, setPendingOrders] = useState([]);
 
   useEffect(() => {
@@ -49,11 +49,11 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
       {pendingOrders.map((order) => (
         <OrderCard
           key={order.orderId}
-          OrderStatus="Pending"
-          Time={order.time}
-          OrderID={order.orderId}
-          NumberOfItems={order.numberOfItems}
-          onClick={() => handleOrderClick(order.orderId)}
+          status="Pending"
+          time={order.time}
+          id={order.orderId}
+          numberOfItems={order.numberOfItems}
+          onClick={() => handleOrderClick(order.orderId)} //
         />
       ))}
     </div>

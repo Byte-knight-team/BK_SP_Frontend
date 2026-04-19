@@ -1,45 +1,58 @@
-import React from 'react'
-import ProgressBar from './ProgressBar'
+import React from "react";
+import ProgressBar from "./ProgressBar";
 
-{/*warning level colors*/}
+{
+  /*warning level colors*/
+}
 const warningLevelColors = {
-    CRITICAL: "text-red-500",
-    LOW: "text-yellow-500",
-}
+  CRITICAL: "text-red-500",
+  LOW: "text-yellow-500",
+};
 
-
-const KitchenStatBar = ({ label, percentage, color, count, weight, warningLevel }) => {
+const KitchenStatBar = ({
+  mealName,
+  itemName,
+  percentage,
+  color,
+  count,
+  initialCount,
+  availableCount,
+  unit,
+  warningLevel,
+}) => {
   return (
-    <div className="flex flex-col mb-5">
-        <div className="flex flex-row justify-between mb-1">
-            <div className="text-base font-semibold text-gray-700">
-                {label}
-            </div>
-            {count && (
-                <div className="text-base font-bold text-gray-900">
-                    {count}
-                </div>
-            )}
+    <div className="mb-5 flex flex-col">
+      <div className="mb-1 flex flex-row justify-between">
+        <div className="text-base font-semibold text-gray-700">
+          {mealName || itemName}
         </div>
-
-        {/*conditional rendering - if weight and warningLevel are present, then show the weight and warning level - then this component can be used for low inventory alerts*/}
-        {weight && warningLevel && (
-            <div className="flex flex-row justify-between mb-2">
-                <div className="text-xs text-gray-500 uppercase font-medium">
-                    Weight: {weight}
-                </div>
-                <div className={`text-xs font-black uppercase ${warningLevelColors[warningLevel]}`}>
-                    {warningLevel}
-                </div>
-            </div>
-        )}
-
-        {/* progress bar */}
-        <div className="mt-1">
-            <ProgressBar percentage={percentage} color={color} />
+        <div className="text-base font-bold text-gray-900">
+          {initialCount && availableCount
+            ? `${availableCount} / ${initialCount}` //availableCount + " / " + initialCount
+            : count}
         </div>
+      </div>
+
+      {/*conditional rendering - if weight and warningLevel are present, then show the weight and warning level - then this component can be used for low inventory alerts*/}
+      {unit && warningLevel && (
+        <div className="mb-2 flex flex-row justify-between">
+          <div className="text-xs font-medium text-gray-500 uppercase">
+            Unit: {unit}
+          </div>
+          <div
+            className={`text-xs font-black uppercase ${warningLevelColors[warningLevel]}`}
+          >
+            {warningLevel}
+          </div>
+        </div>
+      )}
+
+      {/* progress bar */}
+      <div className="mt-1">
+        <ProgressBar percentage={percentage} color={color} />
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default KitchenStatBar
+export default KitchenStatBar;

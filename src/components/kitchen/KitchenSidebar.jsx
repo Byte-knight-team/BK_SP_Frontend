@@ -74,18 +74,18 @@ const KitchenSidebar = () => {
         <Link to="/kitchen" className={getLinkClass("/kitchen")}>
           <RiLayoutMasonryFill size={20} />
           {!isCollapsed && (
-            <span className="text-sm font-medium">Dashboard Overview</span>
+            <span className="text-md font-medium">Dashboard Overview</span>
           )}
         </Link>
 
         <Link to="/kitchen/orders" className={getLinkClass("/kitchen/orders")}>
           <RiClipboardLine size={20} />
-          {!isCollapsed && <span className="text-sm font-medium">Orders</span>}
+          {!isCollapsed && <span className="text-md font-medium">Orders</span>}
         </Link>
 
         <Link to="/kitchen/chefs" className={getLinkClass("/kitchen/chefs")}>
           <RiUserSettingsLine size={20} />
-          {!isCollapsed && <span className="text-sm font-medium">Chefs</span>}
+          {!isCollapsed && <span className="text-md font-medium">Chefs</span>}
         </Link>
 
         <Link
@@ -94,14 +94,14 @@ const KitchenSidebar = () => {
         >
           <RiHandbagLine size={20} />
           {!isCollapsed && (
-            <span className="text-sm font-medium">Inventory</span>
+            <span className="text-md font-medium">Inventory</span>
           )}
         </Link>
 
         <Link to="/kitchen/menu" className={getLinkClass("/kitchen/menu")}>
           <RiBookOpenLine size={20} />
           {!isCollapsed && (
-            <span className="text-sm font-medium">Menu & Recipes</span>
+            <span className="text-md font-medium">Menu & Recipes</span>
           )}
         </Link>
 
@@ -111,7 +111,7 @@ const KitchenSidebar = () => {
         >
           <RiShieldCheckLine size={20} />
           {!isCollapsed && (
-            <span className="text-sm font-medium">Approvals</span>
+            <span className="text-md font-medium">Approvals</span>
           )}
         </Link>
       </nav>
@@ -124,7 +124,7 @@ const KitchenSidebar = () => {
         >
           <RiSettings4Line size={20} />
           {!isCollapsed && (
-            <span className="text-sm font-medium">Settings</span>
+            <span className="text-md font-medium">Settings</span>
           )}
         </Link>
 
@@ -136,7 +136,7 @@ const KitchenSidebar = () => {
           </div>
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-gray-800">
+              <p className="truncate text-md font-bold text-gray-800">
                 Isuru Udara
               </p>
               <p className="text-[10px] font-bold text-gray-500 uppercase">
