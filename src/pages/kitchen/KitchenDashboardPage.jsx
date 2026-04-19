@@ -7,7 +7,7 @@ import PreparingOrders from "../../components/kitchen/dashboard/PreparingOrders"
 
 const KitchenDashboardPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="flex flex-col min-h-screen bg-gray-50 p-6">
       {/* 1. TOP HEADER: Displays title and subtext */}
       <div className="p-4">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">

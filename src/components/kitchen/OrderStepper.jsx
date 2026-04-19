@@ -14,7 +14,7 @@ const getCompletedSteps = (status) => {
   }
 };
 
-const SimpleOrderStepper = ({ status = "Completed" }) => {
+const SimpleOrderStepper = ({ status = "Pending" }) => {
   const completedSteps = getCompletedSteps(status);
 
   return (
