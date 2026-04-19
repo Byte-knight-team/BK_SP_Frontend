@@ -1,9 +1,9 @@
-import Stats from "../../components/kitchen/Dashboard/Stats";
-import MostPopularMeals from "../../components/kitchen/Dashboard/MostPopularMeals";
-import PeakHoursChart from "../../components/kitchen/Dashboard/PeakHoursChart";
-import InventoryAlerts from "../../components/kitchen/Dashboard/InventoryAlerts";
-import PendingOrders from "../../components/kitchen/Dashboard/PendingOrders";
-import PreparingOrders from "../../components/kitchen/Dashboard/PreparingOrders";
+import Stats from "../../components/kitchen/dashboard/Stats";
+import MostPopularMeals from "../../components/kitchen/dashboard/MostPopularMeals";
+import PeakHoursChart from "../../components/kitchen/dashboard/PeakHoursChart";
+import InventoryAlerts from "../../components/kitchen/dashboard/InventoryAlerts";
+import PendingOrders from "../../components/kitchen/dashboard/PendingOrders";
+import PreparingOrders from "../../components/kitchen/dashboard/PreparingOrders";
 
 const KitchenDashboardPage = () => {
   return (
@@ -41,7 +41,7 @@ const KitchenDashboardPage = () => {
         </div>
       </div>
 
-      <div className="flex mt-6 gap-6">
+      <div className="mt-6 flex gap-6">
         <div className="flex flex-1 flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
           <PendingOrders />
         </div>

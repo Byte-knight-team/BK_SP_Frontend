@@ -1,6 +1,6 @@
 import { RiClipboardLine } from "@remixicon/react";
-import OrderTabs from "../../components/kitchen/OrderTabs";
-import SelectedOrder from "../../components/kitchen/SelectedOrder";
+import OrderTabs from "../../components/kitchen/orders/OrderTabs";
+import SelectedOrder from "../../components/kitchen/orders/SelectedOrder";
 import { useState } from "react";
 
 const KitchenOrdersPage = () => {
@@ -22,11 +22,11 @@ const KitchenOrdersPage = () => {
       </div>
       <div className="flex flex-row gap-4">
         {/*OrderList*/}
-          <div className="w-[30%] rounded-lg bg-white p-4">
+          <div className="w-[25%] rounded-lg bg-white p-4 shadow-sm h-[80vh] overflow-y-auto">
           <OrderTabs handleOrderClick={handleOrderClick} />
         </div>
         {/*OrderDetails*/}
-        <div className="w-[70%] rounded-lg bg-white p-4">
+        <div className="w-[75%] rounded-lg bg-white p-4 shadow-sm h-[80vh] overflow-y-auto">
           {selectedOrder ? (
             <SelectedOrder orderId={selectedOrder} />
           ) : (

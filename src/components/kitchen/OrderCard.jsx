@@ -4,8 +4,8 @@ const statesColours = {
   Pending: "bg-orange-400",
   Preparing: "bg-blue-400",
   Completed: "bg-green-400",
-  Cancelled: "bg-red-400",
-}
+  "On Hold": "bg-red-400",
+};
 
 const getBgColor = (orderStatus) => {
   return statesColours[orderStatus];

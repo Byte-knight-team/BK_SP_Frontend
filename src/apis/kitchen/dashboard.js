@@ -1,3 +1,5 @@
+import { ordersData } from "./orders";
+
 //single object
 const statCard = {
   totalOrders: 124,
@@ -34,62 +36,6 @@ const popularMealsData = [
   },
 ];
 
-const ordersData = [
-  {
-    status: "Pending",
-    time: "10:45 AM",
-    id: "#ORD-001",
-    itemCount: 3,
-  },
-  {
-    status: "Pending",
-    time: "10:50 AM",
-    id: "#ORD-002",
-    itemCount: 1,
-  },
-  {
-    status: "Pending",
-    time: "10:55 AM",
-    id: "#ORD-003",
-    itemCount: 5,
-  },
-  {
-    status: "Preparing",
-    time: "11:00 AM",
-    id: "#ORD-004",
-    itemCount: 2,
-  },
-  {
-    status: "Preparing",
-    time: "11:05 AM",
-    id: "#ORD-005",
-    itemCount: 4,
-  },
-  {
-    status: "Preparing",
-    time: "11:10 AM",
-    id: "#ORD-006",
-    itemCount: 1,
-  },
-  {
-    status: "Completed",
-    time: "11:15 AM",
-    id: "#ORD-007",
-    itemCount: 3,
-  },
-  {
-    status: "Completed",
-    time: "11:20 AM",
-    id: "#ORD-008",
-    itemCount: 2,
-  },
-  {
-    status: "Completed",
-    time: "11:25 AM",
-    id: "#ORD-009",
-    itemCount: 5,
-  },
-];
 
 const graphData = [
   { time: "8AM-10AM", mealsCount: 90 },
@@ -102,6 +48,38 @@ const graphData = [
 ];
 
 const inventoryAlertsData = [
+  {
+    itemName: "Wagyu Beef (A5)",
+    percentage: 20,
+    initialCount: 20,
+    availableCount: 4,
+    unit: "KG",
+    warningLevel: "CRITICAL",
+  },
+  {
+    itemName: "Maldon Sea Salt",
+    percentage: 66,
+    initialCount: 30,
+    availableCount: 10,
+    unit: "KG",
+    warningLevel: "LOW",
+  },
+  {
+    itemName: "Truffle Oil",
+    percentage: 70,
+    initialCount: 50,
+    availableCount: 5,
+    unit: "LITERS",
+    warningLevel: "CRITICAL",
+  },
+  {
+    itemName: "Olive Oil",
+    percentage: 20,
+    initialCount: 50,
+    availableCount: 10,
+    unit: "LITERS",
+    warningLevel: "CRITICAL",
+  },
   {
     itemName: "Wagyu Beef (A5)",
     percentage: 20,
