@@ -11,6 +11,7 @@ import MenuManagementPage from './pages/MenuManagementPage';
 import AddMenuItemPage from './pages/AddMenuItemPage';
 import EditMenuItemPage from './pages/EditMenuItemPage';
 import TableManagementPage from './pages/TableManagementPage';
+import AddTablePage from './pages/AddTablePage';
 import UserManagementPage from './pages/UserManagementPage';
 import AddNewUserPage from './pages/AddNewUserPage';
 import LoginPage from './pages/LoginPage';
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/admin/menu/add" element={<AddMenuItemPage />} />
         <Route path="/admin/menu/edit" element={<EditMenuItemPage />} />
         <Route path="/admin/tables" element={<TableManagementPage />} />
+        <Route path="/admin/tables/add" element={<AddTablePage />} />
         <Route path="/admin/users" element={<UserManagementPage />} />
         <Route path="/admin/users/add" element={<AddNewUserPage />} />
       </Routes>
