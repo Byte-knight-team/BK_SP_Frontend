@@ -98,31 +98,31 @@ export const ordersData = [
   {
     status: "Pending",
     time: "10:55 AM",
-    id: "#ORD-015",
+    id: "#ORD-017",
     itemCount: 5,
   },
   {
     status: "Pending",
     time: "10:55 AM",
-    id: "#ORD-015",
+    id: "#ORD-018",
     itemCount: 5,
   },
   {
     status: "Pending",
     time: "10:55 AM",
-    id: "#ORD-015",
+    id: "#ORD-019",
     itemCount: 5,
   },
   {
     status: "Pending",
     time: "10:55 AM",
-    id: "#ORD-015",
+    id: "#ORD-020",
     itemCount: 5,
   },
   {
     status: "Pending",
     time: "10:55 AM",
-    id: "#ORD-015",
+    id: "#ORD-021",
     itemCount: 5,
   },
 ];
@@ -147,3 +147,4 @@ export const getOrdersAPI = async (orderStatus, limit = null) => {
     return { data: null, error: error };
   }
 };
+

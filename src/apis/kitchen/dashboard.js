@@ -7,6 +7,7 @@ const statCard = {
   completedOrders: 112,
   averagePrepTimeInMinutes: 15,
 };
+
 //object array
 const popularMealsData = [
   { 
