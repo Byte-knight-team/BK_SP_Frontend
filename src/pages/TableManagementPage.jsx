@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Search, Bell, HelpCircle, Settings, 
   Printer, Plus, LayoutGrid, List, Filter,
@@ -87,10 +88,10 @@ export default function TableManagementPage() {
                 <Printer size={16} />
                 Print All QR
               </button>
-              <button className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">
+              <Link to="/admin/tables/add" className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">
                 <Plus size={18} />
                 Add Table
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -211,13 +212,13 @@ export default function TableManagementPage() {
               ))}
 
               {/* Add New Table Card */}
-              <button className="bg-[#FFFBF7] rounded-[1.5rem] p-5 border border-dashed border-orange-200 flex flex-col items-center justify-center min-h-[220px] hover:bg-orange-50/50 transition-colors group">
+              <Link to="/admin/tables/add" className="bg-[#FFFBF7] rounded-[1.5rem] p-5 border border-dashed border-orange-200 flex flex-col items-center justify-center min-h-[220px] hover:bg-orange-50/50 transition-colors group">
                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#FF6B00] mb-4 shadow-sm group-hover:scale-110 transition-transform">
                   <Plus size={24} />
                 </div>
                 <h3 className="text-[15px] font-bold text-gray-900 mb-2">Add New Table</h3>
                 <p className="text-xs font-semibold text-[#FF6B00]">Expansion mode</p>
-              </button>
+              </Link>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -288,12 +289,12 @@ export default function TableManagementPage() {
               ))}
               
               {/* Add New Table Button - List View */}
-              <button className="bg-[#FFFBF7] rounded-2xl py-4 border border-dashed border-orange-200 flex items-center justify-center gap-3 hover:bg-orange-50/50 transition-colors group">
+              <Link to="/admin/tables/add" className="bg-[#FFFBF7] rounded-2xl py-4 border border-dashed border-orange-200 flex items-center justify-center gap-3 hover:bg-orange-50/50 transition-colors group">
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#FF6B00] shadow-sm group-hover:scale-110 transition-transform">
                   <Plus size={18} />
                 </div>
                 <span className="text-[15px] font-bold text-gray-900">Add New Table</span>
-              </button>
+              </Link>
             </div>
           )}
 
