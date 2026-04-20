@@ -1,11 +1,11 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
-import HomePage from './pages/HomePage';
-import MenuPage from './pages/MenuPage';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import HomePage from './pages/customer/HomePage';
+import MenuPage from './pages/customer/MenuPage';
+import CartPage from './pages/customer/CartPage';
+import CheckoutPage from './pages/customer/CheckoutPage';
+import OrderConfirmationPage from './pages/customer/OrderConfirmationPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import MenuManagementPage from './pages/MenuManagementPage';
 import AddMenuItemPage from './pages/AddMenuItemPage';
@@ -14,14 +14,14 @@ import TableManagementPage from './pages/TableManagementPage';
 import AddTablePage from './pages/AddTablePage';
 import UserManagementPage from './pages/UserManagementPage';
 import AddNewUserPage from './pages/AddNewUserPage';
-import LoginPage from './pages/LoginPage';
-import SignupPersonalPage from './pages/SignupPersonalPage';
-import SignupAddressPage from './pages/SignupAddressPage';
-import MobileVerificationPage from './pages/MobileVerificationPage';
-import OtpVerificationPage from './pages/OtpVerificationPage';
-import AccountPage from './pages/AccountPage';
-import OrdersPage from './pages/OrdersPage';
-import ScanPage from './pages/ScanPage';
+import LoginPage from './pages/customer/LoginPage';
+import SignupPersonalPage from './pages/customer/SignupPersonalPage';
+import SignupAddressPage from './pages/customer/SignupAddressPage';
+import MobileVerificationPage from './pages/customer/MobileVerificationPage';
+import OtpVerificationPage from './pages/customer/OtpVerificationPage';
+import AccountPage from './pages/customer/AccountPage';
+import OrdersPage from './pages/customer/OrdersPage';
+import ScanPage from './pages/customer/ScanPage';
 
 export default function App() {
   return (
