@@ -7,8 +7,8 @@ import AdminHeader from '../components/AdminHeader';
 export default function AddTablePage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    tableNumber: 'T-09',
-    seatingCapacity: '4',
+    tableNumber: '01',
+    seatingCapacity: '1',
     zone: 'Indoor - Main',
     status: 'Available'
   });
@@ -17,10 +17,33 @@ export default function AddTablePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate save and redirect
-    navigate('/admin/tables');
+
+    try {
+      const response = await fetch('http://localhost:8080/api/tables', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tableNumber: parseInt(formData.tableNumber),
+          capacity: parseInt(formData.seatingCapacity),
+          status: formData.status.toUpperCase(),
+          branchId: 1 // Default branch since zone mapper isn't implemented
+        })
+      });
+
+      if (response.ok) {
+        navigate('/admin/tables');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || errorData.error || 'Failed to create table. Please check your data.');
+      }
+    } catch (error) {
+      console.error('Error creating table:', error);
+      alert('Network error. Could not connect to the backend server.');
+    }
   };
 
   return (
@@ -53,12 +76,12 @@ export default function AddTablePage() {
                     TABLE NUMBER
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     name="tableNumber"
                     value={formData.tableNumber}
                     onChange={handleChange}
                     className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl text-[15px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors placeholder-gray-400"
-                    placeholder="Enter table number"
+                    placeholder="Enter table number (e.g. 9)"
                   />
                 </div>
 
