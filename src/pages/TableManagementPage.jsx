@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
   Search, Bell, HelpCircle, Settings, 
   Printer, Plus, LayoutGrid, List, Filter,
-  MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle
+  MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle, UserCheck, ShoppingBag
 } from 'lucide-react';
 import AdminSidebar from '../components/AdminSidebar';
 import AdminHeader from '../components/AdminHeader';
@@ -16,14 +16,14 @@ export default function TableManagementPage() {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, tableId: null, tableName: '' });
   
   const [tables, setTables] = useState([
-    { id: '01', name: 'T-01', location: 'Indoor - Main', seats: 2, status: 'AVAILABLE' },
-    { id: '02', name: 'T-02', location: 'Indoor - Main', seats: 4, status: 'OCCUPIED' },
-    { id: '03', name: 'T-03', location: 'Indoor - Main', seats: 4, status: 'RESERVED' },
-    { id: '04', name: 'T-04', location: 'Outdoor - Terrace', seats: 6, status: 'AVAILABLE' },
-    { id: '05', name: 'T-05', location: 'Outdoor - Terrace', seats: 2, status: 'AVAILABLE' },
-    { id: '06', name: 'T-06', location: 'VIP Lounge', seats: 8, status: 'AVAILABLE' },
-    { id: '07', name: 'T-07', location: 'Indoor - Window', seats: 4, status: 'OCCUPIED' },
-    { id: '08', name: 'T-08', location: 'Indoor - Window', seats: 2, status: 'AVAILABLE' },
+    { id: '01', name: 'T-01', location: 'Indoor - Main', seats: 2, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
+    { id: '02', name: 'T-02', location: 'Indoor - Main', seats: 4, status: 'OCCUPIED', activeOrderCount: 1, currentGuestCount: 2 },
+    { id: '03', name: 'T-03', location: 'Indoor - Main', seats: 4, status: 'RESERVED', activeOrderCount: 0, currentGuestCount: 0 },
+    { id: '04', name: 'T-04', location: 'Outdoor - Terrace', seats: 6, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
+    { id: '05', name: 'T-05', location: 'Outdoor - Terrace', seats: 2, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
+    { id: '06', name: 'T-06', location: 'VIP Lounge', seats: 8, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
+    { id: '07', name: 'T-07', location: 'Indoor - Window', seats: 4, status: 'OCCUPIED', activeOrderCount: 2, currentGuestCount: 3 },
+    { id: '08', name: 'T-08', location: 'Indoor - Window', seats: 2, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
   ]);
 
   const totalTables = tables.length;
@@ -79,9 +79,13 @@ export default function TableManagementPage() {
         });
       }
     } catch (error) {
-      console.error("Backend request failed, falling back to local state deletion:", error);
-      // Fallback to update local state if backend is disconnected
-      setTables(prev => prev.filter(t => t.id !== id));
+      console.error("Backend request failed:", error);
+      setAlertModal({
+        isOpen: true,
+        title: 'Network Error',
+        message: 'Could not connect to the backend server. Please check your connection.',
+        type: 'error'
+      });
     }
   };
 
@@ -219,14 +223,10 @@ export default function TableManagementPage() {
                   <h3 className="text-lg font-bold text-gray-900 mb-3">{table.name}</h3>
                   
                   <div className="space-y-2.5 mb-6">
-                    <div className="flex items-center text-gray-500 text-xs font-medium">
-                      <MapPin size={14} className="mr-2 text-gray-400" />
-                      {table.location}
-                    </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center text-gray-500 text-xs font-medium">
-                        <Users size={14} className="mr-2 text-gray-400" />
-                        {table.seats} Seats
+                        <MapPin size={14} className="mr-2 text-gray-400" />
+                        {table.location}
                       </div>
                       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600">
                         <span className={`w-2 h-2 rounded-full ${getStatusDotColor(table.status)}`}></span>
@@ -236,6 +236,30 @@ export default function TableManagementPage() {
                           table.status === 'RESERVED' ? 'text-blue-500' :
                           'text-gray-500'
                         }>{table.status}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-50">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Capacity</span>
+                        <div className="flex items-center text-gray-700 text-xs font-bold">
+                          <Users size={12} className="mr-1.5 text-gray-400" />
+                          {table.seats}
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Guests</span>
+                        <div className="flex items-center text-gray-700 text-xs font-bold">
+                          <UserCheck size={12} className="mr-1.5 text-orange-400" />
+                          {table.currentGuestCount || 0}
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Orders</span>
+                        <div className="flex items-center text-gray-700 text-xs font-bold">
+                          <ShoppingBag size={12} className="mr-1.5 text-blue-400" />
+                          {table.activeOrderCount || 0}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -282,6 +306,14 @@ export default function TableManagementPage() {
                         <div className="flex items-center text-gray-500 text-xs font-medium">
                           <Users size={14} className="mr-1.5 text-gray-400" />
                           {table.seats} Seats
+                        </div>
+                        <div className="flex items-center text-gray-500 text-xs font-medium">
+                          <UserCheck size={14} className="mr-1.5 text-orange-400" />
+                          {table.currentGuestCount || 0} Guests
+                        </div>
+                        <div className="flex items-center text-gray-500 text-xs font-medium">
+                          <ShoppingBag size={14} className="mr-1.5 text-blue-400" />
+                          {table.activeOrderCount || 0} Orders
                         </div>
                       </div>
                     </div>
