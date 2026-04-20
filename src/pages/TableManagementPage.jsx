@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, Bell, HelpCircle, Settings, 
@@ -15,16 +15,29 @@ export default function TableManagementPage() {
   const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'warning' });
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, tableId: null, tableName: '' });
   
-  const [tables, setTables] = useState([
-    { id: '01', name: 'T-01', location: 'Indoor - Main', seats: 2, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
-    { id: '02', name: 'T-02', location: 'Indoor - Main', seats: 4, status: 'OCCUPIED', activeOrderCount: 1, currentGuestCount: 2 },
-    { id: '03', name: 'T-03', location: 'Indoor - Main', seats: 4, status: 'RESERVED', activeOrderCount: 0, currentGuestCount: 0 },
-    { id: '04', name: 'T-04', location: 'Outdoor - Terrace', seats: 6, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
-    { id: '05', name: 'T-05', location: 'Outdoor - Terrace', seats: 2, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
-    { id: '06', name: 'T-06', location: 'VIP Lounge', seats: 8, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
-    { id: '07', name: 'T-07', location: 'Indoor - Window', seats: 4, status: 'OCCUPIED', activeOrderCount: 2, currentGuestCount: 3 },
-    { id: '08', name: 'T-08', location: 'Indoor - Window', seats: 2, status: 'AVAILABLE', activeOrderCount: 0, currentGuestCount: 0 },
-  ]);
+  const [tables, setTables] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTables();
+  }, []);
+
+  const fetchTables = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('http://localhost:8080/api/tables');
+      if (response.ok) {
+        const data = await response.json();
+        setTables(data);
+      } else {
+        console.error("Failed to fetch tables");
+      }
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const totalTables = tables.length;
   const availableTables = tables.filter(t => t.status === 'AVAILABLE').length;
@@ -44,7 +57,7 @@ export default function TableManagementPage() {
     setConfirmModal({
       isOpen: true,
       tableId: id,
-      tableName: tableToDelete.name
+      tableName: tableToDelete.tableNumber
     });
   };
 
@@ -89,10 +102,30 @@ export default function TableManagementPage() {
     }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingTable) {
-      setTables(prev => prev.map(t => t.id === editingTable.id ? editingTable : t));
-      setEditingTable(null);
+      try {
+        const response = await fetch(`http://localhost:8080/api/tables/${editingTable.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tableNumber: editingTable.tableNumber,
+            capacity: editingTable.capacity,
+            status: editingTable.status
+          })
+        });
+        
+        if (response.ok) {
+          const updatedTable = await response.json();
+          setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
+          setEditingTable(null);
+        } else {
+          const errData = await response.json();
+          setAlertModal({ isOpen: true, title: 'Error', message: errData.message || 'Failed to update table', type: 'error' });
+        }
+      } catch (error) {
+        setAlertModal({ isOpen: true, title: 'Network Error', message: 'Could not connect to the backend server.', type: 'error' });
+      }
     }
   };
 
@@ -220,13 +253,13 @@ export default function TableManagementPage() {
                     </div>
                   </div>
                   
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">{table.name}</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">T-{table.tableNumber?.toString().padStart(2, '0')}</h3>
                   
                   <div className="space-y-2.5 mb-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center text-gray-500 text-xs font-medium">
                         <MapPin size={14} className="mr-2 text-gray-400" />
-                        {table.location}
+                        {table.branchName}
                       </div>
                       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600">
                         <span className={`w-2 h-2 rounded-full ${getStatusDotColor(table.status)}`}></span>
@@ -244,7 +277,7 @@ export default function TableManagementPage() {
                         <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Capacity</span>
                         <div className="flex items-center text-gray-700 text-xs font-bold">
                           <Users size={12} className="mr-1.5 text-gray-400" />
-                          {table.seats}
+                          {table.capacity}
                         </div>
                       </div>
                       <div className="flex flex-col">
@@ -297,15 +330,15 @@ export default function TableManagementPage() {
                       {table.id}
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">{table.name}</h3>
-                      <div className="flex items-center gap-4 mt-1">
+                      <h3 className="text-lg font-bold text-gray-900">T-{table.tableNumber?.toString().padStart(2, '0')}</h3>
+                      <div className="flex flex-wrap items-center gap-4 mt-1">
                         <div className="flex items-center text-gray-500 text-xs font-medium">
                           <MapPin size={14} className="mr-1.5 text-gray-400" />
-                          {table.location}
+                          {table.branchName}
                         </div>
                         <div className="flex items-center text-gray-500 text-xs font-medium">
                           <Users size={14} className="mr-1.5 text-gray-400" />
-                          {table.seats} Seats
+                          {table.capacity} Seats
                         </div>
                         <div className="flex items-center text-gray-500 text-xs font-medium">
                           <UserCheck size={14} className="mr-1.5 text-orange-400" />
@@ -391,8 +424,8 @@ export default function TableManagementPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Table Name/ID</label>
                   <input 
                     type="text" 
-                    value={editingTable.name}
-                    onChange={(e) => setEditingTable({...editingTable, name: e.target.value})}
+                    value={editingTable.tableNumber}
+                    onChange={(e) => setEditingTable({...editingTable, tableNumber: e.target.value})}
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
                   />
                 </div>
@@ -400,17 +433,17 @@ export default function TableManagementPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
                   <input 
                     type="text" 
-                    value={editingTable.location}
-                    onChange={(e) => setEditingTable({...editingTable, location: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
+                    value={editingTable.branchName}
+                    readOnly
+                    className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm focus:outline-none transition-colors text-gray-500 cursor-not-allowed"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Number of Seats</label>
                   <input 
                     type="number" 
-                    value={editingTable.seats}
-                    onChange={(e) => setEditingTable({...editingTable, seats: parseInt(e.target.value) || 0})}
+                    value={editingTable.capacity}
+                    onChange={(e) => setEditingTable({...editingTable, capacity: parseInt(e.target.value) || 0})}
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
                   />
                 </div>
@@ -473,7 +506,7 @@ export default function TableManagementPage() {
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Table?</h2>
               <p className="text-gray-500 text-sm mb-8">
-                Are you sure you want to delete <span className="font-bold text-gray-700">{confirmModal.tableName}</span>? This action cannot be undone.
+                Are you sure you want to delete <span className="font-bold text-gray-700">T-{confirmModal.tableName?.toString().padStart(2, '0')}</span>? This action cannot be undone.
               </p>
               <div className="flex items-center gap-3">
                 <button 
