@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { 
   Search, Bell, HelpCircle, Settings, 
   Printer, Plus, LayoutGrid, List, Filter,
-  MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle
+  MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle, UserCheck, ShoppingBag
 } from 'lucide-react';
 import AdminSidebar from '../components/AdminSidebar';
 import AdminHeader from '../components/AdminHeader';
@@ -15,16 +15,50 @@ export default function TableManagementPage() {
   const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'warning' });
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, tableId: null, tableName: '' });
   
-  const [tables, setTables] = useState([
-    { id: '01', name: 'T-01', location: 'Indoor - Main', seats: 2, status: 'AVAILABLE' },
-    { id: '02', name: 'T-02', location: 'Indoor - Main', seats: 4, status: 'OCCUPIED' },
-    { id: '03', name: 'T-03', location: 'Indoor - Main', seats: 4, status: 'RESERVED' },
-    { id: '04', name: 'T-04', location: 'Outdoor - Terrace', seats: 6, status: 'AVAILABLE' },
-    { id: '05', name: 'T-05', location: 'Outdoor - Terrace', seats: 2, status: 'AVAILABLE' },
-    { id: '06', name: 'T-06', location: 'VIP Lounge', seats: 8, status: 'AVAILABLE' },
-    { id: '07', name: 'T-07', location: 'Indoor - Window', seats: 4, status: 'OCCUPIED' },
-    { id: '08', name: 'T-08', location: 'Indoor - Window', seats: 2, status: 'AVAILABLE' },
-  ]);
+  const [tables, setTables] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const statusFilter = searchParams.get('status');
+
+  useEffect(() => {
+    fetchTables();
+  }, []);
+
+  const fetchTables = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('http://localhost:8080/api/tables');
+      if (response.ok) {
+        const data = await response.json();
+        setTables(data);
+      } else {
+        console.error("Failed to fetch tables");
+      }
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Filter tables based on sidebar status filter + search query
+  const filteredTables = tables.filter(table => {
+    // Status filter from URL query param
+    if (statusFilter) {
+      if (table.status !== statusFilter.toUpperCase()) return false;
+    }
+    // Search query filter
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.trim().toLowerCase();
+    return (
+      table.id?.toString() === query ||
+      table.tableNumber?.toString() === query ||
+      `t-${table.tableNumber?.toString().padStart(2, '0')}`.toLowerCase().includes(query) ||
+      table.branchName?.toLowerCase().includes(query) ||
+      table.status?.toLowerCase().includes(query)
+    );
+  });
 
   const totalTables = tables.length;
   const availableTables = tables.filter(t => t.status === 'AVAILABLE').length;
@@ -44,7 +78,7 @@ export default function TableManagementPage() {
     setConfirmModal({
       isOpen: true,
       tableId: id,
-      tableName: tableToDelete.name
+      tableName: tableToDelete.tableNumber
     });
   };
 
@@ -79,16 +113,40 @@ export default function TableManagementPage() {
         });
       }
     } catch (error) {
-      console.error("Backend request failed, falling back to local state deletion:", error);
-      // Fallback to update local state if backend is disconnected
-      setTables(prev => prev.filter(t => t.id !== id));
+      console.error("Backend request failed:", error);
+      setAlertModal({
+        isOpen: true,
+        title: 'Network Error',
+        message: 'Could not connect to the backend server. Please check your connection.',
+        type: 'error'
+      });
     }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingTable) {
-      setTables(prev => prev.map(t => t.id === editingTable.id ? editingTable : t));
-      setEditingTable(null);
+      try {
+        const response = await fetch(`http://localhost:8080/api/tables/${editingTable.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tableNumber: editingTable.tableNumber,
+            capacity: editingTable.capacity,
+            status: editingTable.status
+          })
+        });
+        
+        if (response.ok) {
+          const updatedTable = await response.json();
+          setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
+          setEditingTable(null);
+        } else {
+          const errData = await response.json();
+          setAlertModal({ isOpen: true, title: 'Error', message: errData.message || 'Failed to update table', type: 'error' });
+        }
+      } catch (error) {
+        setAlertModal({ isOpen: true, title: 'Network Error', message: 'Could not connect to the backend server.', type: 'error' });
+      }
     }
   };
 
@@ -159,11 +217,17 @@ export default function TableManagementPage() {
             </div>
           </div>
 
-          {/* Filters Row */}
+          {/* Search & View Controls Row */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center bg-white border border-gray-100 rounded-2xl px-4 py-2.5 w-full max-w-md shadow-sm">
               <Search size={18} className="text-gray-400 mr-3" />
-              <input type="text" placeholder="Search tables or zones..." className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search by table ID, number, branch, or status..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400" 
+              />
             </div>
             
             <div className="flex items-center gap-3">
@@ -190,7 +254,14 @@ export default function TableManagementPage() {
           {/* Tables Grid/List */}
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {tables.map((table) => (
+              {filteredTables.length === 0 && !isLoading && (
+                <div className="col-span-full flex flex-col items-center justify-center py-16 text-gray-400">
+                  <Search size={40} className="mb-4 text-gray-300" />
+                  <p className="text-lg font-semibold text-gray-500">No tables found</p>
+                  <p className="text-sm mt-1">Try a different search term or clear the search bar</p>
+                </div>
+              )}
+              {filteredTables.map((table) => (
                 <div key={table.id} className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-gray-100 flex flex-col">
                   <div className="flex items-start justify-between mb-4">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)}`}>
@@ -216,17 +287,13 @@ export default function TableManagementPage() {
                     </div>
                   </div>
                   
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">{table.name}</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">T-{table.tableNumber?.toString().padStart(2, '0')}</h3>
                   
                   <div className="space-y-2.5 mb-6">
-                    <div className="flex items-center text-gray-500 text-xs font-medium">
-                      <MapPin size={14} className="mr-2 text-gray-400" />
-                      {table.location}
-                    </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center text-gray-500 text-xs font-medium">
-                        <Users size={14} className="mr-2 text-gray-400" />
-                        {table.seats} Seats
+                        <MapPin size={14} className="mr-2 text-gray-400" />
+                        {table.branchName}
                       </div>
                       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600">
                         <span className={`w-2 h-2 rounded-full ${getStatusDotColor(table.status)}`}></span>
@@ -236,6 +303,30 @@ export default function TableManagementPage() {
                           table.status === 'RESERVED' ? 'text-blue-500' :
                           'text-gray-500'
                         }>{table.status}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-50">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Capacity</span>
+                        <div className="flex items-center text-gray-700 text-xs font-bold">
+                          <Users size={12} className="mr-1.5 text-gray-400" />
+                          {table.capacity}
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Guests</span>
+                        <div className="flex items-center text-gray-700 text-xs font-bold">
+                          <UserCheck size={12} className="mr-1.5 text-orange-400" />
+                          {table.currentGuestCount || 0}
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Orders</span>
+                        <div className="flex items-center text-gray-700 text-xs font-bold">
+                          <ShoppingBag size={12} className="mr-1.5 text-blue-400" />
+                          {table.activeOrderCount || 0}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -266,22 +357,37 @@ export default function TableManagementPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {tables.map((table) => (
+              {filteredTables.length === 0 && !isLoading && (
+                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                  <Search size={40} className="mb-4 text-gray-300" />
+                  <p className="text-lg font-semibold text-gray-500">No tables found</p>
+                  <p className="text-sm mt-1">Try a different search term or clear the search bar</p>
+                </div>
+              )}
+              {filteredTables.map((table) => (
                 <div key={table.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-6">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)} shrink-0`}>
                       {table.id}
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">{table.name}</h3>
-                      <div className="flex items-center gap-4 mt-1">
+                      <h3 className="text-lg font-bold text-gray-900">T-{table.tableNumber?.toString().padStart(2, '0')}</h3>
+                      <div className="flex flex-wrap items-center gap-4 mt-1">
                         <div className="flex items-center text-gray-500 text-xs font-medium">
                           <MapPin size={14} className="mr-1.5 text-gray-400" />
-                          {table.location}
+                          {table.branchName}
                         </div>
                         <div className="flex items-center text-gray-500 text-xs font-medium">
                           <Users size={14} className="mr-1.5 text-gray-400" />
-                          {table.seats} Seats
+                          {table.capacity} Seats
+                        </div>
+                        <div className="flex items-center text-gray-500 text-xs font-medium">
+                          <UserCheck size={14} className="mr-1.5 text-orange-400" />
+                          {table.currentGuestCount || 0} Guests
+                        </div>
+                        <div className="flex items-center text-gray-500 text-xs font-medium">
+                          <ShoppingBag size={14} className="mr-1.5 text-blue-400" />
+                          {table.activeOrderCount || 0} Orders
                         </div>
                       </div>
                     </div>
@@ -359,8 +465,8 @@ export default function TableManagementPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Table Name/ID</label>
                   <input 
                     type="text" 
-                    value={editingTable.name}
-                    onChange={(e) => setEditingTable({...editingTable, name: e.target.value})}
+                    value={editingTable.tableNumber}
+                    onChange={(e) => setEditingTable({...editingTable, tableNumber: e.target.value})}
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
                   />
                 </div>
@@ -368,17 +474,17 @@ export default function TableManagementPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
                   <input 
                     type="text" 
-                    value={editingTable.location}
-                    onChange={(e) => setEditingTable({...editingTable, location: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
+                    value={editingTable.branchName}
+                    readOnly
+                    className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm focus:outline-none transition-colors text-gray-500 cursor-not-allowed"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Number of Seats</label>
                   <input 
                     type="number" 
-                    value={editingTable.seats}
-                    onChange={(e) => setEditingTable({...editingTable, seats: parseInt(e.target.value) || 0})}
+                    value={editingTable.capacity}
+                    onChange={(e) => setEditingTable({...editingTable, capacity: parseInt(e.target.value) || 0})}
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
                   />
                 </div>
@@ -441,7 +547,7 @@ export default function TableManagementPage() {
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Table?</h2>
               <p className="text-gray-500 text-sm mb-8">
-                Are you sure you want to delete <span className="font-bold text-gray-700">{confirmModal.tableName}</span>? This action cannot be undone.
+                Are you sure you want to delete <span className="font-bold text-gray-700">T-{confirmModal.tableName?.toString().padStart(2, '0')}</span>? This action cannot be undone.
               </p>
               <div className="flex items-center gap-3">
                 <button 

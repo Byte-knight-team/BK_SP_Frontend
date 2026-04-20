@@ -9,6 +9,7 @@ export default function AdminSidebar() {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(location.pathname.startsWith('/admin/menu'));
+  const [isTableDropdownOpen, setIsTableDropdownOpen] = useState(location.pathname.startsWith('/admin/tables'));
 
   const isExactActive = (path) => {
     // Treat base path and no query params as exactly active
@@ -106,11 +107,43 @@ export default function AdminSidebar() {
             )}
           </div>
 
-          <Link to="/admin/tables" className={getParentLinkClass('/admin/tables')}>
-            <LayoutGrid size={20} className="flex-shrink-0" />
-            {!isCollapsed && <span className="text-sm">Table Management</span>}
-            {!isCollapsed && isExactActive('/admin/tables') && <div className="w-1.5 h-1.5 bg-white rounded-full ml-auto"></div>}
-          </Link>
+          {/* Table Management - Dropdown Parent */}
+          <div className="flex flex-col">
+            <Link 
+              to="/admin/tables"
+              onClick={(e) => {
+                if (isCollapsed) {
+                  setIsCollapsed(false);
+                }
+                setIsTableDropdownOpen(!isTableDropdownOpen);
+              }}
+              className={getParentLinkClass('/admin/tables', true) + " w-full text-left"}
+            >
+              <LayoutGrid size={20} className="flex-shrink-0" />
+              {!isCollapsed && <span className="text-sm flex-1">Table Management</span>}
+              {!isCollapsed && (
+                isTableDropdownOpen ? <ChevronDown size={16} /> : <ChevronRightSmall size={16} />
+              )}
+            </Link>
+            
+            {/* Table Status Dropdown Options */}
+            {!isCollapsed && isTableDropdownOpen && (
+              <div className="mt-2 ml-4 flex flex-col gap-1 border-l-2 border-gray-100 pl-2">
+                <Link to="/admin/tables?status=available" className={getSubLinkClass('/admin/tables?status=available')}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></div>
+                  Available
+                </Link>
+                <Link to="/admin/tables?status=occupied" className={getSubLinkClass('/admin/tables?status=occupied')}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1"></div>
+                  Occupied
+                </Link>
+                <Link to="/admin/tables?status=reserved" className={getSubLinkClass('/admin/tables?status=reserved')}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1"></div>
+                  Reserved
+                </Link>
+              </div>
+            )}
+          </div>
 
           <Link to="#" className={getParentLinkClass('/admin/settings')}>
             <Settings size={20} className="flex-shrink-0" />
