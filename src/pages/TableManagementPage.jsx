@@ -41,26 +41,6 @@ export default function TableManagementPage() {
     if (!tableToDelete) return;
     setOpenDropdownId(null);
 
-    if (tableToDelete.activeOrderCount > 0) {
-      setAlertModal({
-        isOpen: true,
-        title: 'Cannot Delete Table',
-        message: `Table ${tableToDelete.name} has active orders. Please close all orders before deleting.`,
-        type: 'warning'
-      });
-      return;
-    }
-
-    if (tableToDelete.status !== 'AVAILABLE') {
-      setAlertModal({
-        isOpen: true,
-        title: 'Cannot Delete Table',
-        message: `Table ${tableToDelete.name} cannot be deleted because it is currently ${tableToDelete.status}. Only AVAILABLE tables can be deleted.`,
-        type: 'warning'
-      });
-      return;
-    }
-
     setConfirmModal({
       isOpen: true,
       tableId: id,
@@ -80,22 +60,23 @@ export default function TableManagementPage() {
       if (response.ok) {
         setTables(prev => prev.filter(t => t.id !== id));
       } else {
+        const errorText = await response.text();
+        let errorMessage = "Could not delete the table.";
+        
         try {
-          const errData = await response.json();
-          setAlertModal({
-            isOpen: true,
-            title: 'Delete Failed',
-            message: errData.message || "Could not delete the table.",
-            type: 'error'
-          });
+          const errData = JSON.parse(errorText);
+          errorMessage = errData.message || (errData.error ? `${errData.error}: ${errData.trace || errData.path}` : errorMessage);
         } catch(e) {
-          setAlertModal({
-            isOpen: true,
-            title: 'Delete Failed',
-            message: "Server error occurred. Status: " + response.status,
-            type: 'error'
-          });
+          // If it's not JSON, it might be a plain string from the backend
+          errorMessage = errorText || errorMessage;
         }
+
+        setAlertModal({
+          isOpen: true,
+          title: 'Delete Failed',
+          message: errorMessage,
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error("Backend request failed, falling back to local state deletion:", error);
