@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut } from 'lucide-react';
-import BrandLogo from '../components/Customer/BrandLogo';
+import BrandLogo from '../../components/customer/BrandLogo';
 
 export default function AccountPage() {
   const navigate = useNavigate();
