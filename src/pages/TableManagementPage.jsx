@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
   Search, Bell, HelpCircle, Settings, 
   Printer, Plus, LayoutGrid, List, Filter,
-  MapPin, Users, Edit2, QrCode, MoreHorizontal
+  MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle
 } from 'lucide-react';
 import AdminSidebar from '../components/AdminSidebar';
 import AdminHeader from '../components/AdminHeader';
@@ -12,6 +12,8 @@ export default function TableManagementPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [editingTable, setEditingTable] = useState(null);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'warning' });
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, tableId: null, tableName: '' });
   
   const [tables, setTables] = useState([
     { id: '01', name: 'T-01', location: 'Indoor - Main', seats: 2, status: 'AVAILABLE' },
@@ -35,10 +37,71 @@ export default function TableManagementPage() {
   };
 
   const handleDeleteTable = (id) => {
-    if (window.confirm("Are you sure you want to delete this table?")) {
+    const tableToDelete = tables.find(t => t.id === id);
+    if (!tableToDelete) return;
+    setOpenDropdownId(null);
+
+    if (tableToDelete.activeOrderCount > 0) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Cannot Delete Table',
+        message: `Table ${tableToDelete.name} has active orders. Please close all orders before deleting.`,
+        type: 'warning'
+      });
+      return;
+    }
+
+    if (tableToDelete.status !== 'AVAILABLE') {
+      setAlertModal({
+        isOpen: true,
+        title: 'Cannot Delete Table',
+        message: `Table ${tableToDelete.name} cannot be deleted because it is currently ${tableToDelete.status}. Only AVAILABLE tables can be deleted.`,
+        type: 'warning'
+      });
+      return;
+    }
+
+    setConfirmModal({
+      isOpen: true,
+      tableId: id,
+      tableName: tableToDelete.name
+    });
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmModal.tableId;
+    setConfirmModal({ isOpen: false, tableId: null, tableName: '' });
+    
+    try {
+      const response = await fetch(`http://localhost:8080/api/tables/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setTables(prev => prev.filter(t => t.id !== id));
+      } else {
+        try {
+          const errData = await response.json();
+          setAlertModal({
+            isOpen: true,
+            title: 'Delete Failed',
+            message: errData.message || "Could not delete the table.",
+            type: 'error'
+          });
+        } catch(e) {
+          setAlertModal({
+            isOpen: true,
+            title: 'Delete Failed',
+            message: "Server error occurred. Status: " + response.status,
+            type: 'error'
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Backend request failed, falling back to local state deletion:", error);
+      // Fallback to update local state if backend is disconnected
       setTables(prev => prev.filter(t => t.id !== id));
     }
-    setOpenDropdownId(null);
   };
 
   const handleSaveEdit = () => {
@@ -363,6 +426,54 @@ export default function TableManagementPage() {
                   className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#FF6B00] hover:bg-[#e66000] shadow-md shadow-orange-500/20 transition-all"
                 >
                   Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Alert Modal (Warning/Error) */}
+        {alertModal.isOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[1.5rem] w-full max-w-sm p-6 shadow-xl text-center">
+              <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${alertModal.type === 'error' ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-500'}`}>
+                <AlertTriangle size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">{alertModal.title}</h2>
+              <p className="text-gray-500 text-sm mb-8">{alertModal.message}</p>
+              <button 
+                onClick={() => setAlertModal({ isOpen: false, title: '', message: '', type: 'warning' })}
+                className="w-full px-5 py-3 rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-colors"
+              >
+                Understood
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {confirmModal.isOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[1.5rem] w-full max-w-sm p-6 shadow-xl text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-4">
+                <AlertTriangle size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Table?</h2>
+              <p className="text-gray-500 text-sm mb-8">
+                Are you sure you want to delete <span className="font-bold text-gray-700">{confirmModal.tableName}</span>? This action cannot be undone.
+              </p>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setConfirmModal({ isOpen: false, tableId: null, tableName: '' })}
+                  className="flex-1 px-5 py-3 rounded-xl text-sm font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDelete}
+                  className="flex-1 px-5 py-3 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 shadow-md shadow-red-500/20 transition-all"
+                >
+                  Delete
                 </button>
               </div>
             </div>
