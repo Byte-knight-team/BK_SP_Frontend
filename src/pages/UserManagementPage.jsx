@@ -22,7 +22,7 @@ export default function UserManagementPage() {
       id: 2,
       name: 'Dileepa Prabhath',
       email: 'm.rajapksha@cravehouse.com',
-      role: 'Kitchen Staff',
+      role: 'Chief Chef',
       status: 'Active',
       lastLogin: '10 mins ago',
       initial: 'M'
@@ -58,7 +58,7 @@ export default function UserManagementPage() {
       id: 6,
       name: 'Thilakarathna Dilshan',
       email: 'r.rajapaksha@cravehouse.com',
-      role: 'Admin',
+      role: 'Deliver Driver',
       status: 'Active',
       lastLogin: '4 hours ago',
       initial: 'R'
