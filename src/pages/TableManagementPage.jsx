@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { 
   Search, Bell, HelpCircle, Settings, 
   Printer, Plus, LayoutGrid, List, Filter,
@@ -17,6 +17,9 @@ export default function TableManagementPage() {
   
   const [tables, setTables] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const statusFilter = searchParams.get('status');
 
   useEffect(() => {
     fetchTables();
@@ -38,6 +41,24 @@ export default function TableManagementPage() {
       setIsLoading(false);
     }
   };
+
+  // Filter tables based on sidebar status filter + search query
+  const filteredTables = tables.filter(table => {
+    // Status filter from URL query param
+    if (statusFilter) {
+      if (table.status !== statusFilter.toUpperCase()) return false;
+    }
+    // Search query filter
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.trim().toLowerCase();
+    return (
+      table.id?.toString() === query ||
+      table.tableNumber?.toString() === query ||
+      `t-${table.tableNumber?.toString().padStart(2, '0')}`.toLowerCase().includes(query) ||
+      table.branchName?.toLowerCase().includes(query) ||
+      table.status?.toLowerCase().includes(query)
+    );
+  });
 
   const totalTables = tables.length;
   const availableTables = tables.filter(t => t.status === 'AVAILABLE').length;
@@ -196,11 +217,17 @@ export default function TableManagementPage() {
             </div>
           </div>
 
-          {/* Filters Row */}
+          {/* Search & View Controls Row */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center bg-white border border-gray-100 rounded-2xl px-4 py-2.5 w-full max-w-md shadow-sm">
               <Search size={18} className="text-gray-400 mr-3" />
-              <input type="text" placeholder="Search tables or zones..." className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search by table ID, number, branch, or status..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400" 
+              />
             </div>
             
             <div className="flex items-center gap-3">
@@ -227,7 +254,14 @@ export default function TableManagementPage() {
           {/* Tables Grid/List */}
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {tables.map((table) => (
+              {filteredTables.length === 0 && !isLoading && (
+                <div className="col-span-full flex flex-col items-center justify-center py-16 text-gray-400">
+                  <Search size={40} className="mb-4 text-gray-300" />
+                  <p className="text-lg font-semibold text-gray-500">No tables found</p>
+                  <p className="text-sm mt-1">Try a different search term or clear the search bar</p>
+                </div>
+              )}
+              {filteredTables.map((table) => (
                 <div key={table.id} className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-gray-100 flex flex-col">
                   <div className="flex items-start justify-between mb-4">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)}`}>
@@ -323,7 +357,14 @@ export default function TableManagementPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {tables.map((table) => (
+              {filteredTables.length === 0 && !isLoading && (
+                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                  <Search size={40} className="mb-4 text-gray-300" />
+                  <p className="text-lg font-semibold text-gray-500">No tables found</p>
+                  <p className="text-sm mt-1">Try a different search term or clear the search bar</p>
+                </div>
+              )}
+              {filteredTables.map((table) => (
                 <div key={table.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-6">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)} shrink-0`}>
