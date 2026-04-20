@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, DollarSign, ChevronDown } from 'lucide-react';
-import BrandLogo from '../components/Customer/BrandLogo';
+import BrandLogo from '../../components/customer/BrandLogo';
 
 export default function OrdersPage() {
   const navigate = useNavigate();

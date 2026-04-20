@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Minus, Plus, Trash2, ChevronRight, ShoppingCart } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 export default function CartPage() {
   const navigate = useNavigate();
