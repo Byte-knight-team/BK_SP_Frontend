@@ -1,4 +1,4 @@
-import brandLogo from '../assets/Crave House logo.png';
+import brandLogo from '../../assets/Crave House logo.png';
 
 export default function BrandLogo() {
     return (
