@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/Navbar';
-import menuCover from '../assets/menu cover image.avif';
+import menuCover from '../../assets/menu cover image.avif';
 import {
   ArrowLeft,
   Heart,

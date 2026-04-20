@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import qrLogo from '../assets/QR Logo.png';
-import heroBackground from '../assets/Background_image_Hero.avif';
-import premiumPlatedFood from '../assets/Premium plated food.avif';
+import qrLogo from '../../assets/QR Logo.png';
+import heroBackground from '../../assets/Background_image_Hero.avif';
+import premiumPlatedFood from '../../assets/Premium plated food.avif';
 
 export default function HeroSection() {
 	return (
