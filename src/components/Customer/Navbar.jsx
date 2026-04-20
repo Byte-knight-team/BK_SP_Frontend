@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, UserCircle2, ChevronRight, Menu, X, Package } from 'lucide-react';
-import { useCart } from '../context/CartContext';
-import BrandLogo from '../components/BrandLogo'
-import LoginButton from '../components/LoginCustomer'
-import SignupButton from '../components/SignupCustomer'
+import { useCart } from '../../context/CartContext';
+import BrandLogo from './BrandLogo'
+import LoginButton from './LoginCustomer'
+import SignupButton from './SignupCustomer'
 
 export default function Navbar() {
 	const { cartCount } = useCart();
