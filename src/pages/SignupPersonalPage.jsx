@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, Lock } from 'lucide-react';
-import BrandLogo from '../components/BrandLogo';
+import BrandLogo from '../components/Customer/BrandLogo';
 
 export default function SignupPersonalPage() {
   const navigate = useNavigate();

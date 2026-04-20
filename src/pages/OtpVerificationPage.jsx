@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import BrandLogo from '../components/BrandLogo';
+import BrandLogo from '../components/Customer/BrandLogo';
 
 export default function OtpVerificationPage() {
   const navigate = useNavigate();
