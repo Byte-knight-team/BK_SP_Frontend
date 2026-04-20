@@ -1,32 +1,42 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { CartProvider } from './context/CartContext';
-import HomePage from './pages/customer/HomePage';
-import MenuPage from './pages/customer/MenuPage';
-import CartPage from './pages/customer/CartPage';
-import CheckoutPage from './pages/customer/CheckoutPage';
-import OrderConfirmationPage from './pages/customer/OrderConfirmationPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import MenuManagementPage from './pages/MenuManagementPage';
-import AddMenuItemPage from './pages/AddMenuItemPage';
-import EditMenuItemPage from './pages/EditMenuItemPage';
-import TableManagementPage from './pages/TableManagementPage';
-import AddTablePage from './pages/AddTablePage';
-import UserManagementPage from './pages/UserManagementPage';
-import AddNewUserPage from './pages/AddNewUserPage';
-import LoginPage from './pages/customer/LoginPage';
-import SignupPersonalPage from './pages/customer/SignupPersonalPage';
-import SignupAddressPage from './pages/customer/SignupAddressPage';
-import MobileVerificationPage from './pages/customer/MobileVerificationPage';
-import OtpVerificationPage from './pages/customer/OtpVerificationPage';
-import AccountPage from './pages/customer/AccountPage';
-import OrdersPage from './pages/customer/OrdersPage';
-import ScanPage from './pages/customer/ScanPage';
+import React from "react";
+import { Routes, Route, Outlet } from "react-router-dom";
+import { CartProvider } from "./context/CartContext";
+import HomePage from "./pages/customer/HomePage";
+import MenuPage from "./pages/customer/MenuPage";
+import CartPage from "./pages/customer/CartPage";
+import CheckoutPage from "./pages/customer/CheckoutPage";
+import OrderConfirmationPage from "./pages/customer/OrderConfirmationPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import MenuManagementPage from "./pages/MenuManagementPage";
+import AddMenuItemPage from "./pages/AddMenuItemPage";
+import EditMenuItemPage from "./pages/EditMenuItemPage";
+import TableManagementPage from "./pages/TableManagementPage";
+import AddTablePage from "./pages/AddTablePage";
+import UserManagementPage from "./pages/UserManagementPage";
+import AddNewUserPage from "./pages/AddNewUserPage";
+import LoginPage from "./pages/customer/LoginPage";
+import SignupPersonalPage from "./pages/customer/SignupPersonalPage";
+import SignupAddressPage from "./pages/customer/SignupAddressPage";
+import MobileVerificationPage from "./pages/customer/MobileVerificationPage";
+import OtpVerificationPage from "./pages/customer/OtpVerificationPage";
+import AccountPage from "./pages/customer/AccountPage";
+import OrdersPage from "./pages/customer/OrdersPage";
+import ScanPage from "./pages/customer/ScanPage";
+
+//Create a wrapper component to add cart context
+function CustomerLayout() {
+  return (
+    <CartProvider>
+      {/*Render the matching child routes*/}
+      <Outlet />
+    </CartProvider>
+  );
+}
 
 export default function App() {
   return (
-    <CartProvider>
-      <Routes>
+    <Routes>
+      <Route element={<CustomerLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/menu" element={<MenuPage />} />
         <Route path="/cart" element={<CartPage />} />
@@ -41,15 +51,15 @@ export default function App() {
         <Route path="/scan/:qrToken?" element={<ScanPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/admin/menu" element={<MenuManagementPage />} />
-        <Route path="/admin/menu/add" element={<AddMenuItemPage />} />
-        <Route path="/admin/menu/edit" element={<EditMenuItemPage />} />
-        <Route path="/admin/tables" element={<TableManagementPage />} />
-        <Route path="/admin/tables/add" element={<AddTablePage />} />
-        <Route path="/admin/users" element={<UserManagementPage />} />
-        <Route path="/admin/users/add" element={<AddNewUserPage />} />
-      </Routes>
-    </CartProvider>
+      </Route>
+      <Route path="/admin" element={<AdminDashboardPage />} />
+      <Route path="/admin/menu" element={<MenuManagementPage />} />
+      <Route path="/admin/menu/add" element={<AddMenuItemPage />} />
+      <Route path="/admin/menu/edit" element={<EditMenuItemPage />} />
+      <Route path="/admin/tables" element={<TableManagementPage />} />
+      <Route path="/admin/tables/add" element={<AddTablePage />} />
+      <Route path="/admin/users" element={<UserManagementPage />} />
+      <Route path="/admin/users/add" element={<AddNewUserPage />} />
+    </Routes>
   );
 }
