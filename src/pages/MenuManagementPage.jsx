@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Flame, LayoutDashboard, Users, Utensils, LayoutGrid, Settings,
-  Search, Bell, HelpCircle, LogOut, Eye, MoreHorizontal, Plus
+  Settings, Search, Bell, HelpCircle, Eye, MoreHorizontal, Plus, Trash2, X
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 
 export default function MenuManagementPage() {
-  const menuItems = [
+  const initialMenuItems = [
     {
       id: 1,
       name: "Classic Cheese Burger",
@@ -55,9 +54,35 @@ export default function MenuManagementPage() {
     }
   ];
 
+  const [menuItems, setMenuItems] = useState(initialMenuItems);
   const [searchParams] = useSearchParams();
   const statusFilter = searchParams.get('status');
   const [activeCategory, setActiveCategory] = useState("All");
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [pendingDeleteItem, setPendingDeleteItem] = useState(null);
+  const actionMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
+        setActiveMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  const openDeleteConfirmation = (item) => {
+    setActiveMenuId(null);
+    setPendingDeleteItem(item);
+  };
+
+  const confirmDeleteItem = () => {
+    if (!pendingDeleteItem) return;
+    setMenuItems((prev) => prev.filter((item) => item.id !== pendingDeleteItem.id));
+    setPendingDeleteItem(null);
+  };
 
   const filteredMenuItems = menuItems.filter(item => {
     let matchesStatus = true;
@@ -174,7 +199,7 @@ export default function MenuManagementPage() {
                 </div>
 
                 {/* Content Section */}
-                <div className="p-5 flex flex-col flex-1">
+                <div className="p-5 flex flex-col flex-1 relative">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-[11px] font-bold text-orange-500 tracking-wider flex-1 uppercase">{item.category}</span>
                   </div>
@@ -192,14 +217,74 @@ export default function MenuManagementPage() {
                       <Eye size={14} />
                       <span className="text-xs font-medium">{item.popular} Popular</span>
                     </div>
-                    <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <button
+                      onClick={() => setActiveMenuId((prev) => (prev === item.id ? null : item.id))}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label={`Open menu actions for ${item.name}`}
+                    >
                       <MoreHorizontal size={20} />
                     </button>
+
+                    {activeMenuId === item.id && (
+                      <div
+                        ref={actionMenuRef}
+                        className="absolute right-5 bottom-16 w-64 bg-white border border-gray-200 rounded-xl shadow-xl p-3 z-30"
+                      >
+                        <p className="text-sm font-semibold text-gray-900">Delete menu item?</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Remove {item.name} from this menu.
+                        </p>
+                        <button
+                          onClick={() => openDeleteConfirmation(item)}
+                          className="mt-3 w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 px-3 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
+                        >
+                          <Trash2 size={16} />
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {pendingDeleteItem && (
+            <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] flex items-center justify-center px-4">
+              <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Confirm Deletion</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Are you sure you want to delete {pendingDeleteItem.name}? This action cannot be undone.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setPendingDeleteItem(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                    aria-label="Close confirmation dialog"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="mt-6 flex items-center justify-end gap-3">
+                  <button
+                    onClick={() => setPendingDeleteItem(null)}
+                    className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteItem}
+                    className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold"
+                  >
+                    Delete Item
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </main>
