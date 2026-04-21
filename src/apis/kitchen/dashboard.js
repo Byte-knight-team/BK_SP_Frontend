@@ -1,13 +1,5 @@
 import { ordersData } from "./orders";
 
-//single object
-const statCard = {
-  totalOrders: 124,
-  pendingOrders: 12,
-  completedOrders: 112,
-  averagePrepTimeInMinutes: 15,
-};
-
 //object array
 const popularMealsData = [
   { 
@@ -115,18 +107,15 @@ const inventoryAlertsData = [
   },
 ];
 
+//get dashboard stats details
 export const getDashboardOrderStatsAPI = async () => {
   try {
-    // TODO: uncomment this section once the API is ready
-    // const response = await fetch(
-    //   "https://mpc2e51a3b857d0cbb58.free.beeceptor.com/low-Inventory",
-    // );
-    // const data = await response.json();
-    // return {data, error: null};
+    const response = await fetch("http://localhost:8080/api/v1/kitchen/stats");
+    const result = await response.json();
 
-    return { data: statCard, error: null }; //we are refering that array using data  
+    return {data: result.data, error: null};  //return an object
   } catch (error) {
-    console.error("Error fetching graph data:", error);
+    console.error("Error fetching stats:", error);
     return { data: null, error: error };
   }
 };

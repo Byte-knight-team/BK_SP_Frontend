@@ -11,14 +11,14 @@ import { getDashboardOrderStatsAPI } from "../../../apis/kitchen/dashboard";
 const formatStatCardDetails = (apiData) => {
   return [
     {
-      title: "Total Orders",
-      value: apiData.totalOrders || 0,
+      title: "Pending Orders",
+      value: apiData.pendingOrders || 0,
       icon: <ClipboardClock color="#E64919" size={40} />,
       iconBgColor: "bg-orange-50",
     },
     {
-      title: "Pending Orders",
-      value: apiData.pendingOrders || 0,
+      title: "Preparing Orders",
+      value: apiData.preparingOrders || 0,
       icon: <CookingPot color="#4F83FF" size={40} />,
       iconBgColor: "bg-blue-50",
     },
