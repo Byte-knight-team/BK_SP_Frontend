@@ -9,12 +9,13 @@ const BAR_COLORS = {
   CRITICAL: "#EF4444",
 }
 
-const formatInventoryAlertsDetails = (apiData) => { //to convert the data from the API to the format required by the component
+//to convert the data from the API to the format required by the component
+const formatInventoryAlertsDetails = (apiData) => { 
   return apiData.map((item) => ({
     itemName: item.itemName,
     percentage: item.percentage,
     color: BAR_COLORS[item.warningLevel],
-    initialCount: item.initialCount,
+    maxStock: item.maxStock,
     availableCount: item.availableCount,
     unit: item.unit,
     warningLevel: item.warningLevel,
@@ -55,6 +56,7 @@ const InventoryAlerts = () => {
     <>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Inventory Alerts</h2>
+        <span className="text-sm font-medium text-gray-400" style={{color: "#4CAF50", backgroundColor: "lightgreen", borderRadius: "30px", padding: "5px"}}>Live</span>
       </div>
 
       <div className="flex flex-col gap-2 h-[380px] overflow-y-auto pr-2">
@@ -64,7 +66,7 @@ const InventoryAlerts = () => {
             itemName={item.itemName}
             percentage={item.percentage}
             color={item.color}
-            initialCount={item.initialCount}
+            maxStock={item.maxStock}
             availableCount={item.availableCount}
             unit={item.unit}
             warningLevel={item.warningLevel}

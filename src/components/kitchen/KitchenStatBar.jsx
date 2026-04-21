@@ -1,9 +1,6 @@
 import React from "react";
 import ProgressBar from "./ProgressBar";
 
-{
-  /*warning level colors*/
-}
 const warningLevelColors = {
   CRITICAL: "text-red-500",
   LOW: "text-yellow-500",
@@ -15,7 +12,7 @@ const KitchenStatBar = ({
   percentage,
   color,
   count,
-  initialCount,
+  maxStock,
   availableCount,
   unit,
   warningLevel,
@@ -24,11 +21,11 @@ const KitchenStatBar = ({
     <div className="mb-5 flex flex-col">
       <div className="mb-1 flex flex-row justify-between">
         <div className="text-base font-semibold text-gray-700">
-          {mealName || itemName}
+          {itemName || mealName}
         </div>
         <div className="text-base font-bold text-gray-900">
-          {initialCount && availableCount
-            ? `${availableCount} / ${initialCount}` //availableCount + " / " + initialCount
+          {maxStock && availableCount
+            ? `${availableCount} / ${maxStock}` //availableCount + " / " + maxStock
             : count}
         </div>
       </div>

@@ -48,7 +48,7 @@ const MostPopularMeals = () => {
     <>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Most Popular Meals</h2>
-        <span className="text-sm font-medium text-gray-400">Past 24 Hours</span>
+        <span className="text-sm font-medium text-gray-400">Past 7 Days</span>
       </div>
 
       <div className="flex flex-col gap-2 mt-4">

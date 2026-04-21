@@ -49,7 +49,7 @@ const PeakHoursChart = () => {
     <>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Peak Hours</h2>
-        <span className="text-sm font-medium text-gray-400">Past 24 Hours</span>
+        <span className="text-sm font-medium text-gray-400">Past 7 Days</span>
       </div>
 
       <div className="mt-2 flex items-center justify-center">
