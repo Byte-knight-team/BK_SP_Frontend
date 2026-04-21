@@ -1,43 +1,5 @@
 import { ordersData } from "./orders";
 
-//single object
-const statCard = {
-  totalOrders: 124,
-  pendingOrders: 12,
-  completedOrders: 112,
-  averagePrepTimeInMinutes: 15,
-};
-
-//object array
-const popularMealsData = [
-  { 
-    mealName: "Mixed Fried Rice", 
-    percentage: 85, 
-    count: 45 
-  },
-  { 
-    mealName: "Chicken Kottu", 
-    percentage: 65, 
-    count: 32 
-  },
-  { 
-    mealName: "Signature Burger", 
-    percentage: 45, 
-    count: 21 
-  },
-  { 
-    mealName: "Pasta Carbonara", 
-    percentage: 25, 
-    count: 12 
-  },
-  { 
-    mealName: "Noodle Soup", 
-    percentage: 15, 
-    count: 8 
-  },
-];
-
-
 const graphData = [
   { time: "8AM-10AM", mealsCount: 90 },
   { time: "10AM-12PM", mealsCount: 50 },
@@ -115,34 +77,28 @@ const inventoryAlertsData = [
   },
 ];
 
+//get dashboard stats details
 export const getDashboardOrderStatsAPI = async () => {
   try {
-    // TODO: uncomment this section once the API is ready
-    // const response = await fetch(
-    //   "https://mpc2e51a3b857d0cbb58.free.beeceptor.com/low-Inventory",
-    // );
-    // const data = await response.json();
-    // return {data, error: null};
+    const response = await fetch("http://localhost:8080/api/v1/kitchen/stats");
+    const result = await response.json();
 
-    return { data: statCard, error: null }; //we are refering that array using data  
+    return {data: result.data, error: null};  //return an object
   } catch (error) {
-    console.error("Error fetching graph data:", error);
+    console.error("Error fetching stats :", error);
     return { data: null, error: error };
   }
 };
 
+//get dashboard popular meals details
 export const getDashboardPopularMealsAPI = async () => {
   try {
-    // TODO: uncomment this section once the API is ready
-    // const response = await fetch(
-    //   "https://mpc2e51a3b857d0cbb58.free.beeceptor.com/low-Inventory",
-    // );
-    // const data = await response.json();
-    // return {data, error: null};
+    const response = await fetch("http://localhost:8080/api/v1/kitchen/popular-meals");
+    const result = await response.json();
 
-    return { data: popularMealsData, error: null };
+    return {data: result.data, error: null};
   } catch (error) {
-    console.error("Error fetching graph data:", error);
+    console.error("Error fetching popular meals:", error);
     return { data: null, error: error };
   }
 };

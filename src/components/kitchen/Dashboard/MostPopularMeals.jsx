@@ -25,7 +25,7 @@ const MostPopularMeals = () => {
       const { data, error } = await getDashboardPopularMealsAPI();
       //handle error
       if (error) {
-        console.error("Error fetching stats details:", error);
+        console.error("Error fetching popular meals:", error);
         return;
       }
       //handle success
@@ -51,8 +51,13 @@ const MostPopularMeals = () => {
         <span className="text-sm font-medium text-gray-400">Past 24 Hours</span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {popularMealsDetails.map((meal, index) => (
+      <div className="flex flex-col gap-2 mt-4">
+      {/* 
+        if Items available -> map
+        else -> show no data available message
+      */}
+      {popularMealsDetails.length > 0 ? (
+        popularMealsDetails.map((meal, index) => (
           <KitchenStatBar
             key={index}
             mealName={meal.mealName}
@@ -60,8 +65,14 @@ const MostPopularMeals = () => {
             color={meal.color}
             count={meal.count}
           />
-        ))}
-      </div>
+        ))
+      ) : (
+        <div className="py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+          <p className="text-sm font-medium text-gray-400">No popular meals found in the last 24 hours.</p>
+        </div>
+      )}
+    </div>
+
     </>
   );
 };
