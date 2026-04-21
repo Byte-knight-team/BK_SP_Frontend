@@ -1,15 +1,5 @@
 import { ordersData } from "./orders";
 
-const graphData = [
-  { time: "8AM-10AM", mealsCount: 90 },
-  { time: "10AM-12PM", mealsCount: 50 },
-  { time: "12PM-2PM", mealsCount: 20 },
-  { time: "2PM-4PM", mealsCount: 10 },
-  { time: "4PM-6PM", mealsCount: 100 },
-  { time: "6PM-8PM", mealsCount: 50 },
-  { time: "8PM-10PM", mealsCount: 10 },
-];
-
 const inventoryAlertsData = [
   {
     itemName: "Wagyu Beef (A5)",
@@ -103,6 +93,18 @@ export const getDashboardPopularMealsAPI = async () => {
   }
 };
 
+//get dashboard peak hours details
+export const getPeakHoursAPI = async () => {
+  try {
+    const response = await fetch("http://localhost:8080/api/v1/kitchen/peak-hours");
+    const result = await response.json();
+    return {data: result.data, error: null};
+  } catch (error) {
+    console.error("Error fetching peak hours details:", error);
+    return { data: null, error: error };
+  }
+};
+
 export const getOrdersAPI = async (orderStatus, limit=null) => {
   try {
     // TODO: uncomment this section once the API is ready
@@ -122,21 +124,7 @@ export const getOrdersAPI = async (orderStatus, limit=null) => {
   }
 };
 
-export const getPeakHoursAPI = async () => {
-  try {
-    // TODO: uncomment this section once the API is ready
-    // const response = await fetch(
-    //   "https://mpc2e51a3b857d0cbb58.free.beeceptor.com/low-Inventory",
-    // );
-    // const data = await response.json();
-    // return {data, error: null};
 
-    return { data: graphData, error: null };
-  } catch (error) {
-    console.error("Error fetching graph data:", error);
-    return { data: null, error: error };
-  }
-};
 
 export const getInventoryAlertsAPI = async () => {
   try {
