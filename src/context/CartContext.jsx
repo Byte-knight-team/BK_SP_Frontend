@@ -1,9 +1,23 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState([]);
+  // 1. Initialize cart from localStorage so items survive page refreshes and redirects!
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const savedCart = localStorage.getItem('bk_guest_cart');
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch (error) {
+      console.error("Failed to parse cart from local storage", error);
+      return [];
+    }
+  });
+
+  // 2. Automatically save to localStorage every time cartItems changes
+  useEffect(() => {
+    localStorage.setItem('bk_guest_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const addToCart = (item) => {
     setCartItems((prev) => {
@@ -34,7 +48,11 @@ export function CartProvider({ children }) {
   const cartCount = cartItems.reduce((sum, ci) => sum + ci.quantity, 0);
   const cartTotal = cartItems.reduce((sum, ci) => sum + ci.price * ci.quantity, 0);
 
-  const clearCart = () => setCartItems([]);
+  // 3. Ensure clearCart wipes the localStorage holding cell too
+  const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem('bk_guest_cart');
+  };
 
   return (
     <CartContext.Provider
