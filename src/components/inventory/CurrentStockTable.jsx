@@ -137,12 +137,12 @@ export default function CurrentStockTable({ items }) {
 
               {/* Category */}
               <td className="py-4">
-                <CategoryBadge category={item.category} />
+                <CategoryBadge category={item.category || 'Uncategorized'} />
               </td>
 
               {/* Unit Price */}
               <td className="py-4 text-sm text-gray-700">
-                Rs. {item.unitPrice.toFixed(2)} / {item.unit}
+                Rs. {(item.unitPrice || 0).toFixed(2)} / {item.unit || 'Unit'}
               </td>
 
               {/* Stock Level */}

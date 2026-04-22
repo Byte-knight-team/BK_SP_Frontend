@@ -1,48 +1,12 @@
 import { useState, useEffect } from 'react'
+import { InventoryService } from '../services/api/InventoryService'
 
 const MOCK_INVENTORY = {
   branch: 'Colombo Main',
   totalInventoryValue: 5450,
   pendingChefDrafts: 3,
   lowStockAlerts: 12,
-  stockItems: [
-    {
-      id: 3,
-      name: 'Pasta',
-      category: 'Spices',
-      unitPrice: 12.5,
-      unit: 'kg',
-      stockLevel: 12,
-      status: 'warning',
-    },
-    {
-      id: 4,
-      name: 'Fresh Vegetables',
-      category: 'Beverages',
-      unitPrice: 15.5,
-      unit: 'kg',
-      stockLevel: 25,
-      status: 'warning',
-    },
-    {
-      id: 2,
-      name: 'Pizza Dough',
-      category: 'Dairy',
-      unitPrice: 20.5,
-      unit: 'Balls',
-      stockLevel: 30,
-      status: 'good',
-    },
-    {
-      id: 1,
-      name: 'Beef Patty',
-      category: 'Vegetables',
-      unitPrice: 22.5,
-      unit: 'Pcs',
-      stockLevel: 45,
-      status: 'good',
-    },
-  ],
+  stockItems: [],
   chefRequests: [
     {
       id: 1,
@@ -81,14 +45,26 @@ export function useInventoryData() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setData(MOCK_INVENTORY)
-      setLoading(false)
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [])
+    async function fetchInventory() {
+      try {
+        setLoading(true)
 
+        // Fetch the real data from localhost:8080!
+        const realItems = await InventoryService.getAllItems(1)
+        // Mix the real stock items with the fake summary data
+        setData({
+          ...MOCK_INVENTORY,
+          stockItems: realItems,
+        })
+      } catch (err) {
+        console.error('Failed to fetch inventory:', err)
+        setError(err.response?.data?.message || err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchInventory()
+  }, [])
   return { data, loading, error }
 }
