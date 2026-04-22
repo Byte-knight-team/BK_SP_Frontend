@@ -1,6 +1,4 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-// Importing Remix Icons
+import Sidebar from "../common/Sidebar";
 import {
   RiLayoutMasonryFill,
   RiClipboardLine,
@@ -9,151 +7,36 @@ import {
   RiBookOpenLine,
   RiShieldCheckLine,
   RiSettings4Line,
-  RiLogoutBoxRLine,
-  RiArrowLeftSLine,
-  RiArrowRightSLine,
 } from "@remixicon/react";
-import craveHouseLogo from "../../assets/Crave House logo.png";
 
 const KitchenSidebar = () => {
-  const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const topLinks = [
+    { path: "/kitchen", label: "Dashboard", icon: RiLayoutMasonryFill },
+    { path: "/kitchen/orders", label: "Orders", icon: RiClipboardLine },
+    { path: "/kitchen/chefs", label: "Chefs", icon: RiUserSettingsLine },
+    { path: "/kitchen/inventory", label: "Inventory", icon: RiHandbagLine },
+    { path: "/kitchen/menu", label: "Menu & Recipes", icon: RiBookOpenLine },
+    { path: "/kitchen/approvals", label: "Approvals", icon: RiShieldCheckLine }
+  ];
 
-  // Check if the current route matches the path
-  const isActive = (path) => location.pathname === path;
+  const bottomLinks = [
+    { path: "/kitchen/settings", label: "Settings", icon: RiSettings4Line },
+  ];
 
-  // Helper function for dynamic class names
-  const getLinkClass = (path) => {
-    const active = isActive(path);
-    return `flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-4"} py-3 rounded-xl transition-all duration-200 ${
-      active
-        ? "bg-orange-600 text-white shadow-lg shadow-orange-200"
-        : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
-    }`;
+  const currentUser = {
+    name: "Isuru Udara",
+    role: "Chief Chef",
+    initials: "IU",
   };
 
   return (
-    <aside
-      className={`relative flex h-screen flex-col border-r border-gray-100 bg-white transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"}`}
-    >
-      {/* --- COLLAPSE BUTTON --- */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute top-10 -right-3 z-50 rounded-full border border-gray-200 bg-white p-1 shadow-sm hover:bg-gray-50"
-      >
-        {isCollapsed ? (
-          <RiArrowRightSLine size={18} />
-        ) : (
-          <RiArrowLeftSLine size={18} />
-        )}
-      </button>
-
-      {/* --- LOGO SECTION --- */}
-      <div
-        className={`flex items-center p-6 ${isCollapsed ? "justify-center" : "gap-3"}`}
-      >
-        <img
-          src={craveHouseLogo}
-          alt="Logo"
-          className="h-8 w-8 object-contain"
-        />
-        {!isCollapsed && (
-          <div className="flex flex-col">
-            <span className="text-sm leading-none font-bold text-gray-800">
-              Chief Chef Panel
-            </span>
-            <span className="text-[10px] font-bold tracking-tighter text-orange-600 uppercase">
-              Kitchen Operations
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* --- NAVIGATION LINKS --- */}
-      <nav className="mt-4 flex-1 space-y-1 px-3">
-        <Link to="/kitchen" className={getLinkClass("/kitchen")}>
-          <RiLayoutMasonryFill size={20} />
-          {!isCollapsed && (
-            <span className="text-md font-medium">Dashboard Overview</span>
-          )}
-        </Link>
-
-        <Link to="/kitchen/orders" className={getLinkClass("/kitchen/orders")}>
-          <RiClipboardLine size={20} />
-          {!isCollapsed && <span className="text-md font-medium">Orders</span>}
-        </Link>
-
-        <Link to="/kitchen/chefs" className={getLinkClass("/kitchen/chefs")}>
-          <RiUserSettingsLine size={20} />
-          {!isCollapsed && <span className="text-md font-medium">Chefs</span>}
-        </Link>
-
-        <Link
-          to="/kitchen/inventory"
-          className={getLinkClass("/kitchen/inventory")}
-        >
-          <RiHandbagLine size={20} />
-          {!isCollapsed && (
-            <span className="text-md font-medium">Inventory</span>
-          )}
-        </Link>
-
-        <Link to="/kitchen/menu" className={getLinkClass("/kitchen/menu")}>
-          <RiBookOpenLine size={20} />
-          {!isCollapsed && (
-            <span className="text-md font-medium">Menu & Recipes</span>
-          )}
-        </Link>
-
-        <Link
-          to="/kitchen/approvals"
-          className={getLinkClass("/kitchen/approvals")}
-        >
-          <RiShieldCheckLine size={20} />
-          {!isCollapsed && (
-            <span className="text-md font-medium">Approvals</span>
-          )}
-        </Link>
-      </nav>
-
-      {/* --- BOTTOM SECTION (Settings & Profile) --- */}
-      <div className="space-y-4 border-t border-gray-50 p-4">
-        <Link
-          to="/kitchen/settings"
-          className={getLinkClass("/kitchen/settings")}
-        >
-          <RiSettings4Line size={20} />
-          {!isCollapsed && (
-            <span className="text-md font-medium">Settings</span>
-          )}
-        </Link>
-
-        <div
-          className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 rounded-2xl bg-gray-50 p-2"}`}
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-600 font-bold text-white">
-            IU
-          </div>
-          {!isCollapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-md font-bold text-gray-800">
-                Isuru Udara
-              </p>
-              <p className="text-[10px] font-bold text-gray-500 uppercase">
-                Chief Chef
-              </p>
-            </div>
-          )}
-          {!isCollapsed && (
-            <RiLogoutBoxRLine
-              size={18}
-              className="cursor-pointer text-gray-400 hover:text-red-500"
-            />
-          )}
-        </div>
-      </div>
-    </aside>
+    <Sidebar
+      topLinks={topLinks}
+      bottomLinks={bottomLinks}
+      panelTitle="Chief Chef Panel"
+      user={currentUser}
+    />
   );
-}
+};
 
 export default KitchenSidebar;

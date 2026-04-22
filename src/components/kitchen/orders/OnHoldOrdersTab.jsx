@@ -11,7 +11,7 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
       //enable loading
       setLoading(true);
       //api call
-      const { data, error } = await getOrdersAPI("On Hold", null);
+      const { data, error } = await getOrdersAPI("ON_HOLD", null);
       //handle error
       if (error) {
         console.error("Error fetching stats details:", error);
@@ -19,8 +19,6 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
       }
       //handle success
       if (data) {
-        //const formattedData = formatOrdersDetails(data);
-        //setPendingOrdersDetails(formattedData);
         setOnHoldOrdersDetails(data);
       }
       //disable loading
@@ -39,9 +37,9 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
       {onHoldOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
-          status="On Hold"
+          status="ON HOLD"
           time={order.time}
-          id={order.id}
+          id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
         />

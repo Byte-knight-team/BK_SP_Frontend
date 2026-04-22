@@ -3,16 +3,16 @@ import { useState, useEffect } from "react";
 import { getOrdersAPI } from "../../../apis/kitchen/orders";
 
 const PreparingOrdersTab = ({ handleOrderClick }) => { //{} is used to destructure the props. it is required
-  
+
     const [preparingOrdersDetails, setPreparingOrdersDetails] = useState([]);
     const [loading, setLoading] = useState(false);
-  
+
     useEffect(() => {
       const fetchPreparingOrdersDetails = async () => {
         //enable loading
         setLoading(true);
         //api call
-        const { data, error } = await getOrdersAPI("Preparing", null);
+        const { data, error } = await getOrdersAPI("PREPARING", null);
         //handle error
         if (error) {
           console.error("Error fetching stats details:", error);
@@ -20,8 +20,6 @@ const PreparingOrdersTab = ({ handleOrderClick }) => { //{} is used to destructu
         }
         //handle success
         if (data) {
-          //const formattedData = formatOrdersDetails(data);
-          //setPendingOrdersDetails(formattedData);
           setPreparingOrdersDetails(data);
         }
         //disable loading
@@ -40,9 +38,9 @@ const PreparingOrdersTab = ({ handleOrderClick }) => { //{} is used to destructu
       {preparingOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
-          status="Preparing"
+          status="PREPARING"
           time={order.time}
-          id={order.id}
+          id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
         />

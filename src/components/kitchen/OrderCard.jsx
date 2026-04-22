@@ -1,10 +1,8 @@
-import React from "react";
-
 const statesColours = {
   PENDING: "bg-orange-400",
   PREPARING: "bg-blue-400",
   COMPLETED: "bg-green-400",
-  ON_HOLD: "bg-red-400",
+  "ON HOLD": "bg-red-400",
 };
 
 const getBgColor = (orderStatus) => {
