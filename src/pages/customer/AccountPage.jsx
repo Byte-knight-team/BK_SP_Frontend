@@ -110,6 +110,7 @@ export default function AccountPage() {
     } catch (err) {
       setError(err.message);
     } finally {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setIsSaving(false);
     }
   };
@@ -149,6 +150,7 @@ export default function AccountPage() {
     } catch (err) {
       setError(err.message);
     } finally {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setIsSaving(false);
     }
   };
