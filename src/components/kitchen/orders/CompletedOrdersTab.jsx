@@ -11,7 +11,7 @@ const CompletedOrdersTab = ({ handleOrderClick }) => {
           //enable loading
           setLoading(true);
           //api call
-          const { data, error } = await getOrdersAPI("Completed", null);
+          const { data, error } = await getOrdersAPI("COMPLETED", null);
           //handle error
           if (error) {
             console.error("Error fetching stats details:", error);
@@ -39,9 +39,9 @@ const CompletedOrdersTab = ({ handleOrderClick }) => {
       {completedOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
-          status="Completed"
+          status="COMPLETED"
           time={order.time}
-          id={order.id}
+          id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
         />

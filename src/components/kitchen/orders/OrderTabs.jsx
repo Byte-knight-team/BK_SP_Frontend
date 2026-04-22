@@ -21,42 +21,30 @@ const OrderTabs = ({ handleOrderClick }) => {
 
   return (
     <div className="w-full">
-      <ul className="flex w-full justify-between text-center text-sm font-medium border-b border-gray-200">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-
-          return (
-            <li key={tab.id}>
-              <a
-                href="#"
-                onClick={(e) => handleTabClick(e, tab.id)}
-                className={`rounded-base inline-block px-4 py-2.5 font-bold transition-all ${
-                  isActive
-                    ? "text-fg-brand border-brand rounded-t-base inline-block border-b p-4 text-yellow-500"
-                    : "text-body hover:bg-neutral-secondary-soft"
-                }`}
-              >
-                {tab.label}
-              </a>
-            </li>
-          );
-        })}
+      {/* Tabs Header */}
+      <ul className="flex w-full justify-between border-b border-gray-200 text-center text-sm font-medium">
+        {tabs.map((tab) => (
+          <li key={tab.id}>
+            <a
+              href="#"
+              onClick={(e) => handleTabClick(e, tab.id)}
+              className={`inline-block px-4 py-2 transition-all ${activeTab === tab.id //check the tab active or not and apply the style 
+                  ? "border-b-2 border-orange-500 text-orange-500 font-semibold" // Active
+                  : "text-gray-500 hover:bg-gray-50"             // Normal
+              }`}
+            >
+              {tab.label}
+            </a>
+          </li>
+        ))}
       </ul>
 
       {/* Content Area */}
-      <div className="rounded-base mt-4 p-4">
-        {activeTab === 1 && (
-          <PendingOrdersTab handleOrderClick={handleOrderClick} />
-        )}
-        {activeTab === 2 && (
-          <PreparingOrdersTab handleOrderClick={handleOrderClick} />
-        )}
-        {activeTab === 3 && (
-          <CompletedOrdersTab handleOrderClick={handleOrderClick} />
-        )}
-        {activeTab === 4 && (
-          <OnHoldOrdersTab handleOrderClick={handleOrderClick} />
-        )}
+      <div className="mt-4 rounded-xl bg-white p-4">
+        {activeTab === 1 && <PendingOrdersTab handleOrderClick={handleOrderClick} />}
+        {activeTab === 2 && <PreparingOrdersTab handleOrderClick={handleOrderClick} />}
+        {activeTab === 3 && <CompletedOrdersTab handleOrderClick={handleOrderClick} />}
+        {activeTab === 4 && <OnHoldOrdersTab handleOrderClick={handleOrderClick} />}
       </div>
     </div>
   );

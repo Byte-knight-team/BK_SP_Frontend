@@ -1,5 +1,3 @@
-import { ordersData } from "./orders";
-
 //get dashboard stats details
 export const getDashboardOrderStatsAPI = async () => {
   try {

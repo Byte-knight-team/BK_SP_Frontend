@@ -4,38 +4,43 @@ import PeakHoursChart from "../../components/kitchen/dashboard/PeakHoursChart";
 import InventoryAlerts from "../../components/kitchen/dashboard/InventoryAlerts";
 import PendingOrders from "../../components/kitchen/dashboard/PendingOrders";
 import PreparingOrders from "../../components/kitchen/dashboard/PreparingOrders";
+import { useOutletContext } from "react-router-dom";
+import { useEffect } from "react";
+import { LayoutDashboard } from "lucide-react";
 
 const KitchenDashboardPage = () => {
+  const { setHeaderInfo } = useOutletContext();
+
+  useEffect(() => {
+    // set the header info for this page
+    setHeaderInfo({
+      title: "Kitchen Dashboard Overview",
+      description: "Real-time performance metrics for Crave House",
+      Icon: LayoutDashboard,
+    });
+  }, [setHeaderInfo]);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 p-6">
-      {/* 1. TOP HEADER: Displays title and subtext */}
-      <div className="p-4">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-          Kitchen Dashboard Overview
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Real-time performance metrics for Crave House
-        </p>
-      </div>
 
-      {/* 2. KPI GRID: Displays key statistics using summary cards */}
+      {/* KPI GRID */}
       <div className="mt-6 grid grid-cols-4 gap-4">
         <Stats />
       </div>
 
-      {/* 3. MAIN CONTENT: 3-Column Grid for advanced analytics and alerts */}
+      {/* MAIN CONTENT */}
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-        {/* SECTION: POPULAR MEALS - Vertical bars showing best-selling items */}
+        {/* SECTION: POPULAR MEALS */}
         <div className="flex flex-col gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <MostPopularMeals />
         </div>
 
-        {/* SECTION: PEAK HOURS - Bar chart visualizing kitchen busy times */}
+        {/* SECTION: PEAK HOURS */}
         <div className="flex flex-col gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <PeakHoursChart />
         </div>
 
-        {/* SECTION: INVENTORY ALERTS - Critical warnings for low stock items */}
+        {/* SECTION: INVENTORY ALERTS */}
         <div className="flex flex-col gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <InventoryAlerts />
         </div>

@@ -13,7 +13,7 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
       //enable loading
       setLoading(true);
       //api call
-      const { data, error } = await getOrdersAPI("Pending", null);
+      const { data, error } = await getOrdersAPI("PENDING", null);
       //handle error
       if (error) {
         console.error("Error fetching stats details:", error);
@@ -21,8 +21,6 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
       }
       //handle success
       if (data) {
-        //const formattedData = formatOrdersDetails(data);
-        //setPendingOrdersDetails(formattedData);
         setPendingOrdersDetails(data);
       }
       //disable loading
@@ -41,9 +39,9 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
       {pendingOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
-          status="Pending"
+          status="PENDING"
           time={order.time}
-          id={order.id}
+          id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)} //pass data to the parent component
         />
