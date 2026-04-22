@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, MapPin, Hash, Home } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
 export default function SignupAddressPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -11,6 +13,8 @@ export default function SignupAddressPage() {
     city: '',
     postalCode: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const personal = location.state?.personal;
 
@@ -18,9 +22,59 @@ export default function SignupAddressPage() {
     setAddress((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleConfirm = (e) => {
+  const handleConfirm = async (e) => {
     e.preventDefault();
-    navigate('/login');
+
+    if (!personal?.fullName || !personal?.email || !personal?.phone || !personal?.password) {
+      setError('Please complete the personal details step first.');
+      return;
+    }
+
+    const fullAddress = [address.line1, address.city, address.postalCode]
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(', ');
+
+    if (!fullAddress) {
+      setError('Please enter a valid address.');
+      return;
+    }
+
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/customer/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: personal.fullName.trim(),
+          email: personal.email.trim(),
+          phone: personal.phone.trim(),
+          password: personal.password,
+          address: fullAddress,
+        }),
+      });
+
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(payload?.message || 'Unable to register.');
+      }
+
+      const data = payload.data;
+
+      localStorage.setItem('customer_jwt', data.token);
+      localStorage.setItem('customer_role', data.role || 'CUSTOMER');
+      localStorage.setItem('customer_user_id', String(data.user_id));
+      localStorage.setItem('customer_name', personal.fullName.trim());
+
+      navigate('/menu', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Unable to register.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -28,7 +82,7 @@ export default function SignupAddressPage() {
       <div className="mx-auto w-full max-w-[380px]">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/signup', { state: { personal } })}
           className="mb-5 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
         >
           <ArrowLeft size={16} />
@@ -43,6 +97,11 @@ export default function SignupAddressPage() {
           </div>
 
           <form className="space-y-4 px-6 pb-8 pt-6" onSubmit={handleConfirm}>
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
             {personal?.fullName && (
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
                 Registering as <span className="font-semibold text-slate-800">{personal.fullName}</span>
@@ -101,9 +160,10 @@ export default function SignupAddressPage() {
 
             <button
               type="submit"
-              className="mt-2 w-full rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600"
+              disabled={isSubmitting}
+              className="mt-2 w-full rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Confirm Address
+              {isSubmitting ? 'Registering...' : 'Confirm Address'}
             </button>
 
             <p className="pt-1 text-center text-sm text-slate-600">

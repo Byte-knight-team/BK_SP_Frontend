@@ -4,16 +4,6 @@ import { Loader2 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
-function extractResponseData(payload) {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-  if (payload.data && typeof payload.data === 'object') {
-    return payload.data;
-  }
-  return payload;
-}
-
 export default function ScanPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -61,7 +51,7 @@ export default function ScanPage() {
           throw new Error(payload?.message || 'Unable to start QR session.');
         }
 
-        const data = extractResponseData(payload);
+        const data = payload.data;
         if (!data?.session_token || !data?.session_id) {
           throw new Error('QR session response is missing required fields.');
         }
