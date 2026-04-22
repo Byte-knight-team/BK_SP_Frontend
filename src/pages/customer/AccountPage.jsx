@@ -9,7 +9,6 @@ export default function AccountPage() {
   
   // Mock user data - in a real app, this would come from context/API
   const [profile, setProfile] = useState({
-    fullName: 'John Doe',
     username: 'johndoe92',
     email: 'john.doe@example.com',
     phone: '+1 234 567 8900',
@@ -68,8 +67,7 @@ export default function AccountPage() {
           <div className="border-b border-slate-200 px-6 py-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xl font-bold text-slate-900">{profile.fullName}</p>
-                <p className="text-sm text-slate-500">@{profile.username}</p>
+                <p className="text-xl font-bold text-slate-900">{profile.username}</p>
                 <p className="mt-1 text-xs text-slate-400">Member since {profile.memberSince}</p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
