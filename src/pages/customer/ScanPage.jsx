@@ -56,6 +56,12 @@ export default function ScanPage() {
           throw new Error('QR session response is missing required fields.');
         }
 
+        // Inside ScanPage.jsx, right before you set the new QR session:
+        localStorage.removeItem('customer_jwt'); // Wipe old auth!
+        localStorage.removeItem('customer_role');
+        localStorage.removeItem('customer_user_id'); // Add this
+        localStorage.removeItem('customer_name');
+
         const session = {
           sessionToken: data.session_token,
           sessionId: data.session_id,

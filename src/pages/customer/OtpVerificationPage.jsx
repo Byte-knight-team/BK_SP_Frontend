@@ -59,10 +59,14 @@ export default function OtpVerificationPage() {
     setError('');
 
     try {
+      // 1. Grab the Session ID from localStorage (Saved by ScanPage)
+      const qrSessionData = JSON.parse(localStorage.getItem('qr_session') || '{}');
+      const sessionId = qrSessionData.sessionId || null;
+      
       const res = await fetch(`${API_BASE}/api/v1/auth/customer/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code }),
+        body: JSON.stringify({ phone, code, sessionId}),
       });
 
       const payload = await res.json().catch(() => ({}));
