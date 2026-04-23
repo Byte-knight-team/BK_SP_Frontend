@@ -5,6 +5,8 @@ import {
   AlertTriangle,
   CheckCircle,
   ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -48,6 +50,7 @@ function CategoryBadge({ category }) {
 export default function CurrentStockTable({ items }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All Categories')
+  const [currentPage, setCurrentPage] = useState(0)
 
   // Derive unique categories
   const categories = useMemo(() => {
@@ -67,6 +70,17 @@ export default function CurrentStockTable({ items }) {
       return matchesSearch && matchesCategory
     })
   }, [items, searchQuery, selectedCategory])
+
+  // Pagination Logic
+  const displayedItems = useMemo(() => {
+    if (currentPage === 0) {
+      return filteredItems.slice(0, 5) // Initial view: 5 items
+    }
+    // Paged view: 10 items per page
+    const start = (currentPage - 1) * 10
+    const end = currentPage * 10
+    return filteredItems.slice(start, end)
+  }, [filteredItems, currentPage])
 
   return (
     <div className="card">
@@ -125,7 +139,7 @@ export default function CurrentStockTable({ items }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {filteredItems.map((item) => (
+          {displayedItems.map((item) => (
             <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
               {/* Item name + ID */}
               <td className="py-4">
@@ -168,7 +182,7 @@ export default function CurrentStockTable({ items }) {
             </tr>
           ))}
 
-          {filteredItems.length === 0 && (
+          {displayedItems.length === 0 && (
             <tr>
               <td
                 colSpan={6}
@@ -181,11 +195,42 @@ export default function CurrentStockTable({ items }) {
         </tbody>
       </table>
 
-      {/* View more */}
-      <div className="mt-4 text-center">
-        <button className="text-sm text-brand font-medium hover:underline inline-flex items-center gap-1">
-          View more <span>→</span>
-        </button>
+      {/* Pagination Footer */}
+      <div className="mt-6 flex items-center justify-center border-t border-gray-50 pt-5">
+        {currentPage === 0 ? (
+          filteredItems.length > 5 && (
+            <button
+              onClick={() => setCurrentPage(1)}
+              className="text-sm text-brand font-bold hover:underline inline-flex items-center gap-1 transition-all"
+            >
+              View more <span>→</span>
+            </button>
+          )
+        ) : (
+          <div className="flex items-center gap-4">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </button>
+
+            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-md">
+              Page {currentPage}
+            </span>
+
+            <button
+              disabled={currentPage * 10 >= filteredItems.length}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
