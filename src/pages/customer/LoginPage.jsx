@@ -44,6 +44,11 @@ export default function LoginPage() {
       localStorage.setItem('customer_jwt', data.token);
       localStorage.setItem('customer_user_id', String(data.user_id));
 
+      localStorage.removeItem('qr_session');
+      localStorage.removeItem('qr_session_token');
+      localStorage.removeItem('qr_branch_id');
+      localStorage.removeItem('qr_table_id');
+
       navigate('/menu', { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to login.');

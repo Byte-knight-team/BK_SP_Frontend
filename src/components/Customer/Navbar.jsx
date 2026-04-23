@@ -59,140 +59,221 @@ export default function Navbar() {
     }, [isMenuOpen]);
 
     return (
-        <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
-            <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
-                <Link to="/" className="flex items-center gap-2.5">
-                    <BrandLogo />
-                    <div className="leading-tight min-w-0">
-                        <p className="text-sm font-bold text-slate-900 sm:text-base truncate">Crave House</p>
-                        <p className="hidden text-[11px] text-slate-500 sm:block">Premium Dining Experience</p>
-                    </div>
-                </Link>
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
+          <Link to="/" className="flex items-center gap-2.5">
+            <BrandLogo />
+            <div className="leading-tight min-w-0">
+              <p className="text-sm font-bold text-slate-900 sm:text-base truncate">
+                Crave House
+              </p>
+              <p className="hidden text-[11px] text-slate-500 sm:block">
+                Premium Dining Experience
+              </p>
+            </div>
+          </Link>
 
-                {isHomePage && (
-                    <nav className="hidden items-center gap-7 text-sm font-medium text-slate-500 lg:flex">
-                        <a href="#restuarent" className="transition-colors hover:text-slate-900">How It Works</a>
-                        <a href="#testimonials" className="transition-colors hover:text-slate-900">Testimonials</a>
-                    </nav>
-                )}
+          {isHomePage && (
+            <nav className="hidden items-center gap-7 text-sm font-medium text-slate-500 lg:flex">
+              <a
+                href="#restuarent"
+                className="transition-colors hover:text-slate-900"
+              >
+                How It Works
+              </a>
+              <a
+                href="#testimonials"
+                className="transition-colors hover:text-slate-900"
+              >
+                Testimonials
+              </a>
+            </nav>
+          )}
 
-                <div className="flex items-center gap-2">
-                    <div className="hidden items-center gap-2 xl:flex">
-                        
-                        {/* ───── GUEST VIEW ───── */}
-                        {!auth.isLoggedIn && !auth.isQrCustomer && (
-                            <>
-                                <LoginButton />
-                                <SignupButton />
-                            </>
-                        )}
+          <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 xl:flex">
+              {/* ───── GUEST VIEW ───── */}
+              {!auth.isLoggedIn && !auth.isQrCustomer && (
+                <>
+                  <LoginButton />
+                  <SignupButton />
+                </>
+              )}
 
-                        {/* ───── LOGGED IN VIEW ───── */}
-                        {auth.isLoggedIn && (
-                            <>
-                                <Link to="/orders" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
-                                    <Package size={18} />
-                                    <span>Orders</span>
-                                </Link>
-                                <Link to="/account" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
-                                    <UserCircle2 size={18} />
-                                    <span className="max-w-[100px] truncate">{auth.userName || 'Account'}</span>
-                                </Link>
-                                <button onClick={handleLogout} className="inline-flex items-center justify-center p-2 rounded-xl text-red-500 hover:bg-red-50 transition-colors" title="Logout">
-                                    <LogOut size={18} />
-                                </button>
-                            </>
-                        )}
+              {/* ───── LOGGED IN VIEW ───── */}
+              {auth.isLoggedIn && (
+                <>
+                  <Link
+                    to="/orders"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+                  >
+                    <Package size={18} />
+                    <span>Orders</span>
+                  </Link>
 
-                        {/* ───── QR CUSTOMER VIEW ───── */}
-                        {auth.isQrCustomer && !auth.isLoggedIn && (
-                            <Link to="/orders" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
-                                <Package size={18} />
-                                <span>Table Orders</span>
-                            </Link>
-                        )}
-                    </div>
-
+                  {/* ONLY SHOW ACCOUNT IF NOT A QR CUSTOMER */}
+                  {!auth.isQrCustomer && (
                     <Link
-                        to="/cart"
-                        className="relative ml-2 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-orange-400 hover:text-orange-600"
-                        aria-label="Open cart"
+                      to="/account"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
                     >
-                        <ShoppingBag size={18} />
-                        {cartCount > 0 && (
-                            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-bold text-white">
-                                {cartCount}
-                            </span>
-                        )}
+                      <UserCircle2 size={18} />
+                      <span className="max-w-[100px] truncate">
+                        {auth.userName || "Account"}
+                      </span>
                     </Link>
+                  )}
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        onClick={toggleMenu}
-                        className="inline-flex xl:hidden ml-2 items-center justify-center h-10 w-10 rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
-                    >
-                        {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                    </button>
+                  <button
+                    onClick={handleLogout}
+                    className="inline-flex items-center justify-center p-2 rounded-xl text-red-500 hover:bg-red-50 transition-colors"
+                    title="Logout"
+                  >
+                    <LogOut size={18} />
+                  </button>
+                </>
+              )}
 
-                    {!isMenuPage && (
-                        <Link to="/menu" className="hidden ml-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 sm:inline-flex">
-                            Menu
-                        </Link>
-                    )}
-                </div>
+              {/* ───── QR CUSTOMER VIEW ───── */}
+              {auth.isQrCustomer && !auth.isLoggedIn && (
+                <Link
+                  to="/orders"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+                >
+                  <Package size={18} />
+                  <span>Table Orders</span>
+                </Link>
+              )}
             </div>
 
-            {/* Mobile Menu Panel */}
-            {isMenuOpen && (
-                <div className="absolute left-0 right-0 top-16 z-40 border-b border-slate-200 bg-white shadow-lg xl:hidden">
-                    <div className="mx-auto max-h-[calc(100vh-4rem)] max-w-7xl space-y-2 overflow-y-auto px-4 py-4">
-                        
-                        {isHomePage && (
-                            <>
-                                <a href="#restuarent" onClick={toggleMenu} className="block rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100">How It Works</a>
-                                <a href="#testimonials" onClick={toggleMenu} className="block rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100">Testimonials</a>
-                                <div className="h-px bg-slate-200 my-3" />
-                            </>
-                        )}
+            <Link
+              to="/cart"
+              className="relative ml-2 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-orange-400 hover:text-orange-600"
+              aria-label="Open cart"
+            >
+              <ShoppingBag size={18} />
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-bold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
 
-                        {!auth.isLoggedIn && !auth.isQrCustomer && (
-                            <>
-                                <Link to="/login" onClick={toggleMenu} className="block w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:bg-slate-50">Login</Link>
-                                <Link to="/signup" onClick={toggleMenu} className="block w-full text-left px-4 py-2.5 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600">Sign Up</Link>
-                            </>
-                        )}
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMenu}
+              className="inline-flex xl:hidden ml-2 items-center justify-center h-10 w-10 rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+            >
+              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
 
-                        {auth.isLoggedIn && (
-                            <>
-                                <Link to="/orders" onClick={toggleMenu} className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100">
-                                    <Package size={18} /> Orders
-                                </Link>
-                                <Link to="/account" onClick={toggleMenu} className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100">
-                                    <UserCircle2 size={18} /> {auth.userName || 'Account'}
-                                </Link>
-                                <button onClick={() => { handleLogout(); toggleMenu(); }} className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-red-600 hover:bg-red-50">
-                                    <LogOut size={18} /> Logout
-                                </button>
-                            </>
-                        )}
-
-                        {auth.isQrCustomer && !auth.isLoggedIn && (
-                            <Link to="/orders" onClick={toggleMenu} className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100">
-                                <Package size={18} /> Table Orders
-                            </Link>
-                        )}
-
-                        {!isMenuPage && (
-                            <>
-                                <div className="h-px bg-slate-200 my-3" />
-                                <Link to="/menu" onClick={toggleMenu} className="block rounded-lg bg-slate-900 px-4 py-2.5 text-center font-semibold text-white hover:bg-slate-800">
-                                    Open Menu
-                                </Link>
-                            </>
-                        )}
-                    </div>
-                </div>
+            {!isMenuPage && (
+              <Link
+                to="/menu"
+                className="hidden ml-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 sm:inline-flex"
+              >
+                Menu
+              </Link>
             )}
-        </header>
+          </div>
+        </div>
+
+        {/* Mobile Menu Panel */}
+        {isMenuOpen && (
+          <div className="absolute left-0 right-0 top-16 z-40 border-b border-slate-200 bg-white shadow-lg xl:hidden">
+            <div className="mx-auto max-h-[calc(100vh-4rem)] max-w-7xl space-y-2 overflow-y-auto px-4 py-4">
+              {isHomePage && (
+                <>
+                  <a
+                    href="#restuarent"
+                    onClick={toggleMenu}
+                    className="block rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
+                  >
+                    How It Works
+                  </a>
+                  <a
+                    href="#testimonials"
+                    onClick={toggleMenu}
+                    className="block rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
+                  >
+                    Testimonials
+                  </a>
+                  <div className="h-px bg-slate-200 my-3" />
+                </>
+              )}
+
+              {!auth.isLoggedIn && !auth.isQrCustomer && (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={toggleMenu}
+                    className="block w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:bg-slate-50"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={toggleMenu}
+                    className="block w-full text-left px-4 py-2.5 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
+
+              {auth.isLoggedIn && (
+                <>
+                  <Link
+                    to="/orders"
+                    onClick={toggleMenu}
+                    className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
+                  >
+                    <Package size={18} /> Orders
+                  </Link>
+                  <Link
+                    to="/account"
+                    onClick={toggleMenu}
+                    className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
+                  >
+                    <UserCircle2 size={18} /> {auth.userName || "Account"}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      toggleMenu();
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut size={18} /> Logout
+                  </button>
+                </>
+              )}
+
+              {auth.isQrCustomer && !auth.isLoggedIn && (
+                <Link
+                  to="/orders"
+                  onClick={toggleMenu}
+                  className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
+                >
+                  <Package size={18} /> Table Orders
+                </Link>
+              )}
+
+              {!isMenuPage && (
+                <>
+                  <div className="h-px bg-slate-200 my-3" />
+                  <Link
+                    to="/menu"
+                    onClick={toggleMenu}
+                    className="block rounded-lg bg-slate-900 px-4 py-2.5 text-center font-semibold text-white hover:bg-slate-800"
+                  >
+                    Open Menu
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </header>
     );
 }
