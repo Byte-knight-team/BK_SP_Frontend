@@ -213,11 +213,10 @@ export default function AddMenuItemPage() {
                     <button
                       key={option.label}
                       onClick={() => setVisibility(option.label)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        visibility === option.label
+                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${visibility === option.label
                           ? 'bg-orange-50 text-orange-500 border border-orange-200'
                           : 'text-gray-600 hover:bg-gray-50 border border-transparent'
-                      }`}
+                        }`}
                     >
                       <span>{option.label}</span>
                       {visibility === option.label && (
