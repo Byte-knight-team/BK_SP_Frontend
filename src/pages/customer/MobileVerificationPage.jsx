@@ -1,17 +1,52 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone } from 'lucide-react';
+import { ArrowLeft, Phone, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function MobileVerificationPage() {
   const navigate = useNavigate();
   const [phone, setPhone] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSendOTP = (e) => {
+  const handleSendOTP = async (e) => {
     e.preventDefault();
-    if (phone) {
-      // For now, pass the phone number to the next screen for display context.
-      navigate('/verify-otp', { state: { phone } });
+    
+    if (!phone) {
+      setError('Please enter a phone number.');
+      return;
+    }
+
+    // --- STRICT FRONTEND VALIDATION ---
+    const phoneRegex = /^07\d{8}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      setError('Phone number must be exactly 10 digits and start with 07 (e.g., 0712345678).');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/customer/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim() }),
+      });
+
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(payload?.message || 'Failed to send OTP.');
+      }
+
+      navigate('/verify-otp', { state: { phone: phone.trim() } });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -28,29 +63,32 @@ export default function MobileVerificationPage() {
           </div>
 
           <form className="space-y-6 px-6 pb-10 pt-8" onSubmit={handleSendOTP}>
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[0.85rem] text-red-700 text-center leading-snug">
+                {error}
+              </div>
+            )}
+            
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">Phone Number</label>
               <div className="relative">
                 <Phone size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
-                  type="tel"
+                  type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="07X XXX XXXX"
+                  placeholder="07XXXXXXXX"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
-                  required
                 />
               </div>
-              <p className="mt-2 text-xs text-slate-500">
-                You will receive an SMS with a 4-digit code. Message and data rates may apply.
-              </p>
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600"
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Send OTP Code
+              {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Send OTP Code'}
             </button>
           </form>
         </div>

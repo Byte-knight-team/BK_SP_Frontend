@@ -42,8 +42,12 @@ export default function LoginPage() {
       const data = payload.data;
 
       localStorage.setItem('customer_jwt', data.token);
-      localStorage.setItem('customer_role', data.role || 'CUSTOMER');
       localStorage.setItem('customer_user_id', String(data.user_id));
+
+      localStorage.removeItem('qr_session');
+      localStorage.removeItem('qr_session_token');
+      localStorage.removeItem('qr_branch_id');
+      localStorage.removeItem('qr_table_id');
 
       navigate('/menu', { replace: true });
     } catch (err) {
