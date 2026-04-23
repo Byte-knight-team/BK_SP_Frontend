@@ -1,15 +1,26 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function OtpVerificationPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const phone = location.state?.phone || 'your number';
+  const phone = location.state?.phone || '';
 
   const [otp, setOtp] = useState(['', '', '', '']);
   const inputRefs = useRef([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // If someone lands here without a phone number, send them back
+  useEffect(() => {
+    if (!phone) {
+      navigate('/signup/qr', { replace: true });
+    }
+  }, [phone, navigate]);
 
   // Auto-focus first input on load
   useEffect(() => {
@@ -20,35 +31,59 @@ export default function OtpVerificationPage() {
 
   const handleChange = (index, e) => {
     const value = e.target.value;
-    
-    // Only allow numbers
     if (isNaN(Number(value))) return;
 
     const newOtp = [...otp];
-    // Keep only the last character (if they paste or type fast)
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
 
-    // Auto-focus next input if a digit was entered
+    // Auto-focus next input
     if (value && index < 3 && inputRefs.current[index + 1]) {
       inputRefs.current[index + 1].focus();
     }
   };
 
   const handleKeyDown = (index, e) => {
-    // Auto-focus previous input on backspace if current field is empty
     if (e.key === 'Backspace' && !otp[index] && index > 0 && inputRefs.current[index - 1]) {
       inputRefs.current[index - 1].focus();
     }
   };
 
-  const handleVerify = (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
     const code = otp.join('');
-    if (code.length === 4) {
-      // In reality, you'd send this to the server to verify.
-      // For now, simulate success and navigate to menu.
-      navigate('/menu');
+    
+    if (code.length !== 4) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/customer/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code }),
+      });
+
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(payload?.message || 'Invalid verification code.');
+      }
+
+      // Success! Save the JWT token
+      const data = payload.data;
+      localStorage.setItem('customer_jwt', data.token);
+      localStorage.setItem('customer_role', data.role || 'CUSTOMER');
+      localStorage.setItem('customer_user_id', String(data.user_id));
+
+      // Redirect directly to checkout to complete their meal!
+      navigate('/checkout', { replace: true });
+      
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -76,6 +111,11 @@ export default function OtpVerificationPage() {
           </div>
 
           <form className="space-y-8 px-6 pb-10 pt-8" onSubmit={handleVerify}>
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 text-center">
+                {error}
+              </div>
+            )}
             
             <div className="flex justify-center gap-3">
               {otp.map((data, index) => (
@@ -95,7 +135,7 @@ export default function OtpVerificationPage() {
             <div className="text-center">
               <p className="text-sm text-slate-500">
                 Didn't receive the code?{' '}
-                <button type="button" className="font-semibold text-orange-500 hover:text-orange-600 transition-colors">
+                <button type="button" onClick={() => navigate(-1)} className="font-semibold text-orange-500 hover:text-orange-600 transition-colors">
                   Resend Code
                 </button>
               </p>
@@ -103,10 +143,10 @@ export default function OtpVerificationPage() {
 
             <button
               type="submit"
-              disabled={otp.join('').length < 4}
-              className="w-full rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={otp.join('').length < 4 || isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Verify & Proceed
+              {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Verify & Proceed'}
             </button>
           </form>
         </div>
