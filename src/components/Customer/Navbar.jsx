@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, UserCircle2, ChevronRight, Menu, X, Package, LogOut } from 'lucide-react';
+import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import BrandLogo from './BrandLogo';
 import LoginButton from './LoginCustomer';
 import SignupButton from './SignupCustomer';
 
 export default function Navbar() {
-    const { cartCount } = useCart();
+    // 1. Grab clearCart from the context!
+    const { cartCount, clearCart } = useCart();
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -15,29 +16,31 @@ export default function Navbar() {
     const isHomePage = location.pathname === '/';
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // 1. The Memory State for Auth
     const [auth, setAuth] = useState({
         isLoggedIn: false,
         isQrCustomer: false,
         userName: ''
     });
 
-    // 2. Check who the user is every time the URL changes
     useEffect(() => {
         setAuth({
             isLoggedIn: Boolean(localStorage.getItem('customer_jwt')),
             isQrCustomer: Boolean(localStorage.getItem('qr_session_token')),
             userName: localStorage.getItem('customer_name') || ''
         });
-        setIsMenuOpen(false); // Close mobile menu on page change
+        setIsMenuOpen(false); 
     }, [location.pathname]);
 
-    // 3. Logout Function
+    // 2. Add clearCart() to the logout sequence
     const handleLogout = () => {
         localStorage.removeItem('customer_jwt');
+        localStorage.removeItem('customer_role');
         localStorage.removeItem('customer_user_id');
         localStorage.removeItem('customer_name');
-        // Force state update and redirect
+        
+        // Wipe the cart memory!
+        clearCart(); 
+
         setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '' });
         navigate('/'); 
     };
@@ -76,7 +79,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-2">
                     <div className="hidden items-center gap-2 xl:flex">
                         
-                        {/* ───── GUEST VIEW (Not Logged In & Not QR) ───── */}
+                        {/* ───── GUEST VIEW ───── */}
                         {!auth.isLoggedIn && !auth.isQrCustomer && (
                             <>
                                 <LoginButton />
@@ -84,7 +87,7 @@ export default function Navbar() {
                             </>
                         )}
 
-                        {/* ───── LOGGED IN VIEW (Online Customer) ───── */}
+                        {/* ───── LOGGED IN VIEW ───── */}
                         {auth.isLoggedIn && (
                             <>
                                 <Link to="/orders" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
@@ -101,13 +104,12 @@ export default function Navbar() {
                             </>
                         )}
 
-                        {/* ───── QR CUSTOMER VIEW (At Table) ───── */}
+                        {/* ───── QR CUSTOMER VIEW ───── */}
                         {auth.isQrCustomer && !auth.isLoggedIn && (
                             <Link to="/orders" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900">
                                 <Package size={18} />
                                 <span>Table Orders</span>
                             </Link>
-                            // Notice: No Login/Signup or Account buttons here!
                         )}
                     </div>
 
@@ -124,7 +126,7 @@ export default function Navbar() {
                         )}
                     </Link>
 
-                    {/*Menu Button - visible only on mobile/tablet */}
+                    {/* Mobile Menu Button */}
                     <button
                         onClick={toggleMenu}
                         className="inline-flex xl:hidden ml-2 items-center justify-center h-10 w-10 rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
@@ -153,7 +155,6 @@ export default function Navbar() {
                             </>
                         )}
 
-                        {/* Mobile GUEST */}
                         {!auth.isLoggedIn && !auth.isQrCustomer && (
                             <>
                                 <Link to="/login" onClick={toggleMenu} className="block w-full text-left px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:bg-slate-50">Login</Link>
@@ -161,7 +162,6 @@ export default function Navbar() {
                             </>
                         )}
 
-                        {/* Mobile LOGGED IN */}
                         {auth.isLoggedIn && (
                             <>
                                 <Link to="/orders" onClick={toggleMenu} className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100">
@@ -170,13 +170,12 @@ export default function Navbar() {
                                 <Link to="/account" onClick={toggleMenu} className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100">
                                     <UserCircle2 size={18} /> {auth.userName || 'Account'}
                                 </Link>
-                                <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-red-600 hover:bg-red-50">
+                                <button onClick={() => { handleLogout(); toggleMenu(); }} className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-red-600 hover:bg-red-50">
                                     <LogOut size={18} /> Logout
                                 </button>
                             </>
                         )}
 
-                        {/* Mobile QR CUSTOMER */}
                         {auth.isQrCustomer && !auth.isLoggedIn && (
                             <Link to="/orders" onClick={toggleMenu} className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100">
                                 <Package size={18} /> Table Orders
