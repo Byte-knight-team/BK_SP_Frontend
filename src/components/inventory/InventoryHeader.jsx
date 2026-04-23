@@ -1,4 +1,4 @@
-import { Package, Plus, ChevronDown } from 'lucide-react'
+import { Package, Plus } from 'lucide-react'
 
 export default function InventoryHeader({ branch, onAddItem }) {
   return (
@@ -16,11 +16,9 @@ export default function InventoryHeader({ branch, onAddItem }) {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Branch selector */}
-        <button className="flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-colors">
-          Branch: {branch}
-          <ChevronDown className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2 bg-gray-100 text-gray-700 text-sm font-bold px-4 py-2.5 rounded-lg border border-gray-200">
+          <span className="text-gray-400 font-medium">Branch:</span> {branch}
+        </div>
 
         {/* Add New Item */}
         <button

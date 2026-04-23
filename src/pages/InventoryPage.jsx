@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useInventoryData } from '../hooks/useInventoryData'
+import { InventoryService } from '../services/api/InventoryService'
 import InventoryHeader from '../components/inventory/InventoryHeader'
 import InventorySummaryCards from '../components/inventory/InventorySummaryCards'
 import CurrentStockTable from '../components/inventory/CurrentStockTable'
@@ -22,15 +23,19 @@ function LoadingSkeleton() {
 }
 
 export default function InventoryPage() {
-  const { data, loading } = useInventoryData()
+  const { data, loading, refetch } = useInventoryData()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   if (loading) return <LoadingSkeleton />
 
-  const handleSaveItem = (itemData) => {
-    console.log('New inventory item:', itemData)
-    // TODO: POST to backend API
-    setIsAddModalOpen(false)
+  const handleSaveItem = async (itemData) => {
+    try {
+      await InventoryService.addItem(itemData)
+      return true
+    } catch (error) {
+      console.error('Failed to save item:', error)
+      return false
+    }
   }
 
   return (
@@ -50,7 +55,10 @@ export default function InventoryPage() {
       {/* Add Item Modal */}
       <AddInventoryItemModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false)
+          refetch()
+        }}
         onSave={handleSaveItem}
       />
     </div>

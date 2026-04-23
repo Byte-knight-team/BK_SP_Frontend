@@ -17,4 +17,10 @@ export const InventoryService = {
     const response = await api.get(`/inventory/summary?branchId=${branchId}`)
     return response.data
   },
+
+  // 3. Adds a new inventory item.
+  addItem: async (itemData) => {
+    const response = await api.post('/inventory/items', itemData)
+    return response.data
+  },
 }
