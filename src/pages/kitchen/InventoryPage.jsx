@@ -13,7 +13,7 @@ const InventoryPage = () => {
       description: "Monitor and manage your kitchen supplies in real-time.",
       Icon: Boxes,
     });
-  }, [setHeaderInfo]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

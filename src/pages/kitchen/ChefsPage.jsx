@@ -18,7 +18,7 @@ const ChefsPage = () => {
       description: "Manage chef profiles, track assignments, and monitor performance metrics.",
       Icon: ChefHat,
     });
-  }, [setHeaderInfo]);
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 p-4">
