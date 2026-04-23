@@ -144,12 +144,18 @@ export default function CurrentStockTable({ items }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
-            <th className="text-left pb-3 font-semibold">Item Name</th>
-            <th className="text-left pb-3 font-semibold">Category</th>
-            <th className="text-left pb-3 font-semibold">Unit Price</th>
-            <th className="text-left pb-3 font-semibold">Stock Level</th>
-            <th className="text-left pb-3 font-semibold">Status</th>
-            <th className="text-right pb-3 font-semibold">Actions</th>
+            <th className="text-left pb-3 font-semibold w-[25%]">Item Name</th>
+            <th className="text-center pb-3 font-semibold w-[15%]">Category</th>
+            <th className="text-left pb-3 font-semibold w-[20%] pl-8">
+              Unit Price
+            </th>
+            <th className="text-center pb-3 font-semibold w-[15%]">
+              Stock Level
+            </th>
+            <th className="text-center pb-3 font-semibold w-[15%]">Status</th>
+            <th className="text-center pb-3 font-semibold w-[10%] min-w-[120px]">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody
@@ -167,17 +173,17 @@ export default function CurrentStockTable({ items }) {
               </td>
 
               {/* Category */}
-              <td className="py-4">
+              <td className="py-4 text-center">
                 <CategoryBadge category={item.category || 'Uncategorized'} />
               </td>
 
               {/* Unit Price */}
-              <td className="py-4 text-sm text-gray-700">
+              <td className="py-4 text-sm text-gray-700 pl-8">
                 Rs. {(item.unitPrice || 0).toFixed(2)} / {item.unit || 'Unit'}
               </td>
 
               {/* Stock Level */}
-              <td className="py-4">
+              <td className="py-4 text-center">
                 <span className="text-sm font-bold text-gray-900">
                   {item.stockLevel}
                 </span>
@@ -185,12 +191,12 @@ export default function CurrentStockTable({ items }) {
               </td>
 
               {/* Status */}
-              <td className="py-4">
+              <td className="py-4 text-center">
                 <StatusBadge status={item.status} />
               </td>
 
               {/* Action */}
-              <td className="py-4 text-right">
+              <td className="py-4 text-center">
                 <button className="inline-flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-brand-hover transition-colors">
                   <ArrowUpRight className="w-3.5 h-3.5" />
                   Update Stock
