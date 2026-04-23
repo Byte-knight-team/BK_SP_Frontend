@@ -68,6 +68,11 @@ export default function SignupAddressPage() {
       localStorage.setItem('customer_user_id', String(data.user_id));
       localStorage.setItem('customer_name', personal.fullName.trim());
 
+      localStorage.removeItem('qr_session');
+      localStorage.removeItem('qr_session_token');
+      localStorage.removeItem('qr_branch_id');
+      localStorage.removeItem('qr_table_id');
+
       navigate('/menu', { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to register.');
