@@ -13,9 +13,9 @@ const KitchenStatBar = ({
   color,
   count,
   maxStock,
-  availableCount,
+  quantity,
   unit,
-  warningLevel,
+  warningLevel
 }) => {
   return (
     <div className="mb-5 flex flex-col">
@@ -24,8 +24,8 @@ const KitchenStatBar = ({
           {itemName || mealName}
         </div>
         <div className="text-base font-bold text-gray-900">
-          {maxStock && availableCount
-            ? `${availableCount} / ${maxStock}` //availableCount + " / " + maxStock
+          {maxStock && quantity
+            ? `${quantity} / ${maxStock}` //availableCount + " / " + maxStock
             : count}
         </div>
       </div>
