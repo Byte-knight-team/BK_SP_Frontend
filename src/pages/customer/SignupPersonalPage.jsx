@@ -28,9 +28,15 @@ export default function SignupPersonalPage() {
     //Frontend Validation (Matches Spring Boot Regex exactly)
     const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    const phoneRegex = /^07\d{8}$/;
 
     if (!emailRegex.test(form.email.trim())) {
       setError('Please enter a valid email format.');
+      return;
+    }
+
+    if (!phoneRegex.test(form.phone.trim())) {
+      setError('Phone number must be exactly 10 digits and start with 07 (e.g., 0712345678).');
       return;
     }
 
@@ -38,6 +44,7 @@ export default function SignupPersonalPage() {
       setError('Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.');
       return;
     }
+
 
     // If it passes, move to stet 2
     navigate('/signup/address', { state: { personal: form } });
