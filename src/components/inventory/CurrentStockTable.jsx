@@ -152,7 +152,10 @@ export default function CurrentStockTable({ items }) {
             <th className="text-right pb-3 font-semibold">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-50">
+        <tbody
+          key={currentPage}
+          className="divide-y divide-gray-50 animate-table-fade"
+        >
           {displayedItems.map((item) => (
             <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
               {/* Item name + ID */}
