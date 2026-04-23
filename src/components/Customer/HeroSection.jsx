@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import qrLogo from '../assets/QR Logo.png';
-import heroBackground from '../assets/Background_image_Hero.avif';
-import premiumPlatedFood from '../assets/Premium plated food.avif';
+import qrLogo from '../../assets/QR Logo.png';
+import heroBackground from '../../assets/Background_image_Hero.avif';
+import premiumPlatedFood from '../../assets/Premium plated food.avif';
 
 export default function HeroSection() {
 	return (
@@ -13,23 +13,23 @@ export default function HeroSection() {
 			/>
 			<div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/65 to-black/45" />
 
-			<div className="relative mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+			<div className="relative mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-2 lg:items-center lg:px-8">
 				<div className="text-white">
-					<h1 className="text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
+					<h1 className="text-3xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
 						Elevate Your
 						<br />
 						<span className="text-orange-400">Dining</span>
 						<br />
 						<span className="text-orange-400">Experience</span>
 					</h1>
-					<p className="mt-6 max-w-xl text-base leading-relaxed text-slate-200">
+					<p className="mt-5 max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base">
 						Experience seamless QR ordering, real-time tracking, and exclusive rewards from
 						dine-in to delivery.
 					</p>
-					<div className="mt-8 flex flex-wrap items-center gap-3">
+					<div className="mt-6 flex flex-wrap items-center gap-3">
 						<Link
 							to="/menu"
-							className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-semibold text-white shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-0.5 hover:bg-orange-600"
+							className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 font-semibold text-white shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-0.5 hover:bg-orange-600 sm:px-6 sm:py-3"
 						>
 							Start Ordering
 							<ArrowRight size={18} />
@@ -54,7 +54,7 @@ export default function HeroSection() {
 						<img
 							src={premiumPlatedFood}
 							alt="Premium plated food"
-							className="h-[360px] w-full rounded-2xl object-cover"
+							className="h-[240px] w-full rounded-2xl object-cover sm:h-[360px]"
 						/>
 					</div>
 

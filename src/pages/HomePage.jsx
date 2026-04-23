@@ -1,9 +1,9 @@
-import Navbar from '../components/Navbar';
-import HeroSection from '../components/HeroSection';
-import FlowSection from '../components/FlowSection';
-import TestimonialsSection from '../components/TestimonialsSection';
-import CTASection from '../components/CTASection';
-import Footer from '../components/Footer';
+import Navbar from '../components/customer/Navbar';
+import HeroSection from '../components/customer/HeroSection';
+import FlowSection from '../components/customer/FlowSection';
+import TestimonialsSection from '../components/customer/TestimonialsSection';
+import CTASection from '../components/customer/CTASection';
+import Footer from '../components/customer/Footer';
 
 export default function HomePage() {
   return (

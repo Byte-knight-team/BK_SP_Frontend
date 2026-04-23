@@ -1,43 +1,65 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
-import HomePage from "./pages/HomePage";
-import MenuPage from "./pages/MenuPage";
-import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import OrderConfirmationPage from "./pages/OrderConfirmationPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
-import MenuManagementPage from "./pages/MenuManagementPage";
-import AddMenuItemPage from "./pages/AddMenuItemPage";
-import EditMenuItemPage from "./pages/EditMenuItemPage";
-import TableManagementPage from "./pages/TableManagementPage";
-import UserManagementPage from "./pages/UserManagementPage";
-import AddNewUserPage from "./pages/AddNewUserPage";
-import LoginPage from "./pages/LoginPage";
-import SignupPersonalPage from "./pages/SignupPersonalPage";
-import SignupAddressPage from "./pages/SignupAddressPage";
-import MobileVerificationPage from "./pages/MobileVerificationPage";
-import OtpVerificationPage from "./pages/OtpVerificationPage";
-import AccountPage from "./pages/AccountPage";
-import OrdersPage from "./pages/OrdersPage";
-import KitchenDashboardPage from "./pages/kitchen/KitchenDashboardPage";
+
+// Layouts & Components
 import MainLayout from "./layouts/MainLayout";
 import KitchenSidebar from "./components/kitchen/KitchenSidebar";
 import KitchenHeader from "./components/kitchen/KitchenHeader";
 import ReceptionistSidebar from "./components/receptionist/ReceptionistSidebar";
 import ReceptionistHeader from "./components/receptionist/ReceptionistHeader";
-import ReceptionistDashboardPage from "./pages/receptionist/ReceptionistDashboardPage";
+
+// Customer Pages (New Paths from Dev)
+import HomePage from "./pages/customer/HomePage";
+import MenuPage from "./pages/customer/MenuPage";
+import CartPage from "./pages/customer/CartPage";
+import CheckoutPage from "./pages/customer/CheckoutPage";
+import OrderConfirmationPage from "./pages/customer/OrderConfirmationPage";
+import LoginPage from "./pages/customer/LoginPage";
+import SignupPersonalPage from "./pages/customer/SignupPersonalPage";
+import SignupAddressPage from "./pages/customer/SignupAddressPage";
+import MobileVerificationPage from "./pages/customer/MobileVerificationPage";
+import OtpVerificationPage from "./pages/customer/OtpVerificationPage";
+import AccountPage from "./pages/customer/AccountPage";
+import OrdersPage from "./pages/customer/OrdersPage";
+import ScanPage from "./pages/customer/ScanPage";
+
+// Admin Pages
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import MenuManagementPage from "./pages/MenuManagementPage";
+import AddMenuItemPage from "./pages/AddMenuItemPage";
+import EditMenuItemPage from "./pages/EditMenuItemPage";
+import TableManagementPage from "./pages/TableManagementPage";
+import AddTablePage from "./pages/AddTablePage";
+import UserManagementPage from "./pages/UserManagementPage";
+import AddNewUserPage from "./pages/AddNewUserPage";
+
+// Kitchen Pages
+import KitchenDashboardPage from "./pages/kitchen/KitchenDashboardPage";
+import KitchenOrdersPage from "./pages/kitchen/KitchenOrdersPage";
 import ChefsPage from "./pages/kitchen/ChefsPage";
 import InventoryPage from "./pages/kitchen/InventoryPage";
+import MenuAndRecipesPage from "./pages/kitchen/MenuAndRecipesPage";
 import ApprovalsPage from "./pages/kitchen/ApprovalsPage";
 import KitchenSettingsPage from "./pages/kitchen/KitchenSettingsPage";
-import KitchenOrdersPage from "./pages/kitchen/KitchenOrdersPage";
-import MenuAndRecipesPage from "./pages/kitchen/MenuAndRecipesPage";
+
+// Receptionist Pages
+import ReceptionistDashboardPage from "./pages/receptionist/ReceptionistDashboardPage";
+
+// Wrapper for Cart Context
+function CustomerLayout() {
+  return (
+    <CartProvider>
+      <Outlet />
+    </CartProvider>
+  );
+}
 
 export default function App() {
   return (
-    <CartProvider>
-      <Routes>
+    <Routes>
+      {/* Customer Routes with Cart Provider */}
+      <Route element={<CustomerLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/menu" element={<MenuPage />} />
         <Route path="/cart" element={<CartPage />} />
@@ -49,30 +71,38 @@ export default function App() {
         <Route path="/signup/qr" element={<MobileVerificationPage />} />
         <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />
         <Route path="/verify-otp" element={<OtpVerificationPage />} />
+        <Route path="/scan/:qrToken?" element={<ScanPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/admin/menu" element={<MenuManagementPage />} />
-        <Route path="/admin/menu/add" element={<AddMenuItemPage />} />
-        <Route path="/admin/menu/edit" element={<EditMenuItemPage />} />
-        <Route path="/admin/tables" element={<TableManagementPage />} />
-        <Route path="/admin/users" element={<UserManagementPage />} />
-        <Route path="/admin/users/add" element={<AddNewUserPage />} />
-        {/* Kitchen Section */}
-        <Route path="/kitchen" element={<MainLayout Sidebar={KitchenSidebar} Header={KitchenHeader} />}>
-          <Route index element={<KitchenDashboardPage />} />
-          <Route path="orders" element={<KitchenOrdersPage />} />
-          <Route path="chefs" element={<ChefsPage />} />
-          <Route path="inventory" element={<InventoryPage />} />
-          <Route path="menu" element={<MenuAndRecipesPage />} />
-          <Route path="approvals" element={<ApprovalsPage />} />
-          <Route path="settings" element={<KitchenSettingsPage />} />
-        </Route>
-        {/*Reception Section */}
-        <Route path="/receptionist" element={<MainLayout Sidebar={ReceptionistSidebar} Header={ReceptionistHeader} />}>
-          <Route index element={<ReceptionistDashboardPage />} />
-        </Route>
-      </Routes>
-    </CartProvider>
+      </Route>
+
+      {/* Admin Section */}
+      <Route path="/admin">
+        <Route index element={<AdminDashboardPage />} />
+        <Route path="menu" element={<MenuManagementPage />} />
+        <Route path="menu/add" element={<AddMenuItemPage />} />
+        <Route path="menu/edit" element={<EditMenuItemPage />} />
+        <Route path="tables" element={<TableManagementPage />} />
+        <Route path="tables/add" element={<AddTablePage />} />
+        <Route path="users" element={<UserManagementPage />} />
+        <Route path="users/add" element={<AddNewUserPage />} />
+      </Route>
+
+      {/* Kitchen Section with Sidebar and Header */}
+      <Route path="/kitchen" element={<MainLayout Sidebar={KitchenSidebar} Header={KitchenHeader} />}>
+        <Route index element={<KitchenDashboardPage />} />
+        <Route path="orders" element={<KitchenOrdersPage />} />
+        <Route path="chefs" element={<ChefsPage />} />
+        <Route path="inventory" element={<InventoryPage />} />
+        <Route path="menu" element={<MenuAndRecipesPage />} />
+        <Route path="approvals" element={<ApprovalsPage />} />
+        <Route path="settings" element={<KitchenSettingsPage />} />
+      </Route>
+
+      {/* Receptionist Section */}
+      <Route path="/receptionist" element={<MainLayout Sidebar={ReceptionistSidebar} Header={ReceptionistHeader} />}>
+        <Route index element={<ReceptionistDashboardPage />} />
+      </Route>
+    </Routes>
   );
 }

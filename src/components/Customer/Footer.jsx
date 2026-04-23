@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import brandLogo from '../assets/Crave House logo.png';
+import brandLogo from '../../assets/Crave House logo.png';
 
 export default function Footer() {
 	return (

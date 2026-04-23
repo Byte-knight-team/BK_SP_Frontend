@@ -1,16 +1,21 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, Lock } from 'lucide-react';
-import BrandLogo from '../components/BrandLogo';
+import BrandLogo from '../../components/customer/BrandLogo';
 
 export default function SignupPersonalPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
+  const location = useLocation();
+  
+  //If the user clicked "Back" from the address page, grab their old data!
+  const [form, setForm] = useState(location.state?.personal || {
     fullName: '',
     email: '',
     phone: '',
     password: '',
   });
+  
+  const [error, setError] = useState('');
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -18,6 +23,23 @@ export default function SignupPersonalPage() {
 
   const handleNext = (e) => {
     e.preventDefault();
+    setError('');
+
+    //Frontend Validation (Matches Spring Boot Regex exactly)
+    const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+    if (!emailRegex.test(form.email.trim())) {
+      setError('Please enter a valid email format.');
+      return;
+    }
+
+    if (!passwordRegex.test(form.password)) {
+      setError('Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.');
+      return;
+    }
+
+    // If it passes, move to stet 2
     navigate('/signup/address', { state: { personal: form } });
   };
 
@@ -41,6 +63,13 @@ export default function SignupPersonalPage() {
           </div>
 
           <form className="space-y-4 px-6 pb-8 pt-6" onSubmit={handleNext}>
+            {/* Display validation errors */}
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[0.8rem] text-red-700">
+                {error}
+              </div>
+            )}
+
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">Full Name</label>
               <div className="relative">

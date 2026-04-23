@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, MapPin, Package, Home, CreditCard, Banknote, ChevronRight, Loader2,
 } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 const API_BASE = 'http://localhost:8080';
 const DELIVERY_FEE = 300;
