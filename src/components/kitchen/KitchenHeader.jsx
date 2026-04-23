@@ -1,12 +1,10 @@
-import PageHeader from "../common/PageHeader";
+import AppHeader from "../common/AppHeader";
 
-const KitchenHeader = () => {
+export default function KitchenHeader() {
   return (
-    <PageHeader 
-      name="Isuru" 
-      role="Chief Chef"
+    <AppHeader
+      title="Kitchen Panel"
+      subtitle="Kitchen workflow and order preparation"
     />
   );
-};
-
-export default KitchenHeader;
+}
