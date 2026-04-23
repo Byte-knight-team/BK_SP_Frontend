@@ -22,9 +22,6 @@ function ChefRequestCard({ request }) {
           <p className="text-sm font-semibold text-gray-900">
             {request.chefName}
           </p>
-          <p className="text-xs text-brand font-semibold uppercase tracking-wide">
-            {request.role}
-          </p>
         </div>
         <span className="text-xs text-gray-400">{request.time}</span>
       </div>
