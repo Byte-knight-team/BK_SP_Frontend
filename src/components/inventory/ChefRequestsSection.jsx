@@ -9,7 +9,7 @@ function ChefRequestCard({ request }) {
     .slice(0, 2)
 
   return (
-    <div className="border border-gray-100 rounded-2xl p-5 min-w-[280px] flex-1">
+    <div className="border border-gray-200 shadow-sm rounded-2xl p-5 min-w-[280px] flex-1 hover:shadow-md transition-shadow">
       {/* Chef info header */}
       <div className="flex items-center gap-3 mb-4">
         <div
@@ -71,7 +71,7 @@ export default function ChefRequestsSection({ requests }) {
       {/* View more */}
       <div className="mt-5 text-center">
         <button className="text-sm text-brand font-medium hover:underline inline-flex items-center gap-1">
-          View more <span>→</span>
+          View more
         </button>
       </div>
     </div>

@@ -234,7 +234,7 @@ export default function CurrentStockTable({ items }) {
               onClick={handleViewMore}
               className="text-sm text-brand font-bold hover:underline inline-flex items-center gap-1 transition-all"
             >
-              View more <span>→</span>
+              View more
             </button>
           )
         ) : (
