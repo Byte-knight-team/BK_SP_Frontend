@@ -4,49 +4,6 @@ import ProgressBar from "../ProgressBar";
 import { useState, useEffect } from "react";
 import { getAllInventoryAPI } from "../../../apis/kitchen/inventory";
 
-  //mock data to match your image
-  const inventoryData = [
-    {
-      itemName: "Garlic",
-      unit: "kg",
-      availableCount: 10,
-      maxStock: 50,
-      warningLevel: "CRITICAL",
-      percentage: 20,
-    },
-    {
-      itemName: "Tomato",
-      unit: "kg",
-      availableCount: 15,
-      maxStock: 60,
-      warningLevel: "LOW",
-      percentage: 25,
-    },
-    {
-      itemName: "Onion",
-      unit: "kg",
-      availableCount: 20,
-      maxStock: 80,
-      warningLevel: "LOW",
-      percentage: 25,
-    },
-    {
-      itemName: "Chicken Breast",
-      unit: "kg",
-      availableCount: 85,
-      maxStock: 100,
-      warningLevel: "OK",
-      percentage: 85,
-    },
-    {
-      itemName: "Olive Oil",
-      unit: "Litre",
-      availableCount: 120,
-      maxStock: 150,
-      warningLevel: "OK",
-      percentage: 80,
-    },
-  ];
 
 const InventoryTable = () => {
   // store the search term
@@ -130,7 +87,7 @@ const InventoryTable = () => {
                 className="group transition-colors hover:bg-gray-50/50"
               >
                 <td className="px-6 py-5 text-lg font-bold text-gray-800">
-                  {item.itemName}
+                  {item.name}
                 </td>
                 <td className="px-6 py-5 font-medium text-gray-400">
                   {item.unit}
@@ -152,7 +109,7 @@ const InventoryTable = () => {
                       />
                     </div>
                     <span className="w-10 text-right text-lg font-black text-gray-800">
-                      {item.availableCount}
+                      {item.quantity}
                     </span>
                   </div>
                 </td>
@@ -197,49 +154,3 @@ const InventoryTable = () => {
 };
 
 export default InventoryTable;
-
-
-
-  // mock data to match your image
-  // const inventoryData = [
-  //   {
-  //     itemName: "Garlic",
-  //     unit: "kg",
-  //     availableCount: 10,
-  //     maxStock: 50,
-  //     warningLevel: "CRITICAL",
-  //     percentage: 20,
-  //   },
-  //   {
-  //     itemName: "Tomato",
-  //     unit: "kg",
-  //     availableCount: 15,
-  //     maxStock: 60,
-  //     warningLevel: "LOW",
-  //     percentage: 25,
-  //   },
-  //   {
-  //     itemName: "Onion",
-  //     unit: "kg",
-  //     availableCount: 20,
-  //     maxStock: 80,
-  //     warningLevel: "LOW",
-  //     percentage: 25,
-  //   },
-  //   {
-  //     itemName: "Chicken Breast",
-  //     unit: "kg",
-  //     availableCount: 85,
-  //     maxStock: 100,
-  //     warningLevel: "OK",
-  //     percentage: 85,
-  //   },
-  //   {
-  //     itemName: "Olive Oil",
-  //     unit: "Litre",
-  //     availableCount: 120,
-  //     maxStock: 150,
-  //     warningLevel: "OK",
-  //     percentage: 80,
-  //   },
-  // ];

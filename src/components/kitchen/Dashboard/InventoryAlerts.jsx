@@ -12,11 +12,11 @@ const BAR_COLORS = {
 //to convert the data from the API to the format required by the component
 const formatInventoryAlertsDetails = (apiData) => {
   return apiData.map((item) => ({
-    itemName: item.itemName,
+    itemName: item.name,
     percentage: item.percentage,
     color: BAR_COLORS[item.warningLevel],
     maxStock: item.maxStock,
-    availableCount: item.availableCount,
+    availableCount: item.quantity,
     unit: item.unit,
     warningLevel: item.warningLevel,
   }));
@@ -77,7 +77,7 @@ const InventoryAlerts = () => {
             percentage={item.percentage}
             color={item.color}
             maxStock={item.maxStock}
-            availableCount={item.availableCount}
+            quantity={item.availableCount}
             unit={item.unit}
             warningLevel={item.warningLevel}
           />
