@@ -25,8 +25,11 @@ export default function AccountPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem('customer_jwt');
-      if (!token) {
-        navigate('/login', { replace: true });
+      const isQrCustomer = Boolean(localStorage.getItem('qr_session_token'));
+
+      // If no token, or if they are a QR customer don't let access
+      if (!token || isQrCustomer) {
+        navigate('/menu', { replace: true });
         return;
       }
 
