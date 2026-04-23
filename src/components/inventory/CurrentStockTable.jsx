@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import {
   Search,
   SlidersHorizontal,
@@ -48,9 +48,12 @@ function CategoryBadge({ category }) {
 }
 
 export default function CurrentStockTable({ items }) {
+  const tableRef = useRef(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All Categories')
   const [currentPage, setCurrentPage] = useState(0)
+
+  const PAGE_SIZE = 8
 
   // Derive unique categories
   const categories = useMemo(() => {
@@ -76,14 +79,25 @@ export default function CurrentStockTable({ items }) {
     if (currentPage === 0) {
       return filteredItems.slice(0, 5) // Initial view: 5 items
     }
-    // Paged view: 10 items per page
-    const start = (currentPage - 1) * 10
-    const end = currentPage * 10
+    // Paged view: 8 items per page
+    const start = (currentPage - 1) * PAGE_SIZE
+    const end = currentPage * PAGE_SIZE
     return filteredItems.slice(start, end)
   }, [filteredItems, currentPage])
 
+  // Calculate padding rows to maintain static height
+  const emptyRowsCount = currentPage > 0 ? PAGE_SIZE - displayedItems.length : 0
+
+  const handleViewMore = () => {
+    setCurrentPage(1)
+    // Small timeout to allow the UI to update before scrolling
+    setTimeout(() => {
+      tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
   return (
-    <div className="card">
+    <div className="card" ref={tableRef}>
       {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
@@ -182,6 +196,14 @@ export default function CurrentStockTable({ items }) {
             </tr>
           ))}
 
+          {/* Static Height Padding: Render empty rows to prevent table from compacting */}
+          {emptyRowsCount > 0 &&
+            Array.from({ length: emptyRowsCount }).map((_, idx) => (
+              <tr key={`empty-${idx}`} className="h-[73px]">
+                <td colSpan={6}>&nbsp;</td>
+              </tr>
+            ))}
+
           {displayedItems.length === 0 && (
             <tr>
               <td
@@ -200,7 +222,7 @@ export default function CurrentStockTable({ items }) {
         {currentPage === 0 ? (
           filteredItems.length > 5 && (
             <button
-              onClick={() => setCurrentPage(1)}
+              onClick={handleViewMore}
               className="text-sm text-brand font-bold hover:underline inline-flex items-center gap-1 transition-all"
             >
               View more <span>→</span>
@@ -222,7 +244,7 @@ export default function CurrentStockTable({ items }) {
             </span>
 
             <button
-              disabled={currentPage * 10 >= filteredItems.length}
+              disabled={currentPage * PAGE_SIZE >= filteredItems.length}
               onClick={() => setCurrentPage((prev) => prev + 1)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
