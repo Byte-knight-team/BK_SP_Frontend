@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import AppSidebar from "../common/AppSidebar";
-import { receptionistNav } from "../../config/nav/receptionistNav";
+import { superAdminNav } from "../../config/nav/superAdminNav";
 
-export default function ReceptionistSidebar() {
+export default function SuperAdminSidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -14,10 +14,10 @@ export default function ReceptionistSidebar() {
 
   return (
     <AppSidebar
-      navItems={receptionistNav}
-      branchName={user?.branchName || "Assigned Branch"}
-      userName={user?.fullName || user?.username || user?.email || "Receptionist"}
-      roleLabel={user?.roleName || "RECEPTIONIST"}
+      navItems={superAdminNav}
+      branchName={user?.branchName || "Global Access"}
+      userName={user?.username || user?.email || "User"}
+      roleLabel={user?.roleName || "STAFF"}
       profilePath="/staff/profile"
       onLogout={handleLogout}
     />
