@@ -65,7 +65,6 @@ export default function SignupAddressPage() {
       const data = payload.data;
 
       localStorage.setItem('customer_jwt', data.token);
-      localStorage.setItem('customer_role', data.role || 'CUSTOMER');
       localStorage.setItem('customer_user_id', String(data.user_id));
       localStorage.setItem('customer_name', personal.fullName.trim());
 

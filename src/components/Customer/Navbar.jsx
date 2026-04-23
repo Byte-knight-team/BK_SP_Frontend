@@ -35,7 +35,6 @@ export default function Navbar() {
     // 3. Logout Function
     const handleLogout = () => {
         localStorage.removeItem('customer_jwt');
-        localStorage.removeItem('customer_role');
         localStorage.removeItem('customer_user_id');
         localStorage.removeItem('customer_name');
         // Force state update and redirect

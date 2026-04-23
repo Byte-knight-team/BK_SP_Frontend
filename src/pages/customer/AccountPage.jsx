@@ -158,7 +158,6 @@ export default function AccountPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('customer_jwt');
-    localStorage.removeItem('customer_role');
     localStorage.removeItem('customer_user_id');
     localStorage.removeItem('customer_name');
     navigate('/login', { replace: true });
