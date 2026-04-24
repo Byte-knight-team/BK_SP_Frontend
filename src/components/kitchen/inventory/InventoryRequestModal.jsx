@@ -31,11 +31,20 @@ const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initial
       return;
     }
 
+    // Convert quantity to a number
+    const numericQuantity = parseFloat(requestedQuantity);
+
+    // check for negative numbers
+    if (numericQuantity < 0) {
+      alert("Error: Requested quantity cannot be negative!");
+      return;
+    }
+
     // create an object. it matches exactly what backend CreateStockRefillRequestDTO expects!
     const requestData = {
       itemName: itemName,
       unit: unit,
-      requestedQuantity: parseFloat(requestedQuantity),
+      requestedQuantity: numericQuantity,
       chefNote: chefNote,
       requestType: requestType
     };
