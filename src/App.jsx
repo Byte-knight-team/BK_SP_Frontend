@@ -61,6 +61,11 @@ import StaffListPage from "./pages/superadmin/StaffListPage";
 import CreateStaffPage from "./pages/superadmin/CreateStaffPage";
 import StaffDetailsPage from "./pages/superadmin/StaffDetailsPage";
 import EditStaffPage from "./pages/superadmin/EditStaffPage";
+import BranchListPage from "./pages/superadmin/BranchListPage";
+import CreateBranchPage from "./pages/superadmin/CreateBranchPage";
+import BranchDetailsPage from "./pages/superadmin/BranchDetailsPage";
+import EditBranchPage from "./pages/superadmin/EditBranchPage";
+
 
 function CustomerLayout() {
   return (
@@ -125,7 +130,10 @@ export default function App() {
           <Route path="staff" element={<StaffListPage />} />
           <Route path="staff/create" element={<CreateStaffPage />} />
           <Route path="roles" element={<ComingSoonPage title="Roles & Permissions" />} />
-          <Route path="branches" element={<ComingSoonPage title="Branch Management" />} />
+          <Route path="branches" element={<BranchListPage />} />
+          <Route path="branches/create" element={<CreateBranchPage />} />
+          <Route path="branches/:id" element={<BranchDetailsPage />} />
+          <Route path="branches/:id/edit" element={<EditBranchPage />} />
           <Route path="config" element={<ComingSoonPage title="System Configuration" />} />
           <Route path="audit" element={<ComingSoonPage title="Audit Logs" />} />
           <Route path="profile" element={<ProfilePage />} />
