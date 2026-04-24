@@ -6,6 +6,9 @@ import BrandLogo from '../../components/customer/BrandLogo';
 export default function SignupPersonalPage() {
   const navigate = useNavigate();
   const location = useLocation();
+;
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTo = searchParams.get('redirect') || '/menu';
   
   //If the user clicked "Back" from the address page, grab their old data!
   const [form, setForm] = useState(location.state?.personal || {
@@ -47,7 +50,12 @@ export default function SignupPersonalPage() {
 
 
     // If it passes, move to stet 2
-    navigate('/signup/address', { state: { personal: form } });
+    navigate('/signup/address', { 
+      state: { 
+        personal: form, 
+        redirect: redirectTo // Pass the baton!
+      } 
+    });
   };
 
   return (
