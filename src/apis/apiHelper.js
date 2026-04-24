@@ -20,7 +20,7 @@ export const authFetch = async (url, options = {}) => {
   // if 401, token expired → redirect to login
   if (response.status === 401) {
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    window.location.href = "/staff/login";
     throw new Error("Session expired");
   } 
   return response;

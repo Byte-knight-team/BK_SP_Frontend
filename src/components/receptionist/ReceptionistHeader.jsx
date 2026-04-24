@@ -1,12 +1,10 @@
-import PageHeader from "../common/PageHeader";
+import AppHeader from "../common/AppHeader";
 
-const ReceptionistHeader = () => {
+export default function ReceptionistHeader() {
   return (
-    <PageHeader
-      name="Isuru" 
-      role="Receptionist"
+    <AppHeader
+      title="Receptionist Panel"
+      subtitle="Front desk operations and order handling"
     />
   );
-};
-
-export default ReceptionistHeader;
+}
