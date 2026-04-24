@@ -27,11 +27,15 @@ const InventoryTable = () => {
   // to store the current quantity of the item to be updated
   const [updateCurrentQty, setUpdateCurrentQty] = useState("");
 
+  // to store the max stock of the item to be updated
+  const [updateMaxStock, setUpdateMaxStock] = useState("");
+
   // function to open the update modal
   const handleOpenUpdateModal = (item) => {
     setUpdateItemName(item.name);
     setUpdateUnit(item.unit);
     setUpdateCurrentQty(item.quantity);
+    setUpdateMaxStock(item.maxStock);
     setIsUpdateModalOpen(true);
   };
 
@@ -42,10 +46,12 @@ const InventoryTable = () => {
     if (error) {
       alert("Failed to update stock: " + error);
     } else {
-      alert("Stock updated successfully!");
+      // message from the backend
+      alert(data.message);
       setIsUpdateModalOpen(false);
       // call the function to refresh the table data
-      fetchInventoryct();
+      // this is a background fetch (false = don't show the loading screen)
+      fetchInventory(false);
     }
   };
 
@@ -93,18 +99,23 @@ const InventoryTable = () => {
   };
 
   //fetch data from API
+  // move the function outside of useEffect so handleUpdateSubmit can call it
+  // added 'showLoading' parameter, it defaults to true for the first page load
+  const fetchInventory = async (showLoading = true) => {
+    if (showLoading) setLoading(true); // Only show loading text if requested
+    const { data, error } = await getAllInventoryAPI();
+    if (data) {
+      setInventoryData(data);
+    } else {
+      console.error("Failed to load inventory:", error);
+    }
+    if (showLoading) setLoading(false);
+  };
+
+  // useEffect now just calls the function when the page loads
+  // this happens when the chef first open the page (shows loading screen)
   useEffect(() => {
-    const fetchInventory = async () => {
-      setLoading(true);
-      const { data, error } = await getAllInventoryAPI();
-      if (data) {
-        setInventoryData(data);
-      } else {
-        console.error("Failed to load inventory:", error);
-      }
-      setLoading(false);
-    };
-    fetchInventory();
+    fetchInventory(true);
   }, []);
 
   if (loading) {
@@ -249,6 +260,7 @@ const InventoryTable = () => {
         itemName={updateItemName}
         unit={updateUnit}
         currentQuantity={updateCurrentQty}
+        maxStock={updateMaxStock}
       />
 
     </div>

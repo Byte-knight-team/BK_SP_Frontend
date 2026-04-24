@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { RefreshCcw, X } from "lucide-react";
 
-const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQuantity, }) => {
+const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQuantity, maxStock }) => {
   const [newQuantity, setNewQuantity] = useState("");
 
   // synchronize the input field with the current stock value
@@ -21,10 +21,26 @@ const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQu
       alert("Please enter a valid quantity!");
       return;
     }
+    
+    // convert input to a number
+    const numericQuantity = parseFloat(newQuantity);
+
+    // check if it's greater than max stock
+    if (numericQuantity > maxStock) {
+      alert(`Error: Quantity cannot exceed the maximum stock limit of ${maxStock} ${unit}!`);
+      return;
+    }
+    
+    // check for negative numbers
+    if (numericQuantity < 0) {
+      alert("Error: Quantity cannot be negative!");
+      return;
+    }
+    
     // send the validated and formatted data back to the parent component(InventoryTable) for processing
     onSubmit({
       itemName: itemName,
-      newQuantity: parseFloat(newQuantity),
+      newQuantity: numericQuantity,
     });
   };
 
