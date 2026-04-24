@@ -1,42 +1,25 @@
-import Sidebar from "../common/Sidebar";
-import {
-  RiLayoutMasonryFill,
-  RiClipboardLine,
-  RiUserSettingsLine,
-  RiHandbagLine,
-  RiBookOpenLine,
-  RiShieldCheckLine,
-  RiSettings4Line,
-} from "@remixicon/react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import AppSidebar from "../common/AppSidebar";
+import { kitchenNav } from "../../config/nav/kitchenNav";
 
-const KitchenSidebar = () => {
-  const topLinks = [
-    { path: "/kitchen", label: "Dashboard", icon: RiLayoutMasonryFill },
-    { path: "/kitchen/orders", label: "Orders", icon: RiClipboardLine },
-    { path: "/kitchen/chefs", label: "Chefs", icon: RiUserSettingsLine },
-    { path: "/kitchen/inventory", label: "Inventory", icon: RiHandbagLine },
-    { path: "/kitchen/menu", label: "Menu & Recipes", icon: RiBookOpenLine },
-    { path: "/kitchen/approvals", label: "Approvals", icon: RiShieldCheckLine }
-  ];
+export default function KitchenSidebar() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  const bottomLinks = [
-    { path: "/kitchen/settings", label: "Settings", icon: RiSettings4Line },
-  ];
-
-  const currentUser = {
-    name: "Isuru Udara",
-    role: "Chief Chef",
-    initials: "IU",
+  const handleLogout = () => {
+    logout();
+    navigate("/staff/login", { replace: true });
   };
 
   return (
-    <Sidebar
-      topLinks={topLinks}
-      bottomLinks={bottomLinks}
-      panelTitle="Chief Chef Panel"
-      user={currentUser}
+    <AppSidebar
+      navItems={kitchenNav}
+      branchName={user?.branchName || "Assigned Branch"}
+      userName={user?.fullName || user?.username || user?.email || "Chef"}
+      roleLabel={user?.roleName || "CHEF"}
+      profilePath="/staff/profile"
+      onLogout={handleLogout}
     />
   );
-};
-
-export default KitchenSidebar;
+}
