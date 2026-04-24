@@ -37,6 +37,12 @@ export default function Navbar() {
         localStorage.removeItem('customer_role');
         localStorage.removeItem('customer_user_id');
         localStorage.removeItem('customer_name');
+
+        //log outs qr session for more security
+        localStorage.removeItem('qr_session');
+        localStorage.removeItem('qr_session_token');
+        localStorage.removeItem('qr_branch_id');
+        localStorage.removeItem('qr_table_id');
         
         // Wipe the cart memory!
         clearCart(); 
