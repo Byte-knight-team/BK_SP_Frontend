@@ -32,8 +32,8 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
     return <p className="py-8 text-center text-sm font-bold text-orange-400 animate-pulse">Loading...</p>;
   }
 
-  if (pendingOrdersDetails.length === 0) {
-    return <p className="py-8 text-center text-sm text-gray-300">No pending orders right now</p>;
+  if (onHoldOrdersDetails.length === 0) {
+    return <p className="py-8 text-center text-sm text-gray-300">No on hold orders right now</p>;
   }
 
   return (

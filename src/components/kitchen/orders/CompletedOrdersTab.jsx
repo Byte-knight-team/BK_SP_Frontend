@@ -38,10 +38,10 @@ const CompletedOrdersTab = ({ handleOrderClick }) => {
     );
   }
 
-  if (pendingOrdersDetails.length === 0) {
+  if (completedOrdersDetails.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-gray-300">
-        No pending orders right now
+        No completed orders right now
       </p>
     );
   }
