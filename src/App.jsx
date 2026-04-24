@@ -67,7 +67,7 @@ import BranchDetailsPage from "./pages/superadmin/BranchDetailsPage";
 import EditBranchPage from "./pages/superadmin/EditBranchPage";
 import SystemConfigPage from "./pages/superadmin/SystemConfigPage";
 import AuditLogsPage from "./pages/superadmin/AuditLogsPage";
-
+import RolesPage from "./pages/superadmin/RolesPage";
 
 function CustomerLayout() {
   return (
@@ -131,7 +131,7 @@ export default function App() {
           <Route index element={<SuperAdminDashboardPage />} />
           <Route path="staff" element={<StaffListPage />} />
           <Route path="staff/create" element={<CreateStaffPage />} />
-          <Route path="roles" element={<ComingSoonPage title="Roles & Permissions" />} />
+          <Route path="roles" element={<RolesPage />} />
           <Route path="branches" element={<BranchListPage />} />
           <Route path="branches/create" element={<CreateBranchPage />} />
           <Route path="branches/:id" element={<BranchDetailsPage />} />
