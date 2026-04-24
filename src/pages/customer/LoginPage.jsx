@@ -3,10 +3,59 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock} from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!email.trim() || !password.trim()) {
+      setError('Email and password are required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/customer/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      });
+
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(payload?.message || 'Unable to login.');
+      }
+
+      const data = payload.data;
+
+      localStorage.setItem('customer_jwt', data.token);
+      localStorage.setItem('customer_user_id', String(data.user_id));
+
+      localStorage.removeItem('qr_session');
+      localStorage.removeItem('qr_session_token');
+      localStorage.removeItem('qr_branch_id');
+      localStorage.removeItem('qr_table_id');
+
+      navigate('/menu', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Unable to login.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f3f1ee] px-4 py-10">
@@ -27,7 +76,12 @@ export default function LoginPage() {
             <p className="mt-2 text-sm text-orange-100">Sign in to continue ordering</p>
           </div>
 
-          <form className="space-y-5 px-6 pb-10 pt-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5 px-6 pb-10 pt-6" onSubmit={handleLogin}>
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">Email Address</label>
               <div className="relative">
@@ -68,9 +122,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600"
+              disabled={isSubmitting}
+              className="w-full rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Sign In
+              {isSubmitting ? 'Signing In...' : 'Sign In'}
             </button>
 
             <p className="pt-1 text-center text-sm text-slate-600">
