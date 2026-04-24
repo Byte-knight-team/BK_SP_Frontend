@@ -65,6 +65,7 @@ import BranchListPage from "./pages/superadmin/BranchListPage";
 import CreateBranchPage from "./pages/superadmin/CreateBranchPage";
 import BranchDetailsPage from "./pages/superadmin/BranchDetailsPage";
 import EditBranchPage from "./pages/superadmin/EditBranchPage";
+import SystemConfigPage from "./pages/superadmin/SystemConfigPage";
 
 
 function CustomerLayout() {
@@ -134,7 +135,7 @@ export default function App() {
           <Route path="branches/create" element={<CreateBranchPage />} />
           <Route path="branches/:id" element={<BranchDetailsPage />} />
           <Route path="branches/:id/edit" element={<EditBranchPage />} />
-          <Route path="config" element={<ComingSoonPage title="System Configuration" />} />
+          <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<ComingSoonPage title="Audit Logs" />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="staff/:id" element={<StaffDetailsPage />} />

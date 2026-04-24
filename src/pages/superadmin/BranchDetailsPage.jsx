@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { Link, useOutletContext, useParams } from "react-router-dom";
 import {
     RiBuilding2Line,
     RiArrowLeftLine,
     RiEditLine,
+    RiSaveLine,
+    RiRefreshLine,
 } from "@remixicon/react";
 
 import {
@@ -11,6 +13,11 @@ import {
     activateBranchAPI,
     deactivateBranchAPI,
 } from "../../apis/staff/branches";
+
+import {
+    getBranchConfigAPI,
+    updateBranchConfigAPI,
+} from "../../apis/staff/systemConfig";
 
 export default function BranchDetailsPage() {
     /*
@@ -25,12 +32,6 @@ export default function BranchDetailsPage() {
     const { id } = useParams();
 
     /*
-        useNavigate lets us redirect if needed.
-        We may use it later if branch is not found or after an action.
-    */
-    const navigate = useNavigate();
-
-    /*
         useOutletContext comes from MainLayout.
         It lets this page update the shared page header.
     */
@@ -38,16 +39,39 @@ export default function BranchDetailsPage() {
 
     /*
         branch stores the selected branch details.
-        loading controls the loading message.
+        loading controls the loading message for branch details.
         actionLoading controls activate/deactivate button state.
-        error stores error messages.
-        successMessage stores success messages.
+        error stores branch details / status action errors.
+        successMessage stores branch details / status action success messages.
     */
     const [branch, setBranch] = useState(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+
+    /*
+        Branch order configuration state.
+
+        This is branch-level configuration, so it belongs here in Branch Details.
+        We are NOT adding operating hours frontend now because it is too much for code review.
+    */
+    const [branchConfig, setBranchConfig] = useState({
+        deliveryFee: 0,
+        deliveryEnabled: false,
+        pickupEnabled: false,
+        dineInEnabled: false,
+        branchActiveForOrders: false,
+    });
+
+    /*
+        Loading and message states only for branch configuration section.
+        This keeps branch details messages separate from branch config messages.
+    */
+    const [configLoading, setConfigLoading] = useState(true);
+    const [configSaving, setConfigSaving] = useState(false);
+    const [configError, setConfigError] = useState("");
+    const [configSuccessMessage, setConfigSuccessMessage] = useState("");
 
     /*
         Read logged-in user role from localStorage.
@@ -64,7 +88,7 @@ export default function BranchDetailsPage() {
     useEffect(() => {
         setHeaderInfo({
             title: "Branch Details",
-            description: "View restaurant branch information and current status.",
+            description: "View branch information, status, and order configuration.",
             Icon: RiBuilding2Line,
         });
 
@@ -94,15 +118,56 @@ export default function BranchDetailsPage() {
     };
 
     /*
-        When page opens, load branch details.
+        Load branch-level order configuration from backend.
 
-        Only SUPER_ADMIN should call this API.
+        This calls:
+        GET /api/admin/config/branches/{branchId}
+
+        Example response:
+        {
+            deliveryFee,
+            deliveryEnabled,
+            pickupEnabled,
+            dineInEnabled,
+            branchActiveForOrders
+        }
+    */
+    const loadBranchConfig = async () => {
+        try {
+            setConfigLoading(true);
+            setConfigError("");
+            setConfigSuccessMessage("");
+
+            const data = await getBranchConfigAPI(id);
+
+            setBranchConfig({
+                deliveryFee: data?.deliveryFee ?? 0,
+                deliveryEnabled: Boolean(data?.deliveryEnabled),
+                pickupEnabled: Boolean(data?.pickupEnabled),
+                dineInEnabled: Boolean(data?.dineInEnabled),
+                branchActiveForOrders: Boolean(data?.branchActiveForOrders),
+            });
+        } catch (error) {
+            setConfigError(
+                error.message || "Failed to load branch order configuration."
+            );
+        } finally {
+            setConfigLoading(false);
+        }
+    };
+
+    /*
+        When page opens, load branch details and branch configuration.
+
+        Only SUPER_ADMIN should call these APIs.
     */
     useEffect(() => {
         if (isSuperAdmin) {
             loadBranch();
+            loadBranchConfig();
         } else {
             setLoading(false);
+            setConfigLoading(false);
         }
     }, [id, isSuperAdmin]);
 
@@ -158,6 +223,19 @@ export default function BranchDetailsPage() {
     };
 
     /*
+        Convert input value to number safely before sending to backend.
+    */
+    const toNumber = (value) => {
+        const numberValue = Number(value);
+
+        if (Number.isNaN(numberValue)) {
+            return 0;
+        }
+
+        return numberValue;
+    };
+
+    /*
         Activate or deactivate the current branch.
 
         If branch is active:
@@ -194,6 +272,84 @@ export default function BranchDetailsPage() {
         }
 
         setActionLoading(false);
+    };
+
+    /*
+        Handle branch config number input changes.
+
+        Currently this is mainly used for deliveryFee.
+    */
+    const handleConfigInputChange = (event) => {
+        const { name, value } = event.target;
+
+        setBranchConfig((previousConfig) => ({
+            ...previousConfig,
+            [name]: value,
+        }));
+    };
+
+    /*
+        Handle branch config checkbox changes.
+
+        Used for:
+        - deliveryEnabled
+        - pickupEnabled
+        - dineInEnabled
+        - branchActiveForOrders
+    */
+    const handleConfigCheckboxChange = (event) => {
+        const { name, checked } = event.target;
+
+        setBranchConfig((previousConfig) => ({
+            ...previousConfig,
+            [name]: checked,
+        }));
+    };
+
+    /*
+        Save branch-level order configuration.
+
+        This calls:
+        PUT /api/admin/config/branches/{branchId}
+    */
+    const handleSaveBranchConfig = async (event) => {
+        event.preventDefault();
+
+        try {
+            setConfigSaving(true);
+            setConfigError("");
+            setConfigSuccessMessage("");
+
+            const payload = {
+                deliveryFee: toNumber(branchConfig.deliveryFee),
+                deliveryEnabled: Boolean(branchConfig.deliveryEnabled),
+                pickupEnabled: Boolean(branchConfig.pickupEnabled),
+                dineInEnabled: Boolean(branchConfig.dineInEnabled),
+                branchActiveForOrders: Boolean(branchConfig.branchActiveForOrders),
+            };
+
+            await updateBranchConfigAPI(id, payload);
+
+            setConfigSuccessMessage("Branch order configuration updated successfully.");
+
+            /*
+                Reload config after saving to keep frontend synced with backend.
+            */
+            await loadBranchConfig();
+        } catch (error) {
+            setConfigError(
+                error.message || "Failed to update branch order configuration."
+            );
+        } finally {
+            setConfigSaving(false);
+        }
+    };
+
+    /*
+        Reload branch configuration manually.
+    */
+    const handleReloadBranchConfig = async () => {
+        await loadBranchConfig();
     };
 
     /*
@@ -382,6 +538,171 @@ export default function BranchDetailsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Branch order configuration card */}
+            <form
+                onSubmit={handleSaveBranchConfig}
+                className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm"
+            >
+                <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-5">
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900">
+                            Branch Order Configuration
+                        </h3>
+
+                        <p className="text-sm text-gray-500 mt-1">
+                            Configure delivery fee and available order methods for this branch.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleReloadBranchConfig}
+                        disabled={configLoading}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                        <RiRefreshLine size={18} />
+                        Reload
+                    </button>
+                </div>
+
+                {/* Branch config success message */}
+                {configSuccessMessage && (
+                    <div className="mt-5 rounded-2xl bg-green-50 border border-green-100 px-4 py-3 text-sm font-medium text-green-700">
+                        {configSuccessMessage}
+                    </div>
+                )}
+
+                {/* Branch config error message */}
+                {configError && (
+                    <div className="mt-5 rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-medium text-red-600">
+                        {configError}
+                    </div>
+                )}
+
+                {configLoading ? (
+                    <p className="text-sm text-gray-500 mt-6">
+                        Loading branch order configuration...
+                    </p>
+                ) : (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                            {/* Delivery fee */}
+                            <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                                    Delivery Fee
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="deliveryFee"
+                                    value={branchConfig.deliveryFee}
+                                    onChange={handleConfigInputChange}
+                                    min="0"
+                                    step="0.01"
+                                    disabled={!branchConfig.deliveryEnabled}
+                                    className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
+                                />
+
+                                <p className="text-xs text-gray-400 mt-2">
+                                    Delivery fee is used only when delivery is enabled.
+                                </p>
+                            </div>
+
+                            {/* Branch active for orders */}
+                            <label className="rounded-2xl bg-gray-50 border border-gray-100 p-4 flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                                        Active For Orders
+                                    </p>
+                                    <p className="text-sm font-semibold text-gray-900 mt-2">
+                                        Allow this branch to receive customer orders.
+                                    </p>
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    name="branchActiveForOrders"
+                                    checked={branchConfig.branchActiveForOrders}
+                                    onChange={handleConfigCheckboxChange}
+                                    className="h-5 w-5 rounded border-gray-300"
+                                />
+                            </label>
+
+                            {/* Delivery enabled */}
+                            <label className="rounded-2xl bg-gray-50 border border-gray-100 p-4 flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                                        Delivery
+                                    </p>
+                                    <p className="text-sm font-semibold text-gray-900 mt-2">
+                                        Enable delivery orders for this branch.
+                                    </p>
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    name="deliveryEnabled"
+                                    checked={branchConfig.deliveryEnabled}
+                                    onChange={handleConfigCheckboxChange}
+                                    className="h-5 w-5 rounded border-gray-300"
+                                />
+                            </label>
+
+                            {/* Pickup enabled */}
+                            <label className="rounded-2xl bg-gray-50 border border-gray-100 p-4 flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                                        Pickup
+                                    </p>
+                                    <p className="text-sm font-semibold text-gray-900 mt-2">
+                                        Enable pickup orders for this branch.
+                                    </p>
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    name="pickupEnabled"
+                                    checked={branchConfig.pickupEnabled}
+                                    onChange={handleConfigCheckboxChange}
+                                    className="h-5 w-5 rounded border-gray-300"
+                                />
+                            </label>
+
+                            {/* Dine-in enabled */}
+                            <label className="rounded-2xl bg-gray-50 border border-gray-100 p-4 flex items-center justify-between gap-4 md:col-span-2">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                                        Dine-In
+                                    </p>
+                                    <p className="text-sm font-semibold text-gray-900 mt-2">
+                                        Enable dine-in orders for this branch.
+                                    </p>
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    name="dineInEnabled"
+                                    checked={branchConfig.dineInEnabled}
+                                    onChange={handleConfigCheckboxChange}
+                                    className="h-5 w-5 rounded border-gray-300"
+                                />
+                            </label>
+                        </div>
+
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                type="submit"
+                                disabled={configSaving}
+                                className="inline-flex items-center gap-2 rounded-2xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-orange-700 disabled:opacity-50"
+                            >
+                                <RiSaveLine size={18} />
+                                {configSaving ? "Saving..." : "Save Branch Configuration"}
+                            </button>
+                        </div>
+                    </>
+                )}
+            </form>
         </div>
     );
 }
