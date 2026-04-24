@@ -33,8 +33,8 @@ const PreparingOrdersTab = ({ handleOrderClick }) => { //{} is used to destructu
     return <p className="py-8 text-center text-sm font-bold text-orange-400 animate-pulse">Loading...</p>;
   }
 
-  if (pendingOrdersDetails.length === 0) {
-    return <p className="py-8 text-center text-sm text-gray-300">No pending orders right now</p>;
+  if (preparingOrdersDetails.length === 0) {
+    return <p className="py-8 text-center text-sm text-gray-300">No preparing orders right now</p>;
   }
     
   return (
