@@ -1,10 +1,10 @@
 import { authFetch } from "../apiHelper";
 
-//get orders by status
-export const getOrdersAPI = async (orderStatus) => {
+//get order-cards by status
+export const getOrderCardsAPI = async (orderStatus) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/orders?status=${orderStatus}`,
+      `http://localhost:8080/api/v1/kitchen/order-cards?status=${orderStatus}`,
     );
     const result = await response.json();
     return { data: result.data, error: null };
@@ -14,11 +14,11 @@ export const getOrdersAPI = async (orderStatus) => {
   }
 };
 
-// get a single order detail by ID
+// get a single order's details by ID
 export const getOrderDetailsAPI = async (orderId) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/orders/${orderId}`
+      `http://localhost:8080/api/v1/kitchen/order-details/${orderId}`
     );
     const result = await response.json();
     return { data: result.data, error: null };
