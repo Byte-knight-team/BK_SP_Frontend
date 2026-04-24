@@ -1,17 +1,55 @@
 import { Plus, RotateCcw, Search } from "lucide-react";
 import ProgressBar from "../ProgressBar";
 import { useState, useEffect } from "react";
-import { getAllInventoryAPI, createInventoryRequestAPI } from "../../../apis/kitchen/inventory";
+import { getAllInventoryAPI, createInventoryRequestAPI, updateInventoryStockAPI, } from "../../../apis/kitchen/inventory";
 import InventoryRequestModal from "./InventoryRequestModal";
-
+import UpdateStockModal from "./UpdateStockModal";
 
 const InventoryTable = () => {
+
+  // set loading state
+  const [loading, setLoading] = useState(false);
   
   // save inventory data
   const [inventoryData, setInventoryData] = useState([]);
 
-  // set loading state
-  const [loading, setLoading] = useState(false);
+  //-------------- Update Stock Modal --------------
+
+  // control modal open and close
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+
+  // to store the name of the item to be updated
+  const [updateItemName, setUpdateItemName] = useState("");
+
+  // to store the unit of the item to be updated
+  const [updateUnit, setUpdateUnit] = useState("");
+
+  // to store the current quantity of the item to be updated
+  const [updateCurrentQty, setUpdateCurrentQty] = useState("");
+
+  // function to open the update modal
+  const handleOpenUpdateModal = (item) => {
+    setUpdateItemName(item.name);
+    setUpdateUnit(item.unit);
+    setUpdateCurrentQty(item.quantity);
+    setIsUpdateModalOpen(true);
+  };
+
+  // function to submit the update modal
+  const handleUpdateSubmit = async (updateData) => {
+    const { data, error } = await updateInventoryStockAPI(updateData);
+    
+    if (error) {
+      alert("Failed to update stock: " + error);
+    } else {
+      alert("Stock updated successfully!");
+      setIsUpdateModalOpen(false);
+      // call the function to refresh the table data
+      fetchInventory();
+    }
+  };
+
+  //-------------- Inventory Request Modal --------------
 
   // control modal open and close
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -173,7 +211,10 @@ const InventoryTable = () => {
                 {/* action buttons */}
                 <td className="px-6 py-5 text-center">
                   <div className="flex items-center justify-center gap-2">
-                    <button className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
+                    <button
+                      // call the function to open modal to update stock
+                      onClick={() => handleOpenUpdateModal(item)}
+                      className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
                       Update
                     </button>
                     <button
@@ -199,6 +240,17 @@ const InventoryTable = () => {
         initialItemName={selectedItemName}
         initialUnit={selectedUnit}
       />
+
+      {/* the Update Stock Modal */}
+      <UpdateStockModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        onSubmit={handleUpdateSubmit}
+        itemName={updateItemName}
+        unit={updateUnit}
+        currentQuantity={updateCurrentQty}
+      />
+
     </div>
   );
 };
