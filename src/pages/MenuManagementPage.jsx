@@ -13,7 +13,7 @@ export default function MenuManagementPage() {
       category: "BURGERS",
       price: "1290",
       popular: "95%",
-      status: "ACTIVE",
+      status: "AVAILABLE",
       image: "https://cdn.prod.website-files.com/65fc1fa2c1e7707c3f051466/69263773f626fe9424210272_750f721e-ad71-4daa-8601-bc3c78b9587d.webp",
     },
     {
@@ -22,7 +22,7 @@ export default function MenuManagementPage() {
       category: "PIZZA",
       price: "1650",
       popular: "88%",
-      status: "ACTIVE",
+      status: "AVAILABLE",
       image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cGVwcGVyb25pJTIwcGl6emF8ZW58MHx8MHx8fDA=",
     },
     {
@@ -31,7 +31,7 @@ export default function MenuManagementPage() {
       category: "DRINKS",
       price: "550",
       popular: "80%",
-      status: "OUT OF STOCK",
+      status: "NOT AVAILABLE",
       image: "https://dwellbymichelle.com/wp-content/uploads/2020/06/DWELL-Iced-Cold-Brew-Latte-e1592262551330.jpg",
     },
     {
@@ -40,7 +40,7 @@ export default function MenuManagementPage() {
       category: "SALADS",
       price: "990",
       popular: "65%",
-      status: "ACTIVE",
+      status: "AVAILABLE",
       image: "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQP33tR43CcQ8drkc9_Ya5BuOwKSwO0nmmy-WjHT9yyy-SSZGDE",
     },
     {
@@ -51,6 +51,24 @@ export default function MenuManagementPage() {
       popular: "92%",
       status: "DRAFT",
       image: "https://karenehman.com/wp-content/uploads/2024/10/Hot-Fudge-Sundae-Cake-Take-two.jpg",
+    },
+    {
+      id: 6,
+      name: "Grilled Prawn Skewers",
+      category: "SEAFOOD",
+      price: "1890",
+      popular: "72%",
+      status: "PENDING",
+      image: "https://images.unsplash.com/photo-1559847844-5315695dadae?fm=jpg&q=60&w=3000&auto=format&fit=crop",
+    },
+    {
+      id: 7,
+      name: "Spicy Wings",
+      category: "STARTERS",
+      price: "720",
+      popular: "61%",
+      status: "REJECT",
+      image: "https://images.unsplash.com/photo-1562967916-eb82221dfb36?fm=jpg&q=60&w=3000&auto=format&fit=crop",
     }
   ];
 
@@ -86,9 +104,11 @@ export default function MenuManagementPage() {
 
   const filteredMenuItems = menuItems.filter(item => {
     let matchesStatus = true;
-    if (statusFilter === 'active') matchesStatus = item.status === 'ACTIVE';
-    else if (statusFilter === 'out_of_stock') matchesStatus = item.status === 'OUT OF STOCK';
+    if (statusFilter === 'available') matchesStatus = item.status === 'AVAILABLE';
+    else if (statusFilter === 'not_available') matchesStatus = item.status === 'NOT AVAILABLE';
     else if (statusFilter === 'draft') matchesStatus = item.status === 'DRAFT';
+    else if (statusFilter === 'pending') matchesStatus = item.status === 'PENDING';
+    else if (statusFilter === 'reject') matchesStatus = item.status === 'REJECT';
 
     let matchesCategory = true;
     if (activeCategory !== "All") {
@@ -102,9 +122,11 @@ export default function MenuManagementPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-[#1bc165] text-white';
-      case 'OUT OF STOCK': return 'bg-[#ea580c] text-white';
+      case 'AVAILABLE': return 'bg-[#1bc165] text-white';
+      case 'NOT AVAILABLE': return 'bg-[#ea580c] text-white';
       case 'DRAFT': return 'bg-[#6b7280] text-white';
+      case 'PENDING': return 'bg-amber-500 text-white';
+      case 'REJECT': return 'bg-rose-600 text-white';
       default: return 'bg-gray-500 text-white';
     }
   };
