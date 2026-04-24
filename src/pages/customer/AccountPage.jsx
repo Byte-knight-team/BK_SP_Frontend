@@ -94,7 +94,6 @@ export default function AccountPage() {
         },
         body: JSON.stringify({
           username: formData.username,
-          email: formData.email,
           phone: formData.phone,
           address: formData.address
         })
@@ -242,22 +241,29 @@ export default function AccountPage() {
               </div>
             </div>
 
-            {/* Editable Sections */}
-            <div className="space-y-0 divide-y divide-slate-200">
-              <EditableSection
-                icon={<Mail size={18} />}
-                label="Email Address"
-                value={profile.email}
-                isEditing={editingSection === 'email'}
-                onEdit={() => handleEdit('email')}
-                onCancel={handleCancel}
-                onSave={handleSaveProfile}
-                isSaving={isSaving}
-                fieldName="email"
-                formValue={formData.email}
-                onChange={handleChange}
-                type="email"
-              />
+            {/* Static Email Section*/}
+              <div className="px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                      <Mail size={18} className="text-slate-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Email Address</p>
+                      <p className="mt-1 truncate text-sm text-slate-900 leading-relaxed">
+                        {profile.email || 'No email linked'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="ml-3 flex-shrink-0 rounded-lg bg-slate-50 px-3 py-1.5 text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider border border-slate-200">
+                    Read Only
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-0 divide-y divide-slate-200">
+
+              {/*EditableSections*/}
 
               <EditableSection
                 icon={<Phone size={18} />}
