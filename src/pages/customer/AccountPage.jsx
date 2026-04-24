@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
+import { useCart } from '../../context/CartContext';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function AccountPage() {
   const navigate = useNavigate();
   const [editingSection, setEditingSection] = useState(null);
+  const { clearCart } = useCart();
   
   const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({});
@@ -158,10 +160,10 @@ export default function AccountPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('customer_jwt');
-    localStorage.removeItem('customer_role');
     localStorage.removeItem('customer_user_id');
     localStorage.removeItem('customer_name');
-    navigate('/login', { replace: true });
+    clearCart(); 
+    navigate('/menu', { replace: true });
   };
 
   if (isLoading) {
