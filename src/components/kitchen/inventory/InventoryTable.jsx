@@ -45,7 +45,7 @@ const InventoryTable = () => {
       alert("Stock updated successfully!");
       setIsUpdateModalOpen(false);
       // call the function to refresh the table data
-      fetchInventory();
+      fetchInventoryct();
     }
   };
 
