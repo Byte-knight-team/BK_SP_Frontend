@@ -1,39 +1,24 @@
 const statesColours = {
-  PENDING: "bg-orange-400",
-  PREPARING: "bg-blue-400",
-  COMPLETED: "bg-green-400",
-  "ON HOLD": "bg-red-400",
+  PENDING: "bg-orange-50 text-orange-500",
+  PREPARING: "bg-blue-50 text-blue-500",
+  COMPLETED: "bg-green-50 text-green-500",
+  "ON HOLD": "bg-red-50 text-red-500",
 };
-
-const getBgColor = (orderStatus) => {
-  return statesColours[orderStatus];
-}
 
 const OrderCard = ({ status, time, id, numberOfItems, onClick, isClickable = true }) => {
   return (
-    <div className={`flex flex-col rounded-2xl border border-gray-100 bg-white p-4 shadow-sm ${isClickable ? "cursor-pointer hover:shadow-md" : "cursor-default"}`} onClick={isClickable ? onClick : undefined}>
-      <div className="flex flex-row justify-between items-center">
-        <div>
-          <h1 className={`font-bold text-gray-800 ${getBgColor(status)} rounded-lg px-2 py-1`}>
-            {status}
-          </h1>
-        </div>
-        <div>
-          <p className="text-lg font-medium text-gray-400">
-            {time}
-          </p>
-        </div>
+    <div
+      className={`flex flex-col gap-2 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all ${isClickable ? "cursor-pointer hover:shadow-md hover:border-orange-100" : "cursor-default"}`}
+      onClick={isClickable ? onClick : undefined}
+    >
+      <div className="flex items-center justify-between">
+        <span className={`rounded-full px-3 py-1 text-[10px] font-bold tracking-wider uppercase ${statesColours[status]}`}>
+          {status}
+        </span>
+        <p className="text-xs font-medium text-gray-400">{time}</p>
       </div>
-      <div>
-        <p className="text-2xl font-medium text-gray-800">
-          {id}
-        </p>
-      </div>
-      <div>
-        <p className="font-medium text-gray-400">
-          {numberOfItems} Items
-        </p>
-      </div>
+      <h2 className="text-xl font-bold text-gray-800">{id}</h2>
+      <p className="text-sm font-medium text-gray-400">{numberOfItems} Items</p>
     </div>
   );
 };

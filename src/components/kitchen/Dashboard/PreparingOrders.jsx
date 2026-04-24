@@ -1,6 +1,6 @@
 import React from 'react'
 import OrderCard from '../OrderCard'
-import { getOrdersAPI } from '../../../apis/kitchen/dashboard';
+import { getOrderCardsAPI } from '../../../apis/kitchen/dashboard';
 import { useState, useEffect } from "react";
 
 const PreparingOrders = () => {
@@ -12,7 +12,7 @@ const PreparingOrders = () => {
           //enable loading
           setLoading(true);
           //api call
-          const { data, error } = await getOrdersAPI("PREPARING");
+          const { data, error } = await getOrderCardsAPI("PREPARING");
           //handle error
           if (error) {
             console.error("Error fetching stats details:", error);

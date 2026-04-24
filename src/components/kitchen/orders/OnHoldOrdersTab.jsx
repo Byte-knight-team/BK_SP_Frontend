@@ -1,6 +1,6 @@
 import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
-import { getOrdersAPI } from "../../../apis/kitchen/orders";
+import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 
 const OnHoldOrdersTab = ({handleOrderClick}) => {
   const [onHoldOrdersDetails, setOnHoldOrdersDetails] = useState([]);
@@ -11,7 +11,7 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
       //enable loading
       setLoading(true);
       //api call
-      const { data, error } = await getOrdersAPI("ON_HOLD", null);
+      const { data, error } = await getOrderCardsAPI("ON_HOLD");
       //handle error
       if (error) {
         console.error("Error fetching stats details:", error);
@@ -29,7 +29,11 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <p className="py-8 text-center text-sm font-bold text-orange-400 animate-pulse">Loading...</p>;
+  }
+
+  if (pendingOrdersDetails.length === 0) {
+    return <p className="py-8 text-center text-sm text-gray-300">No pending orders right now</p>;
   }
 
   return (
@@ -37,7 +41,7 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
       {onHoldOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
-          status="ON HOLD"
+          status="ON HOLD" //cannot use status={order.status} because backend sends it as "ON_HOLD" not "ON HOLD". 
           time={order.time}
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}

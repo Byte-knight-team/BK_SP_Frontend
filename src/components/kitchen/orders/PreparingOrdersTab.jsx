@@ -1,6 +1,6 @@
 import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
-import { getOrdersAPI } from "../../../apis/kitchen/orders";
+import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 
 const PreparingOrdersTab = ({ handleOrderClick }) => { //{} is used to destructure the props. it is required
 
@@ -12,7 +12,7 @@ const PreparingOrdersTab = ({ handleOrderClick }) => { //{} is used to destructu
         //enable loading
         setLoading(true);
         //api call
-        const { data, error } = await getOrdersAPI("PREPARING", null);
+        const { data, error } = await getOrderCardsAPI("PREPARING");
         //handle error
         if (error) {
           console.error("Error fetching stats details:", error);
@@ -30,15 +30,19 @@ const PreparingOrdersTab = ({ handleOrderClick }) => { //{} is used to destructu
     }, []);
   
     if (loading) {
-      return <div>Loading...</div>;
-    }
+    return <p className="py-8 text-center text-sm font-bold text-orange-400 animate-pulse">Loading...</p>;
+  }
+
+  if (pendingOrdersDetails.length === 0) {
+    return <p className="py-8 text-center text-sm text-gray-300">No pending orders right now</p>;
+  }
     
   return (
     <div className="flex flex-col gap-6">
       {preparingOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
-          status="PREPARING"
+          status={order.status}
           time={order.time}
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
