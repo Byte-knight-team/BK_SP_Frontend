@@ -1,24 +1,58 @@
-import React from "react";
 import { Plus, RotateCcw, Search } from "lucide-react";
 import ProgressBar from "../ProgressBar";
 import { useState, useEffect } from "react";
-import { getAllInventoryAPI } from "../../../apis/kitchen/inventory";
+import { getAllInventoryAPI, createInventoryRequestAPI } from "../../../apis/kitchen/inventory";
+import InventoryRequestModal from "./InventoryRequestModal";
 
 
 const InventoryTable = () => {
-  // store the search term
-  //const [searchTerm, setSearchTerm] = useState("");
-
+  
   // save inventory data
   const [inventoryData, setInventoryData] = useState([]);
 
   // set loading state
   const [loading, setLoading] = useState(false);
 
-  //filter logic
-  // const filteredData = inventoryData.filter((item) =>
-  //   item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
+  // control modal open and close
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // store the type of modal to open (ADD_NEW_ITEM or REFILL_STOCK)
+  const [modalType, setModalType] = useState("");
+
+  // store selected item details for modal
+  const [selectedItemName, setSelectedItemName] = useState("");
+
+  // store selected item details for modal
+  const [selectedUnit, setSelectedUnit] = useState("");
+
+  // when clicking the top "Request New Item" button
+  const handleOpenNewItemModal = () => {
+    setModalType("ADD_NEW_ITEM");
+    setSelectedItemName("");
+    setSelectedUnit("");
+    setIsModalOpen(true);
+  };
+
+  // when clicking the "Request" button on a specific row
+  const handleOpenRefillModal = (item) => {
+    setModalType("REFILL_STOCK");
+    setSelectedItemName(item.name); // from DTO
+    setSelectedUnit(item.unit);     // from DTO
+    setIsModalOpen(true);
+  };
+
+  // function to Submit the Modal
+  const handleModalSubmit = async (requestData) => {
+    // send data to backend
+    const { data, error } = await createInventoryRequestAPI(requestData);
+    
+    if (error) {
+      alert("Failed to send request: " + error);
+    } else {
+      alert("Request sent successfully!");
+      setIsModalOpen(false); // close modal on success
+    }
+  };
 
   //fetch data from API
   useEffect(() => {
@@ -58,7 +92,10 @@ const InventoryTable = () => {
           </div>
         </div>
         <div className="mb-8 flex flex-row justify-end gap-3">
-          <button className="flex items-center gap-2 rounded-2xl bg-orange-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700">
+          <button
+            // call the function to open modal to add a new item
+            onClick={handleOpenNewItemModal}
+            className="flex items-center gap-2 rounded-2xl bg-orange-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700">
             <Plus size={18} /> Request New Item
           </button>
           <button className="flex items-center gap-2 rounded-2xl border border-orange-100 bg-orange-50 px-6 py-3 text-sm font-bold text-orange-600 transition-all hover:bg-orange-100">
@@ -139,7 +176,10 @@ const InventoryTable = () => {
                     <button className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
                       Update
                     </button>
-                    <button className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
+                    <button
+                      // call the function to open modal to request stock refill
+                      onClick={() => handleOpenRefillModal(item)}
+                      className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
                       Request
                     </button>
                   </div>
@@ -149,8 +189,29 @@ const InventoryTable = () => {
           </tbody>
         </table>
       </div>
+      
+      {/* the inventory request modal */}
+      <InventoryRequestModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        requestType={modalType}
+        initialItemName={selectedItemName}
+        initialUnit={selectedUnit}
+      />
     </div>
   );
 };
 
 export default InventoryTable;
+
+
+
+
+  //filter logic
+  // const filteredData = inventoryData.filter((item) =>
+  //   item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
+// );
+  
+  // store the search term
+  //const [searchTerm, setSearchTerm] = useState("");
