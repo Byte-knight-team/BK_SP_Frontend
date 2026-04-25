@@ -102,3 +102,12 @@ export const deleteMenuItemAPI = async (id) => {
   const payload = await parseResponse(response, 'Unable to delete menu item.');
   return payload?.data ?? payload;
 };
+
+export const deleteMenuCategoryAPI = async (id) => {
+  const response = await authFetch(`${API_BASE}/api/v1/categories/${id}`, {
+    method: 'DELETE',
+  });
+
+  const payload = await parseResponse(response, 'Unable to delete category.');
+  return payload?.data ?? payload;
+};

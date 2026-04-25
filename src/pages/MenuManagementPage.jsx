@@ -5,6 +5,7 @@ import {
   Bell,
   HelpCircle,
   Plus,
+  Minus,
   SlidersHorizontal,
   EllipsisVertical,
   Clock3,
@@ -21,6 +22,7 @@ import {
   getMenuCategoriesAPI,
   getMenuSubcategoriesAPI,
   deleteMenuItemAPI,
+  deleteMenuCategoryAPI,
 } from '../apis/admin/menu';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
@@ -39,6 +41,8 @@ export default function MenuManagementPage() {
   const [apiError, setApiError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState(null);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
 
   // Load categories on mount
   useEffect(() => {
@@ -169,6 +173,29 @@ export default function MenuManagementPage() {
     }
   };
 
+  const handleDeleteCategory = async (categoryId) => {
+    setIsDeletingCategory(true);
+
+    try {
+      await deleteMenuCategoryAPI(categoryId);
+      setCategoryOptions((prev) => {
+        const newOptions = prev.filter((item) => item.id !== categoryId);
+        // Ensure active category is valid or switch to the first available category
+        if (newOptions.length > 0) {
+          setActiveCategory(newOptions[0].name);
+        } else {
+          setActiveCategory('');
+        }
+        return newOptions;
+      });
+      setDeleteCategoryConfirm(null);
+    } catch (error) {
+      setApiError(error.message || 'Unable to delete category. It might have items attached.');
+    } finally {
+      setIsDeletingCategory(false);
+    }
+  };
+
   const getStatusDisplay = (status) => {
     switch (status?.toUpperCase()) {
       case 'AVAILABLE':
@@ -280,13 +307,49 @@ export default function MenuManagementPage() {
             </div>
           )}
 
+          {/* Delete Category Confirmation Modal */}
+          {deleteCategoryConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Category</h3>
+                <p className="text-sm text-gray-600 mb-5">
+                  Are you sure you want to delete the category <span className="font-semibold">"{deleteCategoryConfirm.name}"</span>? This action cannot be undone.
+                </p>
+                <div className="flex items-center gap-3 justify-end">
+                  <button
+                    onClick={() => setDeleteCategoryConfirm(null)}
+                    disabled={isDeletingCategory}
+                    className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCategory(deleteCategoryConfirm.id)}
+                    disabled={isDeletingCategory}
+                    className="rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-70"
+                  >
+                    {isDeletingCategory ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
             {/* Categories Panel */}
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Categories</h2>
-                <button className="grid size-8 place-items-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">
-                  <Plus size={16} />
+                <button 
+                  onClick={() => {
+                    const selectedCat = categoryOptions.find(c => c.name === activeCategory);
+                    if (selectedCat) setDeleteCategoryConfirm(selectedCat);
+                  }}
+                  disabled={!activeCategory}
+                  className="grid size-8 place-items-center rounded-lg border border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Delete Category"
+                >
+                  <Minus size={16} />
                 </button>
               </div>
 
