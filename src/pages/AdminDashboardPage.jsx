@@ -1,14 +1,57 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
-  Flame, LayoutDashboard, Users, Utensils, LayoutGrid, Settings, 
-  Search, Bell, HelpCircle, LogOut, DollarSign, ShoppingBag, 
-  TrendingUp, Clock, CheckCircle, ArrowUpRight, ArrowDownRight 
+  Users, DollarSign, ShoppingBag, 
+  TrendingUp, Clock, CheckCircle
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import AdminHeader from '../components/admin/AdminHeader';
+import { getAdminDashboardStatsAPI } from '../apis/admin/dashboard';
 
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    activeUsers: 0,
+    activeOrderCount: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadStats = async () => {
+      const { data, error } = await getAdminDashboardStatsAPI();
+
+      if (error) {
+        console.error('Error fetching admin dashboard stats:', error);
+        if (isMounted) {
+          setStatsLoading(false);
+        }
+        return;
+      }
+
+      if (isMounted && data) {
+        setStats(data);
+        setStatsLoading(false);
+      }
+    };
+
+    loadStats();
+    const intervalId = window.setInterval(loadStats, 10000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const formattedRevenue = useMemo(
+    () => new Intl.NumberFormat('en-LK', { maximumFractionDigits: 0 }).format(stats.totalRevenue),
+    [stats.totalRevenue],
+  );
+
+  const formatCount = (value) => new Intl.NumberFormat('en-US').format(value);
+
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
       {/* Sidebar */}
@@ -38,15 +81,12 @@ export default function AdminDashboardPage() {
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
                   <DollarSign size={20} />
                 </div>
-                <div className="flex items-center gap-1 text-green-500 text-xs font-semibold bg-green-50 px-2 py-1 rounded-lg">
-                  <ArrowUpRight size={14} strokeWidth={3} /> +12.5%
-                </div>
               </div>
               <div>
                 <div className="text-xs text-gray-400 font-medium mb-1 border-b border-gray-50 pb-2">Total Revenue</div>
                 <div className="flex items-baseline gap-1.5 mt-2">
                   <span className="text-lg font-bold text-gray-900">LKR</span>
-                  <span className="text-2xl font-extrabold text-gray-900">24,560</span>
+                  <span className="text-2xl font-extrabold text-gray-900">{formattedRevenue}</span>
                 </div>
               </div>
             </div>
@@ -57,13 +97,10 @@ export default function AdminDashboardPage() {
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
                   <ShoppingBag size={20} />
                 </div>
-                <div className="flex items-center gap-1 text-green-500 text-xs font-semibold bg-green-50 px-2 py-1 rounded-lg">
-                  <ArrowUpRight size={14} strokeWidth={3} /> +8.2%
-                </div>
               </div>
               <div>
                 <div className="text-xs text-gray-400 font-medium mb-1 border-b border-gray-50 pb-2">Total Orders</div>
-                <div className="text-2xl font-extrabold text-gray-900 mt-2">1,284</div>
+                <div className="text-2xl font-extrabold text-gray-900 mt-2">{formatCount(stats.totalOrders)}</div>
               </div>
             </div>
 
@@ -73,13 +110,10 @@ export default function AdminDashboardPage() {
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
                   <Users size={20} />
                 </div>
-                <div className="flex items-center gap-1 text-red-500 text-xs font-semibold bg-red-50 px-2 py-1 rounded-lg">
-                  <ArrowDownRight size={14} strokeWidth={3} /> -3.1%
-                </div>
               </div>
               <div>
                 <div className="text-xs text-gray-400 font-medium mb-1 border-b border-gray-50 pb-2">Active Users</div>
-                <div className="text-2xl font-extrabold text-gray-900 mt-2">842</div>
+                <div className="text-2xl font-extrabold text-gray-900 mt-2">{formatCount(stats.activeUsers)}</div>
               </div>
             </div>
 
@@ -89,19 +123,17 @@ export default function AdminDashboardPage() {
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
                   <TrendingUp size={20} />
                 </div>
-                <div className="flex items-center gap-1 text-green-500 text-xs font-semibold bg-green-50 px-2 py-1 rounded-lg">
-                  <ArrowUpRight size={14} strokeWidth={3} /> +4.3%
-                </div>
               </div>
               <div>
-                <div className="text-xs text-gray-400 font-medium mb-1 border-b border-gray-50 pb-2">Avg. Order Value</div>
-                <div className="flex items-baseline gap-1.5 mt-2">
-                  <span className="text-lg font-bold text-gray-900">LKR</span>
-                  <span className="text-2xl font-extrabold text-gray-900">1,912</span>
-                </div>
+                <div className="text-xs text-gray-400 font-medium mb-1 border-b border-gray-50 pb-2">Active Orders</div>
+                <div className="text-2xl font-extrabold text-gray-900 mt-2">{formatCount(stats.activeOrderCount)}</div>
               </div>
             </div>
           </div>
+
+          {statsLoading ? (
+            <p className="text-xs text-gray-400 mb-6">Loading live dashboard stats...</p>
+          ) : null}
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 mb-6">
             {/* Revenue Chart */}
