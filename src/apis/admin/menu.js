@@ -19,7 +19,7 @@ const toArray = (value) => (Array.isArray(value) ? value : []);
 export const getMenuCategoriesAPI = async () => {
   const response = await authFetch(`${MENU_BASE}/categories`);
   const payload = await parseResponse(response, 'Unable to load categories.');
-  const rows = toArray(payload?.data);
+  const rows = toArray(payload?.data ?? payload);
 
   return rows
     .map((entry) => {
@@ -73,7 +73,7 @@ export const getMenuSubcategoriesAPI = async ({ categoryId = '', categoryName = 
   const query = params.toString() ? `?${params.toString()}` : '';
   const response = await authFetch(`${MENU_BASE}/subcategories${query}`);
   const payload = await parseResponse(response, 'Unable to load subcategories.');
-  const rows = toArray(payload?.data);
+  const rows = toArray(payload?.data ?? payload);
 
   return rows
     .map((entry) => {
@@ -99,7 +99,7 @@ export const createMenuItemAPI = async (menuItemPayload) => {
 export const getMenuItemsAPI = async () => {
   const response = await authFetch(`${MENU_BASE}`);
   const payload = await parseResponse(response, 'Unable to load menu items.');
-  return toArray(payload?.data);
+  return toArray(payload?.data ?? payload);
 };
 
 export const getMenuItemByIdAPI = async (id) => {
