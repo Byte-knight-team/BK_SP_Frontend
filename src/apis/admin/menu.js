@@ -35,6 +35,30 @@ export const getMenuCategoriesAPI = async () => {
     .filter((entry) => entry.name);
 };
 
+export const getMenuCategoriesCountAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}/categories/count`);
+  const payload = await parseResponse(response, 'Unable to load categories count.');
+  return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
+};
+
+export const getMenuSubcategoriesCountAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}/subcategories/count`);
+  const payload = await parseResponse(response, 'Unable to load subcategories count.');
+  return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
+};
+
+export const getMenuItemsCountAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}/count`);
+  const payload = await parseResponse(response, 'Unable to load menu items count.');
+  return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
+};
+
+export const getAvailableItemsCountAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}/available/count`);
+  const payload = await parseResponse(response, 'Unable to load available items count.');
+  return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
+};
+
 export const getMenuSubcategoriesAPI = async ({ categoryId = '', categoryName = '' } = {}) => {
   const params = new URLSearchParams();
 
@@ -109,5 +133,15 @@ export const deleteMenuCategoryAPI = async (id) => {
   });
 
   const payload = await parseResponse(response, 'Unable to delete category.');
+  return payload?.data ?? payload;
+};
+
+export const createMenuCategoryAPI = async (categoryPayload) => {
+  const response = await authFetch(`${API_BASE}/api/v1/categories`, {
+    method: 'POST',
+    body: JSON.stringify(categoryPayload),
+  });
+
+  const payload = await parseResponse(response, 'Unable to create category.');
   return payload?.data ?? payload;
 };

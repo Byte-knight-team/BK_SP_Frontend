@@ -34,6 +34,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import MenuManagementPage from "./pages/MenuManagementPage";
 import AddMenuItemPage from "./pages/AddMenuItemPage";
 import EditMenuItemPage from "./pages/EditMenuItemPage";
+import AddCategoryPage from "./pages/AddCategoryPage";
 import TableManagementPage from "./pages/TableManagementPage";
 import AddTablePage from "./pages/AddTablePage";
 import UserManagementPage from "./pages/UserManagementPage";
@@ -101,6 +102,7 @@ export default function App() {
         <Route path="/admin">
           <Route index element={<AdminDashboardPage />} />
           <Route path="menu" element={<MenuManagementPage />} />
+          <Route path="menu/category/add" element={<AddCategoryPage />} />
           <Route path="menu/add" element={<AddMenuItemPage />} />
           <Route path="menu/edit" element={<EditMenuItemPage />} />
           <Route path="tables" element={<TableManagementPage />} />
