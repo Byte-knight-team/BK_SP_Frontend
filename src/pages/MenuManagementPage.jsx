@@ -265,6 +265,16 @@ export default function MenuManagementPage() {
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto px-8 pb-10">
+          <div className="mb-4 mt-1 flex justify-end">
+            <Link
+              to="/admin/menu/add"
+              className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+            >
+              <Plus size={14} />
+              Add Menu Item
+            </Link>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
@@ -347,14 +357,6 @@ export default function MenuManagementPage() {
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Menu Items</h2>
                 <div className="flex items-center gap-2">
-                  <Link
-                    to="/admin/menu/add"
-                    className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
-                  >
-                    <Plus size={14} />
-                    Add Menu Item
-                  </Link>
-
                   <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
                     <Search size={16} className="text-gray-400" />
                     <input
@@ -418,11 +420,11 @@ export default function MenuManagementPage() {
                         <button
                           type="button"
                           onClick={() => handleToggleAvailability(item.id)}
-                          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${item.status === 'Available' ? 'bg-orange-500' : 'bg-gray-300'}`}
+                          className={`relative flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${item.status === 'Available' ? 'bg-orange-500' : 'bg-gray-300'}`}
                           aria-label={`${item.name} availability toggle`}
                           aria-pressed={item.status === 'Available'}
                         >
-                          <span className={`absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform ${item.status === 'Available' ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                          <span className={`size-5 rounded-full bg-white shadow-sm transition-transform ${item.status === 'Available' ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
 
                         <div className="flex items-center gap-2">
