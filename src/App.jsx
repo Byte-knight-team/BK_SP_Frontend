@@ -1,5 +1,5 @@
-import React from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { CartProvider } from "./context/CartContext";
 
 // Layouts & Components
@@ -47,10 +47,55 @@ import KitchenSettingsPage from "./pages/kitchen/KitchenSettingsPage";
 // Receptionist Pages
 import ReceptionistDashboardPage from "./pages/receptionist/ReceptionistDashboardPage";
 
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
+// Global invisible guard that checks tokens on every route change on customer route
+function AuthGuard() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const customerJwt = localStorage.getItem('customer_jwt');
+    const qrSessionToken = localStorage.getItem('qr_session_token');
+
+    let changed = false;
+
+    // Auto-drop expired customer JWT
+    if (customerJwt && isTokenExpired(customerJwt)) {
+      localStorage.removeItem('customer_jwt');
+      localStorage.removeItem('customer_role');
+      localStorage.removeItem('customer_user_id');
+      localStorage.removeItem('customer_name');
+      changed = true;
+    }
+
+    // Auto-drop expired QR session token
+    if (qrSessionToken && isTokenExpired(qrSessionToken)) {
+      localStorage.removeItem('qr_session');
+      localStorage.removeItem('qr_session_token');
+      localStorage.removeItem('qr_branch_id');
+      localStorage.removeItem('qr_table_id');
+      changed = true;
+    }
+  }, [location.pathname]);
+
+  return null;
+}
+
+
 // Wrapper for Cart Context
 function CustomerLayout() {
   return (
     <CartProvider>
+      <AuthGuard />
+      {/*Render the matching child routes*/}
       <Outlet />
     </CartProvider>
   );
