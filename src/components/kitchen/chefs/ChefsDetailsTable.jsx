@@ -1,4 +1,3 @@
-import React from "react";
 import { User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getChefsAPI } from "../../../apis/kitchen/chefs";
@@ -55,7 +54,6 @@ const ChefDetailsTable = () => {
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-                    {/* මෙතනට පස්සේ රූපයක් දාන්න පුළුවන්, දැනට icon එකක් දාමු */}
                     <User size={20} />
                   </div>
                   <div>
