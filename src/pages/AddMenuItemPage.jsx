@@ -1,44 +1,210 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, Bell, HelpCircle, Settings, ArrowLeft, Upload, CheckCircle2, CircleDot
+  Search, Bell, HelpCircle, Settings, ArrowLeft, CheckCircle2, CircleDot
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
+import CloudinaryImageUpload from '../components/admin/CloudinaryImageUpload';
+import {
+  createMenuItemAPI,
+  getMenuCategoriesAPI,
+  getMenuSubcategoriesAPI,
+} from '../apis/menu';
+
+const normalizeSubCategory = (value) => {
+  const trimmed = value.trim().replace(/\s+/g, ' ');
+
+  if (!trimmed) {
+    return '';
+  }
+
+  return trimmed
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+const mapVisibilityToStatus = (visibility) => {
+  switch (visibility) {
+    case 'Available':
+      return 'AVAILABLE';
+    case 'Unavailable':
+      return 'UNAVAILABLE';
+    default:
+      return 'AVAILABLE';
+  }
+};
 
 export default function AddMenuItemPage() {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  const subCategoryWrapperRef = useRef(null);
 
   const [itemName, setItemName] = useState('');
-  const [category, setCategory] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [categoryName, setCategoryName] = useState('');
+  const [subCategory, setSubCategory] = useState('');
   const [basePrice, setBasePrice] = useState('0');
   const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState('Draft');
-  const [imagePreview, setImagePreview] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
+  const [visibility, setVisibility] = useState('Available');
+  const [imageData, setImageData] = useState(null);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [subCategoryOptions, setSubCategoryOptions] = useState([]);
+  const [isSubCategoryOpen, setIsSubCategoryOpen] = useState(false);
+  const [isMetaLoading, setIsMetaLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
 
   const visibilityOptions = [
-    { label: 'Active', color: 'text-gray-700' },
-    { label: 'Out of Stock', color: 'text-gray-700' },
-    { label: 'Draft', color: 'text-orange-500' },
+    { label: 'Available', color: 'text-orange-500' },
+    { label: 'Unavailable', color: 'text-gray-700' },
   ];
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+  const subCategorySuggestions = useMemo(() => {
+    const normalized = subCategory.trim().toLowerCase();
+
+    if (!normalized) {
+      return subCategoryOptions.slice(0, 8);
     }
+
+    return subCategoryOptions
+      .filter((entry) => entry.toLowerCase().includes(normalized))
+      .slice(0, 8);
+  }, [subCategory, subCategoryOptions]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCategories = async () => {
+      setIsMetaLoading(true);
+      setApiError('');
+
+      try {
+        const categories = await getMenuCategoriesAPI();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setCategoryOptions(categories);
+      } catch (error) {
+        if (isMounted) {
+          setApiError(error.message || 'Unable to load category data.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsMetaLoading(false);
+        }
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSubCategories = async () => {
+      try {
+        const data = await getMenuSubcategoriesAPI({ categoryId, categoryName });
+
+        if (isMounted) {
+          setSubCategoryOptions(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setApiError(error.message || 'Unable to load subcategories.');
+        }
+      }
+    };
+
+    loadSubCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [categoryId, categoryName]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!subCategoryWrapperRef.current?.contains(event.target)) {
+        setIsSubCategoryOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const validateForm = () => {
+    const nextErrors = {};
+    const normalizedSubCategory = normalizeSubCategory(subCategory);
+    const parsedPrice = Number(basePrice);
+
+    if (itemName.trim().length < 2) {
+      nextErrors.itemName = 'Item name must be at least 2 characters.';
+    }
+
+    if (!categoryId) {
+      nextErrors.categoryId = 'Please select a category.';
+    }
+
+    if (!normalizedSubCategory) {
+      nextErrors.subCategory = 'Subcategory is required.';
+    }
+
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      nextErrors.basePrice = 'Base price must be greater than 0.';
+    }
+
+    if (description.trim().length < 10) {
+      nextErrors.description = 'Description must be at least 10 characters.';
+    }
+
+    if (!imageData?.secure_url || !imageData?.public_id) {
+      nextErrors.image = 'Please upload an item image.';
+    }
+
+    setErrors(nextErrors);
+    return { isValid: Object.keys(nextErrors).length === 0, normalizedSubCategory };
   };
 
-  const handleCreateItem = () => {
-    // TODO: Hook up to backend API
-    console.log({ itemName, category, basePrice, description, visibility, imageFile });
-    navigate('/admin/menu/edit');
+  const handleCreateItem = async () => {
+    setApiError('');
+
+    const { isValid, normalizedSubCategory } = validateForm();
+    if (!isValid) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await createMenuItemAPI({
+        name: itemName.trim(),
+        categoryId,
+        categoryName,
+        subCategory: normalizedSubCategory,
+        price: Number(basePrice),
+        description: description.trim(),
+        status: mapVisibilityToStatus(visibility),
+        imageUrl: imageData.secure_url,
+        imagePublicId: imageData.public_id,
+      });
+
+      navigate('/admin/menu');
+    } catch (error) {
+      setApiError(error.message || 'Unable to create menu item.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -100,12 +266,19 @@ export default function AddMenuItemPage() {
               </button>
               <button
                 onClick={handleCreateItem}
+                disabled={isSubmitting}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
               >
-                Create Item
+                {isSubmitting ? 'Creating...' : 'Create Item'}
               </button>
             </div>
           </div>
+
+          {apiError && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {apiError}
+            </div>
+          )}
 
           {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
@@ -127,28 +300,70 @@ export default function AddMenuItemPage() {
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
                   placeholder="e.g. Classic Cheeseburger"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+                  className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all ${errors.itemName ? 'border-red-300' : 'border-gray-200'}`}
                 />
+                {errors.itemName && <p className="mt-1 text-xs text-red-600">{errors.itemName}</p>}
               </div>
 
-              {/* Category & Base Price */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* Category, Subcategory & Base Price */}
+              <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all appearance-none cursor-pointer"
+                    value={categoryId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const selectedCategory = categoryOptions.find((entry) => String(entry.id) === selectedId);
+
+                      setCategoryId(selectedId);
+                      setCategoryName(selectedCategory?.name || '');
+                      setSubCategory('');
+                    }}
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all appearance-none cursor-pointer ${errors.categoryId ? 'border-red-300' : 'border-gray-200'}`}
+                    disabled={isMetaLoading}
                   >
                     <option value="">Select category</option>
-                    <option value="Burgers">Burgers</option>
-                    <option value="Pizza">Pizza</option>
-                    <option value="Pasta">Pasta</option>
-                    <option value="Salads">Salads</option>
-                    <option value="Desserts">Desserts</option>
-                    <option value="Drinks">Drinks</option>
+                    {categoryOptions.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.name}
+                      </option>
+                    ))}
                   </select>
+                  {errors.categoryId && <p className="mt-1 text-xs text-red-600">{errors.categoryId}</p>}
                 </div>
+
+                <div ref={subCategoryWrapperRef} className="relative">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Subcategory</label>
+                  <input
+                    type="text"
+                    value={subCategory}
+                    onFocus={() => setIsSubCategoryOpen(true)}
+                    onChange={(e) => setSubCategory(e.target.value)}
+                    onBlur={() => setSubCategory(normalizeSubCategory(subCategory))}
+                    placeholder="Type or pick a subcategory"
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all ${errors.subCategory ? 'border-red-300' : 'border-gray-200'}`}
+                  />
+                  {isSubCategoryOpen && subCategorySuggestions.length > 0 && (
+                    <div className="absolute z-20 mt-2 max-h-52 w-full overflow-auto rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
+                      {subCategorySuggestions.map((entry) => (
+                        <button
+                          key={entry}
+                          type="button"
+                          className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-orange-50"
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            setSubCategory(normalizeSubCategory(entry));
+                            setIsSubCategoryOpen(false);
+                          }}
+                        >
+                          {entry}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {errors.subCategory && <p className="mt-1 text-xs text-red-600">{errors.subCategory}</p>}
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Base Price (LKR)</label>
                   <input
@@ -156,8 +371,11 @@ export default function AddMenuItemPage() {
                     value={basePrice}
                     onChange={(e) => setBasePrice(e.target.value)}
                     placeholder="0"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+                    min="0"
+                    step="0.01"
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all ${errors.basePrice ? 'border-red-300' : 'border-gray-200'}`}
                   />
+                  {errors.basePrice && <p className="mt-1 text-xs text-red-600">{errors.basePrice}</p>}
                 </div>
               </div>
 
@@ -169,8 +387,9 @@ export default function AddMenuItemPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your dish..."
                   rows={4}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all resize-none"
+                  className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all resize-none ${errors.description ? 'border-red-300' : 'border-gray-200'}`}
                 />
+                {errors.description && <p className="mt-1 text-xs text-red-600">{errors.description}</p>}
               </div>
             </div>
 
@@ -180,29 +399,11 @@ export default function AddMenuItemPage() {
               {/* Item Image */}
               <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm p-6">
                 <h2 className="text-base font-bold text-gray-900 mb-4">Item Image</h2>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-orange-300 hover:bg-orange-50/30 transition-all min-h-[180px] group"
-                >
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded-xl" />
-                  ) : (
-                    <>
-                      <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3 group-hover:bg-orange-50 transition-colors">
-                        <Upload size={24} className="text-gray-400 group-hover:text-orange-400 transition-colors" />
-                      </div>
-                      <p className="text-sm font-medium text-gray-600">Upload high-res PNG/JPG</p>
-                      <p className="text-xs text-gray-400 mt-1">Min. 600x600px suggested</p>
-                    </>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg"
-                  onChange={handleImageUpload}
-                  className="hidden"
+                <CloudinaryImageUpload
+                  onChange={(uploadResult) => setImageData(uploadResult)}
+                  className="w-full"
                 />
+                {errors.image && <p className="mt-1 text-xs text-red-600">{errors.image}</p>}
               </div>
 
               {/* Visibility */}
