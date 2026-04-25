@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {ArrowLeft,Banknote,ChevronRight,CreditCard,Gift,Home,Loader2,Lock,Mail,MapPin,Package,Phone,ReceiptText,Tag,User,AlertCircle, } from 'lucide-react';
+import { ArrowLeft, Banknote, ChevronRight, CreditCard, Gift, Home, Loader2, Lock, Mail, MapPin, Package, Phone, ReceiptText, Tag, User, AlertCircle, } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
@@ -47,6 +47,7 @@ function readCheckoutSeed() {
     appliedCouponCode: saved.appliedCouponCode || '',
     loyaltyDraft: saved.loyaltyDraft || '',
     appliedLoyaltyPoints: Number(saved.appliedLoyaltyPoints || 0),
+    kitchenNotes: saved.kitchenNotes || '',
   };
 }
 
@@ -65,6 +66,7 @@ export default function CheckoutPage() {
   const [appliedCouponCode, setAppliedCouponCode] = useState(seed.appliedCouponCode);
   const [loyaltyDraft, setLoyaltyDraft] = useState(seed.loyaltyDraft);
   const [appliedLoyaltyPoints, setAppliedLoyaltyPoints] = useState(seed.appliedLoyaltyPoints);
+  const [kitchenNotes, setKitchenNotes] = useState(seed.kitchenNotes);
   const [receipt, setReceipt] = useState(null);
 
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -133,9 +135,10 @@ export default function CheckoutPage() {
       appliedCouponCode,
       loyaltyDraft,
       appliedLoyaltyPoints,
+      kitchenNotes,
     };
     localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(state));
-  }, [orderType, paymentMethod, branchId, tableId, contact, couponDraft, appliedCouponCode, loyaltyDraft, appliedLoyaltyPoints]);
+  }, [orderType, paymentMethod, branchId, tableId, contact, couponDraft, appliedCouponCode, loyaltyDraft, appliedLoyaltyPoints, kitchenNotes]);
 
   const calculateTotals = useCallback(async (overrides = {}) => {
     if (!authToken) {
@@ -375,7 +378,7 @@ export default function CheckoutPage() {
         contactPhone: contact.phone.trim(),
         contactEmail: isQrCustomer ? null : contact.email.trim(),
         deliveryAddress: !isQrCustomer && isDelivery ? contact.address.trim() : null,
-        kitchenNotes: '',
+        kitchenNotes: kitchenNotes.trim() || null,
         paymentMethod,
       };
 
@@ -770,6 +773,16 @@ export default function CheckoutPage() {
                 )}
               </div>
             </div>
+          </section>
+
+          <section className="rounded-[22px] border border-gray-100 bg-white p-6 shadow-[0_16px_30px_rgba(15,23,42,0.06)]">
+            <h3 className="mb-3 font-heading text-[1.05rem] font-bold text-navy">Kitchen Notes</h3>
+            <textarea
+              className={inputCls + " min-h-[80px] resize-y text-[0.9rem]"}
+              placeholder="Any special requests or allergies? (Optional)"
+              value={kitchenNotes}
+              onChange={(e) => setKitchenNotes(e.target.value)}
+            />
           </section>
 
           <section className="rounded-[22px] bg-slate-900 p-6 text-white shadow-[0_16px_30px_rgba(15,23,42,0.14)]">
