@@ -19,6 +19,7 @@ import HomePage from "./pages/customer/HomePage";
 import MenuPage from "./pages/customer/MenuPage";
 import CartPage from "./pages/customer/CartPage";
 import CheckoutPage from "./pages/customer/CheckoutPage";
+import CardPaymentPage from "./pages/customer/CardPaymentPage";
 import OrderConfirmationPage from "./pages/customer/OrderConfirmationPage";
 import LoginPage from "./pages/customer/LoginPage";
 import SignupPersonalPage from "./pages/customer/SignupPersonalPage";
@@ -86,6 +87,7 @@ export default function App() {
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment" element={<CardPaymentPage />} />
           <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPersonalPage />} />

@@ -16,6 +16,8 @@ export default function SignupAddressPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  const redirectTo = location.state?.redirect || '/menu';
+
   const personal = location.state?.personal;
 
   const handleChange = (field) => (e) => {
@@ -73,7 +75,7 @@ export default function SignupAddressPage() {
       localStorage.removeItem('qr_branch_id');
       localStorage.removeItem('qr_table_id');
 
-      navigate('/menu', { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to register.');
     } finally {
