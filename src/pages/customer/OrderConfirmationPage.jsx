@@ -14,10 +14,14 @@ export default function OrderConfirmationPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const order = location.state || {};
+  const normalizedOrderType = String(order.orderType || '').toUpperCase();
+  const isDelivery = normalizedOrderType === 'DELIVERY' || normalizedOrderType === 'ONLINE_DELIVERY';
+  const isQr = normalizedOrderType === 'QR';
   const {
     orderId = '229714', orderDate = new Date().toLocaleString(), items = [],
     subtotal = 0, deliveryFee = 0, tax = 0, total = 0,
     orderType = 'delivery', fullName = '', phone = '', address = '', paymentMethod = 'pay-now',
+    tableId = '',
   } = order;
 
   const currentStep = 0;
@@ -61,7 +65,7 @@ export default function OrderConfirmationPage() {
         </div>
 
         {/* Live Map */}
-        {orderType === 'delivery' && (
+        {isDelivery && (
           <div className="bg-white border border-gray-200 rounded-[16px] p-6 mb-4 max-md:p-5">
             <div className="flex items-center gap-2 mb-4">
               <MapPin size={16} className="text-orange" />
@@ -137,14 +141,22 @@ export default function OrderConfirmationPage() {
 
         {/* Address */}
         <div className="bg-white border border-gray-200 rounded-[16px] p-6 mb-4 max-md:p-5">
-          <h3 className="font-heading text-[1.05rem] font-bold text-navy mb-3.5">{orderType === 'delivery' ? 'Delivery Address' : 'Pickup Location'}</h3>
+          <h3 className="font-heading text-[1.05rem] font-bold text-navy mb-3.5">
+            {isDelivery ? 'Delivery Address' : isQr ? 'QR Dine-In Details' : 'Pickup Location'}
+          </h3>
           <div className="flex gap-3 items-start">
             <div className="w-9 h-9 rounded-full bg-blue-light text-blue flex items-center justify-center shrink-0"><MapPin size={18} /></div>
             <div>
-              {orderType === 'delivery' ? (
+              {isDelivery ? (
                 <>
                   <span className="block text-[0.85rem] font-semibold text-navy leading-relaxed">{fullName || 'Customer'}</span>
                   <span className="block text-[0.85rem] text-gray-500 leading-relaxed">{address || 'Colombo Western Province'}</span>
+                  <span className="block text-[0.85rem] text-gray-500 leading-relaxed">{phone || '1234567890'}</span>
+                </>
+              ) : isQr ? (
+                <>
+                  <span className="block text-[0.85rem] font-semibold text-navy leading-relaxed">Table {tableId || 'N/A'}</span>
+                  <span className="block text-[0.85rem] text-gray-500 leading-relaxed">QR order confirmed for dine-in</span>
                   <span className="block text-[0.85rem] text-gray-500 leading-relaxed">{phone || '1234567890'}</span>
                 </>
               ) : (
