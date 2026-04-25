@@ -1,4 +1,3 @@
-
 import { Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { CartProvider } from "./context/CartContext";
