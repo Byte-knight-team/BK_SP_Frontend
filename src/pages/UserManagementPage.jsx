@@ -4,8 +4,8 @@ import {
   CheckCircle2, XCircle, Pencil, Trash2, UserPlus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import AdminSidebar from '../components/AdminSidebar';
-import AdminHeader from '../components/AdminHeader';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import AdminHeader from '../components/admin/AdminHeader';
 
 export default function UserManagementPage() {
   const users = [

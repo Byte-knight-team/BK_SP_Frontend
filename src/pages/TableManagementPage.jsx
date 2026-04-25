@@ -5,8 +5,8 @@ import {
   Printer, Plus, LayoutGrid, List, Filter,
   MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle, UserCheck, ShoppingBag
 } from 'lucide-react';
-import AdminSidebar from '../components/AdminSidebar';
-import AdminHeader from '../components/AdminHeader';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import AdminHeader from '../components/admin/AdminHeader';
 
 export default function TableManagementPage() {
   const [viewMode, setViewMode] = useState('grid');
