@@ -9,7 +9,7 @@ import {
   createMenuItemAPI,
   getMenuCategoriesAPI,
   getMenuSubcategoriesAPI,
-} from '../apis/menu';
+} from '../apis/admin/menu';
 
 const normalizeSubCategory = (value) => {
   const trimmed = value.trim().replace(/\s+/g, ' ');
@@ -415,8 +415,8 @@ export default function AddMenuItemPage() {
                       key={option.label}
                       onClick={() => setVisibility(option.label)}
                       className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${visibility === option.label
-                          ? 'bg-orange-50 text-orange-500 border border-orange-200'
-                          : 'text-gray-600 hover:bg-gray-50 border border-transparent'
+                        ? 'bg-orange-50 text-orange-500 border border-orange-200'
+                        : 'text-gray-600 hover:bg-gray-50 border border-transparent'
                         }`}
                     >
                       <span>{option.label}</span>

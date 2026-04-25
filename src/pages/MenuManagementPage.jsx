@@ -20,7 +20,7 @@ import {
   getMenuCategoriesAPI,
   getMenuSubcategoriesAPI,
   deleteMenuItemAPI,
-} from '../apis/menu';
+} from '../apis/admin/menu';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
 
@@ -317,9 +317,8 @@ export default function MenuManagementPage() {
                       key={category.id}
                       type="button"
                       onClick={() => setActiveCategory(category.name)}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${
-                        isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
-                      }`}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
+                        }`}
                     >
                       <span className="flex items-center gap-3 text-sm font-medium">
                         {category.name}
@@ -353,9 +352,8 @@ export default function MenuManagementPage() {
                       key={subCat}
                       type="button"
                       onClick={() => setActiveSubCategory(subCat)}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${
-                        isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
-                      }`}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
+                        }`}
                     >
                       <span className="flex items-center gap-3 text-sm font-medium">
                         <span className="grid size-5 place-items-center text-gray-300">⋮⋮</span>
