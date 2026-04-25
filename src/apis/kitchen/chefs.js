@@ -6,36 +6,35 @@ const chefsStats = {
 };
 
 const dummyChefs = [
-  { 
-    name: "Isuru Udara", 
-    role: "Executive Chef", 
-    status: "Available", 
-    mealsAssigned: 42, 
-    avgPrepTime: "11m 40s", 
+  {
+    name: "Isuru Udara",
+    role: "Executive Chef",
+    status: "Available",
+    mealsAssigned: 42,
+    avgPrepTime: "11m 40s",
   },
-  { 
-    name: "Kamal Perera", 
-    role: "Sous Chef", 
-    status: "Busy", 
-    mealsAssigned: 28, 
-    avgPrepTime: "14m 15s", 
+  {
+    name: "Kamal Perera",
+    role: "Sous Chef",
+    status: "Busy",
+    mealsAssigned: 28,
+    avgPrepTime: "14m 15s",
   },
-  { 
-    name: "Amal Silva", 
-    role: "Line Cook", 
-    status: "Offline", 
-    mealsAssigned: 0, 
-    avgPrepTime: "N/A", 
+  {
+    name: "Amal Silva",
+    role: "Line Cook",
+    status: "Offline",
+    mealsAssigned: 0,
+    avgPrepTime: "N/A",
   },
-  { 
-    name: "Nimal J.", 
-    role: "Pastry Chef", 
-    status: "Available", 
-    mealsAssigned: 12, 
-    avgPrepTime: "18m 05s", 
-  }
+  {
+    name: "Nimal J.",
+    role: "Pastry Chef",
+    status: "Available",
+    mealsAssigned: 12,
+    avgPrepTime: "18m 05s",
+  },
 ];
-
 
 export const getChefsStatsAPI = async () => {
   try {
@@ -67,4 +66,20 @@ export const getChefsAPI = async () => {
   }
 };
 
+// Get all available Line Chefs for the assign dropdown
+export const getAvailableChefsAPI = async () => {
+  try {
+    const response = await authFetch(
+      "http://localhost:8080/api/v1/kitchen/available-chefs"
+    );
+    
+    const result = await response.json();
+    
+    return { data: result.data, error: null };
+    
+  } catch (error) {
+    console.error("Error fetching available chefs:", error);
+    return { data: null, error: error };
+  }
+};
 
