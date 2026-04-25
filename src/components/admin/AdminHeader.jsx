@@ -4,7 +4,7 @@ export default function AdminHeader() {
   return (
     <AppHeader
       title="Admin Panel"
-      subtitle="Branch administration and staff operations"
+      subtitle="Branch-level administration, staff operations, menu, and table management"
     />
   );
 }
