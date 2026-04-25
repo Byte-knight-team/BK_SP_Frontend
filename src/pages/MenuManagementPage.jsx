@@ -23,6 +23,10 @@ import {
   getMenuSubcategoriesAPI,
   deleteMenuItemAPI,
   deleteMenuCategoryAPI,
+  getMenuCategoriesCountAPI,
+  getMenuSubcategoriesCountAPI,
+  getMenuItemsCountAPI,
+  getAvailableItemsCountAPI,
 } from '../apis/admin/menu';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
@@ -43,6 +47,35 @@ export default function MenuManagementPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState(null);
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
+  const [totalCategoriesCount, setTotalCategoriesCount] = useState(0);
+  const [totalSubCategoriesCount, setTotalSubCategoriesCount] = useState(0);
+  const [totalMenuItemsCount, setTotalMenuItemsCount] = useState(0);
+  const [totalAvailableItemsCount, setTotalAvailableItemsCount] = useState(0);
+
+  // Fetch counts whenever menu items or categories change
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCounts = async () => {
+      try {
+        const [catCount, subCatCount, itemsCount, availCount] = await Promise.all([
+          getMenuCategoriesCountAPI(),
+          getMenuSubcategoriesCountAPI(),
+          getMenuItemsCountAPI(),
+          getAvailableItemsCountAPI(),
+        ]);
+        if (isMounted) {
+          setTotalCategoriesCount(catCount);
+          setTotalSubCategoriesCount(subCatCount);
+          setTotalMenuItemsCount(itemsCount);
+          setTotalAvailableItemsCount(availCount);
+        }
+      } catch (error) {
+        console.error('Failed to fetch counts:', error);
+      }
+    };
+    fetchCounts();
+    return () => { isMounted = false; };
+  }, [categoryOptions, menuItems]);
 
   // Load categories on mount
   useEffect(() => {
@@ -225,22 +258,22 @@ export default function MenuManagementPage() {
   const summaryCards = [
     {
       label: 'Categories',
-      value: String(categoryOptions.length),
+      value: String(totalCategoriesCount),
       tone: 'bg-amber-50 text-amber-600',
     },
     {
       label: 'Sub Categories',
-      value: String(subCategoryOptions.length),
+      value: String(totalSubCategoriesCount),
       tone: 'bg-orange-100 text-orange-700',
     },
     {
       label: 'Menu Items',
-      value: String(menuItems.length),
+      value: String(totalMenuItemsCount),
       tone: 'bg-orange-50 text-orange-600',
     },
     {
       label: 'Available Items',
-      value: String(menuItems.filter((item) => item.status?.toUpperCase() === 'AVAILABLE').length),
+      value: String(totalAvailableItemsCount),
       tone: 'bg-emerald-50 text-emerald-600',
     },
   ];
@@ -376,7 +409,9 @@ export default function MenuManagementPage() {
                 })}
               </div>
 
-              <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 px-4 py-3 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50">
+              <button 
+                onClick={() => navigate('/admin/menu/category/add')}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 px-4 py-3 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50">
                 <Plus size={16} />
                 Add Category
               </button>
