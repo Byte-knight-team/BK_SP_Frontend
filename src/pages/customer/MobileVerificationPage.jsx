@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Phone, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 
@@ -10,6 +10,10 @@ export default function MobileVerificationPage() {
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTo = searchParams.get('redirect') || '/checkout'; // Default QR to checkout
 
   const handleSendOTP = async (e) => {
     e.preventDefault();
@@ -42,7 +46,12 @@ export default function MobileVerificationPage() {
         throw new Error(payload?.message || 'Failed to send OTP.');
       }
 
-      navigate('/verify-otp', { state: { phone: phone.trim() } });
+      navigate("/verify-otp", {
+        state: {
+          phone: phone.trim(),
+          redirect: redirectTo, // Pass the baton!
+        },
+      });
     } catch (err) {
       setError(err.message);
     } finally {
