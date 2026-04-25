@@ -7,6 +7,16 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 const CHECKOUT_STORAGE_KEY = 'bk_checkout_state';
 const ONLINE_BRANCH = { id: 1, name: 'Branch 01', address: '123 Restaurant St, Colombo' };
 
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
 function safeParse(value, fallback) {
   try {
     return value ? JSON.parse(value) : fallback;
@@ -26,6 +36,7 @@ function readCheckoutSeed() {
     paymentMethod: saved.paymentMethod || 'CASH',
     branchId: Number(qrSession?.branchId || saved.branchId || ONLINE_BRANCH.id),
     tableId: qrSession?.tableId || saved.tableId || null,
+    qrSessionId: qrSession?.sessionId || null,
     contact: {
       username: saved.contact?.username || '',
       email: saved.contact?.email || '',
@@ -310,6 +321,15 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    // QR Session expiry check — block the order if the table session has expired
+    if (isQrCustomer) {
+      const qrToken = localStorage.getItem('qr_session_token');
+      if (!qrToken || isTokenExpired(qrToken)) {
+        setError('Your table session has expired. Please close this tab and rescan the QR code.');
+        return;
+      }
+    }
+
     if (!contact.username.trim()) {
       setError('Username is required.');
       return;
@@ -344,6 +364,7 @@ export default function CheckoutPage() {
         orderType: orderModeValue,
         branchId,
         tableId: isQrCustomer ? tableId : null,
+        qrSessionId: isQrCustomer ? seed.qrSessionId : undefined,
         couponCode: appliedCouponCode || undefined,
         redeemLoyaltyPoints: appliedLoyaltyPoints || undefined,
         items: cartItems.map((item) => ({
