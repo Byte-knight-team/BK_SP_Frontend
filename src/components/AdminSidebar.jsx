@@ -91,14 +91,6 @@ export default function AdminSidebar() {
             {/* Dropdown Options */}
             {!isCollapsed && isMenuDropdownOpen && (
               <div className="mt-2 ml-4 flex flex-col gap-1 border-l-2 border-gray-100 pl-2">
-                <Link to="/admin/menu?status=available" className={getSubLinkClass('/admin/menu?status=available')}>
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></div>
-                  Available
-                </Link>
-                <Link to="/admin/menu?status=not_available" className={getSubLinkClass('/admin/menu?status=not_available')}>
-                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1"></div>
-                  Not Available
-                </Link>
                 <Link to="/admin/menu?status=draft" className={getSubLinkClass('/admin/menu?status=draft')}>
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-1"></div>
                   Draft

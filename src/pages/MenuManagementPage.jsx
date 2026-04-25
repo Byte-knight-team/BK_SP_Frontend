@@ -456,17 +456,20 @@ export default function MenuManagementPage() {
             </section>
           </div>
 
-          <section className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {summaryCards.map((card) => (
-              <div key={card.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-                <div className={`inline-flex rounded-xl px-4 py-3 text-center ${card.tone}`}>
-                  <div>
-                    <div className="text-2xl font-bold leading-none">{card.value}</div>
-                    <div className="mt-1 text-xs font-medium opacity-80">{card.label}</div>
+          <section className="mt-6">
+            <h3 className="mb-3 text-sm font-semibold text-gray-700">Menu Summary</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {summaryCards.map((card) => (
+                <div key={card.label} className="flex items-center justify-center rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                  <div className={`inline-flex rounded-xl px-4 py-3 text-center ${card.tone}`}>
+                    <div>
+                      <div className="text-2xl font-bold leading-none">{card.value}</div>
+                      <div className="mt-1 text-xs font-medium opacity-80">{card.label}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </section>
         </div>
       </main>
