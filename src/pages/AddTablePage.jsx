@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Hash, Users, MapPin, Save, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import AdminSidebar from '../components/AdminSidebar';
-import AdminHeader from '../components/AdminHeader';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import AdminHeader from '../components/admin/AdminHeader';
 
 export default function AddTablePage() {
   const navigate = useNavigate();
