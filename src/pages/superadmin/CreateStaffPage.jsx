@@ -4,41 +4,37 @@ import { RiUserAddLine, RiArrowLeftLine } from "@remixicon/react";
 
 import { createStaffAPI } from "../../apis/staff/staff";
 import { getAllBranchesAPI } from "../../apis/staff/branches";
-
-/*
-    These are the roles SUPER_ADMIN can create.
-
-    SUPER_ADMIN can create:
-    - SUPER_ADMIN
-    - ADMIN
-    - MANAGER
-    - CHEF
-    - RECEPTIONIST
-    - DELIVERY
-*/
-const SUPER_ADMIN_ROLES = [
-    "SUPER_ADMIN",
-    "ADMIN",
-    "MANAGER",
-    "CHEF",
-    "RECEPTIONIST",
-    "DELIVERY",
-];
-
-/*
-    These are the roles ADMIN can create.
-
-    ADMIN should only create lower branch-level staff.
-    ADMIN should not create another ADMIN or SUPER_ADMIN.
-*/
-const ADMIN_ROLES = [
-    "MANAGER",
-    "CHEF",
-    "RECEPTIONIST",
-    "DELIVERY",
-];
+import { getRolesAPI } from "../../apis/staff/roles";
 
 export default function CreateStaffPage() {
+
+
+    /*
+    Roles are now loaded from the database.
+
+    SUPER_ADMIN can assign all staff-side roles except CUSTOMER.
+    ADMIN can assign only branch-level roles, so ADMIN cannot assign:
+    - CUSTOMER
+    - SUPER_ADMIN
+    - ADMIN
+*/
+    const SUPER_ADMIN_BLOCKED_ROLES = ["CUSTOMER"];
+    const ADMIN_BLOCKED_ROLES = ["CUSTOMER", "SUPER_ADMIN", "ADMIN"];
+
+    /*
+        Checks whether the logged-in user is allowed to assign a role.
+    */
+    function canAssignRole(roleName, isSuperAdmin, isAdmin) {
+        if (isSuperAdmin) {
+            return !SUPER_ADMIN_BLOCKED_ROLES.includes(roleName);
+        }
+
+        if (isAdmin) {
+            return !ADMIN_BLOCKED_ROLES.includes(roleName);
+        }
+
+        return false;
+    }
     /*
         useNavigate is used to redirect after successful staff creation.
     */
@@ -71,10 +67,7 @@ export default function CreateStaffPage() {
     const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
     const isAdmin = loggedInRole === "ADMIN";
 
-    /*
-        Decide which roles should be shown in the role dropdown.
-    */
-    const allowedRoles = isSuperAdmin ? SUPER_ADMIN_ROLES : ADMIN_ROLES;
+
 
     /*
         formData stores all form input values.
@@ -90,6 +83,10 @@ export default function CreateStaffPage() {
         phone: "",
         roleName: isSuperAdmin ? "RECEPTIONIST" : "MANAGER",
         branchId: isSuperAdmin ? "" : loggedInBranchId,
+
+        // Actual salary saved for this staff member.
+        // This will be auto-filled from selected role baseSalary.
+        salary: "",
     });
 
     /*
@@ -101,7 +98,19 @@ export default function CreateStaffPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [branches, setBranches] = useState([]);
+    // Roles are loaded so we can auto-fill salary from selected role.
+    const [roles, setRoles] = useState([]);
+    const [rolesLoading, setRolesLoading] = useState(true);
     const [branchLoading, setBranchLoading] = useState(true);
+
+
+    /*
+    Role dropdown values come from backend roles table.
+    This allows newly-created roles like LINE_CHEF to appear automatically.
+*/
+    const allowedRoles = roles.filter((role) =>
+        canAssignRole(role.name, isSuperAdmin, isAdmin)
+    );
 
     /*
         Check whether a branch is active.
@@ -167,6 +176,49 @@ export default function CreateStaffPage() {
         loadBranches();
     }, [isSuperAdmin]);
 
+
+    /*
+    Load roles from backend so staff role dropdown is database-driven.
+*/
+    useEffect(() => {
+        const loadRoles = async () => {
+            setRolesLoading(true);
+
+            try {
+                const data = await getRolesAPI();
+                const roleList = Array.isArray(data) ? data : [];
+
+                setRoles(roleList);
+
+                const filteredRoles = roleList.filter((role) =>
+                    canAssignRole(role.name, isSuperAdmin, isAdmin)
+                );
+
+                const defaultRoleName =
+                    filteredRoles.find((role) => role.name === "RECEPTIONIST")?.name ||
+                    filteredRoles[0]?.name ||
+                    "";
+
+                const defaultRole = roleList.find((role) => role.name === defaultRoleName);
+
+                setFormData((previous) => ({
+                    ...previous,
+                    roleName: defaultRoleName,
+                    salary:
+                        defaultRole?.baseSalary === null || defaultRole?.baseSalary === undefined
+                            ? ""
+                            : String(defaultRole.baseSalary),
+                }));
+            } catch (error) {
+                console.error("Failed to load role data:", error);
+            } finally {
+                setRolesLoading(false);
+            }
+        };
+
+        loadRoles();
+    }, [isSuperAdmin, isAdmin]);
+
     /*
         Set the shared page header for this page.
     */
@@ -179,6 +231,29 @@ export default function CreateStaffPage() {
 
         return () => setHeaderInfo(null);
     }, [setHeaderInfo]);
+
+
+
+    /**
+ * Finds the selected role from the roles loaded from backend.
+ */
+    const findRoleByName = (roleName) => {
+        return roles.find((role) => role.name === roleName);
+    };
+
+    /**
+     * Returns default salary for selected role.
+     * Old roles may have null baseSalary, so we return empty string in that case.
+     */
+    const getDefaultSalaryForRole = (roleName) => {
+        const role = findRoleByName(roleName);
+
+        if (!role || role.baseSalary === null || role.baseSalary === undefined) {
+            return "";
+        }
+
+        return String(role.baseSalary);
+    };
 
     /*
         Update formData when user types or selects something.
@@ -204,6 +279,14 @@ export default function CreateStaffPage() {
             */
             if (name === "roleName" && value === "SUPER_ADMIN") {
                 updatedData.branchId = "";
+            }
+
+            /*
+    When role changes, auto-fill salary from that role's base salary.
+    User can still manually change the salary after this.
+*/
+            if (name === "roleName") {
+                updatedData.salary = value === "SUPER_ADMIN" ? "" : getDefaultSalaryForRole(value);
             }
 
             return updatedData;
@@ -244,6 +327,13 @@ export default function CreateStaffPage() {
                     : isSuperAdmin
                         ? Number(formData.branchId)
                         : Number(loggedInBranchId),
+
+            // Salary is optional.
+            // If empty, backend can use role base salary.
+            salary:
+                formData.roleName === "SUPER_ADMIN" || formData.salary === ""
+                    ? null
+                    : Number(formData.salary),
         };
 
         /*
@@ -263,6 +353,16 @@ export default function CreateStaffPage() {
         */
         if (payload.roleName !== "SUPER_ADMIN" && !payload.branchId) {
             setError("Please select a branch.");
+            setLoading(false);
+            return;
+        }
+
+
+        /*
+    Salary cannot be negative.
+*/
+        if (payload.salary !== null && payload.salary < 0) {
+            setError("Salary cannot be negative.");
             setLoading(false);
             return;
         }
@@ -418,11 +518,38 @@ export default function CreateStaffPage() {
                             >
                                 {/* Show only roles allowed for the logged-in user */}
                                 {allowedRoles.map((role) => (
-                                    <option key={role} value={role}>
-                                        {role}
+                                    <option key={role.id || role.name} value={role.name}>
+                                        {role.name}
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        {/* Monthly salary */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Monthly Salary (LKR)
+                            </label>
+
+                            <input
+                                type="number"
+                                name="salary"
+                                value={formData.salary}
+                                onChange={handleChange}
+                                min="0"
+                                step="0.01"
+                                disabled={formData.roleName === "SUPER_ADMIN" || rolesLoading}
+                                placeholder={
+                                    rolesLoading
+                                        ? "Loading role salary..."
+                                        : "Enter staff salary"
+                                }
+                                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
+                            />
+
+                            <p className="mt-1 text-xs text-gray-400">
+                                Auto-filled from the selected role. You can adjust it before creating the staff member.
+                            </p>
                         </div>
 
                         {/* Branch section */}
@@ -430,7 +557,7 @@ export default function CreateStaffPage() {
                             /*
                                 SUPER_ADMIN can select branch manually,
                                 but only for branch-level staff.
-
+    
                                 If SUPER_ADMIN is creating another SUPER_ADMIN,
                                 branch is not required.
                             */
@@ -523,7 +650,7 @@ export default function CreateStaffPage() {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
