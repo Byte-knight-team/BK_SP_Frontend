@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut } from 'lucide-react';
+import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import BrandLogo from './BrandLogo';
 import LoginButton from './LoginCustomer';
 import SignupButton from './SignupCustomer';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+function getQrSession() {
+  try {
+    return JSON.parse(localStorage.getItem('qr_session') || 'null');
+  } catch {
+    return null;
+  }
+}
 
 export default function Navbar() {
   // 1. Grab clearCart from the context!
@@ -48,6 +58,35 @@ export default function Navbar() {
     clearCart();
 
     setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '' });
+    navigate('/');
+  };
+
+  // ── Leave Table: end QR session (backend + frontend), wipe everything ──
+  const handleLeaveTable = async () => {
+    const qrSession = getQrSession();
+    const sessionId = qrSession?.sessionId;
+
+    // Call backend to formally end the session (fire-and-forget, don't block on failure)
+    if (sessionId) {
+      try {
+        await fetch(`${API_BASE}/api/v1/qr-sessions/${sessionId}/end`, { method: 'PUT' });
+      } catch {
+        // Silent — we still clear frontend regardless
+      }
+    }
+
+    // Clear everything — both QR session AND customer auth
+    localStorage.removeItem('qr_session');
+    localStorage.removeItem('qr_session_token');
+    localStorage.removeItem('qr_branch_id');
+    localStorage.removeItem('qr_table_id');
+    localStorage.removeItem('customer_jwt');
+    localStorage.removeItem('customer_role');
+    localStorage.removeItem('customer_user_id');
+    localStorage.removeItem('customer_name');
+
+    clearCart();
+    setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '' });
     navigate('/');
   };
 
@@ -148,25 +187,47 @@ export default function Navbar() {
                   </Link>
                 )}
 
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex items-center justify-center p-2 rounded-xl text-red-500 hover:bg-red-50 transition-colors"
-                  title="Logout"
-                >
-                  <LogOut size={18} />
-                </button>
+                {/* LEAVE TABLE for QR + logged-in users */}
+                {auth.isQrCustomer ? (
+                  <button
+                    onClick={handleLeaveTable}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
+                    title="Leave Table"
+                  >
+                    <DoorOpen size={18} />
+                    <span>Leave Table</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleLogout}
+                    className="inline-flex items-center justify-center p-2 rounded-xl text-red-500 hover:bg-red-50 transition-colors"
+                    title="Logout"
+                  >
+                    <LogOut size={18} />
+                  </button>
+                )}
               </>
             )}
 
-            {/* ───── QR CUSTOMER VIEW ───── */}
+            {/* ───── QR CUSTOMER VIEW (not logged in) ───── */}
             {auth.isQrCustomer && !auth.isLoggedIn && (
-              <button
-                onClick={handleTableOrderClick}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
-              >
-                <Package size={18} />
-                <span>Table Orders</span>
-              </button>
+              <>
+                <button
+                  onClick={handleTableOrderClick}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+                >
+                  <Package size={18} />
+                  <span>Table Orders</span>
+                </button>
+                <button
+                  onClick={handleLeaveTable}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
+                  title="Leave Table"
+                >
+                  <DoorOpen size={18} />
+                  <span>Leave Table</span>
+                </button>
+              </>
             )}
           </div>
 
@@ -261,26 +322,40 @@ export default function Navbar() {
                 >
                   <UserCircle2 size={18} /> {auth.userName || "Account"}
                 </Link>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    toggleMenu();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-red-600 hover:bg-red-50"
-                >
-                  <LogOut size={18} /> Logout
-                </button>
+                {auth.isQrCustomer ? (
+                  <button
+                    onClick={() => { handleLeaveTable(); toggleMenu(); }}
+                    className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-amber-700 hover:bg-amber-50"
+                  >
+                    <DoorOpen size={18} /> Leave Table
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { handleLogout(); toggleMenu(); }}
+                    className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut size={18} /> Logout
+                  </button>
+                )}
               </>
             )}
 
+            {/* Mobile: QR customer not logged in */}
             {auth.isQrCustomer && !auth.isLoggedIn && (
-              <Link
-                to="/orders"
-                onClick={toggleMenu}
-                className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
-              >
-                <Package size={18} /> Table Orders
-              </Link>
+              <>
+                <button
+                  onClick={() => { handleTableOrderClick(); toggleMenu(); }}
+                  className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
+                >
+                  <Package size={18} /> Table Orders
+                </button>
+                <button
+                  onClick={() => { handleLeaveTable(); toggleMenu(); }}
+                  className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 font-medium text-amber-700 hover:bg-amber-50"
+                >
+                  <DoorOpen size={18} /> Leave Table
+                </button>
+              </>
             )}
 
             {!isMenuPage && (
