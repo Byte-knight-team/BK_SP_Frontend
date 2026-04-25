@@ -1,10 +1,8 @@
 import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
-import { getOrdersAPI } from "../../../apis/kitchen/orders";
+import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 
 const PendingOrdersTab = ({ handleOrderClick }) => {
-  //destructuring the handleOrderClick method from the parent component
-
   const [pendingOrdersDetails, setPendingOrdersDetails] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -12,11 +10,10 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
     const fetchPendingOrdersDetails = async () => {
       //enable loading
       setLoading(true);
-      //api call
-      const { data, error } = await getOrdersAPI("PENDING", null);
+      const { data, error } = await getOrderCardsAPI("PENDING");
       //handle error
       if (error) {
-        console.error("Error fetching stats details:", error);
+        console.error("Error fetching pending orders:", error);
         return;
       }
       //handle success
@@ -31,19 +28,32 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <p className="animate-pulse py-8 text-center text-sm font-bold text-orange-400">
+        Loading...
+      </p>
+    );
+  }
+
+  //when no pending orders found show this message
+  if (pendingOrdersDetails.length === 0) {
+    return (
+      <p className="py-8 text-center text-sm text-gray-300">
+        No pending orders right now
+      </p>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {pendingOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
-          status="PENDING"
+          status={order.status}
           time={order.time}
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
-          onClick={() => handleOrderClick(order.id)} //pass data to the parent component
+          onClick={() => handleOrderClick(order.id)}
         />
       ))}
     </div>
