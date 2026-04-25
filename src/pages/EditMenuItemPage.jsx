@@ -1,49 +1,281 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, Bell, HelpCircle, Settings, ArrowLeft, Upload, CheckCircle2, CircleDot
+  Search, Bell, HelpCircle, Settings, ArrowLeft, CheckCircle2, CircleDot
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
+import CloudinaryImageUpload from '../components/admin/CloudinaryImageUpload';
+import {
+  getMenuItemByIdAPI,
+  getMenuCategoriesAPI,
+  getMenuSubcategoriesAPI,
+  updateMenuItemAPI,
+} from '../apis/menu';
+
+const normalizeSubCategory = (value) => {
+  const trimmed = value.trim().replace(/\s+/g, ' ');
+
+  if (!trimmed) {
+    return '';
+  }
+
+  return trimmed
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+const mapVisibilityToStatus = (visibility) => {
+  switch (visibility) {
+    case 'Available':
+      return 'AVAILABLE';
+    case 'Unavailable':
+      return 'UNAVAILABLE';
+    default:
+      return 'AVAILABLE';
+  }
+};
+
+const mapStatusToVisibility = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'UNAVAILABLE':
+      return 'Unavailable';
+    default:
+      return 'Available';
+  }
+};
 
 export default function EditMenuItemPage() {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  const { id: itemId } = useParams();
+  const subCategoryWrapperRef = useRef(null);
 
-  const [itemName, setItemName] = useState('Pepperoni Pizza');
-  const [category, setCategory] = useState('');
-  const [basePrice, setBasePrice] = useState('1650');
+  const [itemName, setItemName] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [categoryName, setCategoryName] = useState('');
+  const [subCategory, setSubCategory] = useState('');
+  const [basePrice, setBasePrice] = useState('0');
   const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState('Active');
-  const [imagePreview, setImagePreview] = useState('https://images.unsplash.com/photo-1628840042765-356cda07504e?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cGVwcGVyb25pJTIwcGl6emF8ZW58MHx8MHx8fDA=');
-  const [imageFile, setImageFile] = useState(null);
+  const [visibility, setVisibility] = useState('Available');
+  const [imageData, setImageData] = useState(null);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [subCategoryOptions, setSubCategoryOptions] = useState([]);
+  const [isSubCategoryOpen, setIsSubCategoryOpen] = useState(false);
+  const [isMetaLoading, setIsMetaLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
 
   const visibilityOptions = [
-    { label: 'Active', color: 'text-gray-700' },
-    { label: 'Out of Stock', color: 'text-gray-700' },
-    { label: 'Draft', color: 'text-orange-500' },
+    { label: 'Available', color: 'text-orange-500' },
+    { label: 'Unavailable', color: 'text-gray-700' },
   ];
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+  const subCategorySuggestions = useMemo(() => {
+    const normalized = subCategory.trim().toLowerCase();
+
+    if (!normalized) {
+      return subCategoryOptions.slice(0, 8);
     }
+
+    return subCategoryOptions
+      .filter((entry) => entry.toLowerCase().includes(normalized))
+      .slice(0, 8);
+  }, [subCategory, subCategoryOptions]);
+
+  // Load existing item data
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadItem = async () => {
+      setIsPageLoading(true);
+      setApiError('');
+
+      try {
+        const item = await getMenuItemByIdAPI(itemId);
+
+        if (!isMounted) return;
+
+        setItemName(item.name || '');
+        setCategoryId(String(item.categoryId ?? item.categoryName ?? ''));
+        setCategoryName(item.categoryName || '');
+        setSubCategory(item.subCategory || '');
+        setBasePrice(String(item.price ?? '0'));
+        setDescription(item.description || '');
+        setVisibility(mapStatusToVisibility(item.status));
+
+        if (item.imageUrl) {
+          setImageData({
+            secure_url: item.imageUrl,
+            public_id: item.imagePublicId || '',
+          });
+        }
+      } catch (error) {
+        if (isMounted) {
+          setApiError(error.message || 'Unable to load menu item.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsPageLoading(false);
+        }
+      }
+    };
+
+    loadItem();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [itemId]);
+
+  // Load categories
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCategories = async () => {
+      setIsMetaLoading(true);
+
+      try {
+        const categories = await getMenuCategoriesAPI();
+
+        if (isMounted) {
+          setCategoryOptions(categories);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setApiError(error.message || 'Unable to load category data.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsMetaLoading(false);
+        }
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Load subcategories when category changes
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSubCategories = async () => {
+      try {
+        const data = await getMenuSubcategoriesAPI({ categoryId, categoryName });
+
+        if (isMounted) {
+          setSubCategoryOptions(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setApiError(error.message || 'Unable to load subcategories.');
+        }
+      }
+    };
+
+    loadSubCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [categoryId, categoryName]);
+
+  // Close subcategory dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!subCategoryWrapperRef.current?.contains(event.target)) {
+        setIsSubCategoryOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const validateForm = () => {
+    const nextErrors = {};
+    const normalizedSubCategory = normalizeSubCategory(subCategory);
+    const parsedPrice = Number(basePrice);
+
+    if (itemName.trim().length < 2) {
+      nextErrors.itemName = 'Item name must be at least 2 characters.';
+    }
+
+    if (!categoryId) {
+      nextErrors.categoryId = 'Please select a category.';
+    }
+
+    if (!normalizedSubCategory) {
+      nextErrors.subCategory = 'Subcategory is required.';
+    }
+
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      nextErrors.basePrice = 'Base price must be greater than 0.';
+    }
+
+    if (description.trim().length < 10) {
+      nextErrors.description = 'Description must be at least 10 characters.';
+    }
+
+    if (!imageData?.secure_url) {
+      nextErrors.image = 'Please upload an item image.';
+    }
+
+    setErrors(nextErrors);
+    return { isValid: Object.keys(nextErrors).length === 0, normalizedSubCategory };
   };
 
-  const handleSaveChanges = () => {
-    // TODO: Hook up to backend API
-    console.log({ itemName, category, basePrice, description, visibility, imageFile });
-    navigate('/admin/menu');
+  const handleSaveChanges = async () => {
+    setApiError('');
+
+    const { isValid, normalizedSubCategory } = validateForm();
+    if (!isValid) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await updateMenuItemAPI(itemId, {
+        name: itemName.trim(),
+        categoryId,
+        categoryName,
+        subCategory: normalizedSubCategory,
+        price: Number(basePrice),
+        description: description.trim(),
+        status: mapVisibilityToStatus(visibility),
+        imageUrl: imageData.secure_url,
+        imagePublicId: imageData.public_id,
+      });
+
+      navigate('/admin/menu');
+    } catch (error) {
+      setApiError(error.message || 'Unable to update menu item.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
     navigate('/admin/menu');
   };
+
+  if (isPageLoading) {
+    return (
+      <div className="flex h-screen bg-[#F8F9FA] font-sans">
+        <AdminSidebar />
+        <main className="flex-1 flex items-center justify-center">
+          <p className="text-gray-500 text-sm">Loading menu item...</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
@@ -100,12 +332,19 @@ export default function EditMenuItemPage() {
               </button>
               <button
                 onClick={handleSaveChanges}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+                disabled={isSubmitting}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Save Changes
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
+
+          {apiError && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {apiError}
+            </div>
+          )}
 
           {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
@@ -127,28 +366,70 @@ export default function EditMenuItemPage() {
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
                   placeholder="e.g. Classic Cheeseburger"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+                  className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all ${errors.itemName ? 'border-red-300' : 'border-gray-200'}`}
                 />
+                {errors.itemName && <p className="mt-1 text-xs text-red-600">{errors.itemName}</p>}
               </div>
 
-              {/* Category & Base Price */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* Category, Subcategory & Base Price */}
+              <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all appearance-none cursor-pointer"
+                    value={categoryId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const selectedCategory = categoryOptions.find((entry) => String(entry.id) === selectedId);
+
+                      setCategoryId(selectedId);
+                      setCategoryName(selectedCategory?.name || '');
+                      setSubCategory('');
+                    }}
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all appearance-none cursor-pointer ${errors.categoryId ? 'border-red-300' : 'border-gray-200'}`}
+                    disabled={isMetaLoading}
                   >
                     <option value="">Select category</option>
-                    <option value="Burgers">Burgers</option>
-                    <option value="Pizza">Pizza</option>
-                    <option value="Pasta">Pasta</option>
-                    <option value="Salads">Salads</option>
-                    <option value="Desserts">Desserts</option>
-                    <option value="Drinks">Drinks</option>
+                    {categoryOptions.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.name}
+                      </option>
+                    ))}
                   </select>
+                  {errors.categoryId && <p className="mt-1 text-xs text-red-600">{errors.categoryId}</p>}
                 </div>
+
+                <div ref={subCategoryWrapperRef} className="relative">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Subcategory</label>
+                  <input
+                    type="text"
+                    value={subCategory}
+                    onFocus={() => setIsSubCategoryOpen(true)}
+                    onChange={(e) => setSubCategory(e.target.value)}
+                    onBlur={() => setSubCategory(normalizeSubCategory(subCategory))}
+                    placeholder="Type or pick a subcategory"
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all ${errors.subCategory ? 'border-red-300' : 'border-gray-200'}`}
+                  />
+                  {isSubCategoryOpen && subCategorySuggestions.length > 0 && (
+                    <div className="absolute z-20 mt-2 max-h-52 w-full overflow-auto rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
+                      {subCategorySuggestions.map((entry) => (
+                        <button
+                          key={entry}
+                          type="button"
+                          className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-orange-50"
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            setSubCategory(normalizeSubCategory(entry));
+                            setIsSubCategoryOpen(false);
+                          }}
+                        >
+                          {entry}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {errors.subCategory && <p className="mt-1 text-xs text-red-600">{errors.subCategory}</p>}
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Base Price (LKR)</label>
                   <input
@@ -156,8 +437,11 @@ export default function EditMenuItemPage() {
                     value={basePrice}
                     onChange={(e) => setBasePrice(e.target.value)}
                     placeholder="0"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+                    min="0"
+                    step="0.01"
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all ${errors.basePrice ? 'border-red-300' : 'border-gray-200'}`}
                   />
+                  {errors.basePrice && <p className="mt-1 text-xs text-red-600">{errors.basePrice}</p>}
                 </div>
               </div>
 
@@ -169,8 +453,9 @@ export default function EditMenuItemPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your dish..."
                   rows={4}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all resize-none"
+                  className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all resize-none ${errors.description ? 'border-red-300' : 'border-gray-200'}`}
                 />
+                {errors.description && <p className="mt-1 text-xs text-red-600">{errors.description}</p>}
               </div>
             </div>
 
@@ -180,29 +465,12 @@ export default function EditMenuItemPage() {
               {/* Item Image */}
               <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm p-6">
                 <h2 className="text-base font-bold text-gray-900 mb-4">Item Image</h2>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden"
-                >
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="w-full aspect-square object-cover rounded-2xl" />
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-200 rounded-2xl w-full p-6 flex flex-col items-center justify-center min-h-[180px] group-hover:border-orange-300 group-hover:bg-orange-50/30 transition-all">
-                      <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3 group-hover:bg-orange-50 transition-colors">
-                        <Upload size={24} className="text-gray-400 group-hover:text-orange-400 transition-colors" />
-                      </div>
-                      <p className="text-sm font-medium text-gray-600">Upload high-res PNG/JPG</p>
-                      <p className="text-xs text-gray-400 mt-1">Min. 600x600px suggested</p>
-                    </div>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg"
-                  onChange={handleImageUpload}
-                  className="hidden"
+                <CloudinaryImageUpload
+                  initialValue={imageData}
+                  onChange={(uploadResult) => setImageData(uploadResult)}
+                  className="w-full"
                 />
+                {errors.image && <p className="mt-1 text-xs text-red-600">{errors.image}</p>}
               </div>
 
               {/* Visibility */}
@@ -213,11 +481,10 @@ export default function EditMenuItemPage() {
                     <button
                       key={option.label}
                       onClick={() => setVisibility(option.label)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        visibility === option.label
+                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${visibility === option.label
                           ? 'bg-orange-50 text-orange-500 border border-orange-200'
                           : 'text-gray-600 hover:bg-gray-50 border border-transparent'
-                      }`}
+                        }`}
                     >
                       <span>{option.label}</span>
                       {visibility === option.label && (

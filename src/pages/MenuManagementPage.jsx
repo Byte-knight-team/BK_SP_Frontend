@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Settings,
   Search,
@@ -11,191 +11,198 @@ import {
   Pencil,
   Trash2,
   ChevronDown,
+  ImageOff,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
+import {
+  getMenuItemsAPI,
+  getMenuCategoriesAPI,
+  getMenuSubcategoriesAPI,
+  deleteMenuItemAPI,
+} from '../apis/menu';
 
-const categoryData = [
-  { name: 'Beverages', count: 24, icon: '☕' },
-  { name: 'Main Course', count: 42, icon: '🍲' },
-  { name: 'Appetizers', count: 18, icon: '🍤' },
-  { name: 'Desserts', count: 16, icon: '🍰' },
-  { name: 'Salads', count: 12, icon: '🥗' },
-  { name: 'Rice & Noodles', count: 20, icon: '🍜' },
-  { name: 'Sides', count: 10, icon: '🍟' },
-  { name: 'Combo Meals', count: 8, icon: '🍱' },
-];
-
-const subCategoryData = {
-  Beverages: [
-    { name: 'All Sub Categories', count: 24 },
-    { name: 'Hot Drinks', count: 8 },
-    { name: 'Cold Drinks', count: 10 },
-    { name: 'Fresh Juices', count: 6 },
-  ],
-  'Main Course': [
-    { name: 'All Sub Categories', count: 42 },
-    { name: 'Rice Dishes', count: 18 },
-    { name: 'Curry Plates', count: 12 },
-    { name: 'Grills', count: 12 },
-  ],
-  Appetizers: [
-    { name: 'All Sub Categories', count: 18 },
-    { name: 'Starters', count: 8 },
-    { name: 'Finger Foods', count: 10 },
-  ],
-  Desserts: [
-    { name: 'All Sub Categories', count: 16 },
-    { name: 'Cakes', count: 7 },
-    { name: 'Ice Cream', count: 5 },
-    { name: 'Pastries', count: 4 },
-  ],
-  Salads: [
-    { name: 'All Sub Categories', count: 12 },
-    { name: 'Fresh Salads', count: 7 },
-    { name: 'Fruit Salads', count: 5 },
-  ],
-  'Rice & Noodles': [
-    { name: 'All Sub Categories', count: 20 },
-    { name: 'Fried Rice', count: 10 },
-    { name: 'Noodles', count: 10 },
-  ],
-  Sides: [
-    { name: 'All Sub Categories', count: 10 },
-    { name: 'Add-ons', count: 6 },
-    { name: 'Sauces', count: 4 },
-  ],
-  'Combo Meals': [
-    { name: 'All Sub Categories', count: 8 },
-    { name: 'Family Combos', count: 5 },
-    { name: 'Lunch Combos', count: 3 },
-  ],
-};
-
-const menuItemsData = [
-  {
-    id: 1,
-    name: 'Cappuccino',
-    category: 'Beverages',
-    subCategory: 'Hot Drinks',
-    price: 'Rs. 450.00',
-    time: '5 min',
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?fm=jpg&q=60&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 2,
-    name: 'Caffe Latte',
-    category: 'Beverages',
-    subCategory: 'Hot Drinks',
-    price: 'Rs. 400.00',
-    time: '5 min',
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?fm=jpg&q=60&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 3,
-    name: 'Americano',
-    category: 'Beverages',
-    subCategory: 'Hot Drinks',
-    price: 'Rs. 350.00',
-    time: '3 min',
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1497636577773-f1231844b336?fm=jpg&q=60&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 4,
-    name: 'Espresso',
-    category: 'Beverages',
-    subCategory: 'Hot Drinks',
-    price: 'Rs. 300.00',
-    time: '2 min',
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1512568400610-62da28bc8a13?fm=jpg&q=60&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 5,
-    name: 'Masala Tea',
-    category: 'Beverages',
-    subCategory: 'Hot Drinks',
-    price: 'Rs. 250.00',
-    time: '4 min',
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1567201867112-3b6bd4f52a11?fm=jpg&q=60&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 6,
-    name: 'Hot Chocolate',
-    category: 'Beverages',
-    subCategory: 'Hot Drinks',
-    price: 'Rs. 380.00',
-    time: '6 min',
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1517578239113-b03992dcdd25?fm=jpg&q=60&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 7,
-    name: 'Mocha',
-    category: 'Beverages',
-    subCategory: 'Hot Drinks',
-    price: 'Rs. 450.00',
-    time: '5 min',
-    status: 'Unavailable',
-    image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?fm=jpg&q=60&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 8,
-    name: 'Green Tea',
-    category: 'Beverages',
-    subCategory: 'Hot Drinks',
-    price: 'Rs. 250.00',
-    time: '3 min',
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?fm=jpg&q=60&w=1200&auto=format&fit=crop',
-  },
-];
+const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
 
 export default function MenuManagementPage() {
-  const [menuItems, setMenuItems] = useState(menuItemsData);
-  const [activeCategory, setActiveCategory] = useState('Beverages');
-  const [activeSubCategory, setActiveSubCategory] = useState('Hot Drinks');
+  const navigate = useNavigate();
+
+  const [menuItems, setMenuItems] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [subCategoryOptions, setSubCategoryOptions] = useState([]);
+  const [activeCategory, setActiveCategory] = useState('');
+  const [activeSubCategory, setActiveSubCategory] = useState('All Sub Categories');
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const activeSubCategories = subCategoryData[activeCategory] || [];
+  // Load categories on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCategories = async () => {
+      try {
+        const categories = await getMenuCategoriesAPI();
+        if (isMounted && categories.length > 0) {
+          setCategoryOptions(categories);
+          setActiveCategory(categories[0].name);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setApiError(error.message || 'Unable to load categories.');
+        }
+      }
+    };
+
+    loadCategories();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Load subcategories when category changes
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSubCategories = async () => {
+      if (!activeCategory) return;
+
+      const selectedCategory = categoryOptions.find((c) => c.name === activeCategory);
+
+      try {
+        const data = await getMenuSubcategoriesAPI({
+          categoryId: selectedCategory?.id || '',
+          categoryName: activeCategory,
+        });
+
+        if (isMounted) {
+          setSubCategoryOptions(data);
+          setActiveSubCategory('All Sub Categories');
+        }
+      } catch {
+        if (isMounted) {
+          setSubCategoryOptions([]);
+        }
+      }
+    };
+
+    loadSubCategories();
+    return () => { isMounted = false; };
+  }, [activeCategory, categoryOptions]);
+
+  // Load menu items
+  const loadMenuItems = useCallback(async () => {
+    setIsLoading(true);
+    setApiError('');
+
+    try {
+      const items = await getMenuItemsAPI();
+      setMenuItems(items);
+    } catch (error) {
+      setApiError(error.message || 'Unable to load menu items.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMenuItems();
+  }, [loadMenuItems]);
 
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter((item) => {
-      const matchesCategory = item.category === activeCategory;
+      const itemCategory = item.categoryName || item.category || '';
+      const itemSubCategory = item.subCategory || '';
+      const itemStatus = item.status || '';
+      const itemName = item.name || '';
+
+      const matchesCategory = !activeCategory || itemCategory === activeCategory;
       const matchesSubCategory =
-        activeSubCategory === 'All Sub Categories' || item.subCategory === activeSubCategory;
-      const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
+        activeSubCategory === 'All Sub Categories' || itemSubCategory === activeSubCategory;
+      const matchesSearch = itemName.toLowerCase().includes(searchText.toLowerCase());
       const matchesStatus =
-        statusFilter === 'ALL' || item.status.toUpperCase() === statusFilter.toUpperCase();
+        statusFilter === 'ALL' ||
+        itemStatus.toUpperCase() === statusFilter.toUpperCase();
 
       return matchesCategory && matchesSubCategory && matchesSearch && matchesStatus;
     });
   }, [menuItems, activeCategory, activeSubCategory, searchText, statusFilter]);
 
-  const handleToggleAvailability = (itemId) => {
-    setMenuItems((previousItems) =>
-      previousItems.map((item) =>
-        item.id === itemId
-          ? { ...item, status: item.status === 'Available' ? 'Unavailable' : 'Available' }
-          : item,
-      ),
-    );
+  // Count items per category from actual data
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    menuItems.forEach((item) => {
+      const cat = item.categoryName || item.category || '';
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
+  }, [menuItems]);
+
+  // Count items per subcategory from actual data
+  const subCategoryCounts = useMemo(() => {
+    const counts = { 'All Sub Categories': 0 };
+    menuItems.forEach((item) => {
+      const cat = item.categoryName || item.category || '';
+      if (cat !== activeCategory) return;
+      counts['All Sub Categories'] = (counts['All Sub Categories'] || 0) + 1;
+      const sub = item.subCategory || '';
+      if (sub) {
+        counts[sub] = (counts[sub] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [menuItems, activeCategory]);
+
+  const handleDelete = async (itemId) => {
+    setIsDeleting(true);
+
+    try {
+      await deleteMenuItemAPI(itemId);
+      setMenuItems((prev) => prev.filter((item) => item.id !== itemId));
+      setDeleteConfirm(null);
+    } catch (error) {
+      setApiError(error.message || 'Unable to delete menu item.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const getStatusDisplay = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'AVAILABLE':
+        return 'Available';
+      case 'UNAVAILABLE':
+        return 'Unavailable';
+      default:
+        return status || 'Unknown';
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'AVAILABLE':
+        return 'bg-[#d8f5e4] text-[#118a45]';
+      case 'UNAVAILABLE':
+        return 'bg-[#ffe2d1] text-[#c85b1d]';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  const handleImageError = (event) => {
+    event.target.src = PLACEHOLDER_IMAGE;
   };
 
   const summaryCards = [
     {
       label: 'Categories',
-      value: '8',
+      value: String(categoryOptions.length),
       tone: 'bg-amber-50 text-amber-600',
     },
     {
       label: 'Sub Categories',
-      value: '24',
+      value: String(subCategoryOptions.length),
       tone: 'bg-orange-100 text-orange-700',
     },
     {
@@ -205,32 +212,8 @@ export default function MenuManagementPage() {
     },
     {
       label: 'Available Items',
-      value: String(menuItems.filter((item) => item.status === 'Available').length),
+      value: String(menuItems.filter((item) => item.status?.toUpperCase() === 'AVAILABLE').length),
       tone: 'bg-emerald-50 text-emerald-600',
-    },
-  ];
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Available':
-        return 'bg-[#d8f5e4] text-[#118a45]';
-      case 'Unavailable':
-        return 'bg-[#ffe2d1] text-[#c85b1d]';
-      default:
-        return 'bg-gray-100 text-gray-600';
-    }
-  };
-
-  const menuItemActions = [
-    {
-      icon: Pencil,
-      label: 'Edit',
-      tone: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100',
-    },
-    {
-      icon: Trash2,
-      label: 'Delete',
-      tone: 'text-red-500 hover:text-red-700 hover:bg-red-50',
     },
   ];
 
@@ -275,7 +258,48 @@ export default function MenuManagementPage() {
             </Link>
           </div>
 
+          {apiError && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {apiError}
+              <button
+                onClick={() => setApiError('')}
+                className="ml-2 font-semibold hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {deleteConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Menu Item</h3>
+                <p className="text-sm text-gray-600 mb-5">
+                  Are you sure you want to delete <span className="font-semibold">"{deleteConfirm.name}"</span>? This action cannot be undone.
+                </p>
+                <div className="flex items-center gap-3 justify-end">
+                  <button
+                    onClick={() => setDeleteConfirm(null)}
+                    disabled={isDeleting}
+                    className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleDelete(deleteConfirm.id)}
+                    disabled={isDeleting}
+                    className="rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-70"
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
+            {/* Categories Panel */}
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Categories</h2>
@@ -285,30 +309,23 @@ export default function MenuManagementPage() {
               </div>
 
               <div className="space-y-2">
-                {categoryData.map((category) => {
+                {categoryOptions.map((category) => {
                   const isActive = activeCategory === category.name;
 
                   return (
                     <button
-                      key={category.name}
+                      key={category.id}
                       type="button"
-                      onClick={() => {
-                        setActiveCategory(category.name);
-                        const firstSubCategory = subCategoryData[category.name]?.[1]?.name || 'All Sub Categories';
-                        setActiveSubCategory(firstSubCategory);
-                      }}
+                      onClick={() => setActiveCategory(category.name)}
                       className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${
                         isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       <span className="flex items-center gap-3 text-sm font-medium">
-                        <span className="grid size-7 place-items-center rounded-lg bg-white text-sm shadow-sm">
-                          {category.icon}
-                        </span>
                         {category.name}
                       </span>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${isActive ? 'bg-white text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
-                        {category.count}
+                        {categoryCounts[category.name] || 0}
                       </span>
                     </button>
                   );
@@ -321,38 +338,39 @@ export default function MenuManagementPage() {
               </button>
             </section>
 
+            {/* Sub Categories Panel */}
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Sub Categories</h2>
               </div>
 
               <div className="space-y-2">
-                {(activeSubCategories.length ? activeSubCategories : [{ name: 'All Sub Categories', count: 0 }]).map((subCategory) => {
-                  const isActive = activeSubCategory === subCategory.name;
+                {['All Sub Categories', ...subCategoryOptions].map((subCat) => {
+                  const isActive = activeSubCategory === subCat;
 
                   return (
                     <button
-                      key={subCategory.name}
+                      key={subCat}
                       type="button"
-                      onClick={() => setActiveSubCategory(subCategory.name)}
+                      onClick={() => setActiveSubCategory(subCat)}
                       className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${
                         isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       <span className="flex items-center gap-3 text-sm font-medium">
                         <span className="grid size-5 place-items-center text-gray-300">⋮⋮</span>
-                        {subCategory.name}
+                        {subCat}
                       </span>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${isActive ? 'bg-white text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
-                        {subCategory.count}
+                        {subCategoryCounts[subCat] || 0}
                       </span>
                     </button>
                   );
                 })}
               </div>
-
             </section>
 
+            {/* Menu Items Panel */}
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Menu Items</h2>
@@ -394,64 +412,68 @@ export default function MenuManagementPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {filteredMenuItems.map((item) => (
-                  <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
-                    <div className="relative h-40 overflow-hidden">
-                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                      <div className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${getStatusColor(item.status)}`}>
-                        {item.status}
-                      </div>
-                      <button type="button" className="absolute right-3 top-3 rounded-full bg-white/90 p-1.5 text-gray-700 shadow-sm">
-                        <EllipsisVertical size={14} />
-                      </button>
-                    </div>
-
-                    <div className="flex flex-1 flex-col p-3">
-                      <h3 className="text-sm font-semibold text-gray-900">{item.name}</h3>
-                      <div className="mt-1 text-sm font-semibold text-orange-500">{item.price}</div>
-
-                      <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                        <Clock3 size={12} />
-                        <span>{item.time}</span>
-                      </div>
-
-                      <div className="mt-auto flex items-center justify-between gap-2 border-t border-gray-100 pt-3">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleAvailability(item.id)}
-                          className={`relative flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${item.status === 'Available' ? 'bg-orange-500' : 'bg-gray-300'}`}
-                          aria-label={`${item.name} availability toggle`}
-                          aria-pressed={item.status === 'Available'}
-                        >
-                          <span className={`size-5 rounded-full bg-white shadow-sm transition-transform ${item.status === 'Available' ? 'translate-x-5' : 'translate-x-0'}`} />
-                        </button>
-
-                        <div className="flex items-center gap-2">
-                          {menuItemActions.map(({ icon: Icon, label, tone }) => (
-                            <button
-                              key={label}
-                              type="button"
-                              className={`grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors ${tone}`}
-                              aria-label={label}
-                            >
-                              <Icon size={14} />
-                            </button>
-                          ))}
+              {isLoading ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center text-gray-500">
+                  Loading menu items...
+                </div>
+              ) : filteredMenuItems.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center text-gray-500">
+                  No menu items found.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {filteredMenuItems.map((item) => (
+                    <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+                      <div className="relative h-40 overflow-hidden bg-gray-100">
+                        <img
+                          src={item.imageUrl || PLACEHOLDER_IMAGE}
+                          alt={item.name}
+                          className="h-full w-full object-cover"
+                          onError={handleImageError}
+                        />
+                        <div className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${getStatusColor(item.status)}`}>
+                          {getStatusDisplay(item.status)}
                         </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
+
+                      <div className="flex flex-1 flex-col p-3">
+                        <h3 className="text-sm font-semibold text-gray-900">{item.name}</h3>
+                        <div className="mt-1 text-sm font-semibold text-orange-500">
+                          Rs. {Number(item.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
+
+                        {item.subCategory && (
+                          <div className="mt-1 text-xs text-gray-400">
+                            {item.subCategory}
+                          </div>
+                        )}
+
+                        <div className="mt-auto flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/admin/menu/edit/${item.id}`)}
+                            className="grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                            aria-label="Edit"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirm(item)}
+                            className="grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors text-red-500 hover:text-red-700 hover:bg-red-50"
+                            aria-label="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-                <span>Showing 1 to {filteredMenuItems.length} of {filteredMenuItems.length} items</span>
-                <div className="flex items-center gap-2">
-                  <button className="grid size-8 place-items-center rounded-lg border border-gray-200 text-gray-400">‹</button>
-                  <button className="grid size-8 place-items-center rounded-lg bg-orange-500 text-white">1</button>
-                  <button className="grid size-8 place-items-center rounded-lg border border-gray-200 text-gray-400">›</button>
-                </div>
+                <span>Showing {filteredMenuItems.length} of {menuItems.length} items</span>
               </div>
             </section>
           </div>
