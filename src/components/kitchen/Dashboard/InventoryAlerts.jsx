@@ -1,9 +1,8 @@
-import React from "react";
 import KitchenStatBar from "../KitchenStatBar";
 import { useState, useEffect } from "react";
 import { getInventoryAlertsAPI } from "../../../apis/kitchen/dashboard";
 
-//BAR_COLORS Object
+// BAR_COLORS Object
 const BAR_COLORS = {
   LOW: "#F59E0B",
   CRITICAL: "#EF4444",
@@ -49,9 +48,29 @@ const InventoryAlerts = () => {
     fetchInventoryAlertsDetails();
   }, []);
 
+  // when loading show 4 skeleton components
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="mt-4 flex flex-col gap-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="flex animate-pulse items-center justify-between rounded-xl border border-gray-100 bg-gray-50/30 p-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gray-100" />
+              <div className="space-y-2">
+                <div className="h-4 w-20 rounded bg-gray-100" />
+                <div className="h-3 w-12 rounded bg-gray-50" />
+              </div>
+            </div>
+            <div className="h-6 w-16 rounded-full bg-gray-100" />
+          </div>
+        ))}
+      </div>
+    );
   }
+
   return (
     <>
       <div className="flex items-center justify-between">

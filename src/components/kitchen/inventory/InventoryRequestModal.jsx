@@ -40,7 +40,7 @@ const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initial
       return;
     }
 
-    // create an object. it matches exactly what backend CreateStockRefillRequestDTO expects!
+    // create an object. it matches exactly what backend InventoryRequestDTO expects
     const requestData = {
       itemName: itemName,
       unit: unit,

@@ -2,12 +2,14 @@ import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 
-const PreparingOrdersTab = ({ handleOrderClick }) => { //{} is used to destructure the props. it is required
-
+const PreparingOrdersTab = ({ handleOrderClick }) => {
+    //initialize state variables
     const [preparingOrdersDetails, setPreparingOrdersDetails] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    //useEffect hook to fetch preparing orders
     useEffect(() => {
+      //async function to fetch preparing orders
       const fetchPreparingOrdersDetails = async () => {
         //enable loading
         setLoading(true);

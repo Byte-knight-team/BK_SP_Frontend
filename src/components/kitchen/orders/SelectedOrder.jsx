@@ -25,7 +25,7 @@ const SelectedOrder = ({ orderId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [targetMeal, setTargetMeal] = useState(null);
 
-  // 1. Fetch real data when orderId changes
+  // Fetch real data when orderId changes
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (!orderId) return;

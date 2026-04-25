@@ -1,9 +1,10 @@
-import Stats from "../../components/kitchen/dashboard/Stats";
-import MostPopularMeals from "../../components/kitchen/dashboard/MostPopularMeals";
-import PeakHoursChart from "../../components/kitchen/dashboard/PeakHoursChart";
-import InventoryAlerts from "../../components/kitchen/dashboard/InventoryAlerts";
-import PendingOrders from "../../components/kitchen/dashboard/PendingOrders";
-import PreparingOrders from "../../components/kitchen/dashboard/PreparingOrders";
+import Stats from "../../components/kitchen/Dashboard/Stats";
+import MostPopularMeals from "../../components/kitchen/Dashboard/MostPopularMeals";
+import PeakHoursChart from "../../components/kitchen/Dashboard/PeakHoursChart";
+import InventoryAlerts from "../../components/kitchen/Dashboard/InventoryAlerts";
+import PendingOrders from "../../components/kitchen/Dashboard/PendingOrders";
+import PreparingOrders from "../../components/kitchen/Dashboard/PreparingOrders";
+
 import { useOutletContext } from "react-router-dom";
 import { useEffect } from "react";
 import { LayoutDashboard } from "lucide-react";

@@ -1,4 +1,3 @@
-import React from 'react'
 import OrderCard from '../OrderCard'
 import { getOrderCardsAPI } from '../../../apis/kitchen/dashboard';
 import { useState, useEffect } from "react";
@@ -29,9 +28,24 @@ const PreparingOrders = () => {
         fetchPreparingOrdersDetails();
       }, []);
     
+      // When loading show 3 skeleton components
       if (loading) {
-        return <div>Loading...</div>;
+        return (
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex h-[120px] w-full animate-pulse items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/50"
+              >
+                <span className="text-xs font-medium text-gray-300">
+                  Loading Order...
+                </span>
+              </div>
+            ))}
+          </div>
+        );
       }
+
   return (
     <>
       <h2 className="text-xl font-bold text-gray-800">Preparing Orders</h2>

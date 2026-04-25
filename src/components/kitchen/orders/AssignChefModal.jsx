@@ -23,24 +23,33 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
     fetchChefs();
   }, [isOpen]);
 
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-sm bg-white rounded-4xl shadow-2xl p-8 border border-gray-100">
-        <div className="flex justify-between items-start mb-6">
-          <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-4xl border border-gray-100 bg-white p-8 shadow-2xl">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="rounded-2xl bg-orange-100 p-3 text-orange-600">
             <UserPlus size={24} />
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <h3 className="text-xl font-bold text-gray-900 mb-2 text-left">Assign Chef</h3>
-        <p className="text-gray-400 text-sm mb-6 text-left">Select a chef for <span className="text-gray-900 font-bold">"{mealName}"</span></p>
+        <h3 className="mb-2 text-left text-xl font-bold text-gray-900">
+          Assign Chef
+        </h3>
+        <p className="mb-6 text-left text-sm text-gray-400">
+          Select a chef for{" "}
+          <span className="font-bold text-gray-900">"{mealName}"</span>
+        </p>
 
-        <select 
-          className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 outline-none  mb-8"
+        <select
+          className="mb-8 w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
           value={selectedChefId} // value = chef.id in each option tag
           onChange={(e) => setSelectedChefId(e.target.value)} //that value set as the selectedChefId state
         >
@@ -59,11 +68,19 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
         </select>
 
         <div className="flex gap-4">
-          <button onClick={onClose} className="flex-1 py-4 text-sm font-bold text-gray-400">Cancel</button>
-          <button 
+          <button
+            onClick={onClose}
+            className="flex-1 py-4 text-sm font-bold text-gray-400"
+          >
+            Cancel
+          </button>
+          <button
             // Trigger the assignment (save to backend) and close the modal simultaneously
-            onClick={() => { onAssign(selectedChefId); onClose(); }} 
-            className="flex-1 py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all"
+            onClick={() => {
+              onAssign(selectedChefId);
+              onClose();
+            }}
+            className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600"
           >
             Assign
           </button>
