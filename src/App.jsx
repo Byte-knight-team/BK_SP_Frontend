@@ -37,6 +37,7 @@ import EditMenuItemPage from "./pages/EditMenuItemPage";
 import AddCategoryPage from "./pages/AddCategoryPage";
 import TableManagementPage from "./pages/TableManagementPage";
 import AddTablePage from "./pages/AddTablePage";
+import TableQrPage from "./pages/TableQrPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import AddNewUserPage from "./pages/AddNewUserPage";
 
@@ -107,6 +108,7 @@ export default function App() {
           <Route path="menu/edit" element={<EditMenuItemPage />} />
           <Route path="tables" element={<TableManagementPage />} />
           <Route path="tables/add" element={<AddTablePage />} />
+          <Route path="tables/:tableId/qr" element={<TableQrPage />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="users/add" element={<AddNewUserPage />} />
         </Route>

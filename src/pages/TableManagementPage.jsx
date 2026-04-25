@@ -186,10 +186,6 @@ export default function TableManagementPage() {
               <p className="text-gray-500 text-sm mt-1">Configure floor plans and QR code ordering tables</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all shadow-sm">
-                <Printer size={16} />
-                Print All QR
-              </button>
               <Link to="/admin/tables/add" className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">
                 <Plus size={18} />
                 Add Table
@@ -339,9 +335,12 @@ export default function TableManagementPage() {
                       <Edit2 size={14} />
                       Edit
                     </button>
-                    <button className="w-[42px] h-[42px] flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors">
+                    <Link 
+                      to={`/admin/tables/${table.id}/qr`}
+                      className="w-[42px] h-[42px] flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors"
+                    >
                       <QrCode size={18} />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -412,9 +411,12 @@ export default function TableManagementPage() {
                         <Edit2 size={14} />
                         Edit
                       </button>
-                      <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors">
+                      <Link 
+                        to={`/admin/tables/${table.id}/qr`}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors"
+                      >
                         <QrCode size={16} />
-                      </button>
+                      </Link>
                       <div className="relative">
                         <button 
                           className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-300 hover:text-gray-500 transition-colors"
