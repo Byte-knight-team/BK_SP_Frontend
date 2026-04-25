@@ -50,7 +50,7 @@ export const getChefsStatsAPI = async () => {
     return { data: null, error: error };
   }
 };
-
+// Get all chefs details
 export const getChefsAPI = async () => {
   try {
     // TODO: uncomment this section once the API is ready
@@ -70,16 +70,14 @@ export const getChefsAPI = async () => {
 export const getAvailableChefsAPI = async () => {
   try {
     const response = await authFetch(
-      "http://localhost:8080/api/v1/kitchen/available-chefs"
+      "http://localhost:8080/api/v1/kitchen/available-chefs",
     );
-    
+
     const result = await response.json();
-    
+
     return { data: result.data, error: null };
-    
   } catch (error) {
     console.error("Error fetching available chefs:", error);
     return { data: null, error: error };
   }
 };
-

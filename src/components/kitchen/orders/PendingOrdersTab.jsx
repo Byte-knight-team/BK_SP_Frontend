@@ -8,15 +8,19 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
 
   useEffect(() => {
     const fetchPendingOrdersDetails = async () => {
+      //enable loading
       setLoading(true);
       const { data, error } = await getOrderCardsAPI("PENDING");
+      //handle error
       if (error) {
         console.error("Error fetching pending orders:", error);
         return;
       }
+      //handle success
       if (data) {
         setPendingOrdersDetails(data);
       }
+      //disable loading
       setLoading(false);
     };
 
@@ -31,6 +35,7 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
     );
   }
 
+  //when no pending orders found show this message
   if (pendingOrdersDetails.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-gray-300">

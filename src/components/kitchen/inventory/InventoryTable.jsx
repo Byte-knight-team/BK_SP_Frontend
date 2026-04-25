@@ -93,7 +93,8 @@ const InventoryTable = () => {
     if (error) {
       alert("Failed to send request: " + error);
     } else {
-      alert("Request sent successfully!");
+      // message from the backend
+      alert(data.message);
       setIsModalOpen(false); // close modal on success
     }
   };
@@ -268,14 +269,3 @@ const InventoryTable = () => {
 };
 
 export default InventoryTable;
-
-
-
-
-  //filter logic
-  // const filteredData = inventoryData.filter((item) =>
-  //   item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
-// );
-  
-  // store the search term
-  //const [searchTerm, setSearchTerm] = useState("");

@@ -19,8 +19,6 @@ const CompletedOrdersTab = ({ handleOrderClick }) => {
       }
       //handle success
       if (data) {
-        //const formattedData = formatOrdersDetails(data);
-        //setPendingOrdersDetails(formattedData);
         setCompletedOrdersDetails(data);
       }
       //disable loading
