@@ -7,18 +7,24 @@ function getDashboardPathByRole(roleName) {
   switch (roleName) {
     case "SUPER_ADMIN":
       return "/staff";
+
     case "ADMIN":
-      return "/staff";
+      return "/admin-panel";
+
+    case "MANAGER":
+      return "/manager";
+
     case "RECEPTIONIST":
       return "/receptionist";
+
     case "CHEF":
       return "/kitchen";
-    case "MANAGER":
-      return "/staff";
+
     case "DELIVERY":
-      return "/staff";
+      return "/delivery";
+
     default:
-      return "/staff";
+      return "/staff/login";
   }
 }
 
