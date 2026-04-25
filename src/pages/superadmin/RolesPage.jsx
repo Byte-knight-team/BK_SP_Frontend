@@ -17,6 +17,7 @@ import {
     getRolesAPI,
     getRolePermissionsAPI,
     getPrivilegesAPI,
+    updateRoleAPI,
     updateRolePermissionsAPI,
     normalizePermissionNames,
     normalizePrivileges,
@@ -62,6 +63,8 @@ function getCurrentRoleName(user) {
 
 /**
  * Converts backend role response into a clean frontend shape.
+ *
+ * baseSalary is used as the default salary for newly created staff.
  */
 function normalizeRoles(roleResponse) {
     const rolesArray = Array.isArray(roleResponse)
@@ -74,6 +77,9 @@ function normalizeRoles(roleResponse) {
         description: role.description || "",
         permissionCount: role.permissionCount ?? 0,
         activeUserCount: role.activeUserCount ?? 0,
+
+        // Role default salary. Old database rows may return null.
+        baseSalary: role.baseSalary ?? "",
     }));
 }
 
@@ -238,6 +244,10 @@ export default function RolesPage() {
     const [initialLoading, setInitialLoading] = useState(false);
     const [permissionsLoading, setPermissionsLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    // Separate loading state for saving role default salary.
+    const [salarySaving, setSalarySaving] = useState(false);
+    // This stores the editable base salary value for the selected role.
+    const [baseSalaryInput, setBaseSalaryInput] = useState("");
 
     const [searchText, setSearchText] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
@@ -261,6 +271,19 @@ export default function RolesPage() {
     const selectedRole = useMemo(() => {
         return roles.find((role) => String(role.id) === String(selectedRoleId));
     }, [roles, selectedRoleId]);
+
+    /**
+    * When selected role changes, put its baseSalary into the salary input.
+    */
+    useEffect(() => {
+        if (selectedRole) {
+            setBaseSalaryInput(
+                selectedRole.baseSalary === null || selectedRole.baseSalary === undefined
+                    ? ""
+                    : String(selectedRole.baseSalary)
+            );
+        }
+    }, [selectedRole]);
 
     /**
    * Locked roles are visible but read-only.
@@ -513,6 +536,63 @@ export default function RolesPage() {
     }
 
     /**
+ * Converts salary input into a safe number.
+ */
+    function parseSalaryValue(value) {
+        const numberValue = Number(value);
+
+        if (Number.isNaN(numberValue)) {
+            return null;
+        }
+
+        return numberValue;
+    }
+
+    /**
+     * Saves role default salary.
+     *
+     * This only changes Role.baseSalary.
+     * Existing staff salaries are not automatically changed.
+     */
+    async function handleSaveBaseSalary() {
+        if (!selectedRole || selectedRoleIsLocked) {
+            return;
+        }
+
+        const salaryValue = parseSalaryValue(baseSalaryInput);
+
+        if (salaryValue === null || salaryValue < 0) {
+            setErrorMessage("Base salary must be a valid non-negative number.");
+            return;
+        }
+
+        setSalarySaving(true);
+        setErrorMessage("");
+        setSuccessMessage("");
+
+        try {
+            await updateRoleAPI(selectedRole.id, {
+                baseSalary: salaryValue,
+            });
+
+            // Update selected role salary locally so UI stays in sync.
+            setRoles((currentRoles) =>
+                currentRoles.map((role) =>
+                    String(role.id) === String(selectedRole.id)
+                        ? { ...role, baseSalary: salaryValue }
+                        : role
+                )
+            );
+
+            setSuccessMessage("Role base salary updated successfully.");
+        } catch (error) {
+            setErrorMessage(error.message || "Failed to update role base salary.");
+        } finally {
+            setSalarySaving(false);
+        }
+    }
+
+    /**
      * Saves selected permissions to backend.
      */
     async function handleSavePermissions() {
@@ -617,16 +697,16 @@ export default function RolesPage() {
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                            {roles.map((role) => {
-                                                // Check whether this role is currently selected in the left-side role list.
-                                                const isSelected = String(role.id) === String(selectedRoleId);
+                                {roles.map((role) => {
+                                    // Check whether this role is currently selected in the left-side role list.
+                                    const isSelected = String(role.id) === String(selectedRoleId);
 
-                                                // SUPER_ADMIN and CUSTOMER are shown but locked.
-                                                // They are visible for review, but their permissions cannot be edited.
-                                                const roleIsLocked = isLockedRoleName(role.name);
+                                    // SUPER_ADMIN and CUSTOMER are shown but locked.
+                                    // They are visible for review, but their permissions cannot be edited.
+                                    const roleIsLocked = isLockedRoleName(role.name);
 
-                                                return (
-                                            <button
+                                    return (
+                                        <button
                                             key={role.id}
                                             type="button"
                                             onClick={() => handleSelectRole(role.id)}
@@ -668,9 +748,18 @@ export default function RolesPage() {
                                                 </span>
                                             </div>
 
-                                            <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-                                                <span>Permissions: {role.permissionCount}</span>
-                                                <span>Active users: {role.activeUserCount}</span>
+                                            <div className="mt-3 space-y-1 text-xs text-slate-500">
+                                                <div className="flex items-center justify-between">
+                                                    <span>Permissions: {role.permissionCount}</span>
+                                                    <span>Active users: {role.activeUserCount}</span>
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <span>Base salary</span>
+                                                    <span className="font-semibold text-slate-700">
+                                                        {role.baseSalary ? Number(role.baseSalary).toLocaleString() : "Not set"}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </button>
                                     );
@@ -707,7 +796,7 @@ export default function RolesPage() {
                                     saving ||
                                     permissionsLoading ||
                                     !hasUnsavedChanges
-                                  }
+                                }
                                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                             >
                                 <RiSaveLine size={18} />
@@ -722,6 +811,44 @@ export default function RolesPage() {
                         </div>
                     ) : (
                         <div className="p-5">
+
+                            {/* Role base salary editor */}
+                            <div className="mb-5 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                                    <div className="flex-1">
+                                        <label className="block text-sm font-semibold text-slate-700">
+                                            Role Base Salary
+                                        </label>
+
+                                        <p className="mt-1 text-xs text-slate-500">
+                                            This is the default salary used when creating a new staff member with this role.
+                                            Existing staff salaries will not change automatically.
+                                        </p>
+
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={baseSalaryInput}
+                                            disabled={selectedRoleIsLocked}
+                                            onChange={(event) => setBaseSalaryInput(event.target.value)}
+                                            placeholder="Example: 60000"
+                                            className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 disabled:bg-slate-100 disabled:text-slate-400"
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveBaseSalary}
+                                        disabled={!selectedRole || selectedRoleIsLocked || salarySaving}
+                                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+                                    >
+                                        <RiSaveLine size={18} />
+                                        {salarySaving ? "Saving..." : "Save Salary"}
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Search and bulk actions */}
                             <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                 <div className="relative w-full lg:max-w-md">
@@ -747,7 +874,7 @@ export default function RolesPage() {
                                             selectedRoleIsLocked ||
                                             permissionsLoading ||
                                             filteredPrivileges.length === 0
-                                          }
+                                        }
                                         className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         Select Visible
@@ -760,7 +887,7 @@ export default function RolesPage() {
                                             selectedRoleIsLocked ||
                                             permissionsLoading ||
                                             filteredPrivileges.length === 0
-                                          }
+                                        }
                                         className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         Clear Visible
@@ -803,20 +930,19 @@ export default function RolesPage() {
                                                         return (
                                                             <label
                                                                 key={privilege.id}
-                                                                className={`flex items-start gap-3 rounded-xl border p-3 transition ${
-                                                                    selectedRoleIsLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer"
-                                                                  } ${checked
-                                                                    ? "border-indigo-200 bg-indigo-50"
-                                                                    : "border-slate-100 hover:bg-slate-50"
+                                                                className={`flex items-start gap-3 rounded-xl border p-3 transition ${selectedRoleIsLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer"
+                                                                    } ${checked
+                                                                        ? "border-indigo-200 bg-indigo-50"
+                                                                        : "border-slate-100 hover:bg-slate-50"
                                                                     }`}
                                                             >
                                                                 <input
-  type="checkbox"
-  checked={checked}
-  disabled={selectedRoleIsLocked}
-  onChange={() => handleTogglePermission(privilege.name)}
-  className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
-/>
+                                                                    type="checkbox"
+                                                                    checked={checked}
+                                                                    disabled={selectedRoleIsLocked}
+                                                                    onChange={() => handleTogglePermission(privilege.name)}
+                                                                    className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                                                                />
 
                                                                 <div>
                                                                     <p

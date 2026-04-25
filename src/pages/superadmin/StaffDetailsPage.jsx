@@ -8,6 +8,7 @@ import {
   RiPhoneLine,
   RiShieldUserLine,
   RiStore2Line,
+  RiMoneyDollarCircleLine,
 } from "@remixicon/react";
 
 import { getStaffByIdAPI } from "../../apis/staff/staff";
@@ -59,6 +60,19 @@ export default function StaffDetailsPage() {
       : typeof staff?.isActive === "boolean"
         ? staff.isActive
         : false;
+
+  /*
+  Formats salary for display.
+ 
+  Old staff records may have null salary, so we show Not assigned.
+*/
+  const formatSalary = (salary) => {
+    if (salary === null || salary === undefined || salary === "") {
+      return "Not assigned";
+    }
+
+    return Number(salary).toLocaleString();
+  };
 
   if (loading) {
     return (
@@ -126,11 +140,10 @@ export default function StaffDetailsPage() {
           </div>
 
           <span
-            className={`rounded-full px-4 py-1.5 text-xs font-bold ${
-              isActive
-                ? "bg-green-50 text-green-700"
-                : "bg-gray-100 text-gray-500"
-            }`}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold ${isActive
+              ? "bg-green-50 text-green-700"
+              : "bg-gray-100 text-gray-500"
+              }`}
           >
             {isActive ? "Active" : "Inactive"}
           </span>
@@ -156,6 +169,12 @@ export default function StaffDetailsPage() {
           />
 
           <DetailCard
+            icon={RiMoneyDollarCircleLine}
+            label="Monthly Salary"
+            value={formatSalary(staff.salary)}
+          />
+
+          <DetailCard
             icon={RiStore2Line}
             label="Branch"
             value={staff.branchName || staff.branch?.name || "Global Access"}
@@ -164,6 +183,28 @@ export default function StaffDetailsPage() {
       </div>
     </div>
   );
+}
+
+/**
+ * PUT /api/admin/roles/{id}
+ *
+ * Updates role details such as description or baseSalary.
+ *
+ * For salary feature, we mainly send:
+ * {
+ *   baseSalary: 60000
+ * }
+ */
+export async function updateRoleAPI(id, roleData) {
+  const response = await authFetch(`${ADMIN_API_BASE_URL}/roles/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(roleData),
+  });
+
+  return handleResponse(response, "Failed to update role.");
 }
 
 // Small reusable card for displaying one staff field
