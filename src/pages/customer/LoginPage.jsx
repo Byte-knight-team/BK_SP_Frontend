@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation} from 'react-router-dom';
 import { ArrowLeft, Mail, Lock} from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 
@@ -7,6 +7,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +50,10 @@ export default function LoginPage() {
       localStorage.removeItem('qr_branch_id');
       localStorage.removeItem('qr_table_id');
 
-      navigate('/menu', { replace: true });
+      const searchParams = new URLSearchParams(location.search);
+      const redirectTo = searchParams.get('redirect') || '/menu';
+
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to login.');
     } finally {

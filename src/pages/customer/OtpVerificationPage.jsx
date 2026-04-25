@@ -9,6 +9,7 @@ export default function OtpVerificationPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const phone = location.state?.phone || '';
+  const redirectTo = location.state?.redirect || '/checkout';
 
   const [otp, setOtp] = useState(['', '', '', '']);
   const inputRefs = useRef([]);
@@ -81,7 +82,7 @@ export default function OtpVerificationPage() {
       localStorage.setItem('customer_user_id', String(data.user_id));
 
       // Redirect directly to checkout to complete their meal!
-      navigate('/checkout', { replace: true });
+      navigate(redirectTo, { replace: true });
       
     } catch (err) {
       setError(err.message);
