@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {ArrowLeft,Banknote,ChevronRight,CreditCard,Gift,Home,Loader2,Lock,Mail,MapPin,Package,Phone,ReceiptText,Tag,User,AlertCircle, } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
@@ -6,6 +6,16 @@ import { useCart } from '../../context/CartContext';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 const CHECKOUT_STORAGE_KEY = 'bk_checkout_state';
 const ONLINE_BRANCH = { id: 1, name: 'Branch 01', address: '123 Restaurant St, Colombo' };
+
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
 
 function safeParse(value, fallback) {
   try {
@@ -26,6 +36,7 @@ function readCheckoutSeed() {
     paymentMethod: saved.paymentMethod || 'CASH',
     branchId: Number(qrSession?.branchId || saved.branchId || ONLINE_BRANCH.id),
     tableId: qrSession?.tableId || saved.tableId || null,
+    qrSessionId: qrSession?.sessionId || null,
     contact: {
       username: saved.contact?.username || '',
       email: saved.contact?.email || '',
@@ -42,7 +53,7 @@ function readCheckoutSeed() {
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { cartItems, cartCount, clearCart } = useCart();
-  const seed = useMemo(() => readCheckoutSeed(), []);
+  const seed = readCheckoutSeed();
 
   const [isQrCustomer] = useState(seed.isQrCustomer);
   const [orderType, setOrderType] = useState(seed.orderType);
@@ -55,7 +66,7 @@ export default function CheckoutPage() {
   const [loyaltyDraft, setLoyaltyDraft] = useState(seed.loyaltyDraft);
   const [appliedLoyaltyPoints, setAppliedLoyaltyPoints] = useState(seed.appliedLoyaltyPoints);
   const [receipt, setReceipt] = useState(null);
-  const [loyaltyPointValue, setLoyaltyPointValue] = useState(null);
+
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isCalculating, setIsCalculating] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -207,61 +218,8 @@ export default function CheckoutPage() {
     };
   }, [authToken, cartItems, orderType, branchId, appliedCouponCode, appliedLoyaltyPoints, isLoadingProfile]);
 
-  useEffect(() => {
-    if (!receipt) {
-      return;
-    }
-
-    if (receipt.loyaltyPointsRedeemed && receipt.loyaltyPointsRedeemed > 0 && receipt.loyaltyDiscountAmount > 0) {
-      const derivedValue = Number(receipt.loyaltyDiscountAmount) / Number(receipt.loyaltyPointsRedeemed);
-      if (Number.isFinite(derivedValue) && derivedValue > 0) {
-        setLoyaltyPointValue(derivedValue);
-      }
-      return;
-    }
-
-    if (loyaltyPointValue || !receipt.minPointsToRedeem || receipt.availableLoyaltyPoints < receipt.minPointsToRedeem) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const probeLoyaltyValue = async () => {
-      try {
-        const probe = await calculateTotals({ redeemLoyaltyPoints: receipt.minPointsToRedeem });
-        if (cancelled || !probe?.loyaltyPointsRedeemed || !probe?.loyaltyDiscountAmount) {
-          return;
-        }
-
-        const derivedValue = Number(probe.loyaltyDiscountAmount) / Number(probe.loyaltyPointsRedeemed);
-        if (Number.isFinite(derivedValue) && derivedValue > 0) {
-          setLoyaltyPointValue(derivedValue);
-        }
-      } catch {
-        // Silent. Backend still validates the real limit during apply.
-      }
-    };
-
-    probeLoyaltyValue();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [receipt, loyaltyPointValue, calculateTotals]);
-
-  const maxRedeemablePoints = useMemo(() => {
-    if (!receipt) {
-      return 0;
-    }
-
-    if (!loyaltyPointValue || loyaltyPointValue <= 0) {
-      return receipt.availableLoyaltyPoints || 0;
-    }
-
-    const subtotalAfterCoupon = Math.max(0, Number(receipt.subtotal || 0) - Number(receipt.couponDiscountAmount || 0));
-    const maxPointsByValue = Math.floor((subtotalAfterCoupon * 0.5) / loyaltyPointValue);
-    return Math.max(0, Math.min(Number(receipt.availableLoyaltyPoints || 0), maxPointsByValue));
-  }, [receipt, loyaltyPointValue]);
+  // maxRedeemablePoints is now calculated by the backend
+  const maxRedeemablePoints = receipt?.maxRedeemablePoints || 0;
 
   const handleApplyCoupon = async () => {
     const code = couponDraft.trim().toUpperCase();
@@ -277,7 +235,7 @@ export default function CheckoutPage() {
       const nextReceipt = await calculateTotals({ couponCode: code, redeemLoyaltyPoints: appliedLoyaltyPoints });
       setAppliedCouponCode(code);
       setReceipt(nextReceipt);
-      setLoyaltyPointValue(null);
+
     } catch (couponError) {
       setError(couponError.message || 'Invalid coupon code.');
     } finally {
@@ -294,7 +252,7 @@ export default function CheckoutPage() {
     try {
       const nextReceipt = await calculateTotals({ couponCode: null, redeemLoyaltyPoints: appliedLoyaltyPoints });
       setReceipt(nextReceipt);
-      setLoyaltyPointValue(null);
+
     } catch (clearError) {
       setError(clearError.message || 'Unable to refresh totals.');
     } finally {
@@ -337,9 +295,7 @@ export default function CheckoutPage() {
       const nextReceipt = await calculateTotals({ couponCode: appliedCouponCode, redeemLoyaltyPoints: points });
       setAppliedLoyaltyPoints(points);
       setReceipt(nextReceipt);
-      if (nextReceipt.loyaltyPointsRedeemed > 0 && nextReceipt.loyaltyDiscountAmount > 0) {
-        setLoyaltyPointValue(Number(nextReceipt.loyaltyDiscountAmount) / Number(nextReceipt.loyaltyPointsRedeemed));
-      }
+
     } catch (loyaltyError) {
       setError(loyaltyError.message || 'Unable to apply loyalty points.');
     } finally {
@@ -356,7 +312,7 @@ export default function CheckoutPage() {
     try {
       const nextReceipt = await calculateTotals({ couponCode: appliedCouponCode, redeemLoyaltyPoints: null });
       setReceipt(nextReceipt);
-      setLoyaltyPointValue(null);
+
     } catch (clearError) {
       setError(clearError.message || 'Unable to refresh totals.');
     } finally {
@@ -365,6 +321,15 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    // QR Session expiry check — block the order if the table session has expired
+    if (isQrCustomer) {
+      const qrToken = localStorage.getItem('qr_session_token');
+      if (!qrToken || isTokenExpired(qrToken)) {
+        setError('Your table session has expired. Please close this tab and rescan the QR code.');
+        return;
+      }
+    }
+
     if (!contact.username.trim()) {
       setError('Username is required.');
       return;
@@ -399,6 +364,7 @@ export default function CheckoutPage() {
         orderType: orderModeValue,
         branchId,
         tableId: isQrCustomer ? tableId : null,
+        qrSessionId: isQrCustomer ? seed.qrSessionId : undefined,
         couponCode: appliedCouponCode || undefined,
         redeemLoyaltyPoints: appliedLoyaltyPoints || undefined,
         items: cartItems.map((item) => ({
