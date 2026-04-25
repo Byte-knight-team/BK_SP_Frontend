@@ -264,8 +264,8 @@ export default function MenuManagementPage() {
         </header>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[240px_240px_minmax(0,1fr)]">
+        <div className="flex-1 overflow-y-auto px-8 pb-10">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Categories</h2>
@@ -314,9 +314,6 @@ export default function MenuManagementPage() {
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Sub Categories</h2>
-                <button className="grid size-8 place-items-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">
-                  <Plus size={16} />
-                </button>
               </div>
 
               <div className="space-y-2">
@@ -344,10 +341,6 @@ export default function MenuManagementPage() {
                 })}
               </div>
 
-              <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 px-4 py-3 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50">
-                <Plus size={16} />
-                Add Sub Category
-              </button>
             </section>
 
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
