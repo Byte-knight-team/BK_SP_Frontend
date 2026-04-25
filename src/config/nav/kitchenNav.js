@@ -5,7 +5,6 @@ import {
     Package,
     BookOpen,
     CheckCircle2,
-    Settings,
   } from "lucide-react";
   
   export const kitchenNav = [
@@ -15,5 +14,4 @@ import {
     { label: "Inventory", path: "/kitchen/inventory", icon: Package },
     { label: "Menu & Recipes", path: "/kitchen/menu", icon: BookOpen },
     { label: "Approvals", path: "/kitchen/approvals", icon: CheckCircle2 },
-    { label: "Settings", path: "/kitchen/settings", icon: Settings },
   ];
