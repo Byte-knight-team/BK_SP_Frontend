@@ -71,3 +71,34 @@ export const createMenuItemAPI = async (menuItemPayload) => {
   const payload = await parseResponse(response, 'Unable to create menu item.');
   return payload?.data ?? payload;
 };
+
+export const getMenuItemsAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}`);
+  const payload = await parseResponse(response, 'Unable to load menu items.');
+  return toArray(payload?.data);
+};
+
+export const getMenuItemByIdAPI = async (id) => {
+  const response = await authFetch(`${MENU_BASE}/${id}`);
+  const payload = await parseResponse(response, 'Unable to load menu item details.');
+  return payload?.data ?? payload;
+};
+
+export const updateMenuItemAPI = async (id, menuItemPayload) => {
+  const response = await authFetch(`${MENU_BASE}/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(menuItemPayload),
+  });
+
+  const payload = await parseResponse(response, 'Unable to update menu item.');
+  return payload?.data ?? payload;
+};
+
+export const deleteMenuItemAPI = async (id) => {
+  const response = await authFetch(`${MENU_BASE}/${id}`, {
+    method: 'DELETE',
+  });
+
+  const payload = await parseResponse(response, 'Unable to delete menu item.');
+  return payload?.data ?? payload;
+};
