@@ -168,12 +168,7 @@ export default function TableManagementPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">   
-
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
+    <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
           
           {/* Page Title & Actions */}
           <div className="flex items-center justify-between mb-8">
@@ -446,8 +441,6 @@ export default function TableManagementPage() {
             </div>
           )}
 
-        </div>
-
         {/* Edit Table Modal */}
         {editingTable && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -564,7 +557,6 @@ export default function TableManagementPage() {
             </div>
           </div>
         )}
-      </main>
     </div>
   );
 }
