@@ -466,6 +466,8 @@ export default function MenuManagementPage() {
                       <option value="ALL">All Status</option>
                       <option value="AVAILABLE">Available</option>
                       <option value="UNAVAILABLE">Unavailable</option>
+                      <option value="PENDING">Pending</option>
+                      <option value="REJECTED">Rejected</option>
                     </select>
                     <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   </label>
