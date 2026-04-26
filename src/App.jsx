@@ -30,7 +30,7 @@ import OrdersPage from "./pages/customer/OrdersPage";
 import ScanPage from "./pages/customer/ScanPage";
 
 // Existing Admin Pages
-import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import MenuManagementPage from "./pages/admin/MenuManagementPage";
 import AddMenuItemPage from "./pages/admin/AddMenuItemPage";
 import EditMenuItemPage from "./pages/admin/EditMenuItemPage";
