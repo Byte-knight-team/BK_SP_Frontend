@@ -3,8 +3,10 @@ import { UserPlus, X } from "lucide-react";
 import { getAvailableChefsAPI } from "../../../apis/kitchen/orders";
 
 const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
+
   // State to store the ID of the chef currently selected in the dropdown
   const [selectedChefId, setSelectedChefId] = useState("");
+
   const [loading, setLoading] = useState(false);
 
   // State to store the list of chefs fetched from the database
@@ -66,7 +68,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
         {/* Chef Selection Dropdown */}
         <select
           className="mb-8 w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
-          value={selectedChefId} // value = chef.chefStaffId in each option tag
+          value={selectedChefId} // value = chef.staffId in each option tag
           onChange={(e) => setSelectedChefId(e.target.value)} //that value set as the selectedChefId state
         >
           {/* default option */}
@@ -77,7 +79,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           )}
           {/* map all available chefs. Loop through the chefs array to create dropdown options */}
           {availableChefs.map((chef) => (
-            <option key={chef.chefStaffId} value={chef.chefStaffId}>
+            <option key={chef.staffId} value={chef.staffId}>
               {chef.chefName} - ({chef.workStatus})
             </option>
           ))}
