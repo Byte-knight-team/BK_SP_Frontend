@@ -3,12 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Download, RefreshCw, Trash2, QrCode, AlertTriangle 
 } from 'lucide-react';
-import AdminSidebar from '../components/admin/AdminSidebar';
-import AdminHeader from '../components/admin/AdminHeader';
+import AdminSidebar from '../../components/admin/AdminSidebar';
+import AdminHeader from '../../components/admin/AdminHeader';
 import { 
   getActiveQrCodeAPI, createQrCodeAPI, 
   regenerateQrCodeAPI, revokeQrCodeAPI, downloadQrCodeAPI 
-} from '../apis/admin/table';
+} from '../../apis/admin/table';
 
 export default function TableQrPage() {
   const { tableId } = useParams();

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ArrowLeft, CircleDot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import AdminSidebar from '../components/admin/AdminSidebar';
-import AdminHeader from '../components/admin/AdminHeader';
-import { createMenuCategoryAPI } from '../apis/admin/menu';
+import AdminSidebar from '../../components/admin/AdminSidebar';
+import AdminHeader from '../../components/admin/AdminHeader';
+import { createMenuCategoryAPI } from '../../apis/admin/menu';
 
 export default function AddCategoryPage() {
   const navigate = useNavigate();
