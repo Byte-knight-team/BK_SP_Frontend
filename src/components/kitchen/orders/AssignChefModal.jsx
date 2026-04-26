@@ -1,28 +1,42 @@
 import { useState, useEffect } from "react";
 import { UserPlus, X } from "lucide-react";
-import { getAvailableChefsAPI } from "../../../apis/kitchen/chefs";
+import { getAvailableChefsAPI } from "../../../apis/kitchen/orders";
 
 const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
+  // State to store the ID of the chef currently selected in the dropdown
   const [selectedChefId, setSelectedChefId] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // State to hold the real chefs from the database
+  // State to store the list of chefs fetched from the database
   const [availableChefs, setAvailableChefs] = useState([]);
 
-  // Fetch available chefs from the backend whenever the modal is opened
+  // Triggered whenever the modal opens to ensure we have the latest list of chefs
   useEffect(() => {
-    const fetchChefs = async () => {
-      if (isOpen) {
+    if (isOpen) {
+      const fetchChefs = async () => {
+        setLoading(true);
         const { data, error } = await getAvailableChefsAPI();
         if (data) {
-          setAvailableChefs(data);
+          setAvailableChefs(data); // Store fetched chefs in state
         } else {
           console.error("Failed to load chefs", error);
         }
-      }
-    };
-    fetchChefs();
-  }, [isOpen]);
+        setLoading(false);
+      };
+      fetchChefs();
+    }
+  }, [isOpen]); // Only runs when 'isOpen' changes (modal opens/closes)
 
+  // Function called when the "Assign" button is clicked
+  const handleAssign = () => {
+    if (selectedChefId) {
+      // Passes the selected ID back to the parent component (SelectedOrder)
+      onAssign(selectedChefId);
+      onClose(); // Close the modal after successful selection
+    }
+  };
+
+  //if modal not opened, return null (nothing)
   if (!isOpen) return null;
 
   return (
@@ -61,7 +75,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           )}
           {/* map all available chefs. Loop through the chefs array to create dropdown options */}
           {availableChefs.map((chef) => (
-            <option key={chef.staffId} value={chef.staffId}>
+            <option key={chef.chefStaffId} value={chef.chefStaffId}>
               {chef.chefName} - ({chef.workStatus})
             </option>
           ))}
@@ -76,10 +90,8 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           </button>
           <button
             // Trigger the assignment (save to backend) and close the modal simultaneously
-            onClick={() => {
-              onAssign(selectedChefId);
-              onClose();
-            }}
+            onClick={handleAssign}
+            disabled={loading || !selectedChefId} //button disables when loading or no chef is selected
             className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600"
           >
             Assign
