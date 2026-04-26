@@ -3,8 +3,6 @@ import {
   Search, Bell, HelpCircle, Settings, ArrowLeft, CheckCircle2, CircleDot
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import AdminHeader from '../../components/admin/AdminHeader';
 import CloudinaryImageUpload from '../../components/admin/CloudinaryImageUpload';
 import {
   getMenuItemByIdAPI,
@@ -270,7 +268,6 @@ export default function EditMenuItemPage() {
   if (isPageLoading) {
     return (
       <div className="flex h-screen bg-[#F8F9FA] font-sans">
-        <AdminSidebar />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-gray-500 text-sm">Loading menu item...</p>
         </main>
@@ -280,8 +277,6 @@ export default function EditMenuItemPage() {
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
-      {/* Sidebar */}
-      <AdminSidebar />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">

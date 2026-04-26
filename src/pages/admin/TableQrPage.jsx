@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Download, RefreshCw, Trash2, QrCode, AlertTriangle 
 } from 'lucide-react';
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import AdminHeader from '../../components/admin/AdminHeader';
+
 import { 
   getActiveQrCodeAPI, createQrCodeAPI, 
   regenerateQrCodeAPI, revokeQrCodeAPI, downloadQrCodeAPI 
@@ -102,10 +101,8 @@ export default function TableQrPage() {
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
-      <AdminSidebar activePage="/admin/tables" />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-        <AdminHeader />
 
         <div className="flex-1 overflow-y-auto px-10 pb-10">
           <div className="flex items-center justify-between mb-8 mt-4">

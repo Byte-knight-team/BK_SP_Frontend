@@ -100,7 +100,14 @@ export default function App() {
           <Route path="/orders" element={<OrdersPage />} />
         </Route>
 
-        <Route path="/admin">
+        <Route
+          path="/admin-panel"
+          element={
+            <ProtectedRoute>
+              <MainLayout Sidebar={AdminSidebar} Header={AdminHeader} />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<AdminDashboardPage />} />
           <Route path="menu" element={<MenuManagementPage />} />
           <Route path="menu/category/add" element={<AddCategoryPage />} />

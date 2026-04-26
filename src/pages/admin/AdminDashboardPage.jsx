@@ -3,8 +3,7 @@ import {
   Users, DollarSign, ShoppingBag, 
   TrendingUp, Clock, CheckCircle
 } from 'lucide-react';
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import AdminHeader from '../../components/admin/AdminHeader';
+
 import {
   getAdminDashboardOrderFlowAPI,
   getAdminDashboardRevenueTrendAPI,
@@ -180,13 +179,9 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
-      {/* Sidebar */}
-      <AdminSidebar />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-        {/* Header */}
-        <AdminHeader />
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto px-10 pb-10">

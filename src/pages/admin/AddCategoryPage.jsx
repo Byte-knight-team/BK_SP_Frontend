@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, CircleDot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import AdminHeader from '../../components/admin/AdminHeader';
 import { createMenuCategoryAPI } from '../../apis/admin/menu';
 
 export default function AddCategoryPage() {
@@ -58,10 +56,8 @@ export default function AddCategoryPage() {
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
-      <AdminSidebar />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-        <AdminHeader />
 
         <div className="flex-1 overflow-y-auto px-10 pb-10">
           <div className="flex items-center justify-between mb-8 mt-4">
