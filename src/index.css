@@ -38,7 +38,7 @@ section[id] {
 
   /* ── Modal utilities ── */
   .modal-backdrop {
-    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    @apply fixed inset-0 z-50 flex items-start justify-center p-4 pt-10;
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(4px);
     animation: fadeIn 0.2s ease-out;

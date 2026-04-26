@@ -644,33 +644,35 @@ export default function UpdateInventoryItemModal({
           onSelect={setUpdateType}
         />
 
-        {/* ── Dynamic Form Area ── */}
-        {!updateType && <EmptyStatePlaceholder />}
+        {/* ── Dynamic Form Area (keyed for smooth transition on type change) ── */}
+        <div key={updateType || 'empty'} className="animate-table-fade">
+          {!updateType && <EmptyStatePlaceholder />}
 
-        {updateType === 'restock' && (
-          <RestockForm
-            form={restockForm}
-            onChange={createChangeHandler(setRestockForm)}
-            currentStock={item.stockLevel}
-            unit={item.unit}
-          />
-        )}
+          {updateType === 'restock' && (
+            <RestockForm
+              form={restockForm}
+              onChange={createChangeHandler(setRestockForm)}
+              currentStock={item.stockLevel}
+              unit={item.unit}
+            />
+          )}
 
-        {updateType === 'remove' && (
-          <RemoveForm
-            form={removeForm}
-            onChange={createChangeHandler(setRemoveForm)}
-            currentStock={item.stockLevel}
-            unit={item.unit}
-          />
-        )}
+          {updateType === 'remove' && (
+            <RemoveForm
+              form={removeForm}
+              onChange={createChangeHandler(setRemoveForm)}
+              currentStock={item.stockLevel}
+              unit={item.unit}
+            />
+          )}
 
-        {updateType === 'correction' && (
-          <CorrectionForm
-            form={correctionForm}
-            onChange={createChangeHandler(setCorrectionForm)}
-          />
-        )}
+          {updateType === 'correction' && (
+            <CorrectionForm
+              form={correctionForm}
+              onChange={createChangeHandler(setCorrectionForm)}
+            />
+          )}
+        </div>
 
         {/* ── Action Buttons ── */}
         <div className="flex items-center justify-center gap-4 pt-6">
