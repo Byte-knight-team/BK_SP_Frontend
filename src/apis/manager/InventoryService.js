@@ -29,4 +29,34 @@ export const InventoryService = {
     const result = await response.json();
     return result.data || result;
   },
+
+  // 4. Restock: Add quantity to an existing item
+  restockItem: async (itemId, restockData) => {
+    const response = await authFetch(`${BASE_URL}/inventory/items/${itemId}/restock`, {
+      method: 'PATCH',
+      body: JSON.stringify(restockData),
+    });
+    const result = await response.json();
+    return result.data || result;
+  },
+
+  // 5. Remove: Subtract quantity from an existing item (wastage/damage)
+  removeStock: async (itemId, removeData) => {
+    const response = await authFetch(`${BASE_URL}/inventory/items/${itemId}/remove`, {
+      method: 'PATCH',
+      body: JSON.stringify(removeData),
+    });
+    const result = await response.json();
+    return result.data || result;
+  },
+
+  // 6. Correction: Overwrite item details (fix incorrect data)
+  correctItem: async (itemId, correctionData) => {
+    const response = await authFetch(`${BASE_URL}/inventory/items/${itemId}/correct`, {
+      method: 'PUT',
+      body: JSON.stringify(correctionData),
+    });
+    const result = await response.json();
+    return result.data || result;
+  },
 };
