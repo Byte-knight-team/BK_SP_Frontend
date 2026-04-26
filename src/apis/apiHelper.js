@@ -1,5 +1,4 @@
-// src/apis/apiHelper.js
-
+//function to get the stored JWT token
 export const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return {
