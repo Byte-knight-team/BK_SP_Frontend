@@ -47,7 +47,8 @@ function CategoryBadge({ category }) {
   )
 }
 
-export default function CurrentStockTable({ items }) {
+export default function CurrentStockTable({ items = [] }) {
+  const safeItems = items || []
   const tableRef = useRef(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All Categories')
@@ -57,14 +58,14 @@ export default function CurrentStockTable({ items }) {
 
   // Derive unique categories
   const categories = useMemo(() => {
-    const cats = [...new Set(items.map((item) => item.category))]
+    const cats = [...new Set(safeItems.map((item) => item.category))]
     return ['All Categories', ...cats]
-  }, [items])
+  }, [safeItems])
 
   // Filter items
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const matchesSearch = item.name
+    return safeItems.filter((item) => {
+      const matchesSearch = (item.name || '')
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
       const matchesCategory =

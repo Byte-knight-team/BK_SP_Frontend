@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react'
 import { InventoryService } from '../apis/manager/InventoryService'
+import { useAuth } from '../context/AuthContext'
 
 export function useInventoryData() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const { user, hydrated } = useAuth()
+  const branchId = user?.branchId
+
   const fetchInventory = async () => {
     try {
       setLoading(true)
       const [realItems, summaryData] = await Promise.all([
-        InventoryService.getAllItems(1),
-        InventoryService.getSummary(1),
+        InventoryService.getAllItems(branchId),
+        InventoryService.getSummary(branchId),
       ])
 
       setData({
@@ -22,17 +26,25 @@ export function useInventoryData() {
         chefRequests: summaryData.chefRequests,
         stockItems: realItems,
       })
+      setError(null)
     } catch (err) {
       console.error('Failed to fetch inventory dashboard data:', err)
-      setError(err.response?.data?.message || err.message)
+      setError(err.message || 'Failed to fetch data')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchInventory()
-  }, [])
+    if (hydrated) {
+      if (user && branchId) {
+        fetchInventory()
+      } else {
+        setError('Authentication required or Branch ID missing.')
+        setLoading(false)
+      }
+    }
+  }, [hydrated, user, branchId])
 
   return { data, loading, error, refetch: fetchInventory }
 }

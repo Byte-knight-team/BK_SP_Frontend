@@ -23,10 +23,24 @@ function LoadingSkeleton() {
 }
 
 export default function ManagerInventoryPage() {
-  const { data, loading, refetch } = useInventoryData()
+  const { data, loading, error, refetch } = useInventoryData()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   if (loading) return <LoadingSkeleton />
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="text-red-500 font-medium">Failed to load inventory: {error || 'Unknown error'}</div>
+        <button 
+          onClick={refetch}
+          className="btn-primary"
+        >
+          Try Again
+        </button>
+      </div>
+    )
+  }
 
   const handleSaveItem = async (itemData) => {
     try {

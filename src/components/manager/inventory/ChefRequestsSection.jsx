@@ -50,20 +50,21 @@ function ChefRequestCard({ request }) {
   )
 }
 
-export default function ChefRequestsSection({ requests }) {
+export default function ChefRequestsSection({ requests = [] }) {
+  const safeRequests = requests || []
   return (
     <div className="card">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <h2 className="text-xl font-bold text-gray-900">Chef Requests</h2>
         <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
-          {requests.length}
+          {safeRequests.length}
         </span>
       </div>
 
       {/* Cards grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {requests.map((request) => (
+        {safeRequests.map((request) => (
           <ChefRequestCard key={request.id} request={request} />
         ))}
       </div>
