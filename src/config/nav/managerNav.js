@@ -9,8 +9,8 @@ import {
   
   export const managerNav = [
     { label: "Dashboard", path: "/manager", icon: LayoutDashboard, exact: true },
-    { label: "Orders", path: "/manager/orders", icon: ClipboardList },
-    { label: "Reports", path: "/manager/reports", icon: BarChart3 },
+    { label: "Sales Summary", path: "/manager/orders", icon: ClipboardList },
+    { label: "Reports & Analytics", path: "/manager/reports", icon: BarChart3 },
     { label: "Staff", path: "/manager/staff", icon: Users },
     { label: "Inventory", path: "/manager/inventory", icon: Package },
     { label: "Driver Management", path: "/manager/drivers", icon: Truck },
