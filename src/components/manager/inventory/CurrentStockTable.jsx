@@ -47,7 +47,7 @@ function CategoryBadge({ category }) {
   )
 }
 
-export default function CurrentStockTable({ items = [] }) {
+export default function CurrentStockTable({ items = [], onUpdateItem }) {
   const safeItems = items || []
   const tableRef = useRef(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -198,7 +198,10 @@ export default function CurrentStockTable({ items = [] }) {
 
               {/* Action */}
               <td className="py-4 text-center">
-                <button className="inline-flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-brand-hover transition-colors">
+                <button
+                  onClick={() => onUpdateItem?.(item)}
+                  className="inline-flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-brand-hover transition-colors"
+                >
                   <ArrowUpRight className="w-3.5 h-3.5" />
                   Update Stock
                 </button>

@@ -6,6 +6,7 @@ import InventorySummaryCards from '../../components/manager/inventory/InventoryS
 import CurrentStockTable from '../../components/manager/inventory/CurrentStockTable'
 import ChefRequestsSection from '../../components/manager/inventory/ChefRequestsSection'
 import AddInventoryItemModal from '../../components/manager/inventory/AddInventoryItemModal'
+import UpdateInventoryItemModal from '../../components/manager/inventory/UpdateInventoryItemModal'
 
 function LoadingSkeleton() {
   return (
@@ -25,6 +26,7 @@ function LoadingSkeleton() {
 export default function ManagerInventoryPage() {
   const { data, loading, error, refetch } = useInventoryData()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [updateModal, setUpdateModal] = useState({ open: false, item: null })
 
   if (loading) return <LoadingSkeleton />
 
@@ -52,6 +54,26 @@ export default function ManagerInventoryPage() {
     }
   }
 
+  /**
+   * Handles all three update operations (restock, remove, correction).
+   * Delegates to the appropriate InventoryService method based on updateType.
+   */
+  const handleUpdateItem = async (updateType, itemId, formData) => {
+    try {
+      if (updateType === 'restock') {
+        await InventoryService.restockItem(itemId, formData)
+      } else if (updateType === 'remove') {
+        await InventoryService.removeStock(itemId, formData)
+      } else if (updateType === 'correction') {
+        await InventoryService.correctItem(itemId, formData)
+      }
+      return true
+    } catch (err) {
+      console.error(`Failed to ${updateType} item:`, err)
+      return false
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <InventoryHeader
@@ -63,7 +85,10 @@ export default function ManagerInventoryPage() {
         pendingDrafts={data.pendingChefDrafts}
         lowStockAlerts={data.lowStockAlerts}
       />
-      <CurrentStockTable items={data.stockItems} />
+      <CurrentStockTable
+        items={data.stockItems}
+        onUpdateItem={(item) => setUpdateModal({ open: true, item })}
+      />
       <ChefRequestsSection requests={data.chefRequests} />
 
       {/* Add Item Modal */}
@@ -74,6 +99,17 @@ export default function ManagerInventoryPage() {
           refetch()
         }}
         onSave={handleSaveItem}
+      />
+
+      {/* Update Item Modal */}
+      <UpdateInventoryItemModal
+        isOpen={updateModal.open}
+        item={updateModal.item}
+        onClose={() => {
+          setUpdateModal({ open: false, item: null })
+          refetch()
+        }}
+        onUpdate={handleUpdateItem}
       />
     </div>
   )
