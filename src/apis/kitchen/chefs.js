@@ -5,37 +5,6 @@ const chefsStats = {
   averagePrepTimeInMinutes: 15,
 };
 
-const dummyChefs = [
-  {
-    name: "Isuru Udara",
-    role: "Executive Chef",
-    status: "Available",
-    mealsAssigned: 42,
-    avgPrepTime: "11m 40s",
-  },
-  {
-    name: "Kamal Perera",
-    role: "Sous Chef",
-    status: "Busy",
-    mealsAssigned: 28,
-    avgPrepTime: "14m 15s",
-  },
-  {
-    name: "Amal Silva",
-    role: "Line Cook",
-    status: "Offline",
-    mealsAssigned: 0,
-    avgPrepTime: "N/A",
-  },
-  {
-    name: "Nimal J.",
-    role: "Pastry Chef",
-    status: "Available",
-    mealsAssigned: 12,
-    avgPrepTime: "18m 05s",
-  },
-];
-
 export const getChefsStatsAPI = async () => {
   try {
     // TODO: uncomment this section once the API is ready

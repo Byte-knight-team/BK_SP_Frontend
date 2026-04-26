@@ -3,7 +3,7 @@ import OrderStepper from "../OrderStepper";
 import MealTable from "./MealTable";
 import { XCircle, AlertCircle } from "lucide-react";
 import AssignChefModal from "./AssignChefModal";
-import { getOrderDetailsAPI } from "../../../apis/kitchen/orders";
+import { getOrderDetailsAPI, assignChefToMealAPI } from "../../../apis/kitchen/orders";
 
 const statusLabels = {
   PENDING: "Placed on",
@@ -26,12 +26,10 @@ const SelectedOrder = ({ orderId }) => {
   const [targetMeal, setTargetMeal] = useState(null);
 
   // Fetch real data when orderId changes
-  useEffect(() => {
     const fetchOrderDetails = async () => {
       if (!orderId) return;
       setLoading(true);
       const { data, error } = await getOrderDetailsAPI(orderId);
-
       if (error) {
         console.error("Error fetching order details:", error);
       } else if (data) {
@@ -52,9 +50,22 @@ const SelectedOrder = ({ orderId }) => {
         });
       }
       setLoading(false);
-    };
-    fetchOrderDetails();
+  };
+  
+  useEffect(() => {
+  fetchOrderDetails();
   }, [orderId]);
+  
+  const handleChefAssignment = async (chefId) => {
+  if (!targetMeal) return;
+  const { error } = await assignChefToMealAPI(targetMeal.id, chefId);
+  if (error) {
+    alert("Failed to assign chef.");
+  } else {
+    setIsModalOpen(false); // close the modal
+    fetchOrderDetails();   // refresh data only (No full reload)
+  }
+};
 
   if (loading)
     return (
@@ -165,7 +176,7 @@ const SelectedOrder = ({ orderId }) => {
       <AssignChefModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onAssign={confirmAssignment}
+        onAssign={handleChefAssignment}
         mealName={targetMeal?.name}
       />
     </div>
