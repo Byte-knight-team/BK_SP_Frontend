@@ -1,11 +1,9 @@
 import React from 'react';
 import { 
-  Search, Filter, MoreVertical, Shield, 
+  Search, Filter, MoreVertical, Shield, Mail,
   CheckCircle2, XCircle, Pencil, Trash2, UserPlus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import AdminSidebar from '../components/admin/AdminSidebar';
-import AdminHeader from '../components/admin/AdminHeader';
 
 export default function UserManagementPage() {
   const users = [
@@ -66,28 +64,19 @@ export default function UserManagementPage() {
   ];
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-      <AdminSidebar activePage="/admin/users" />
-
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-        <AdminHeader />
-
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
-          
-          {/* Page Title & Actions */}
-          <div className="flex items-center justify-between mt-2 mb-8">
+    <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
+          <div className="flex items-center justify-between mt-4 mb-6">
             <div>
               <h1 className="text-[28px] font-bold text-gray-900 tracking-tight">User Management</h1>
               <p className="text-gray-500 text-sm mt-1">Manage staff access and permissions</p>
             </div>
-            <Link to="/admin/users/add" className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">
+            <Link to="/admin/staff/add" className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">
               <UserPlus size={18} />
               Add New User
             </Link>
           </div>
 
-          {/* Search and Filter Row */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 flex items-center bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow-sm">
               <Search size={18} className="text-gray-400 mr-3" />
               <input 
@@ -105,17 +94,16 @@ export default function UserManagementPage() {
             </button>
           </div>
 
-          {/* Users Table Core */}
           <div className="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-[35%]">User</th>
-                    <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-[20%]">Role</th>
-                    <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-[15%]">Status</th>
-                    <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-[20%]">Last Login</th>
-                    <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right w-[10%]">Actions</th>
+                  <tr className="border-b border-gray-100 bg-gray-50/80">
+                    <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wide w-[35%]">User</th>
+                    <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wide w-[20%]">Role</th>
+                    <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wide w-[15%]">Status</th>
+                    <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wide w-[20%]">Last Login</th>
+                    <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wide text-right w-[10%]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -129,7 +117,7 @@ export default function UserManagementPage() {
                           <div>
                             <div className="text-sm font-bold text-gray-900">{user.name}</div>
                             <div className="flex items-center text-xs text-gray-500 mt-0.5">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5 opacity-70"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+                              <Mail size={12} className="mr-1.5 opacity-70" />
                               {user.email}
                             </div>
                           </div>
@@ -159,10 +147,10 @@ export default function UserManagementPage() {
                       </td>
                       <td className="py-4 px-6 text-right">
                         <div className="flex items-center justify-end gap-3">
-                          <button className="text-gray-400 hover:text-[#FF6B00] transition-colors">
+                          <button className="text-gray-400 hover:text-[#FF6B00] transition-colors" aria-label={`Edit ${user.name}`}>
                             <Pencil size={18} />
                           </button>
-                          <button className="text-gray-400 hover:text-red-500 transition-colors">
+                          <button className="text-gray-400 hover:text-red-500 transition-colors" aria-label={`Delete ${user.name}`}>
                             <Trash2 size={18} />
                           </button>
                         </div>
@@ -173,9 +161,6 @@ export default function UserManagementPage() {
               </table>
             </div>
           </div>
-
-        </div>
-      </main>
     </div>
   );
 }

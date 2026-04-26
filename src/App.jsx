@@ -32,16 +32,17 @@ import OrdersPage from "./pages/customer/OrdersPage";
 import ScanPage from "./pages/customer/ScanPage";
 
 // Existing Admin Pages
-import AdminDashboardPage from "./pages/admin-panel/AdminDashboardPage";
-import MenuManagementPage from "./pages/admin-panel/MenuManagementPage";
-import AddMenuItemPage from "./pages/admin-panel/AddMenuItemPage";
-import EditMenuItemPage from "./pages/admin-panel/EditMenuItemPage";
-import AddCategoryPage from "./pages/admin-panel/AddCategoryPage";
-import TableManagementPage from "./pages/admin-panel/TableManagementPage";
-import AddTablePage from "./pages/admin-panel/AddTablePage";
-import TableQrPage from "./pages/admin-panel/TableQrPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import MenuManagementPage from "./pages/admin/MenuManagementPage";
+import AddMenuItemPage from "./pages/admin/AddMenuItemPage";
+import EditMenuItemPage from "./pages/admin/EditMenuItemPage";
+import AddCategoryPage from "./pages/admin/AddCategoryPage";
+import TableManagementPage from "./pages/admin/TableManagementPage";
+import AddTablePage from "./pages/admin/AddTablePage";
+import TableQrPage from "./pages/admin/TableQrPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import AddNewUserPage from "./pages/admin/AddNewUserPage";
+import CouponsPage from "./pages/admin/CouponsPage";
 
 // Kitchen Pages
 import KitchenDashboardPage from "./pages/kitchen/KitchenDashboardPage";
@@ -103,7 +104,7 @@ export default function App() {
         </Route>
 
         <Route
-          path="/admin-panel"
+          path="/admin"
           element={
             <ProtectedRoute>
               <MainLayout Sidebar={AdminSidebar} Header={AdminHeader} />
@@ -118,8 +119,11 @@ export default function App() {
           <Route path="tables" element={<TableManagementPage />} />
           <Route path="tables/add" element={<AddTablePage />} />
           <Route path="tables/:tableId/qr" element={<TableQrPage />} />
+          <Route path="staff" element={<UserManagementPage />} />
+          <Route path="staff/add" element={<AddNewUserPage />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="users/add" element={<AddNewUserPage />} />
+          <Route path="coupons" element={<CouponsPage />} />
         </Route>
 
         <Route path="/staff/login" element={<SuperAdminLoginPage />} />
