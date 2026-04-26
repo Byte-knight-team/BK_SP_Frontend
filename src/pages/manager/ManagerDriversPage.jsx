@@ -24,13 +24,21 @@ function LoadingSkeleton() {
 }
 
 export default function ManagerDriversPage() {
-  const { data, loading } = useDriversData()
+  const { data, loading, error } = useDriversData()
   const [assignModal, setAssignModal] = useState({
     open: false,
     order: null,
   })
 
   if (loading) return <LoadingSkeleton />
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="text-red-500 font-medium">Failed to load drivers: {error || 'Unknown error'}</div>
+      </div>
+    )
+  }
 
   const handleAssignDriver = (order) => {
     setAssignModal({ open: true, order })
@@ -42,7 +50,7 @@ export default function ManagerDriversPage() {
     setAssignModal({ open: false, order: null })
   }
 
-  const availableDrivers = data.drivers.filter((d) => d.status === 'Available')
+  const availableDrivers = (data.drivers || []).filter((d) => d.status === 'Available')
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
