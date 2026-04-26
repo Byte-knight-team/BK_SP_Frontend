@@ -1,6 +1,6 @@
-import craveHouseLogo from "../../assets/logo.png";
+import craveHouseLogo from "../../assets/Crave House logo.png";
 import { Link, useLocation } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { RiLogoutBoxRLine } from "@remixicon/react";
 
 export default function AppSidebar({
   navItems = [],
@@ -95,7 +95,7 @@ export default function AppSidebar({
             title="Logout"
             aria-label="Logout"
           >
-            <LogOut size={18} />
+            <RiLogoutBoxRLine size={18} />
           </button>
         </div>
       </div>

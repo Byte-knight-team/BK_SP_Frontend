@@ -1,25 +1,25 @@
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import AppSidebar from '../common/AppSidebar'
-import { managerNav } from '../../config/nav/managerNav'
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import AppSidebar from "../common/AppSidebar";
+import { managerNav } from "../../config/nav/managerNav";
 
 export default function ManagerSidebar() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    logout()
-    navigate('/staff/login', { replace: true })
-  }
+    logout();
+    navigate("/staff/login", { replace: true });
+  };
 
   return (
     <AppSidebar
       navItems={managerNav}
-      branchName={user?.branchName || 'Assigned Branch'}
-      userName={user?.fullName || user?.username || user?.email || 'Manager'}
-      roleLabel={user?.roleName || 'MANAGER'}
+      branchName={user?.branchName || "Assigned Branch"}
+      userName={user?.fullName || user?.username || user?.email || "Manager"}
+      roleLabel={user?.roleName || "MANAGER"}
       profilePath="/staff/profile"
       onLogout={handleLogout}
     />
-  )
+  );
 }
