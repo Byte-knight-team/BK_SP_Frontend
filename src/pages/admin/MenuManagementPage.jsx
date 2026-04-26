@@ -279,7 +279,12 @@ export default function MenuManagementPage() {
 
   return (
     <div className="bg-[#FAFAFA] font-sans px-8 pb-10">
-          <div className="mb-4 mt-1 flex justify-end">
+          <div className="mb-8 mt-1 flex items-center justify-between">
+            <div>
+              <h1 className="text-[28px] font-bold text-gray-900 tracking-tight">Menu Management</h1>
+              <p className="text-gray-500 text-sm mt-1">Manage categories, sub categories, and menu items</p>
+            </div>
+
             <Link
               to="/admin/menu/add"
               className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
