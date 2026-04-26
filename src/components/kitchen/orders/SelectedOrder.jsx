@@ -20,15 +20,15 @@ const statusColors = {
 };
 
 const SelectedOrder = ({ orderId }) => {
-  const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [targetMeal, setTargetMeal] = useState(null);
+  const [order, setOrder] = useState(null); // Stores the fully formatted order data
+  const [loading, setLoading] = useState(false); // Controls the loading state UI
+  const [isModalOpen, setIsModalOpen] = useState(false); // Controls the Chef Modal visibility
+  const [targetMeal, setTargetMeal] = useState(null); // Remembers which meal is currently being assigned
 
-  // Fetch real data when orderId changes
-    const fetchOrderDetails = async () => {
-      if (!orderId) return;
-      setLoading(true);
+  // Fetches the latest data from the Backend API (whenever orderId changes or we can call it )
+  const fetchOrderDetails = async () => {
+    if (!orderId) return;
+    setLoading(true);
       const { data, error } = await getOrderDetailsAPI(orderId);
       if (error) {
         console.error("Error fetching order details:", error);
@@ -44,7 +44,7 @@ const SelectedOrder = ({ orderId }) => {
             id: item.id,
             name: item.itemName,
             qty: item.quantity,
-            status: item.status || data.status,
+            status: item.status,
             chefName: item.assignedChefName || "Not Assigned",
           })),
         });
@@ -56,23 +56,37 @@ const SelectedOrder = ({ orderId }) => {
   fetchOrderDetails();
   }, [orderId]);
   
+  // Handler for when the Modal returns a selected Chef ID
   const handleChefAssignment = async (chefId) => {
-  if (!targetMeal) return;
-  const { error } = await assignChefToMealAPI(targetMeal.id, chefId);
-  if (error) {
-    alert("Failed to assign chef.");
-  } else {
-    setIsModalOpen(false); // close the modal
-    fetchOrderDetails();   // refresh data only (No full reload)
-  }
-};
+    if (!targetMeal) return;  
 
+    // Send the assignment to the Backend database
+    const { error } = await assignChefToMealAPI(targetMeal.id, chefId);
+
+    if (error) {
+      alert("Failed to assign chef.");
+    } else {
+      // Close modal on success
+      setIsModalOpen(false);
+      // REFRESH ONLY: Fetches data again to update the UI without reloading the whole page
+      fetchOrderDetails(); 
+  }
+  };
+
+  // Triggered when "Assign Chef" button inside the MealTable is clicked
+  const handleAssignChef = (meal) => {
+    setTargetMeal(meal); // store the meal that needs to be assigned
+    setIsModalOpen(true); // open the modal
+  };
+
+  // State Management: If data is loading, show animation
   if (loading)
     return (
       <div className="flex h-full items-center justify-center p-8">
         <p className="animate-pulse text-lg font-bold text-orange-400">Loading Order Details...</p>
       </div>
     );
+  // State Management: If no order is selected yet
   if (!order)
     return (
       <div className="flex h-full items-center justify-center p-8">
@@ -80,26 +94,22 @@ const SelectedOrder = ({ orderId }) => {
       </div>
     );
 
-  const handleAssignChef = (meal) => {
-    setTargetMeal(meal);
-    setIsModalOpen(true);
-  };
+  // Placeholder functions for future API implementations
+  // const confirmAssignment = (chefName) => {
+  //   console.log(`Assigning ${chefName} to ${targetMeal?.name}`);
+  // };
 
-  const confirmAssignment = (chefName) => {
-    console.log(`Assigning ${chefName} to ${targetMeal?.name}`);
-  };
+  // const handleStartMeal = (mealId) => {
+  //   console.log(`API Call: Starting Meal ${mealId}`);
+  // };
 
-  const handleStartMeal = (mealId) => {
-    console.log(`API Call: Starting Meal ${mealId}`);
-  };
+  // const handleCompleteMeal = (mealId) => {
+  //   console.log(`API Call: Completing Meal ${mealId}`);
+  // };
 
-  const handleCompleteMeal = (mealId) => {
-    console.log(`API Call: Completing Meal ${mealId}`);
-  };
-
-  const handleHoldOrder = () => {
-    console.log(`API Call: Putting Order on Hold`);
-  };
+  // const handleHoldOrder = () => {
+  //   console.log(`API Call: Putting Order on Hold`);
+  // };
 
   return (
     <div className="rounded-3xl border border-gray-100 bg-white p-8">

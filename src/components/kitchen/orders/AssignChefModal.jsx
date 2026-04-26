@@ -36,12 +36,13 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
     }
   };
 
-  //if modal not opened, return null (nothing)
+  // If the modal is not active, don't render anything (Performance optimization)
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-4xl border border-gray-100 bg-white p-8 shadow-2xl">
+        {/* Header Section: Icon and Close button */}
         <div className="mb-6 flex items-start justify-between">
           <div className="rounded-2xl bg-orange-100 p-3 text-orange-600">
             <UserPlus size={24} />
@@ -62,9 +63,10 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           <span className="font-bold text-gray-900">"{mealName}"</span>
         </p>
 
+        {/* Chef Selection Dropdown */}
         <select
           className="mb-8 w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
-          value={selectedChefId} // value = chef.id in each option tag
+          value={selectedChefId} // value = chef.chefStaffId in each option tag
           onChange={(e) => setSelectedChefId(e.target.value)} //that value set as the selectedChefId state
         >
           {/* default option */}
@@ -81,6 +83,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           ))}
         </select>
 
+        {/* Action Buttons */}
         <div className="flex gap-4">
           <button
             onClick={onClose}
