@@ -1,12 +1,20 @@
 // src/pages/superadmin/EditStaffPage.jsx
 
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 import { RiArrowLeftLine, RiEditLine } from "@remixicon/react";
 
 import { getStaffByIdAPI, updateStaffAPI } from "../../apis/staff/staff";
 import { getAllBranchesAPI } from "../../apis/staff/branches";
 import { getRolesAPI } from "../../apis/staff/roles";
+
+import { useAuth } from "../../context/AuthContext";
 
 /*
   Dynamic role rules:
@@ -110,13 +118,38 @@ export default function EditStaffPage() {
   const navigate = useNavigate();
   const { setHeaderInfo } = useOutletContext();
 
+  const location = useLocation();
+
   /*
-    Logged-in user details are used for frontend access rules.
+    This page is shared by SUPER_ADMIN and ADMIN.
+  
+    SUPER_ADMIN route:
+    /staff/staff/:id/edit
+  
+    ADMIN route:
+    /admin-panel/staff/:id/edit
   */
-  const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
-  const loggedInRole = authUser.roleName || authUser.role || "";
-  const loggedInBranchId = authUser.branchId || "";
-  const loggedInBranchName = authUser.branchName || "Your branch";
+  const isAdminPanelRoute = location.pathname.startsWith("/admin-panel");
+
+  const staffListPath = isAdminPanelRoute
+    ? "/admin-panel/staff"
+    : "/staff/staff";
+
+  const staffDetailsPath = isAdminPanelRoute
+    ? `/admin-panel/staff/${id}`
+    : `/staff/staff/${id}`;
+
+  /*
+  Read logged-in user details from AuthContext.
+
+  AuthContext now gets user data from the decoded JWT token.
+  We no longer read authUser from localStorage.
+*/
+  const { user: authUser } = useAuth();
+
+  const loggedInRole = authUser?.roleName || authUser?.role || "";
+  const loggedInBranchId = authUser?.branchId || "";
+  const loggedInBranchName = authUser?.branchName || "Your branch";
 
   const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
   const isAdmin = loggedInRole === "ADMIN";
@@ -431,7 +464,7 @@ export default function EditStaffPage() {
 
     setSaving(false);
 
-    navigate("/staff/staff", {
+    navigate(staffListPath, {
       state: {
         successMessage: "Staff member updated successfully.",
       },
@@ -451,7 +484,7 @@ export default function EditStaffPage() {
       <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
         <div className="mb-6">
           <Link
-            to={`/staff/staff/${id}`}
+            to={staffDetailsPath}
             className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
           >
             <RiArrowLeftLine size={18} />
@@ -627,7 +660,7 @@ export default function EditStaffPage() {
 
           <div className="flex items-center justify-end gap-3 pt-2">
             <Link
-              to="/staff/staff"
+              to={staffListPath}
               className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               Cancel

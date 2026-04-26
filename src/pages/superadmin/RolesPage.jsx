@@ -27,18 +27,7 @@ import {
     normalizePrivileges,
 } from "../../apis/staff/roles";
 
-/**
- * Reads the logged-in user from localStorage.
- * This is used as a backup if MainLayout does not pass user data through Outlet context.
- */
-function getStoredAuthUser() {
-    try {
-        const rawUser = localStorage.getItem("authUser");
-        return rawUser ? JSON.parse(rawUser) : null;
-    } catch {
-        return null;
-    }
-}
+import { useAuth } from "../../context/AuthContext";
 
 /**
  * Extracts role name safely from different possible auth user shapes.
@@ -265,11 +254,14 @@ export default function RolesPage() {
     // MainLayout should provide setHeaderInfo through Outlet context.
     const setHeaderInfo = outletContext?.setHeaderInfo;
 
-    // Read user from layout first, then fallback to localStorage.
-    const layoutUser = outletContext?.user || outletContext?.authUser;
-    const [storedUser] = useState(getStoredAuthUser);
+    /*
+        Read logged-in user from AuthContext.
 
-    const currentUser = layoutUser || storedUser;
+        AuthContext now gets user data from the decoded JWT token.
+        We no longer read authUser from localStorage.
+    */
+    const { user: currentUser } = useAuth();
+
     const currentRoleName = getCurrentRoleName(currentUser);
     const isSuperAdmin = currentRoleName === "SUPER_ADMIN";
 

@@ -14,11 +14,26 @@ import {
     resendStaffInviteAPI,
 } from "../../apis/staff/staff";
 
+import { useAuth } from "../../context/AuthContext";
+
 export default function StaffListPage() {
     /*
         Used to read success messages sent from CreateStaffPage after redirect.
     */
     const location = useLocation();
+
+    /*
+    This page is shared by SUPER_ADMIN and ADMIN.
+
+        SUPER_ADMIN route:
+        /staff/staff
+
+        ADMIN route:
+        /admin-panel/staff
+    */
+    const staffBasePath = location.pathname.startsWith("/admin-panel")
+        ? "/admin-panel/staff"
+        : "/staff/staff";
 
     /*
         setHeaderInfo comes from MainLayout through Outlet context.
@@ -45,11 +60,14 @@ export default function StaffListPage() {
     const [statusFilter, setStatusFilter] = useState("ALL");
 
     /*
-        Logged-in user details.
-        Used to control which staff status actions are allowed.
+        Read logged-in user from AuthContext.
+
+        AuthContext now gets user data from the decoded JWT token.
+        We no longer read authUser from localStorage.
     */
-    const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
-    const loggedInRole = authUser.roleName || authUser.role || "";
+    const { user: authUser } = useAuth();
+
+    const loggedInRole = authUser?.roleName || authUser?.role || "";
 
     const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
     const isAdmin = loggedInRole === "ADMIN";
@@ -325,7 +343,8 @@ export default function StaffListPage() {
         /*
             Automatically search the staff row after resend action too.
         */
-        setSearchText(staffUsername || staffEmail || staffName);
+        
+        setSearchText(staffEmail || staffUsername || staffName);
 
         setActionLoadingId(null);
     };
@@ -352,7 +371,7 @@ export default function StaffListPage() {
                         </button>
 
                         <Link
-                            to="/staff/staff/create"
+                            to={`${staffBasePath}/create`}
                             className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
                         >
                             <RiAddLine size={18} />
@@ -538,11 +557,10 @@ export default function StaffListPage() {
 
                                             <td className="px-6 py-4">
                                                 <span
-                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                                                        isActive
-                                                            ? "bg-green-50 text-green-700"
-                                                            : "bg-gray-100 text-gray-500"
-                                                    }`}
+                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isActive
+                                                        ? "bg-green-50 text-green-700"
+                                                        : "bg-gray-100 text-gray-500"
+                                                        }`}
                                                 >
                                                     {isActive ? "Active" : "Inactive"}
                                                 </span>
@@ -551,14 +569,14 @@ export default function StaffListPage() {
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     <Link
-                                                        to={`/staff/staff/${staffId}`}
+                                                        to={`${staffBasePath}/${staffId}`}
                                                         className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                                                     >
                                                         View
                                                     </Link>
 
                                                     <Link
-                                                        to={`/staff/staff/${staffId}/edit`}
+                                                        to={`${staffBasePath}/${staffId}/edit`}
                                                         className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                                                     >
                                                         Edit
@@ -579,11 +597,10 @@ export default function StaffListPage() {
                                                             type="button"
                                                             disabled={isActionLoading}
                                                             onClick={() => handleToggleStatus(staff)}
-                                                            className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${
-                                                                isActive
-                                                                    ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                                                    : "bg-green-50 text-green-700 hover:bg-green-100"
-                                                            }`}
+                                                            className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${isActive
+                                                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                                                : "bg-green-50 text-green-700 hover:bg-green-100"
+                                                                }`}
                                                         >
                                                             {isActive ? "Deactivate" : "Activate"}
                                                         </button>

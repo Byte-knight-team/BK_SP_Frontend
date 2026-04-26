@@ -24,14 +24,14 @@ import ReceptionistHeader from "./components/receptionist/ReceptionistHeader";
 import DeliverySidebar from "./components/delivery/DeliverySidebar";
 import DeliveryHeader from "./components/delivery/DeliveryHeader";
 
-// Staff auth pages
-import StaffLoginPage from "./pages/superadmin/LoginPage";
-import StaffChangePasswordPage from "./pages/superadmin/ChangePasswordPage";
+// Common staff auth pages
+import StaffLoginPage from "./pages/auth/StaffLoginPage";
+import StaffChangePasswordPage from "./pages/auth/StaffChangePasswordPage";
 
-// Protected route
-import ProtectedRoute from "./components/superadmin/ProtectedRoute";
+// Common protected route component
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
-// Member 01 / Super Admin pages
+// Super Admin / Member 01 pages
 import SuperAdminDashboardPage from "./pages/superadmin/DashboardPage";
 import StaffListPage from "./pages/superadmin/StaffListPage";
 import CreateStaffPage from "./pages/superadmin/CreateStaffPage";
@@ -135,9 +135,10 @@ function CustomerLayout() {
 export default function App() {
   return (
     <Routes>
-      {/* Public staff login */}
+      {/* Public common staff login */}
       <Route path="/staff/login" element={<StaffLoginPage />} />
 
+      {/* Common password change page for all logged-in staff roles */}
       <Route
         path="/staff/change-password"
         element={
@@ -151,7 +152,7 @@ export default function App() {
       <Route
         path="/staff"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
             <MainLayout
               Sidebar={SuperAdminSidebar}
               Header={SuperAdminHeader}
@@ -185,7 +186,7 @@ export default function App() {
       <Route
         path="/admin-panel"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
             <MainLayout Sidebar={AdminSidebar} Header={AdminHeader} />
           </ProtectedRoute>
         }
@@ -194,6 +195,9 @@ export default function App() {
 
         <Route path="profile" element={<ProfilePage />} />
 
+        {/* Shared staff management pages.
+            Files are still inside pages/superadmin for now,
+            but the routes are shared by SUPER_ADMIN and ADMIN. */}
         <Route path="staff" element={<StaffListPage />} />
         <Route path="staff/create" element={<CreateStaffPage />} />
         <Route path="staff/:id" element={<StaffDetailsPage />} />
@@ -219,7 +223,7 @@ export default function App() {
       <Route
         path="/manager"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["MANAGER"]}>
             <MainLayout Sidebar={ManagerSidebar} Header={ManagerHeader} />
           </ProtectedRoute>
         }
@@ -237,7 +241,7 @@ export default function App() {
       <Route
         path="/delivery"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["DELIVERY"]}>
             <MainLayout Sidebar={DeliverySidebar} Header={DeliveryHeader} />
           </ProtectedRoute>
         }
@@ -273,7 +277,7 @@ export default function App() {
       <Route
         path="/kitchen"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["CHEF"]}>
             <MainLayout Sidebar={KitchenSidebar} Header={KitchenHeader} />
           </ProtectedRoute>
         }
@@ -293,7 +297,7 @@ export default function App() {
       <Route
         path="/receptionist"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["RECEPTIONIST"]}>
             <MainLayout
               Sidebar={ReceptionistSidebar}
               Header={ReceptionistHeader}

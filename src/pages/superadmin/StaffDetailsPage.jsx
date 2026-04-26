@@ -90,7 +90,7 @@ export default function StaffDetailsPage() {
         </div>
 
         <Link
-          to="/staff/staff"
+          to={staffListPath}
           className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
         >
           <RiArrowLeftLine size={18} />
@@ -113,7 +113,7 @@ export default function StaffDetailsPage() {
       <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
         <div className="flex items-center justify-between gap-4 mb-8">
           <Link
-            to="/staff/staff"
+            to={staffListPath}
             className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
           >
             <RiArrowLeftLine size={18} />

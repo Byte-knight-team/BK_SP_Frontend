@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext, useLocation } from "react-router-dom";
 import { RiUserAddLine, RiArrowLeftLine } from "@remixicon/react";
 
 import { createStaffAPI } from "../../apis/staff/staff";
 import { getAllBranchesAPI } from "../../apis/staff/branches";
 import { getRolesAPI } from "../../apis/staff/roles";
+
+import { useAuth } from "../../context/AuthContext";
 
 export default function CreateStaffPage() {
     /*
@@ -39,6 +41,21 @@ export default function CreateStaffPage() {
     */
     const navigate = useNavigate();
 
+    const location = useLocation();
+
+    /*
+        This page is shared by SUPER_ADMIN and ADMIN routes.
+    
+        SUPER_ADMIN route:
+        /staff/staff
+    
+        ADMIN route:
+        /admin-panel/staff
+    */
+    const staffListPath = location.pathname.startsWith("/admin-panel")
+        ? "/admin-panel/staff"
+        : "/staff/staff";
+
     /*
         useOutletContext comes from MainLayout.
         It lets this page update the shared header section.
@@ -46,16 +63,16 @@ export default function CreateStaffPage() {
     const { setHeaderInfo } = useOutletContext();
 
     /*
-        Read logged-in user details from localStorage.
+    Read logged-in user details from AuthContext.
 
-        authUser was saved during login.
-        Some responses may use roleName and some may use role,
-        so we support both.
-    */
-    const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
-    const loggedInRole = authUser.roleName || authUser.role || "";
-    const loggedInBranchId = authUser.branchId || "";
-    const loggedInBranchName = authUser.branchName || "Your branch";
+    AuthContext now gets user data from the decoded JWT token.
+    We no longer read authUser from localStorage.
+*/
+    const { user: authUser } = useAuth();
+
+    const loggedInRole = authUser?.roleName || authUser?.role || "";
+    const loggedInBranchId = authUser?.branchId || "";
+    const loggedInBranchName = authUser?.branchName || "Your branch";
 
     /*
         Check logged-in user's role.
@@ -464,7 +481,7 @@ export default function CreateStaffPage() {
 
         setLoading(false);
 
-        navigate("/staff/staff", {
+        navigate(staffListPath, {
             state: {
                 successMessage,
 
@@ -472,7 +489,7 @@ export default function CreateStaffPage() {
                     StaffListPage uses this to automatically search and show
                     the newly-created staff row after redirect.
                 */
-                createdStaffSearch: createdStaffUsername || createdStaffEmail || createdStaffName,
+                createdStaffSearch: createdStaffEmail || createdStaffUsername || createdStaffName,
             },
         });
     };
@@ -483,7 +500,7 @@ export default function CreateStaffPage() {
                 {/* Back link */}
                 <div className="mb-6">
                     <Link
-                        to="/staff/staff"
+                        to={staffListPath}
                         className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
                     >
                         <RiArrowLeftLine size={18} />
@@ -677,7 +694,7 @@ export default function CreateStaffPage() {
                     {/* Form buttons */}
                     <div className="flex items-center justify-end gap-3 pt-2">
                         <Link
-                            to="/staff/staff"
+                            to={staffListPath}
                             className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                         >
                             Cancel
