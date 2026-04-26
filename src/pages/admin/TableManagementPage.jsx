@@ -5,8 +5,7 @@ import {
   Printer, Plus, LayoutGrid, List, Filter,
   MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle, UserCheck, ShoppingBag
 } from 'lucide-react';
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import AdminHeader from '../../components/admin/AdminHeader';
+
 
 export default function TableManagementPage() {
   const [viewMode, setViewMode] = useState('grid');
@@ -170,11 +169,8 @@ export default function TableManagementPage() {
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
-      <AdminSidebar activePage="/admin/tables" />
 
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-        {/* Header - Identical to AdminDashboard */}
-        <AdminHeader />
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">   
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto px-10 pb-10">

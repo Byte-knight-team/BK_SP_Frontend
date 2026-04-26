@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Hash, Users, MapPin, Save, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import AdminHeader from '../../components/admin/AdminHeader';
 
 export default function AddTablePage() {
   const navigate = useNavigate();
@@ -48,10 +46,8 @@ export default function AddTablePage() {
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans">
-      <AdminSidebar activePage="/admin/tables" />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-        <AdminHeader />
 
         <div className="flex-1 overflow-y-auto px-10 pb-10">
           <div className="mb-6 mt-6">
