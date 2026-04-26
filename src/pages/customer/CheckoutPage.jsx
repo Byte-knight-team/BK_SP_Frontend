@@ -4,9 +4,10 @@ import { ArrowLeft, Banknote, ChevronRight, CreditCard, Gift, Home, Loader2, Loc
 import { useCart } from '../../context/CartContext';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+//checkout state savings
 const CHECKOUT_STORAGE_KEY = 'bk_checkout_state';
-const ONLINE_BRANCH = { id: 1, name: 'Branch 01', address: '123 Restaurant St, Colombo' };
 
+// Decodes the JWT and checks if the current time has passed the expiring time
 function isTokenExpired(token) {
   if (!token) return true;
   try {
@@ -17,6 +18,7 @@ function isTokenExpired(token) {
   }
 }
 
+// Safely parses JSON from localStorage so the app doesn't crash if the data is corrupted
 function safeParse(value, fallback) {
   try {
     return value ? JSON.parse(value) : fallback;
@@ -25,16 +27,17 @@ function safeParse(value, fallback) {
   }
 }
 
+// Reads saved data to "seed" the initial state. This prevents users from losing their typed addresses or coupons if they accidentally refresh the page.
 function readCheckoutSeed() {
   const saved = safeParse(localStorage.getItem(CHECKOUT_STORAGE_KEY), {});
   const qrSession = safeParse(localStorage.getItem('qr_session'), {});
-  const isQrCustomer = Boolean(qrSession?.sessionId || qrSession?.sessionToken);
+  const isQrCustomer = Boolean(qrSession?.sessionToken);
 
   return {
     isQrCustomer,
     orderType: isQrCustomer ? 'QR' : saved.orderType || 'ONLINE_PICKUP',
     paymentMethod: saved.paymentMethod || 'CASH',
-    branchId: Number(qrSession?.branchId || saved.branchId || ONLINE_BRANCH.id),
+    branchId: Number(qrSession?.branchId || saved.branchId || 1),
     tableId: qrSession?.tableId || saved.tableId || null,
     qrSessionId: qrSession?.sessionId || null,
     contact: {
@@ -55,7 +58,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { cartItems, cartCount, clearCart } = useCart();
   const seed = readCheckoutSeed();
-
+  //componets states
   const [isQrCustomer] = useState(seed.isQrCustomer);
   const [orderType, setOrderType] = useState(seed.orderType);
   const [paymentMethod, setPaymentMethod] = useState(seed.paymentMethod);
@@ -67,18 +70,21 @@ export default function CheckoutPage() {
   const [loyaltyDraft, setLoyaltyDraft] = useState(seed.loyaltyDraft);
   const [appliedLoyaltyPoints, setAppliedLoyaltyPoints] = useState(seed.appliedLoyaltyPoints);
   const [kitchenNotes, setKitchenNotes] = useState(seed.kitchenNotes);
+  // Holds the math calulations of order returned by the backend
   const [receipt, setReceipt] = useState(null);
 
+  // UI Status Flags
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isCalculating, setIsCalculating] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Derived boolean helpers for cleaner JSX logic later
   const isDelivery = orderType === 'ONLINE_DELIVERY';
   const isPickup = orderType === 'ONLINE_PICKUP';
-  const branch = ONLINE_BRANCH;
   const authToken = localStorage.getItem('customer_jwt');
 
+  //AUTH GUARD: Bounce doen't logged users immediately
   useEffect(() => {
     if (!authToken) {
       if (isQrCustomer) {
@@ -89,6 +95,7 @@ export default function CheckoutPage() {
     }
   }, [authToken, isQrCustomer, navigate]);
 
+  //Auto-fill customer details
   useEffect(() => {
     const loadProfile = async () => {
       if (!authToken) {
@@ -108,6 +115,7 @@ export default function CheckoutPage() {
         const payload = await res.json().catch(() => ({}));
         const profile = payload?.data || payload || {};
 
+        // only update if they haven't typed
         setContact((current) => ({
           username: current.username || profile.username || '',
           email: current.email || profile.email || '',
@@ -124,6 +132,7 @@ export default function CheckoutPage() {
     loadProfile();
   }, [authToken]);
 
+  //Update checkout data we saved if data changes
   useEffect(() => {
     const state = {
       orderType,
@@ -140,6 +149,7 @@ export default function CheckoutPage() {
     localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(state));
   }, [orderType, paymentMethod, branchId, tableId, contact, couponDraft, appliedCouponCode, loyaltyDraft, appliedLoyaltyPoints, kitchenNotes]);
 
+  // Reusable function to ask the backend to calculate the receipt
   const calculateTotals = useCallback(async (overrides = {}) => {
     if (!authToken) {
       throw new Error('Missing customer session.');
@@ -149,6 +159,7 @@ export default function CheckoutPage() {
       throw new Error('Your cart is empty.');
     }
 
+    //use optional data if available
     const couponCode = Object.prototype.hasOwnProperty.call(overrides, 'couponCode')
       ? overrides.couponCode
       : appliedCouponCode;
@@ -186,7 +197,7 @@ export default function CheckoutPage() {
   }, [authToken, cartItems, orderType, branchId, appliedCouponCode, appliedLoyaltyPoints]);
 
   useEffect(() => {
-    let active = true;
+    let active = true; //If component unmounted or new request started, abort this one.
 
     const refreshReceipt = async () => {
       if (!authToken || cartItems.length === 0 || isLoadingProfile) {
@@ -221,7 +232,7 @@ export default function CheckoutPage() {
     };
   }, [authToken, cartItems, orderType, branchId, appliedCouponCode, appliedLoyaltyPoints, isLoadingProfile]);
 
-  // maxRedeemablePoints is now calculated by the backend
+  //Max Redeemable Points calculated by backend
   const maxRedeemablePoints = receipt?.maxRedeemablePoints || 0;
 
   const handleApplyCoupon = async () => {
@@ -265,7 +276,8 @@ export default function CheckoutPage() {
 
   const handleApplyPoints = async () => {
     const points = Number.parseInt(loyaltyDraft, 10);
-
+    
+    //series of validation
     if (!Number.isInteger(points) || points <= 0) {
       setError('Enter a valid loyalty points amount.');
       return;
@@ -323,8 +335,9 @@ export default function CheckoutPage() {
     }
   };
 
+  //final submisttion
   const handlePlaceOrder = async () => {
-    // QR Session expiry check — block the order if the table session has expired
+    //block the order if the table session has expired
     if (isQrCustomer) {
       const qrToken = localStorage.getItem('qr_session_token');
       if (!qrToken || isTokenExpired(qrToken)) {
@@ -332,6 +345,7 @@ export default function CheckoutPage() {
         return;
       }
     }
+
 
     if (!contact.username.trim()) {
       setError('Username is required.');
@@ -363,6 +377,7 @@ export default function CheckoutPage() {
 
     try {
       const orderModeValue = isQrCustomer ? 'QR' : orderType;
+      // Build the final POST payload
       const payload = {
         orderType: orderModeValue,
         branchId,
@@ -398,47 +413,28 @@ export default function CheckoutPage() {
       }
 
       const orderData = responseJson?.data || {};
-      const confirmationState = {
-        orderId: orderData.orderNumber || orderData.orderId,
-        orderDate: orderData.createdAt || new Date().toISOString(),
-        items: cartItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-        subtotal: Number(receipt.subtotal || 0),
-        deliveryFee: Number(receipt.deliveryFee || 0),
-        tax: Number(receipt.taxAmount || 0) + Number(receipt.serviceCharge || 0),
-        total: Number(receipt.finalTotal || 0),
-        orderType: isQrCustomer ? 'QR' : (isDelivery ? 'delivery' : 'pickup'),
-        fullName: contact.username.trim(),
-        phone: contact.phone.trim(),
-        address: isQrCustomer ? `Table ${tableId || '-'}` : (isDelivery ? contact.address.trim() : branch.address),
-        paymentMethod,
-        serverOrder: orderData,
+      // Create a State to pass to the next page.
+      const navState = {
+        orderId: orderData.orderId || orderData.orderNumber,
+        finalAmount: orderData.finalAmount
       };
 
+      // Post-Order Cleanup
       clearCart();
       localStorage.removeItem(CHECKOUT_STORAGE_KEY);
 
+      //if card payement navgate to card details entring page
       if (paymentMethod === 'CARD') {
         navigate('/payment', {
           replace: true,
-          state: {
-            order: orderData,
-            receipt,
-            confirmationState,
-            contact,
-            orderType: confirmationState.orderType,
-          },
+          state: navState,
         });
         return;
       }
 
       navigate('/order-confirmation', {
         replace: true,
-        state: confirmationState,
+        state: navState,
       });
     } catch (submitError) {
       setError(submitError.message || 'Something went wrong. Please try again.');
@@ -447,6 +443,7 @@ export default function CheckoutPage() {
     }
   };
 
+  // Helper to jump to specific sections on Mobile view
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -455,10 +452,12 @@ export default function CheckoutPage() {
   };
 
   const inputCls = 'w-full rounded-[12px] border border-gray-200 bg-gray-50 px-4 py-3 text-[0.95rem] text-gray-800 outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-orange focus:bg-white';
+  // Dynamic button styles for Delivery/Pickup and Card/Cash selection
   const selectBtnCls = (active) => `flex h-full flex-col items-center gap-2 rounded-[16px] border-2 px-4 py-5 text-left transition-all duration-300 ${active ? 'border-orange bg-[#FFF7F2]' : 'border-gray-200 bg-white hover:border-gray-300'}`;
   const panelCls = 'rounded-[18px] border border-gray-200 bg-white p-6 shadow-sm max-md:p-5';
-
+  
   const summaryTotal = receipt ? Number(receipt.finalTotal || 0) : 0;
+  // Conditional text rendering for the loyalty points helper message
   const loyaltyHint = receipt && receipt.availableLoyaltyPoints > 0 && receipt.minPointsToRedeem > 0
     ? `Balance ${receipt.availableLoyaltyPoints} pts. Minimum ${receipt.minPointsToRedeem}.`
     : receipt && receipt.availableLoyaltyPoints > 0
@@ -467,6 +466,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8f7f4] to-[#f2efe9]">
+    {/* HEADER SECTION */}
       <header className="sticky top-0 z-[100] border-b border-black/5 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-[74px] w-full max-w-[1120px] items-center px-6 max-md:px-4">
           <div className="flex items-center gap-3.5">
@@ -487,7 +487,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </header>
-
+      {/* Sticks to top on small screens to jump to sections */}
       <div className="sticky top-[74px] z-[90] border-b border-black/5 bg-white/95 px-4 py-2 backdrop-blur lg:hidden">
         <div className="mx-auto flex w-full max-w-[1120px] gap-2">
           <button
@@ -514,13 +514,14 @@ export default function CheckoutPage() {
           </button>
         </div>
       </div>
-
+      {/* MAIN GRID LAYOUT */}
       <main className="mx-auto grid w-full max-w-[1120px] gap-6 px-6 py-6 pb-28 lg:grid-cols-[1.4fr_1fr] lg:pb-6 max-md:px-4">
         <section className="space-y-6">
+          {/* order type section - Hide order type selection entirely if scanning a QR code at a table */}
           {!isQrCustomer && (
             <section className={panelCls}>
               <div className="mb-5 flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-light text-orange">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF4E8] text-[#EA580C]">
                   <Package size={16} />
                 </span>
                 <h2 className="font-heading text-[1.05rem] font-bold text-navy">Order Type</h2>
@@ -544,14 +545,14 @@ export default function CheckoutPage() {
             </section>
           )}
 
+          {/*payment section*/}
           <section id="payment-section" className={panelCls}>
             <div className="mb-5 flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ECFDF5] text-[#16A34A]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF4E8] text-[#EA580C]">
                 <CreditCard size={16} />
               </span>
               <h2 className="font-heading text-[1.05rem] font-bold text-navy">Payment Method</h2>
             </div>
-
             <div className="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
               <button type="button" className={selectBtnCls(paymentMethod === 'CARD')} onClick={() => setPaymentMethod('CARD')}>
                 <CreditCard size={24} className={paymentMethod === 'CARD' ? 'text-orange' : 'text-gray-500'} />
@@ -568,15 +569,15 @@ export default function CheckoutPage() {
               </button>
             </div>
           </section>
-
+          {/*user section*/}
           <section className={panelCls}>
             <div className="mb-5 flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF4E8] text-[#EA580C]">
                 <User size={16} />
               </span>
               <h2 className="font-heading text-[1.05rem] font-bold text-navy">{isQrCustomer ? 'QR Guest Details' : 'Customer Details'}</h2>
             </div>
-
+            {/* Universal Inputs */}
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-[0.85rem] font-semibold text-navy">Username</label>
@@ -588,7 +589,7 @@ export default function CheckoutPage() {
                   onChange={(event) => setContact((current) => ({ ...current, username: event.target.value }))}
                 />
               </div>
-
+              {/* Hide Email for QR Guests since they only login via Phone OTP */}
               {!isQrCustomer && (
                 <div>
                   <label className="mb-2 block text-[0.85rem] font-semibold text-navy">Email Address</label>
@@ -624,7 +625,7 @@ export default function CheckoutPage() {
                   </p>
                 )}
               </div>
-
+              {/*delivery input - Only show if Delivery */}
               {!isQrCustomer && isDelivery && (
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-[0.85rem] font-semibold text-navy">Delivery Address</label>
@@ -637,21 +638,32 @@ export default function CheckoutPage() {
                   />
                 </div>
               )}
-
+              {/* Contextual Branch Details - Only show if Pickup */}
               {!isQrCustomer && isPickup && (
-                <div className="md:col-span-2 rounded-[14px] border border-blue-200 bg-blue-50 p-4">
-                  <div className="mb-2 flex items-center gap-2 text-navy">
+                <div className="md:col-span-2 rounded-[14px] border border-orange-200 bg-orange-100 p-4">
+                  <div className="mb-2 flex items-center gap-2 text-salte-800">
                     <Home size={16} />
                     <span className="font-semibold">Pickup Location</span>
                   </div>
-                  <div className="text-sm text-gray-700">
-                    <div className="font-semibold text-navy">{branch.name}</div>
-                    <div>{branch.address}</div>
-                    <div className="mt-1 text-[0.8rem] text-gray-500">Branch ID {branch.id}</div>
+                  <div className="text-sm text-gray-500">
+                    {receipt?.branchDetails ? (
+                      <>
+                        <div className="font-semibold text-salte-600">{receipt.branchDetails.name}</div>
+                        <div>{receipt.branchDetails.address}</div>
+                        <div className="mt-1 text-[0.8rem] text-gray-500">
+                          {receipt.branchDetails.contactNumber} • {receipt.branchDetails.email}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Loader2 size={14} className="animate-spin" />
+                        Calculating order and fetching branch...
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
-
+              {/* Contextual Table Details - Only show if QR Session */}
               {isQrCustomer && (
                 <div className="md:col-span-2 rounded-[14px] border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
                   Table ID: {tableId || 'Not assigned'} • Branch ID: {branchId}
@@ -661,7 +673,7 @@ export default function CheckoutPage() {
           </section>
 
         </section>
-
+        {/* RIGHT COLUMN: */}
         <aside className="space-y-6">
           <section id="discounts-section" className={panelCls}>
             <div className="mb-5 flex items-center gap-2.5">
@@ -672,6 +684,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="space-y-5">
+              {/* COUPON BLOCK */}
               <div>
                 <label className="mb-2 block text-[0.85rem] font-semibold text-navy">Coupon Code</label>
                 <div className="flex gap-2 max-md:flex-col">
@@ -703,7 +716,7 @@ export default function CheckoutPage() {
                     )}
                   </div>
                 </div>
-
+                {/* Successful Coupon Alert Box */}
                 {appliedCouponCode && receipt && receipt.couponDiscountAmount > 0 && (
                   <div className="mt-3 rounded-[12px] border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
                     <div className="flex items-center gap-2 font-semibold">
@@ -713,7 +726,7 @@ export default function CheckoutPage() {
                   </div>
                 )}
               </div>
-
+                {/* LOYALTY POINTS BLOCK */}
               <div className="border-t border-gray-100 pt-5">
                 <label className="mb-1 block text-[0.85rem] font-semibold text-navy">Loyalty Points</label>
                 <div className="mb-3 flex flex-wrap items-center gap-2 text-[0.8rem] text-gray-500">
@@ -755,7 +768,7 @@ export default function CheckoutPage() {
                     )}
                   </div>
                 </div>
-
+                {/* Successful Points Alert Box */}
                 {appliedLoyaltyPoints > 0 && receipt && (
                   <div className="mt-3 rounded-[12px] border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
                     <div className="flex items-center gap-2 font-semibold">
@@ -764,7 +777,7 @@ export default function CheckoutPage() {
                     <div className="mt-1">Discount: LKR {Number(receipt.loyaltyDiscountAmount || 0).toLocaleString()}</div>
                   </div>
                 )}
-
+                {/* Locked Points Alert Box */}
                 {receipt && receipt.availableLoyaltyPoints < receipt.minPointsToRedeem && (
                   <div className="mt-3 flex items-center gap-2 rounded-[12px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                     <AlertCircle size={16} />
@@ -774,7 +787,7 @@ export default function CheckoutPage() {
               </div>
             </div>
           </section>
-
+          {/* KITCHEN NOTES BLOCK */}
           <section className="rounded-[22px] border border-gray-100 bg-white p-6 shadow-[0_16px_30px_rgba(15,23,42,0.06)]">
             <h3 className="mb-3 font-heading text-[1.05rem] font-bold text-navy">Kitchen Notes</h3>
             <textarea
@@ -784,14 +797,14 @@ export default function CheckoutPage() {
               onChange={(e) => setKitchenNotes(e.target.value)}
             />
           </section>
-
+          {/* ORDER RECEIPT BOX */}
           <section className="rounded-[22px] bg-slate-900 p-6 text-white shadow-[0_16px_30px_rgba(15,23,42,0.14)]">
             <div className="mb-4">
               <div>
                 <h3 className="font-heading text-[1.05rem] font-bold">Order Summary</h3>
               </div>
             </div>
-
+            {/* Show spinner while API call is running */}
             {isCalculating ? (
               <div className="flex justify-center py-8">
                 <Loader2 size={26} className="animate-spin text-orange" />
@@ -802,7 +815,7 @@ export default function CheckoutPage() {
                   <span>Subtotal ({cartCount} items)</span>
                   <span>LKR {Number(receipt.subtotal || 0).toLocaleString()}</span>
                 </div>
-
+                {/* Only render line items if they apply */}
                 {receipt.deliveryFee > 0 && (
                   <div className="flex items-center justify-between text-slate-300">
                     <span>Delivery Fee</span>
@@ -855,7 +868,7 @@ export default function CheckoutPage() {
               </div>
             )}
           </section>
-
+          {/* GLOBAL ERROR ALERT */}
           {error && (
             <section className="rounded-[18px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <div className="flex items-start gap-2">
@@ -864,7 +877,7 @@ export default function CheckoutPage() {
               </div>
             </section>
           )}
-
+          {/* DESKTOP SUBMIT BUTTON */}
           <button
             type="button"
             className="hidden w-full items-center justify-center gap-2 rounded-[16px] bg-orange-500 px-5 py-[17px] font-heading text-[1.02rem] font-bold text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70 lg:flex"
@@ -887,7 +900,7 @@ export default function CheckoutPage() {
           </button>
         </aside>
       </main>
-
+      {/* MOBILE STICKY SUBMIT BAR (Locks to the bottom of screen on phones) */}
       <div className="fixed bottom-0 left-0 right-0 z-[110] border-t border-black/5 bg-white/95 p-3 backdrop-blur lg:hidden">
         <button
           type="button"
