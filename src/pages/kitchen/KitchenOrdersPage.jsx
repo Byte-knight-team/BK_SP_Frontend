@@ -26,7 +26,9 @@ const KitchenOrdersPage = () => {
       <div className="flex flex-row gap-6">
         {/* Order List */}
         <div className="w-[30%] rounded-3xl border border-gray-100 bg-white p-6 shadow-sm h-[82vh] overflow-y-auto">
-          <OrderTabs handleOrderClick={handleOrderClick} />
+          
+          {/* Pass the selection handler and the current selected ID down to the tabs for highlighting */}
+          <OrderTabs handleOrderClick={handleOrderClick} selectedOrderId={selectedOrder}/>
         </div>
         {/* Order Details */}
         <div className="w-[70%] rounded-3xl border border-gray-100 bg-white p-6 shadow-sm h-[82vh] overflow-y-auto">
