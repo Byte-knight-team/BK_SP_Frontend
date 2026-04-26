@@ -7,17 +7,15 @@ import { getAllBranchesAPI } from "../../apis/staff/branches";
 import { getRolesAPI } from "../../apis/staff/roles";
 
 export default function CreateStaffPage() {
-
-
     /*
-    Roles are now loaded from the database.
+        Roles are loaded from the database.
 
-    SUPER_ADMIN can assign all staff-side roles except CUSTOMER.
-    ADMIN can assign only branch-level roles, so ADMIN cannot assign:
-    - CUSTOMER
-    - SUPER_ADMIN
-    - ADMIN
-*/
+        SUPER_ADMIN can assign all staff-side roles except CUSTOMER.
+        ADMIN can assign only branch-level roles, so ADMIN cannot assign:
+        - CUSTOMER
+        - SUPER_ADMIN
+        - ADMIN
+    */
     const SUPER_ADMIN_BLOCKED_ROLES = ["CUSTOMER"];
     const ADMIN_BLOCKED_ROLES = ["CUSTOMER", "SUPER_ADMIN", "ADMIN"];
 
@@ -35,6 +33,7 @@ export default function CreateStaffPage() {
 
         return false;
     }
+
     /*
         useNavigate is used to redirect after successful staff creation.
     */
@@ -67,8 +66,6 @@ export default function CreateStaffPage() {
     const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
     const isAdmin = loggedInRole === "ADMIN";
 
-
-
     /*
         formData stores all form input values.
 
@@ -93,21 +90,19 @@ export default function CreateStaffPage() {
         loading controls the Create Staff button.
         error stores validation or backend errors.
         branches stores branch list loaded from backend.
-        branchLoading controls the branch dropdown loading state.
+        roles stores role list loaded from backend.
     */
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [branches, setBranches] = useState([]);
-    // Roles are loaded so we can auto-fill salary from selected role.
     const [roles, setRoles] = useState([]);
     const [rolesLoading, setRolesLoading] = useState(true);
     const [branchLoading, setBranchLoading] = useState(true);
 
-
     /*
-    Role dropdown values come from backend roles table.
-    This allows newly-created roles like LINE_CHEF to appear automatically.
-*/
+        Role dropdown values come from backend roles table.
+        This allows newly-created roles like LINE_CHEF to appear automatically.
+    */
     const allowedRoles = roles.filter((role) =>
         canAssignRole(role.name, isSuperAdmin, isAdmin)
     );
@@ -176,10 +171,9 @@ export default function CreateStaffPage() {
         loadBranches();
     }, [isSuperAdmin]);
 
-
     /*
-    Load roles from backend so staff role dropdown is database-driven.
-*/
+        Load roles from backend so staff role dropdown is database-driven.
+    */
     useEffect(() => {
         const loadRoles = async () => {
             setRolesLoading(true);
@@ -232,19 +226,17 @@ export default function CreateStaffPage() {
         return () => setHeaderInfo(null);
     }, [setHeaderInfo]);
 
-
-
-    /**
- * Finds the selected role from the roles loaded from backend.
- */
+    /*
+        Finds the selected role from the roles loaded from backend.
+    */
     const findRoleByName = (roleName) => {
         return roles.find((role) => role.name === roleName);
     };
 
-    /**
-     * Returns default salary for selected role.
-     * Old roles may have null baseSalary, so we return empty string in that case.
-     */
+    /*
+        Returns default salary for selected role.
+        Old roles may have null baseSalary, so we return empty string in that case.
+    */
     const getDefaultSalaryForRole = (roleName) => {
         const role = findRoleByName(roleName);
 
@@ -253,6 +245,33 @@ export default function CreateStaffPage() {
         }
 
         return String(role.baseSalary);
+    };
+
+    /*
+        Gets the branch name for the success/failure message.
+
+        This is important because if email fails, the admin must clearly know
+        which staff account the temporary password belongs to.
+    */
+    const getCreatedStaffBranchName = (payload, data) => {
+        if (payload.roleName === "SUPER_ADMIN") {
+            return "Global";
+        }
+
+        if (data?.branchName) {
+            return data.branchName;
+        }
+
+        if (!isSuperAdmin && loggedInBranchName) {
+            return loggedInBranchName;
+        }
+
+        const selectedBranch = branches.find((branch) => {
+            const branchId = branch.id || branch.branchId;
+            return Number(branchId) === Number(payload.branchId);
+        });
+
+        return selectedBranch?.name || "Selected branch";
     };
 
     /*
@@ -282,9 +301,9 @@ export default function CreateStaffPage() {
             }
 
             /*
-    When role changes, auto-fill salary from that role's base salary.
-    User can still manually change the salary after this.
-*/
+                When role changes, auto-fill salary from that role's base salary.
+                User can still manually change the salary after this.
+            */
             if (name === "roleName") {
                 updatedData.salary = value === "SUPER_ADMIN" ? "" : getDefaultSalaryForRole(value);
             }
@@ -345,6 +364,21 @@ export default function CreateStaffPage() {
             return;
         }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^\d{10}$/;
+
+        if (!emailRegex.test(payload.email)) {
+            setError("Invalid email format.");
+            setLoading(false);
+            return;
+        }
+
+        if (!phoneRegex.test(payload.phone)) {
+            setError("Phone number must be exactly 10 digits.");
+            setLoading(false);
+            return;
+        }
+
         /*
             Validate branch selection.
 
@@ -357,10 +391,9 @@ export default function CreateStaffPage() {
             return;
         }
 
-
         /*
-    Salary cannot be negative.
-*/
+            Salary cannot be negative.
+        */
         if (payload.salary !== null && payload.salary < 0) {
             setError("Salary cannot be negative.");
             setLoading(false);
@@ -398,7 +431,7 @@ export default function CreateStaffPage() {
         /*
             Call backend API to create staff.
         */
-        const { error } = await createStaffAPI(payload);
+        const { data, error } = await createStaffAPI(payload);
 
         if (error) {
             setError(error);
@@ -407,17 +440,39 @@ export default function CreateStaffPage() {
         }
 
         /*
-            Staff created successfully.
+            Staff creation can succeed in two ways:
 
-            Redirect back to staff list and send a success message.
-            StaffListPage reads this message using useLocation().
+            1. Staff created + invite email sent successfully.
+            2. Staff created + invite email failed.
+
+            In both cases, we show the created staff member details so the admin
+            knows exactly which account was created.
+
+            Temporary password is shown ONLY when email failed,
+            because when email succeeds, the staff member receives it by email.
         */
+        const createdStaffName = data?.fullName || payload.fullName;
+        const createdStaffUsername = data?.username || payload.username;
+        const createdStaffEmail = data?.email || payload.email;
+        const createdStaffRole = data?.roleName || payload.roleName;
+        const createdStaffBranch = getCreatedStaffBranchName(payload, data);
+
+        const successMessage =
+            data?.emailSent === true
+                ? `Staff member created successfully. Invite email has been sent to ${createdStaffEmail}. Staff: ${createdStaffName} (@${createdStaffUsername}), Role: ${createdStaffRole}, Branch: ${createdStaffBranch}.`
+                : `Staff member created successfully, but invite email failed. Staff: ${createdStaffName} (@${createdStaffUsername}), Email: ${createdStaffEmail}, Role: ${createdStaffRole}, Branch: ${createdStaffBranch}. Temporary password: ${data?.temporaryPassword || "Not returned"}`;
+
         setLoading(false);
 
         navigate("/staff/staff", {
             state: {
-                successMessage:
-                    "Staff member created successfully. Invite email has been sent.",
+                successMessage,
+
+                /*
+                    StaffListPage uses this to automatically search and show
+                    the newly-created staff row after redirect.
+                */
+                createdStaffSearch: createdStaffUsername || createdStaffEmail || createdStaffName,
             },
         });
     };
@@ -554,13 +609,6 @@ export default function CreateStaffPage() {
 
                         {/* Branch section */}
                         {isSuperAdmin ? (
-                            /*
-                                SUPER_ADMIN can select branch manually,
-                                but only for branch-level staff.
-    
-                                If SUPER_ADMIN is creating another SUPER_ADMIN,
-                                branch is not required.
-                            */
                             formData.roleName !== "SUPER_ADMIN" ? (
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -597,9 +645,6 @@ export default function CreateStaffPage() {
                                     </select>
                                 </div>
                             ) : (
-                                /*
-                                    SUPER_ADMIN role does not belong to a branch.
-                                */
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Branch
@@ -611,10 +656,6 @@ export default function CreateStaffPage() {
                                 </div>
                             )
                         ) : (
-                            /*
-                                ADMIN cannot choose branch manually.
-                                ADMIN can only create staff in their own branch.
-                            */
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                                     Branch
@@ -630,6 +671,7 @@ export default function CreateStaffPage() {
                     {/* Info message */}
                     <div className="rounded-2xl bg-orange-50 border border-orange-100 px-4 py-3 text-sm text-orange-700">
                         After staff creation, the backend will generate a temporary password and send the invite email.
+                        If email sending fails, the temporary password will be shown once on the staff list page.
                     </div>
 
                     {/* Form buttons */}
@@ -650,7 +692,7 @@ export default function CreateStaffPage() {
                         </button>
                     </div>
                 </form>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
