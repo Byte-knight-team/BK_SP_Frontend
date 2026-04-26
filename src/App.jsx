@@ -31,15 +31,15 @@ import ScanPage from "./pages/customer/ScanPage";
 
 // Existing Admin Pages
 import AdminDashboardPage from "./pages/AdminDashboardPage";
-import MenuManagementPage from "./pages/MenuManagementPage";
-import AddMenuItemPage from "./pages/AddMenuItemPage";
-import EditMenuItemPage from "./pages/EditMenuItemPage";
-import AddCategoryPage from "./pages/AddCategoryPage";
-import TableManagementPage from "./pages/TableManagementPage";
-import AddTablePage from "./pages/AddTablePage";
-import TableQrPage from "./pages/TableQrPage";
+import MenuManagementPage from "./pages/admin/MenuManagementPage";
+import AddMenuItemPage from "./pages/admin/AddMenuItemPage";
+import EditMenuItemPage from "./pages/admin/EditMenuItemPage";
+import AddCategoryPage from "./pages/admin/AddCategoryPage";
+import TableManagementPage from "./pages/admin/TableManagementPage";
+import AddTablePage from "./pages/admin/AddTablePage";
+import TableQrPage from "./pages/admin/TableQrPage";
 import UserManagementPage from "./pages/UserManagementPage";
-import AddNewUserPage from "./pages/AddNewUserPage";
+import AddNewUserPage from "./pages/admin/AddNewUserPage";
 
 // Kitchen Pages
 import KitchenDashboardPage from "./pages/kitchen/KitchenDashboardPage";
