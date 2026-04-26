@@ -12,10 +12,10 @@ const timeLabels = {
   "ON HOLD": "Hold at",
 };
 
-const OrderCard = ({ status, time, id, numberOfItems, onClick, isClickable = true }) => {
+const OrderCard = ({ status, time, id, numberOfItems, onClick, isClickable = true, isSelected }) => {
   return (
     <div
-      className={`flex flex-col gap-2 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all ${isClickable ? "cursor-pointer hover:shadow-md hover:border-orange-100" : "cursor-default"}`}
+      className={`flex flex-col gap-2 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all ${isSelected ? "border-gray-900 shadow-md scale-[1.02]" : "border-gray-100"} ${isClickable ? "cursor-pointer hover:shadow-md hover:border-orange-100" : "cursor-default"}`}
       onClick={isClickable ? onClick : undefined}
     >
       <div className="flex items-center justify-between">

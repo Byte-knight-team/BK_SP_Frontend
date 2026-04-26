@@ -4,7 +4,7 @@ import PreparingOrdersTab from "./PreparingOrdersTab";
 import CompletedOrdersTab from "./CompletedOrdersTab";
 import OnHoldOrdersTab from "./OnHoldOrdersTab";
 
-const OrderTabs = ({ handleOrderClick }) => {
+const OrderTabs = ({ handleOrderClick, selectedOrderId }) => {
   const [activeTab, setActiveTab] = useState(1);
 
   const tabs = [
@@ -35,10 +35,10 @@ const OrderTabs = ({ handleOrderClick }) => {
 
       {/* Content Area */}
       <div className="mt-4">
-        {activeTab === 1 && <PendingOrdersTab handleOrderClick={handleOrderClick} />}
-        {activeTab === 2 && <PreparingOrdersTab handleOrderClick={handleOrderClick} />}
-        {activeTab === 3 && <CompletedOrdersTab handleOrderClick={handleOrderClick} />}
-        {activeTab === 4 && <OnHoldOrdersTab handleOrderClick={handleOrderClick} />}
+        {activeTab === 1 && <PendingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId}/>}
+        {activeTab === 2 && <PreparingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId}/>}
+        {activeTab === 3 && <CompletedOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId}/>}
+        {activeTab === 4 && <OnHoldOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId}/>}
       </div>
     </div>
   );
