@@ -25,10 +25,10 @@ const SelectedOrder = ({ orderId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls the Chef Modal visibility
   const [targetMeal, setTargetMeal] = useState(null); // Remembers which meal is currently being assigned
 
-  // Fetches the latest data from the Backend API (whenever orderId changes or we can call it )
-  const fetchOrderDetails = async () => {
+  // Fetches the latest data from the Backend API (whenever orderId changes or we can call it manually right after the chef is assigned successfully)
+  const fetchOrderDetails = async (showLoading = true) => {
     if (!orderId) return;
-    setLoading(true);
+    if (showLoading) setLoading(true); // Only show loading text if requested
       const { data, error } = await getOrderDetailsAPI(orderId);
       if (error) {
         console.error("Error fetching order details:", error);
@@ -53,15 +53,15 @@ const SelectedOrder = ({ orderId }) => {
   };
   
   useEffect(() => {
-  fetchOrderDetails();
+  fetchOrderDetails(true);
   }, [orderId]);
   
   // Handler for when the Modal returns a selected Chef ID
-  const handleChefAssignment = async (chefId) => {
+  const handleChefAssignment = async (chefStaffId) => {
     if (!targetMeal) return;  
 
     // Send the assignment to the Backend database
-    const { error } = await assignChefToMealAPI(targetMeal.id, chefId);
+    const { error } = await assignChefToMealAPI(targetMeal.id, chefStaffId);
 
     if (error) {
       alert("Failed to assign chef.");
@@ -69,7 +69,7 @@ const SelectedOrder = ({ orderId }) => {
       // Close modal on success
       setIsModalOpen(false);
       // REFRESH ONLY: Fetches data again to update the UI without reloading the whole page
-      fetchOrderDetails(); 
+      fetchOrderDetails(false); // set to false to prevent showing loading screen again (background fetch)
   }
   };
 
@@ -99,17 +99,17 @@ const SelectedOrder = ({ orderId }) => {
   //   console.log(`Assigning ${chefName} to ${targetMeal?.name}`);
   // };
 
-  // const handleStartMeal = (mealId) => {
-  //   console.log(`API Call: Starting Meal ${mealId}`);
-  // };
+  const handleStartMeal = (mealId) => {
+    console.log(`API Call: Starting Meal ${mealId}`);
+  };
 
-  // const handleCompleteMeal = (mealId) => {
-  //   console.log(`API Call: Completing Meal ${mealId}`);
-  // };
+  const handleCompleteMeal = (mealId) => {
+    console.log(`API Call: Completing Meal ${mealId}`);
+  };
 
-  // const handleHoldOrder = () => {
-  //   console.log(`API Call: Putting Order on Hold`);
-  // };
+  const handleHoldOrder = () => {
+    console.log(`API Call: Putting Order on Hold`);
+  };
 
   return (
     <div className="rounded-3xl border border-gray-100 bg-white p-8">
@@ -187,6 +187,8 @@ const SelectedOrder = ({ orderId }) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAssign={handleChefAssignment}
+        // Passes the name of the selected meal to the Modal.
+        // The '?.' (Optional Chaining) ensures the app doesn't crash if no meal is selected yet.
         mealName={targetMeal?.name}
       />
     </div>
