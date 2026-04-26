@@ -1,23 +1,24 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout'
-import DashboardPage from './pages/DashboardPage'
-import InventoryPage from './pages/InventoryPage'
-// import StaffPage from './pages/StaffPage'
-// import SalesSummaryPage from './pages/SalesSummaryPage'
-// import StockAlertsPage from './pages/StockAlertsPage'
-import DriversPage from './pages/DriversPage'
+import ManagerSidebar from './components/manager/ManagerSidebar'
+import ManagerHeader from './components/manager/ManagerHeader'
+import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
+import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
+import ManagerDriversPage from './pages/manager/ManagerDriversPage'
 
 const router = createBrowserRouter([
   {
-    path: '/',
-    element: <MainLayout />,
+    path: '/manager',
+    element: (
+      <MainLayout
+        Sidebar={ManagerSidebar}
+        Header={ManagerHeader}
+      />
+    ),
     children: [
-      { index: true, element: <DashboardPage /> },
-      // { path: 'staff', element: <StaffPage /> },
-      { path: 'inventory', element: <InventoryPage /> },
-      // { path: 'sales', element: <SalesSummaryPage /> },
-      // { path: 'stock-alerts', element: <StockAlertsPage /> },
-      { path: 'drivers', element: <DriversPage /> },
+      { index: true,       element: <ManagerDashboardPage /> },
+      { path: 'inventory', element: <ManagerInventoryPage /> },
+      { path: 'drivers',   element: <ManagerDriversPage /> },
     ],
   },
 ])

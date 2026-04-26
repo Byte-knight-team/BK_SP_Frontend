@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { useInventoryData } from '../hooks/useInventoryData'
-import { InventoryService } from '../services/api/InventoryService'
-import InventoryHeader from '../components/inventory/InventoryHeader'
-import InventorySummaryCards from '../components/inventory/InventorySummaryCards'
-import CurrentStockTable from '../components/inventory/CurrentStockTable'
-import ChefRequestsSection from '../components/inventory/ChefRequestsSection'
-import AddInventoryItemModal from '../components/inventory/AddInventoryItemModal'
+import { useInventoryData } from '../../hooks/useInventoryData'
+import { InventoryService } from '../../services/api/InventoryService'
+import InventoryHeader from '../../components/manager/inventory/InventoryHeader'
+import InventorySummaryCards from '../../components/manager/inventory/InventorySummaryCards'
+import CurrentStockTable from '../../components/manager/inventory/CurrentStockTable'
+import ChefRequestsSection from '../../components/manager/inventory/ChefRequestsSection'
+import AddInventoryItemModal from '../../components/manager/inventory/AddInventoryItemModal'
 
 function LoadingSkeleton() {
   return (
@@ -22,7 +22,7 @@ function LoadingSkeleton() {
   )
 }
 
-export default function InventoryPage() {
+export default function ManagerInventoryPage() {
   const { data, loading, refetch } = useInventoryData()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 

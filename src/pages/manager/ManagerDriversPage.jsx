@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useDriversData } from '../hooks/useDriversData'
-import DriversHeader from '../components/drivers/DriversHeader'
-import DriversSummaryCards from '../components/drivers/DriversSummaryCards'
-import DispatchHub from '../components/drivers/DispatchHub'
-import DriverStatusBoard from '../components/drivers/DriverStatusBoard'
-import AssignDriverModal from '../components/drivers/AssignDriverModal'
+import { useDriversData } from '../../hooks/useDriversData'
+import DriversHeader from '../../components/manager/drivers/DriversHeader'
+import DriversSummaryCards from '../../components/manager/drivers/DriversSummaryCards'
+import DispatchHub from '../../components/manager/drivers/DispatchHub'
+import DriverStatusBoard from '../../components/manager/drivers/DriverStatusBoard'
+import AssignDriverModal from '../../components/manager/drivers/AssignDriverModal'
 
 function LoadingSkeleton() {
   return (
@@ -23,7 +23,7 @@ function LoadingSkeleton() {
   )
 }
 
-export default function DriversPage() {
+export default function ManagerDriversPage() {
   const { data, loading } = useDriversData()
   const [assignModal, setAssignModal] = useState({
     open: false,

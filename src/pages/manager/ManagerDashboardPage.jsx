@@ -1,10 +1,10 @@
-import { useDashboardData } from '../hooks/useDashboardData'
-import StatsGrid from '../components/dashboard/StatsGrid'
-import SalesTargetCard from '../components/dashboard/SalesTargetCard'
-import OrderDistributionCard from '../components/dashboard/OrderDistributionCard'
-import RecentOrdersTable from '../components/dashboard/RecentOrdersTable'
-import StaffAvailability from '../components/dashboard/StaffAvailability'
-import FleetTrackerBanner from '../components/dashboard/FleetTrackerBanner'
+import { useDashboardData } from '../../hooks/useDashboardData'
+import StatsGrid from '../../components/manager/dashboard/StatsGrid'
+import SalesTargetCard from '../../components/manager/dashboard/SalesTargetCard'
+import OrderDistributionCard from '../../components/manager/dashboard/OrderDistributionCard'
+import RecentOrdersTable from '../../components/manager/dashboard/RecentOrdersTable'
+import StaffAvailability from '../../components/manager/dashboard/StaffAvailability'
+import FleetTrackerBanner from '../../components/manager/dashboard/FleetTrackerBanner'
 import { Plus, UserCheck, Eye } from 'lucide-react'
 
 function DashHeader() {
@@ -50,7 +50,7 @@ function LoadingSkeleton() {
   )
 }
 
-export default function DashboardPage() {
+export default function ManagerDashboardPage() {
   const { data, loading } = useDashboardData()
 
   if (loading) return <LoadingSkeleton />
