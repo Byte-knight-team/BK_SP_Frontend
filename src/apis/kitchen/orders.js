@@ -28,4 +28,17 @@ export const getOrderDetailsAPI = async (orderId) => {
   }
 };
 
+// Get available chefs for assignment (those who are already checked in)
+export const getAvailableChefsAPI = async () => {
+  try {
+    const response = await authFetch(`http://localhost:8080/api/v1/kitchen/available-chefs`);
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    console.error("Error fetching available chefs:", error);
+    return { data: null, error: error };
+  }
+};
+
+
 
