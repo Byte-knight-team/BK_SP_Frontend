@@ -47,6 +47,8 @@ section[id] {
   .modal-panel {
     @apply bg-white rounded-2xl shadow-2xl w-full relative;
     max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
     animation: scaleIn 0.25s ease-out;
   }
 
