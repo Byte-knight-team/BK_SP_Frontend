@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { InventoryService } from '../services/api/InventoryService'
+import { InventoryService } from '../apis/manager/InventoryService'
 
 export function useInventoryData() {
   const [data, setData] = useState(null)

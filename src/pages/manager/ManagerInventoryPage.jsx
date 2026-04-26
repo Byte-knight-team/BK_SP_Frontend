@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useInventoryData } from '../../hooks/useInventoryData'
-import { InventoryService } from '../../services/api/InventoryService'
+import { InventoryService } from '../../apis/manager/InventoryService'
 import InventoryHeader from '../../components/manager/inventory/InventoryHeader'
 import InventorySummaryCards from '../../components/manager/inventory/InventorySummaryCards'
 import CurrentStockTable from '../../components/manager/inventory/CurrentStockTable'
