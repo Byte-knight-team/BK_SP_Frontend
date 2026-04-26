@@ -3,7 +3,10 @@ import OrderStepper from "../OrderStepper";
 import MealTable from "./MealTable";
 import { XCircle, AlertCircle } from "lucide-react";
 import AssignChefModal from "./AssignChefModal";
-import { getOrderDetailsAPI, assignChefToMealAPI } from "../../../apis/kitchen/orders";
+import {
+  getOrderDetailsAPI,
+  assignChefToMealAPI,
+} from "../../../apis/kitchen/orders";
 
 const statusLabels = {
   PENDING: "Placed on",
@@ -29,36 +32,36 @@ const SelectedOrder = ({ orderId }) => {
   const fetchOrderDetails = async (showLoading = true) => {
     if (!orderId) return;
     if (showLoading) setLoading(true); // Only show loading text if requested
-      const { data, error } = await getOrderDetailsAPI(orderId);
-      if (error) {
-        console.error("Error fetching order details:", error);
-      } else if (data) {
-        // Map backend data to local state structure
-        setOrder({
-          id: `#ORD-${data.id}`,
-          time: new Date(data.statusUpdatedAt || data.createdAt).toLocaleString(),
-          status: data.status,
-          holdReason: data.holdReason || "",
-          kitchenNote: data.kitchenNotes || "",
-          meals: data.items.map((item) => ({
-            id: item.id,
-            name: item.itemName,
-            qty: item.quantity,
-            status: item.status,
-            chefName: item.assignedChefName || "Not Assigned",
-          })),
-        });
-      }
-      setLoading(false);
+    const { data, error } = await getOrderDetailsAPI(orderId);
+    if (error) {
+      console.error("Error fetching order details:", error);
+    } else if (data) {
+      // Map backend data to local state structure
+      setOrder({
+        id: `#ORD-${data.id}`,
+        time: new Date(data.statusUpdatedAt || data.createdAt).toLocaleString(),
+        status: data.status,
+        holdReason: data.holdReason || "",
+        kitchenNote: data.kitchenNotes || "",
+        meals: data.items.map((item) => ({
+          id: item.id,
+          name: item.itemName,
+          qty: item.quantity,
+          status: item.status,
+          chefName: item.assignedChefName || "Not Assigned",
+        })),
+      });
+    }
+    setLoading(false);
   };
-  
+
   useEffect(() => {
-  fetchOrderDetails(true);
+    fetchOrderDetails(true);
   }, [orderId]);
-  
+
   // Handler for when the Modal returns a selected Chef ID
   const handleChefAssignment = async (chefStaffId) => {
-    if (!targetMeal) return;  
+    if (!targetMeal) return;
 
     // Send the assignment to the Backend database
     const { error } = await assignChefToMealAPI(targetMeal.id, chefStaffId);
@@ -70,7 +73,7 @@ const SelectedOrder = ({ orderId }) => {
       setIsModalOpen(false);
       // REFRESH ONLY: Fetches data again to update the UI without reloading the whole page
       fetchOrderDetails(false); // set to false to prevent showing loading screen again (background fetch)
-  }
+    }
   };
 
   // Triggered when "Assign Chef" button inside the MealTable is clicked
@@ -83,14 +86,18 @@ const SelectedOrder = ({ orderId }) => {
   if (loading)
     return (
       <div className="flex h-full items-center justify-center p-8">
-        <p className="animate-pulse text-lg font-bold text-orange-400">Loading Order Details...</p>
+        <p className="animate-pulse text-lg font-bold text-orange-400">
+          Loading Order Details...
+        </p>
       </div>
     );
   // State Management: If no order is selected yet
   if (!order)
     return (
       <div className="flex h-full items-center justify-center p-8">
-        <p className="italic text-gray-400">Select an order from the list to view details.</p>
+        <p className="text-gray-400 italic">
+          Select an order from the list to view details.
+        </p>
       </div>
     );
 
@@ -165,7 +172,9 @@ const SelectedOrder = ({ orderId }) => {
       {order.kitchenNote && (
         <div className="mt-6 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-left shadow-sm">
           <p className="text-sm font-medium text-orange-800">
-            <span className="font-bold text-orange-500 uppercase tracking-wider text-xs mr-2">Note:</span>
+            <span className="mr-2 text-xs font-bold tracking-wider text-orange-500 uppercase">
+              Note:
+            </span>
             {order.kitchenNote}
           </p>
         </div>
