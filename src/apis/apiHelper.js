@@ -1,13 +1,22 @@
-//function to get the stored JWT token
+import { clearAuthStorage, getAuthToken } from "../utils/authToken";
+
+/*
+  Build Authorization headers using only the JWT token.
+*/
 export const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
+  const token = getAuthToken();
+
   return {
     "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
   };
 };
 
-// wrapper for authenticated fetch calls
+/*
+  Wrapper for authenticated fetch calls.
+
+  If backend returns 401, clear auth storage and send user back to staff login.
+*/
 export const authFetch = async (url, options = {}) => {
   const response = await fetch(url, {
     ...options,
@@ -17,11 +26,11 @@ export const authFetch = async (url, options = {}) => {
     },
   });
 
-  // if 401, token expired → redirect to login
   if (response.status === 401) {
-    localStorage.removeItem("token");
+    clearAuthStorage();
     window.location.href = "/staff/login";
     throw new Error("Session expired");
-  } 
+  }
+
   return response;
 };

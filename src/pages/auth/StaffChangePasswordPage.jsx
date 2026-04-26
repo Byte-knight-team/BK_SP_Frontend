@@ -3,25 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { changeStaffPassword } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
-
-function getDashboardPathByRole(roleName) {
-  switch (roleName) {
-    case "SUPER_ADMIN":
-      return "/staff";
-    case "ADMIN":
-      return "/staff";
-    case "RECEPTIONIST":
-      return "/receptionist";
-    case "CHEF":
-      return "/kitchen";
-    case "MANAGER":
-      return "/staff";
-    case "DELIVERY":
-      return "/staff";
-    default:
-      return "/staff";
-  }
-}
+import { getDashboardPathByRole } from "../../utils/authToken";
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
@@ -67,10 +49,13 @@ export default function ChangePasswordPage() {
     try {
       await changeStaffPassword(formData);
 
+      /*
+      Update only React memory.
+    
+      Do not save full user details to localStorage.
+    */
       const updatedUser = { ...user, passwordChanged: true };
-      localStorage.setItem("authUser", JSON.stringify(updatedUser));
       setUser(updatedUser);
-
       setMessage(
         isFirstTimeSetup
           ? "Password set successfully."

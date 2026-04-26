@@ -6,6 +6,8 @@ import {
     RiAddLine,
 } from "@remixicon/react";
 
+import { useAuth } from "../../context/AuthContext";
+
 import { createBranchAPI } from "../../apis/staff/branches";
 
 export default function CreateBranchPage() {
@@ -46,11 +48,14 @@ export default function CreateBranchPage() {
     const [error, setError] = useState("");
 
     /*
-        Read logged-in user role from localStorage.
-        Branch Management is only allowed for SUPER_ADMIN.
+    Read logged-in user from AuthContext.
+
+    AuthContext now gets user data from the decoded JWT token.
+    We no longer read authUser from localStorage.
     */
-    const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
-    const loggedInRole = authUser.roleName || authUser.role || "";
+    const { user } = useAuth();
+
+    const loggedInRole = user?.roleName || user?.role || "";
     const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
 
     /*
