@@ -32,14 +32,14 @@ import OrdersPage from "./pages/customer/OrdersPage";
 import ScanPage from "./pages/customer/ScanPage";
 
 // Existing Admin Pages
-import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
-import MenuManagementPage from "./pages/admin/MenuManagementPage";
-import AddMenuItemPage from "./pages/admin/AddMenuItemPage";
-import EditMenuItemPage from "./pages/admin/EditMenuItemPage";
-import AddCategoryPage from "./pages/admin/AddCategoryPage";
-import TableManagementPage from "./pages/admin/TableManagementPage";
-import AddTablePage from "./pages/admin/AddTablePage";
-import TableQrPage from "./pages/admin/TableQrPage";
+import AdminDashboardPage from "./pages/admin-panel/AdminDashboardPage";
+import MenuManagementPage from "./pages/admin-panel/MenuManagementPage";
+import AddMenuItemPage from "./pages/admin-panel/AddMenuItemPage";
+import EditMenuItemPage from "./pages/admin-panel/EditMenuItemPage";
+import AddCategoryPage from "./pages/admin-panel/AddCategoryPage";
+import TableManagementPage from "./pages/admin-panel/TableManagementPage";
+import AddTablePage from "./pages/admin-panel/AddTablePage";
+import TableQrPage from "./pages/admin-panel/TableQrPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import AddNewUserPage from "./pages/admin/AddNewUserPage";
 
