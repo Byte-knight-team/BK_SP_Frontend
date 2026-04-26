@@ -3,13 +3,13 @@ import {
   Users, DollarSign, ShoppingBag, 
   TrendingUp, Clock, CheckCircle
 } from 'lucide-react';
-import AdminSidebar from '../components/admin/AdminSidebar';
-import AdminHeader from '../components/admin/AdminHeader';
+import AdminSidebar from '../../components/admin/AdminSidebar';
+import AdminHeader from '../../components/admin/AdminHeader';
 import {
   getAdminDashboardOrderFlowAPI,
   getAdminDashboardRevenueTrendAPI,
   getAdminDashboardStatsAPI,
-} from '../apis/admin/dashboard';
+} from '../../apis/admin/dashboard';
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState({
