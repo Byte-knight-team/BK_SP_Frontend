@@ -96,6 +96,32 @@ export const createMenuItemAPI = async (menuItemPayload) => {
   return payload?.data ?? payload;
 };
 
+export const getPendingMenuItemsAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}/pending-chef-items`);
+  const payload = await parseResponse(response, 'Unable to load pending menu items.');
+  return toArray(payload?.data ?? payload);
+};
+
+export const approveMenuItemAPI = async (id, approvalPayload = {}) => {
+  const response = await authFetch(`${MENU_BASE}/${id}/approve`, {
+    method: 'PATCH',
+    body: JSON.stringify(approvalPayload),
+  });
+
+  const payload = await parseResponse(response, 'Unable to approve menu item.');
+  return payload?.data ?? payload;
+};
+
+export const rejectMenuItemAPI = async (id, rejectionReason) => {
+  const response = await authFetch(`${MENU_BASE}/${id}/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ rejectionReason }),
+  });
+
+  const payload = await parseResponse(response, 'Unable to reject menu item.');
+  return payload?.data ?? payload;
+};
+
 export const getMenuItemsAPI = async () => {
   const response = await authFetch(`${MENU_BASE}`);
   const payload = await parseResponse(response, 'Unable to load menu items.');
