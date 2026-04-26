@@ -3,14 +3,14 @@ import {
   Search, Bell, HelpCircle, Settings, ArrowLeft, CheckCircle2, CircleDot
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import AdminSidebar from '../components/admin/AdminSidebar';
-import AdminHeader from '../components/admin/AdminHeader';
-import CloudinaryImageUpload from '../components/admin/CloudinaryImageUpload';
+import AdminSidebar from '../../components/admin/AdminSidebar';
+import AdminHeader from '../../components/admin/AdminHeader';
+import CloudinaryImageUpload from '../../components/admin/CloudinaryImageUpload';
 import {
   createMenuItemAPI,
   getMenuCategoriesAPI,
   getMenuSubcategoriesAPI,
-} from '../apis/admin/menu';
+} from '../../apis/admin/menu';
 
 const normalizeSubCategory = (value) => {
   const trimmed = value.trim().replace(/\s+/g, ' ');
