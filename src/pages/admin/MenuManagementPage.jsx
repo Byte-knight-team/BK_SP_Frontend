@@ -278,13 +278,7 @@ export default function MenuManagementPage() {
   ];
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-8 pb-10">
+    <div className="bg-[#FAFAFA] font-sans px-8 pb-10">
           <div className="mb-4 mt-1 flex justify-end">
             <Link
               to="/admin/menu/add"
@@ -566,8 +560,6 @@ export default function MenuManagementPage() {
               ))}
             </div>
           </section>
-        </div>
-      </main>
     </div>
   );
 }

@@ -45,11 +45,7 @@ export default function AddTablePage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
+    <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
           <div className="mb-6 mt-6">
             <Link to="/admin/tables" className="inline-flex items-center text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors">
               <ArrowLeft size={16} className="mr-2" />
@@ -162,8 +158,6 @@ export default function AddTablePage() {
               </div>
             </form>
           </div>
-        </div>
-      </main>
     </div>
   );
 }

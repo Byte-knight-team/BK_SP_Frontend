@@ -41,11 +41,7 @@ export default function AddNewUserPage() {
   }, [dropdownRef]);
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]"> 
-
-        <div className="flex-1 overflow-y-auto p-10 flex justify-center">
+    <div className="bg-[#FAFAFA] font-sans p-10 flex justify-center">
           
           <div className="bg-white rounded-[2rem] w-full max-w-4xl p-12 shadow-sm border border-gray-100 h-fit">
             <h1 className="text-3xl font-bold text-gray-900 mb-10 tracking-tight">Register New Staff</h1>
@@ -194,8 +190,6 @@ export default function AddNewUserPage() {
             </form>
           </div>
 
-        </div>
-      </main>
     </div>
   );
 }

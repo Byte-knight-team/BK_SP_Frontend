@@ -7,6 +7,8 @@ import { AuthProvider } from "./context/AuthContext";
 import MainLayout from "./layouts/MainLayout";
 import KitchenSidebar from "./components/kitchen/KitchenSidebar";
 import KitchenHeader from "./components/kitchen/KitchenHeader";
+import AdminSidebar from "./components/admin/AdminSidebar";
+import AdminHeader from "./components/admin/AdminHeader";
 import ReceptionistSidebar from "./components/receptionist/ReceptionistSidebar";
 import ReceptionistHeader from "./components/receptionist/ReceptionistHeader";
 import SuperAdminSidebar from "./components/superadmin/SuperAdminSidebar";

@@ -211,13 +211,7 @@ export default function AddMenuItemPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
+    <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
 
           {/* Page Header */}
           <div className="flex items-center justify-between mb-8">
@@ -407,8 +401,6 @@ export default function AddMenuItemPage() {
             </div>
           </div>
 
-        </div>
-      </main>
     </div>
   );
 }

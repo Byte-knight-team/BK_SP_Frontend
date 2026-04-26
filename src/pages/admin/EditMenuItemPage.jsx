@@ -267,25 +267,20 @@ export default function EditMenuItemPage() {
 
   if (isPageLoading) {
     return (
-      <div className="flex h-screen bg-[#F8F9FA] font-sans">
-        <main className="flex-1 flex items-center justify-center">
-          <p className="text-gray-500 text-sm">Loading menu item...</p>
-        </main>
+      <div className="bg-[#FAFAFA] font-sans py-16">
+        <p className="text-center text-gray-500 text-sm">Loading menu item...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
+    <div className="bg-[#FAFAFA] font-sans">
         {/* Header */}
         {/* Header */}
         <AdminHeader />
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
+        <div className="px-10 pb-10">
 
           {/* Page Header */}
           <div className="flex items-center justify-between mb-8">
@@ -477,7 +472,6 @@ export default function EditMenuItemPage() {
           </div>
 
         </div>
-      </main>
     </div>
   );
 }

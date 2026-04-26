@@ -100,11 +100,7 @@ export default function TableQrPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
+    <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
           <div className="flex items-center justify-between mb-8 mt-4">
             <div className="flex items-center gap-4">
               <button
@@ -192,8 +188,6 @@ export default function TableQrPage() {
 
             </div>
           </div>
-        </div>
-      </main>
     </div>
   );
 }
