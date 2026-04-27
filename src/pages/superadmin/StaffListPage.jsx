@@ -16,20 +16,42 @@ import {
 
 import { useAuth } from "../../context/AuthContext";
 
+/*
+    StaffListPage
+
+    Purpose:
+    - Shows all staff accounts.
+    - Allows searching and filtering staff.
+    - Allows activate/deactivate staff.
+    - Allows resending staff invite email.
+    - Shared by both SUPER_ADMIN and ADMIN.
+
+    Routes:
+    SUPER_ADMIN:
+    /staff/staff
+
+    ADMIN:
+    /admin-panel/staff
+
+    Important:
+    - This page should not read authUser from localStorage.
+    - Logged-in user data comes from AuthContext/JWT.
+*/
 export default function StaffListPage() {
     /*
-        Used to read success messages sent from CreateStaffPage after redirect.
+        Used to read:
+        - current route path
+        - success messages sent from CreateStaffPage after redirect
     */
     const location = useLocation();
 
     /*
-    This page is shared by SUPER_ADMIN and ADMIN.
+        This page is shared by SUPER_ADMIN and ADMIN.
 
-        SUPER_ADMIN route:
-        /staff/staff
+        If current route starts with /admin-panel,
+        links should stay inside /admin-panel/staff.
 
-        ADMIN route:
-        /admin-panel/staff
+        Otherwise, links should use Super Admin route /staff/staff.
     */
     const staffBasePath = location.pathname.startsWith("/admin-panel")
         ? "/admin-panel/staff"
@@ -52,7 +74,9 @@ export default function StaffListPage() {
 
     /*
         Search and filter states.
-        These filters are frontend-side only, so no backend change is needed.
+
+        These filters are frontend-side only.
+        No backend change is needed.
     */
     const [searchText, setSearchText] = useState("");
     const [roleFilter, setRoleFilter] = useState("ALL");
@@ -62,7 +86,7 @@ export default function StaffListPage() {
     /*
         Read logged-in user from AuthContext.
 
-        AuthContext now gets user data from the decoded JWT token.
+        AuthContext gets user data from the decoded JWT token.
         We no longer read authUser from localStorage.
     */
     const { user: authUser } = useAuth();
@@ -78,6 +102,9 @@ export default function StaffListPage() {
     */
     const LOWER_ROLES_FOR_ADMIN = ["MANAGER", "CHEF", "RECEPTIONIST", "DELIVERY"];
 
+    /*
+        Check whether logged-in user can activate/deactivate a staff member.
+    */
     const canManageStaffStatus = (staff) => {
         const targetRole = staff.roleName || staff.role;
 
@@ -94,11 +121,11 @@ export default function StaffListPage() {
 
     /*
         Show success message if another page redirected here with a message.
+
         CreateStaffPage redirects here after staff creation.
 
-        If CreateStaffPage sends createdStaffSearch, automatically search for
-        the newly-created staff row. This is very useful when email fails and
-        the temporary password is shown.
+        If CreateStaffPage sends createdStaffSearch,
+        automatically search for the newly-created staff row.
     */
     useEffect(() => {
         if (location.state?.successMessage) {
@@ -111,7 +138,7 @@ export default function StaffListPage() {
     }, [location.state]);
 
     /*
-        Set the shared page header.
+        Set shared page header.
     */
     useEffect(() => {
         setHeaderInfo({
@@ -132,7 +159,8 @@ export default function StaffListPage() {
 
         /*
             Do not clear successMessage here.
-            Otherwise messages from create/activate/deactivate/resend can disappear too quickly.
+            Otherwise messages from create/activate/deactivate/resend
+            can disappear too quickly.
         */
         const { data, error } = await getAllStaffAPI();
 
@@ -146,6 +174,9 @@ export default function StaffListPage() {
         setLoading(false);
     };
 
+    /*
+        Load staff once when page opens.
+    */
     useEffect(() => {
         loadStaff();
     }, []);
@@ -176,6 +207,7 @@ export default function StaffListPage() {
 
     /*
         Branch name helper.
+
         SUPER_ADMIN or global staff will show as Global.
     */
     const getBranchName = (staff) => {
@@ -184,7 +216,7 @@ export default function StaffListPage() {
 
     /*
         Build unique role options from loaded staff data.
-        This means custom roles like LINE_CHEF can appear automatically.
+        This allows custom roles like LINE_CHEF to appear automatically.
     */
     const roleOptions = Array.from(
         new Set(staffList.map((staff) => getRoleName(staff)).filter(Boolean))
@@ -226,14 +258,12 @@ export default function StaffListPage() {
         /*
             Role dropdown filter.
         */
-        const matchesRole =
-            roleFilter === "ALL" || roleName === roleFilter;
+        const matchesRole = roleFilter === "ALL" || roleName === roleFilter;
 
         /*
             Branch dropdown filter.
         */
-        const matchesBranch =
-            branchFilter === "ALL" || branchName === branchFilter;
+        const matchesBranch = branchFilter === "ALL" || branchName === branchFilter;
 
         /*
             Status dropdown filter.
@@ -289,8 +319,11 @@ export default function StaffListPage() {
             setError(result.error);
         } else {
             setSuccessMessage(
-                isActive ? "Staff deactivated successfully." : "Staff activated successfully."
+                isActive
+                    ? "Staff deactivated successfully."
+                    : "Staff activated successfully."
             );
+
             await loadStaff();
         }
 
@@ -300,7 +333,6 @@ export default function StaffListPage() {
     /*
         Resend staff invite.
 
-        Important:
         Backend can generate a new temporary password even when SMTP fails.
         So frontend must check data.emailSent before showing the message.
     */
@@ -332,19 +364,35 @@ export default function StaffListPage() {
 
         if (data?.emailSent === true) {
             setSuccessMessage(
-                `Invite email resent successfully to ${staffEmail}. Staff: ${staffName} (@${staffUsername}), Role: ${staffRole}, Branch: ${staffBranch}.`
+                `Invite email resent successfully.
+
+Staff: ${staffName}
+Username: @${staffUsername}
+Email: ${staffEmail}
+Role: ${staffRole}
+Branch: ${staffBranch}`
             );
         } else {
             setSuccessMessage(
-                `Invite email failed. Staff: ${staffName} (@${staffUsername}), Email: ${staffEmail}, Role: ${staffRole}, Branch: ${staffBranch}. Give this temporary password manually: ${data?.temporaryPassword || "Not returned"}`
+                `Invite email failed.
+
+Staff: ${staffName}
+Username: @${staffUsername}
+Email: ${staffEmail}
+Role: ${staffRole}
+Branch: ${staffBranch}
+Temporary password: ${data?.temporaryPassword || "Not returned"}
+
+Please manually share this temporary password with the staff member.`
             );
         }
 
         /*
-            Automatically search the staff row after resend action too.
+            Automatically search the staff row after resend action.
         */
-        
-        setSearchText(staffEmail || staffUsername || staffName);
+        setSearchText(
+            staffEmail !== "No email" ? staffEmail : staffUsername || staffName
+        );
 
         setActionLoadingId(null);
     };
@@ -354,7 +402,10 @@ export default function StaffListPage() {
             <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900">Staff Accounts</h3>
+                        <h3 className="text-lg font-bold text-gray-900">
+                            Staff Accounts
+                        </h3>
+
                         <p className="text-sm text-gray-500 mt-1">
                             Manage staff users created for branches and internal operations.
                         </p>
@@ -386,6 +437,7 @@ export default function StaffListPage() {
                         <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
                             Search
                         </label>
+
                         <input
                             type="text"
                             value={searchText}
@@ -399,12 +451,14 @@ export default function StaffListPage() {
                         <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
                             Role
                         </label>
+
                         <select
                             value={roleFilter}
                             onChange={(event) => setRoleFilter(event.target.value)}
                             className="w-full rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
                         >
                             <option value="ALL">All roles</option>
+
                             {roleOptions.map((roleName) => (
                                 <option key={roleName} value={roleName}>
                                     {roleName}
@@ -417,12 +471,14 @@ export default function StaffListPage() {
                         <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
                             Branch
                         </label>
+
                         <select
                             value={branchFilter}
                             onChange={(event) => setBranchFilter(event.target.value)}
                             className="w-full rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
                         >
                             <option value="ALL">All branches</option>
+
                             {branchOptions.map((branchName) => (
                                 <option key={branchName} value={branchName}>
                                     {branchName}
@@ -435,6 +491,7 @@ export default function StaffListPage() {
                         <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
                             Status
                         </label>
+
                         <select
                             value={statusFilter}
                             onChange={(event) => setStatusFilter(event.target.value)}
@@ -478,7 +535,7 @@ export default function StaffListPage() {
                 )}
 
                 {successMessage && (
-                    <div className="mt-5 rounded-2xl bg-green-50 border border-green-100 px-4 py-3 text-sm font-medium text-green-700">
+                    <div className="mt-5 rounded-2xl bg-green-50 border border-green-100 px-4 py-3 text-sm font-medium text-green-700 whitespace-pre-line leading-6">
                         {successMessage}
                     </div>
                 )}
@@ -488,7 +545,9 @@ export default function StaffListPage() {
                 {loading ? (
                     <div className="p-8 text-sm text-gray-500">Loading staff...</div>
                 ) : staffList.length === 0 ? (
-                    <div className="p-8 text-sm text-gray-500">No staff members found.</div>
+                    <div className="p-8 text-sm text-gray-500">
+                        No staff members found.
+                    </div>
                 ) : filteredStaffList.length === 0 ? (
                     <div className="p-8 text-sm text-gray-500">
                         No staff members match the selected search or filters.
@@ -501,18 +560,23 @@ export default function StaffListPage() {
                                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
                                         Staff
                                     </th>
+
                                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
                                         Contact
                                     </th>
+
                                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
                                         Role
                                     </th>
+
                                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
                                         Branch
                                     </th>
+
                                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
                                         Status
                                     </th>
+
                                     <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
                                         Actions
                                     </th>
@@ -526,11 +590,15 @@ export default function StaffListPage() {
                                     const isActionLoading = actionLoadingId === staffId;
 
                                     return (
-                                        <tr key={staffId || staff.email} className="hover:bg-gray-50/70">
+                                        <tr
+                                            key={staffId || staff.email}
+                                            className="hover:bg-gray-50/70"
+                                        >
                                             <td className="px-6 py-4">
                                                 <div className="font-semibold text-gray-900">
                                                     {staff.fullName || staff.name || "No name"}
                                                 </div>
+
                                                 <div className="text-xs text-gray-500 mt-1">
                                                     @{staff.username || "no-username"}
                                                 </div>
@@ -540,6 +608,7 @@ export default function StaffListPage() {
                                                 <div className="text-sm text-gray-800">
                                                     {staff.email}
                                                 </div>
+
                                                 <div className="text-xs text-gray-500 mt-1">
                                                     {staff.phone || "No phone"}
                                                 </div>
@@ -557,10 +626,11 @@ export default function StaffListPage() {
 
                                             <td className="px-6 py-4">
                                                 <span
-                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isActive
-                                                        ? "bg-green-50 text-green-700"
-                                                        : "bg-gray-100 text-gray-500"
-                                                        }`}
+                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                                                        isActive
+                                                            ? "bg-green-50 text-green-700"
+                                                            : "bg-gray-100 text-gray-500"
+                                                    }`}
                                                 >
                                                     {isActive ? "Active" : "Inactive"}
                                                 </span>
@@ -597,10 +667,11 @@ export default function StaffListPage() {
                                                             type="button"
                                                             disabled={isActionLoading}
                                                             onClick={() => handleToggleStatus(staff)}
-                                                            className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${isActive
-                                                                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                                                : "bg-green-50 text-green-700 hover:bg-green-100"
-                                                                }`}
+                                                            className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${
+                                                                isActive
+                                                                    ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                                                    : "bg-green-50 text-green-700 hover:bg-green-100"
+                                                            }`}
                                                         >
                                                             {isActive ? "Deactivate" : "Activate"}
                                                         </button>

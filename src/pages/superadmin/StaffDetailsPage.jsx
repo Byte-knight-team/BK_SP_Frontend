@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useOutletContext, useParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 import {
   RiArrowLeftLine,
   RiEditLine,
@@ -13,17 +18,95 @@ import {
 
 import { getStaffByIdAPI } from "../../apis/staff/staff";
 
+/*
+  StaffDetailsPage
+
+  Purpose:
+  - Shows one staff member's details.
+  - Used by both SUPER_ADMIN and ADMIN staff routes.
+
+  Routes:
+  - SUPER_ADMIN: /staff/staff/:id
+  - ADMIN:       /admin-panel/staff/:id
+
+  Important:
+  - This page detects the current route.
+  - If opened from /admin-panel, back/edit links stay in /admin-panel.
+  - If opened from /staff, back/edit links stay in /staff.
+*/
 export default function StaffDetailsPage() {
+  /*
+    Staff ID comes from the URL.
+
+    Example:
+    /staff/staff/21
+    id = 21
+  */
   const { id } = useParams();
+
+  /*
+    useLocation helps us check whether this page is opened from
+    Super Admin area or Admin area.
+  */
+  const location = useLocation();
+
+  /*
+    setHeaderInfo comes from MainLayout through Outlet context.
+    It updates the shared page header.
+  */
   const { setHeaderInfo } = useOutletContext();
 
-  // Staff member loaded from backend
+  /*
+    This page is shared by SUPER_ADMIN and ADMIN.
+
+    SUPER_ADMIN route:
+    /staff/staff/:id
+
+    ADMIN route:
+    /admin-panel/staff/:id
+  */
+  const isAdminPanelRoute = location.pathname.startsWith("/admin-panel");
+
+  /*
+    Back button path.
+
+    If Admin opened this page, go back to:
+    /admin-panel/staff
+
+    If Super Admin opened this page, go back to:
+    /staff/staff
+  */
+  const staffListPath = isAdminPanelRoute
+    ? "/admin-panel/staff"
+    : "/staff/staff";
+
+  /*
+    Edit button path.
+
+    If Admin opened this page, edit route should be:
+    /admin-panel/staff/:id/edit
+
+    If Super Admin opened this page, edit route should be:
+    /staff/staff/:id/edit
+  */
+  const staffEditPath = isAdminPanelRoute
+    ? `/admin-panel/staff/${id}/edit`
+    : `/staff/staff/${id}/edit`;
+
+  /*
+    Staff member loaded from backend.
+  */
   const [staff, setStaff] = useState(null);
 
-  // Page loading and error states
+  /*
+    Page loading and error states.
+  */
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  /*
+    Set page header when this page opens.
+  */
   useEffect(() => {
     setHeaderInfo({
       title: "Staff Details",
@@ -34,6 +117,12 @@ export default function StaffDetailsPage() {
     return () => setHeaderInfo(null);
   }, [setHeaderInfo]);
 
+  /*
+    Load one staff member by ID.
+
+    Backend endpoint:
+    GET /api/admin/staff/{id}
+  */
   useEffect(() => {
     const loadStaff = async () => {
       setLoading(true);
@@ -54,6 +143,11 @@ export default function StaffDetailsPage() {
     loadStaff();
   }, [id]);
 
+  /*
+    Backend responses may use active or isActive.
+
+    This helper safely gets the active status.
+  */
   const isActive =
     typeof staff?.active === "boolean"
       ? staff.active
@@ -62,18 +156,21 @@ export default function StaffDetailsPage() {
         : false;
 
   /*
-  Formats salary for display.
- 
-  Old staff records may have null salary, so we show Not assigned.
-*/
+    Formats salary for display.
+
+    Old staff records may have null salary, so we show "Not assigned".
+  */
   const formatSalary = (salary) => {
     if (salary === null || salary === undefined || salary === "") {
       return "Not assigned";
     }
 
-    return Number(salary).toLocaleString();
+    return `LKR ${Number(salary).toLocaleString()}`;
   };
 
+  /*
+    Loading state.
+  */
   if (loading) {
     return (
       <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm text-sm text-gray-500">
@@ -82,6 +179,9 @@ export default function StaffDetailsPage() {
     );
   }
 
+  /*
+    Error state.
+  */
   if (error) {
     return (
       <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
@@ -100,10 +200,21 @@ export default function StaffDetailsPage() {
     );
   }
 
+  /*
+    Empty state.
+  */
   if (!staff) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm text-sm text-gray-500">
-        Staff member not found.
+      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
+        <div className="text-sm text-gray-500">Staff member not found.</div>
+
+        <Link
+          to={staffListPath}
+          className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
+        >
+          <RiArrowLeftLine size={18} />
+          Back to staff list
+        </Link>
       </div>
     );
   }
@@ -111,6 +222,7 @@ export default function StaffDetailsPage() {
   return (
     <div className="max-w-4xl space-y-6">
       <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
+        {/* Top actions */}
         <div className="flex items-center justify-between gap-4 mb-8">
           <Link
             to={staffListPath}
@@ -121,7 +233,7 @@ export default function StaffDetailsPage() {
           </Link>
 
           <Link
-            to={`/staff/staff/${id}/edit`}
+            to={staffEditPath}
             className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
           >
             <RiEditLine size={18} />
@@ -129,26 +241,30 @@ export default function StaffDetailsPage() {
           </Link>
         </div>
 
+        {/* Main staff identity section */}
         <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-6">
           <div>
             <h3 className="text-2xl font-bold text-gray-900">
               {staff.fullName || staff.name || "No name"}
             </h3>
+
             <p className="text-sm text-gray-500 mt-1">
               @{staff.username || "no-username"}
             </p>
           </div>
 
           <span
-            className={`rounded-full px-4 py-1.5 text-xs font-bold ${isActive
-              ? "bg-green-50 text-green-700"
-              : "bg-gray-100 text-gray-500"
-              }`}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold ${
+              isActive
+                ? "bg-green-50 text-green-700"
+                : "bg-gray-100 text-gray-500"
+            }`}
           >
             {isActive ? "Active" : "Inactive"}
           </span>
         </div>
 
+        {/* Staff information cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
           <DetailCard
             icon={RiMailLine}
@@ -185,29 +301,11 @@ export default function StaffDetailsPage() {
   );
 }
 
-/**
- * PUT /api/admin/roles/{id}
- *
- * Updates role details such as description or baseSalary.
- *
- * For salary feature, we mainly send:
- * {
- *   baseSalary: 60000
- * }
- */
-export async function updateRoleAPI(id, roleData) {
-  const response = await authFetch(`${ADMIN_API_BASE_URL}/roles/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(roleData),
-  });
+/*
+  DetailCard
 
-  return handleResponse(response, "Failed to update role.");
-}
-
-// Small reusable card for displaying one staff field
+  Small reusable card for displaying one staff field.
+*/
 function DetailCard({ icon: Icon, label, value }) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4">
@@ -220,6 +318,7 @@ function DetailCard({ icon: Icon, label, value }) {
           <div className="text-xs font-bold uppercase tracking-wider text-gray-400">
             {label}
           </div>
+
           <div className="text-sm font-semibold text-gray-900 mt-1">
             {value}
           </div>
