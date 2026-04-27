@@ -25,7 +25,7 @@ function LoadingSkeleton() {
 }
 
 export default function ManagerInventoryPage() {
-  const { data, loading, error, refetch } = useInventoryData()
+  const { data, loading, error, refetch, resolveChefRequest } = useInventoryData()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [updateModal, setUpdateModal] = useState({ open: false, item: null })
   const chefRequestsRef = useRef(null)
@@ -97,7 +97,11 @@ export default function ManagerInventoryPage() {
         onUpdateItem={(item) => setUpdateModal({ open: true, item })}
       />
       <InventoryUpdateLogTable logs={data.logs} />
-      <ChefRequestsSection requests={data.chefRequests} scrollRef={chefRequestsRef} />
+      <ChefRequestsSection 
+        requests={data.chefRequests} 
+        scrollRef={chefRequestsRef} 
+        resolveChefRequest={resolveChefRequest}
+      />
 
       {/* Add Item Modal */}
       <AddInventoryItemModal

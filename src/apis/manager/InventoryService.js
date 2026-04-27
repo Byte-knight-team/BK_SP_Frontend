@@ -6,7 +6,7 @@ export const InventoryService = {
   // 1. Fetches all inventory items for a specific branch.
   getAllItems: async (branchId) => {
     const response = await authFetch(
-      `${BASE_URL}/inventory/items?branchId=${branchId}`,
+      `${BASE_URL}/inventory/items?branchId=${branchId}&_t=${Date.now()}`,
     )
     const result = await response.json()
     // Assuming the backend returns the array in result.data or result
@@ -18,7 +18,7 @@ export const InventoryService = {
    */
   getSummary: async (branchId) => {
     const response = await authFetch(
-      `${BASE_URL}/inventory/summary?branchId=${branchId}`,
+      `${BASE_URL}/inventory/summary?branchId=${branchId}&_t=${Date.now()}`,
     )
     const result = await response.json()
     return result.data || result
@@ -75,7 +75,7 @@ export const InventoryService = {
 
   // 7. Get history of inventory updates
   getInventoryLogs: async (branchId) => {
-    const response = await authFetch(`${BASE_URL}/inventory/logs?branchId=${branchId}`, {
+    const response = await authFetch(`${BASE_URL}/inventory/logs?branchId=${branchId}&_t=${Date.now()}`, {
       method: 'GET',
     })
     const result = await response.json()

@@ -48,7 +48,24 @@ export function useInventoryData() {
   const resolveChefRequest = async (requestId, status, managerNote) => {
     try {
       await InventoryService.resolveChefRequest(requestId, { status, managerNote })
-      await fetchInventory() // Refresh the dashboard data
+      
+      // Optimistically update the UI by removing the resolved request
+      setData(prev => {
+        if (!prev) return prev;
+        
+        const updatedRequests = prev.chefRequests.filter(r => r.id !== requestId);
+        return {
+          ...prev,
+          chefRequests: updatedRequests,
+          summary: {
+            ...prev.summary,
+            pendingChefDrafts: updatedRequests.length
+          }
+        }
+      });
+
+      // Still call fetchInventory to keep everything perfectly in sync with backend
+      await fetchInventory() 
       return { success: true }
     } catch (err) {
       console.error('Failed to resolve chef request:', err)
