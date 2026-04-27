@@ -3,47 +3,61 @@ import SalesSummaryHeader from '../../components/manager/sales/SalesSummaryHeade
 import FinancialStatsGrid from '../../components/manager/sales/FinancialStatsGrid'
 import TransactionLogTable from '../../components/manager/sales/TransactionLogTable'
 import PaymentMethodsBreakdown from '../../components/manager/sales/PaymentMethodsBreakdown'
-
-const MOCK_DATA = {
-  grossSales: 5450,
-  netSales: 4450,
-  totalRefunds: 2387,
-  cardPayments: 3825,
-  cashPayments: 1625,
-  dineInOrders: 2100,
-  deliveryOrders: 3350,
-  transactions: [
-    { id: 'TRX-9823', date: 'Today, 10:42 AM', customer: 'Alex Johnson', mode: 'Credit Card', amount: 45.50, status: 'Completed' },
-    { id: 'TRX-9822', date: 'Today, 10:38 AM', customer: 'Maria Garcia', mode: 'Online Payment', amount: 128.20, status: 'Completed' },
-    { id: 'TRX-9821', date: 'Today, 10:15 AM', customer: 'Sam Wilson', mode: 'Cash', amount: 32.00, status: 'Completed' },
-    { id: 'TRX-9820', date: 'Today, 09:55 AM', customer: 'Table 4 (Walk-in)', mode: 'Credit Card', amount: 85.90, status: 'Completed' },
-    { id: 'TRX-9819', date: 'Today, 09:42 AM', customer: 'Jessica Brown', mode: 'Online Payment', amount: 24.50, status: 'Refunded' },
-    { id: 'TRX-9818', date: 'Yesterday, 08:15 PM', customer: 'Michael Scott', mode: 'Cash', amount: 210.00, status: 'Completed' },
-    { id: 'TRX-9817', date: 'Yesterday, 07:30 PM', customer: 'Jim Halpert', mode: 'Credit Card', amount: 55.25, status: 'Completed' },
-    { id: 'TRX-9816', date: 'Yesterday, 06:45 PM', customer: 'Dwight Schrute', mode: 'Cash', amount: 42.00, status: 'Completed' },
-  ]
-}
+import { useSalesData } from '../../hooks/useSalesData'
+import { Loader2, AlertCircle, RefreshCcw } from 'lucide-react'
 
 export default function ManagerSalesSummaryPage() {
+  const { data, loading, error, refetch } = useSalesData()
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="w-10 h-10 text-brand animate-spin" />
+        <p className="text-gray-500 font-medium animate-pulse">Gathering financial records...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center max-w-md mx-auto">
+        <div className="p-4 bg-red-50 rounded-full">
+          <AlertCircle className="w-10 h-10 text-red-500" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Connection Error</h3>
+          <p className="text-gray-500">{error}</p>
+        </div>
+        <button 
+          onClick={refetch}
+          className="flex items-center gap-2 bg-brand text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-brand/20 hover:scale-105 transition-all"
+        >
+          <RefreshCcw className="w-4 h-4" />
+          Retry Connection
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-10">
+    <div className="space-y-6 max-w-7xl mx-auto pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <SalesSummaryHeader />
       
       <FinancialStatsGrid 
-        gross={MOCK_DATA.grossSales}
-        net={MOCK_DATA.netSales}
-        refunds={MOCK_DATA.totalRefunds}
+        gross={data?.grossSales || 0}
+        net={data?.netSales || 0}
+        refunds={data?.totalRefunds || 0}
       />
 
       <TransactionLogTable 
-        transactions={MOCK_DATA.transactions}
+        transactions={data?.transactions || []}
       />
 
       <PaymentMethodsBreakdown 
-        cardTotal={MOCK_DATA.cardPayments}
-        cashTotal={MOCK_DATA.cashPayments}
-        dineIn={MOCK_DATA.dineInOrders}
-        delivery={MOCK_DATA.deliveryOrders}
+        cardTotal={data?.cardPayments || 0}
+        cashTotal={data?.cashPayments || 0}
+        dineIn={data?.dineInOrders || 0}
+        delivery={data?.deliveryOrders || 0}
       />
     </div>
   )
