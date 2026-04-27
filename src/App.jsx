@@ -52,15 +52,14 @@ import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
 import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
 import ManagerDriversPage from './pages/manager/ManagerDriversPage'
 
-// Admin pages from other modules
-import AdminDashboardPage from './pages/AdminDashboardPage'
-import MenuManagementPage from './pages/MenuManagementPage'
-import AddMenuItemPage from './pages/AddMenuItemPage'
-import EditMenuItemPage from './pages/EditMenuItemPage'
-import TableManagementPage from './pages/TableManagementPage'
-import AddTablePage from './pages/AddTablePage'
-import UserManagementPage from './pages/UserManagementPage'
-import AddNewUserPage from './pages/AddNewUserPage'
+// Admin pages
+import AdminDashboardPage from './pages/admin/AdminDashboardPage'
+import MenuManagementPage from './pages/admin/MenuManagementPage'
+import AddMenuItemPage from './pages/admin/AddMenuItemPage'
+import EditMenuItemPage from './pages/admin/EditMenuItemPage'
+import TableManagementPage from './pages/admin/TableManagementPage'
+import AddTablePage from './pages/admin/AddTablePage'
+import CouponsPage from './pages/admin/CouponsPage'
 
 // Customer pages
 import HomePage from './pages/customer/HomePage'
@@ -185,7 +184,7 @@ export default function App() {
 
       {/* ADMIN area */}
       <Route
-        path="/admin-panel"
+        path="/admin"
         element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <MainLayout Sidebar={AdminSidebar} Header={AdminHeader} />
@@ -211,14 +210,10 @@ export default function App() {
         <Route path="menu/add" element={<AddMenuItemPage />} />
         <Route path="menu/edit" element={<EditMenuItemPage />} />
 
-        <Route path="users" element={<UserManagementPage />} />
-        <Route path="users/add" element={<AddNewUserPage />} />
+        <Route path="coupons" element={<CouponsPage />} />
 
-        <Route path="*" element={<Navigate to="/admin-panel" replace />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
-
-      {/* Old admin route redirects to the new Admin area */}
-      <Route path="/admin" element={<Navigate to="/admin-panel" replace />} />
 
       {/* MANAGER area */}
       <Route

@@ -3,7 +3,7 @@ import { ArrowLeft, CircleDot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createMenuCategoryAPI } from '../../apis/admin/menu';
 
-// Admin page for creating a new menu category.
+// Super Admin page for creating a new menu category.
 export default function AddCategoryPage() {
   const navigate = useNavigate();
 

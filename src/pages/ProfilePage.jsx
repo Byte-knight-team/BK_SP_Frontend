@@ -25,7 +25,7 @@ function getProfilePathByRole(roleName) {
             return "/staff/profile";
 
         case "ADMIN":
-            return "/admin-panel/profile";
+            return "/admin/profile";
 
         case "MANAGER":
             return "/manager/profile";
