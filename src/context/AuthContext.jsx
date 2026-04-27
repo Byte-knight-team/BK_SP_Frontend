@@ -1,63 +1,86 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { loginStaff } from "../services/authService";
+import {
+  clearAuthStorage,
+  getAuthToken,
+  getCurrentUserFromToken,
+  isTokenExpired,
+  saveAuthToken,
+} from "../utils/authToken";
 
 const AuthContext = createContext(null);
-
-const TOKEN_KEY = "token";
-const USER_KEY = "authUser";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [hydrated, setHydrated] = useState(false);
 
+  /*
+    Restore auth state from JWT only.
+
+    We no longer restore user details from localStorage.authUser.
+    Only the JWT token is stored.
+  */
   useEffect(() => {
-    try {
-      const savedToken = localStorage.getItem(TOKEN_KEY);
-      const savedUser = localStorage.getItem(USER_KEY);
+    const savedToken = getAuthToken();
 
-      if (savedToken) {
-        setToken(savedToken);
-      }
-
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      }
-    } catch (error) {
-      console.error("Failed to restore auth state:", error);
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-    } finally {
+    if (!savedToken || isTokenExpired(savedToken)) {
+      clearAuthStorage();
+      setToken(null);
+      setUser(null);
       setHydrated(true);
+      return;
     }
+
+    const decodedUser = getCurrentUserFromToken(savedToken);
+
+    setToken(savedToken);
+    setUser(decodedUser);
+    setHydrated(true);
   }, []);
 
+  /*
+    Login stores only JWT token.
+
+    We can use login response temporarily in memory for passwordChanged,
+    but we do not save full user data to localStorage anymore.
+  */
   const login = async (credentials) => {
     const data = await loginStaff(credentials);
+    const accessToken = data.token;
 
-    const { token: accessToken, tokenType, ...userData } = data;
+    if (!accessToken) {
+      throw new Error("Login succeeded but token was not returned.");
+    }
 
-    localStorage.setItem(TOKEN_KEY, accessToken);
-    localStorage.setItem(
-      USER_KEY,
-      JSON.stringify({
-        ...userData,
-        tokenType: tokenType || "Bearer",
-      })
-    );
+    saveAuthToken(accessToken);
+
+    const decodedUser = getCurrentUserFromToken(accessToken);
+
+    const mergedUser = {
+      ...decodedUser,
+
+      /*
+        Keep this only in React memory.
+        Do not store it in localStorage.
+      */
+      passwordChanged:
+        data.passwordChanged !== undefined
+          ? data.passwordChanged
+          : decodedUser?.passwordChanged,
+    };
 
     setToken(accessToken);
-    setUser({
-      ...userData,
-      tokenType: tokenType || "Bearer",
-    });
+    setUser(mergedUser);
 
-    return data;
+    return {
+      ...data,
+      roleName: mergedUser.roleName,
+    };
   };
 
   const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    clearAuthStorage();
     setToken(null);
     setUser(null);
   };
@@ -67,7 +90,7 @@ export function AuthProvider({ children }) {
       user,
       token,
       hydrated,
-      isAuthenticated: Boolean(token),
+      isAuthenticated: Boolean(token && user),
       login,
       logout,
       setUser,

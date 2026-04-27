@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
+
 import {
   RiArrowLeftSLine,
   RiArrowRightSLine,
@@ -18,6 +19,8 @@ import {
   AUDIT_MODULE_OPTIONS,
   AUDIT_STATUS_OPTIONS,
 } from "../../apis/staff/auditLogs";
+
+import { useAuth } from "../../context/AuthContext";
 
 /*
   AuditLogsPage
@@ -52,6 +55,17 @@ const PAGE_SIZE = 20;
 export default function AuditLogsPage() {
   const { setHeaderInfo } = useOutletContext();
 
+  /*
+  Read logged-in user from AuthContext.
+
+  AuthContext now gets user data from the decoded JWT token.
+  We no longer read authUser from localStorage.
+*/
+  const { user } = useAuth();
+
+  const roleName = user?.roleName || user?.role || "";
+  const isSuperAdmin = roleName === "SUPER_ADMIN";
+
   const [logs, setLogs] = useState([]);
   const [pageInfo, setPageInfo] = useState({
     number: 0,
@@ -72,30 +86,6 @@ export default function AuditLogsPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedLog, setSelectedLog] = useState(null);
-
-  /*
-    Read the logged-in user from localStorage.
-
-    Your auth flow stores authUser in localStorage.
-    Some earlier responses used "role", while some backend responses use "roleName".
-    This supports both safely.
-  */
-  const loggedInUser = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem("authUser")) || {};
-    } catch (error) {
-      return {};
-    }
-  }, []);
-
-  const roleName =
-    loggedInUser?.roleName ||
-    loggedInUser?.role ||
-    loggedInUser?.user?.roleName ||
-    loggedInUser?.user?.role ||
-    "";
-
-  const isSuperAdmin = roleName === "SUPER_ADMIN";
 
   /*
     Set page header inside the existing shared layout.

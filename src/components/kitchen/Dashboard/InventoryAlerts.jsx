@@ -1,9 +1,8 @@
-import React from "react";
 import KitchenStatBar from "../KitchenStatBar";
 import { useState, useEffect } from "react";
 import { getInventoryAlertsAPI } from "../../../apis/kitchen/dashboard";
 
-//BAR_COLORS Object
+// BAR_COLORS Object
 const BAR_COLORS = {
   LOW: "#F59E0B",
   CRITICAL: "#EF4444",
@@ -12,11 +11,11 @@ const BAR_COLORS = {
 //to convert the data from the API to the format required by the component
 const formatInventoryAlertsDetails = (apiData) => {
   return apiData.map((item) => ({
-    itemName: item.itemName,
+    itemName: item.name,
     percentage: item.percentage,
     color: BAR_COLORS[item.warningLevel],
     maxStock: item.maxStock,
-    availableCount: item.availableCount,
+    availableCount: item.quantity,
     unit: item.unit,
     warningLevel: item.warningLevel,
   }));
@@ -49,9 +48,29 @@ const InventoryAlerts = () => {
     fetchInventoryAlertsDetails();
   }, []);
 
+  // when loading show 4 skeleton components
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="mt-4 flex flex-col gap-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="flex animate-pulse items-center justify-between rounded-xl border border-gray-100 bg-gray-50/30 p-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gray-100" />
+              <div className="space-y-2">
+                <div className="h-4 w-20 rounded bg-gray-100" />
+                <div className="h-3 w-12 rounded bg-gray-50" />
+              </div>
+            </div>
+            <div className="h-6 w-16 rounded-full bg-gray-100" />
+          </div>
+        ))}
+      </div>
+    );
   }
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -77,7 +96,7 @@ const InventoryAlerts = () => {
             percentage={item.percentage}
             color={item.color}
             maxStock={item.maxStock}
-            availableCount={item.availableCount}
+            quantity={item.availableCount}
             unit={item.unit}
             warningLevel={item.warningLevel}
           />

@@ -1,8 +1,10 @@
-//get orders by status
-export const getOrdersAPI = async (orderStatus) => {
+import { authFetch } from "../apiHelper";
+
+//get order-cards by status
+export const getOrderCardsAPI = async (orderStatus) => {
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/v1/kitchen/orders?status=${orderStatus}`,
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/order-cards?status=${orderStatus}`,
     );
     const result = await response.json();
     return { data: result.data, error: null };
@@ -12,11 +14,11 @@ export const getOrdersAPI = async (orderStatus) => {
   }
 };
 
-// get a single order detail by ID
+// get a single order's details by ID
 export const getOrderDetailsAPI = async (orderId) => {
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/v1/kitchen/orders/${orderId}`
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/order-details/${orderId}`
     );
     const result = await response.json();
     return { data: result.data, error: null };
@@ -25,5 +27,86 @@ export const getOrderDetailsAPI = async (orderId) => {
     return { data: null, error: error };
   }
 };
+
+// Get available chefs for assignment (those who are already checked in)
+export const getAvailableChefsAPI = async () => {
+  try {
+    const response = await authFetch(`http://localhost:8080/api/v1/kitchen/available-chefs`);
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    console.error("Error fetching available chefs:", error);
+    return { data: null, error: error };
+  }
+};
+
+// Assign a specific chef to a meal (OrderItem)
+export const assignChefToMealAPI = async (itemId, chefStaffId) => {
+  try {
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/assign`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chefStaffId: chefStaffId }), // Sends the ID to the backend
+      }
+    );
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    console.error(`Error assigning chef ${chefId} to item ${itemId}:`, error);
+    return { data: null, error: error };
+  }
+};
+
+// Put an order on hold by sending the reason
+export const holdOrderAPI = async (orderId, holdReason) => {
+  try {
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/orders/${orderId}/hold`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holdReason: holdReason }),
+      }
+    );
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    console.error(`Error holding order #${orderId}:`, error);
+    return { data: null, error: error };
+  }
+};
+
+// start preparing a specific meal item
+export const startMealAPI = async (itemId) => {
+  try {
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/start`,
+      { method: "PUT" }
+    );
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    console.error(`Error starting meal #${itemId}:`, error);
+    return { data: null, error: error };
+  }
+};
+
+// complete a specific meal item
+export const completeMealAPI = async (itemId) => {
+  try {
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/complete`,
+      { method: "PUT" }
+    );
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
+
+
 
 

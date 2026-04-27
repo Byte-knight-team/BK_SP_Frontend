@@ -1,81 +1,122 @@
-import React from "react";
 import { Plus, RotateCcw, Search } from "lucide-react";
 import ProgressBar from "../ProgressBar";
 import { useState, useEffect } from "react";
-import { getAllInventoryAPI } from "../../../apis/kitchen/inventory";
-
-  //mock data to match your image
-  const inventoryData = [
-    {
-      itemName: "Garlic",
-      unit: "kg",
-      availableCount: 10,
-      maxStock: 50,
-      warningLevel: "CRITICAL",
-      percentage: 20,
-    },
-    {
-      itemName: "Tomato",
-      unit: "kg",
-      availableCount: 15,
-      maxStock: 60,
-      warningLevel: "LOW",
-      percentage: 25,
-    },
-    {
-      itemName: "Onion",
-      unit: "kg",
-      availableCount: 20,
-      maxStock: 80,
-      warningLevel: "LOW",
-      percentage: 25,
-    },
-    {
-      itemName: "Chicken Breast",
-      unit: "kg",
-      availableCount: 85,
-      maxStock: 100,
-      warningLevel: "OK",
-      percentage: 85,
-    },
-    {
-      itemName: "Olive Oil",
-      unit: "Litre",
-      availableCount: 120,
-      maxStock: 150,
-      warningLevel: "OK",
-      percentage: 80,
-    },
-  ];
+import { getAllInventoryAPI, createInventoryRequestAPI, updateInventoryStockAPI, } from "../../../apis/kitchen/inventory";
+import InventoryRequestModal from "./InventoryRequestModal";
+import UpdateStockModal from "./UpdateStockModal";
 
 const InventoryTable = () => {
-  // store the search term
-  //const [searchTerm, setSearchTerm] = useState("");
-
-  // save inventory data
-  const [inventoryData, setInventoryData] = useState([]);
 
   // set loading state
   const [loading, setLoading] = useState(false);
+  
+  // save inventory data
+  const [inventoryData, setInventoryData] = useState([]);
 
-  //filter logic
-  // const filteredData = inventoryData.filter((item) =>
-  //   item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
+  //-------------- Update Stock Modal --------------
+
+  // control modal open and close
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+
+  // to store the name of the item to be updated
+  const [updateItemName, setUpdateItemName] = useState("");
+
+  // to store the unit of the item to be updated
+  const [updateUnit, setUpdateUnit] = useState("");
+
+  // to store the current quantity of the item to be updated
+  const [updateCurrentQty, setUpdateCurrentQty] = useState("");
+
+  // to store the max stock of the item to be updated
+  const [updateMaxStock, setUpdateMaxStock] = useState("");
+
+  // function to open the update modal
+  const handleOpenUpdateModal = (item) => {
+    setUpdateItemName(item.name);
+    setUpdateUnit(item.unit);
+    setUpdateCurrentQty(item.quantity);
+    setUpdateMaxStock(item.maxStock);
+    setIsUpdateModalOpen(true);
+  };
+
+  // function to submit the update modal
+  const handleUpdateSubmit = async (updateData) => {
+    const { data, error } = await updateInventoryStockAPI(updateData);
+    
+    if (error) {
+      alert("Failed to update stock: " + error);
+    } else {
+      // message from the backend
+      alert(data.message);
+      setIsUpdateModalOpen(false);
+      // call the function to refresh the table data
+      // this is a background fetch (false = don't show the loading screen)
+      fetchInventory(false);
+    }
+  };
+
+  //-------------- Inventory Request Modal --------------
+
+  // control modal open and close
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // store the type of modal to open (ADD_NEW_ITEM or REFILL_STOCK)
+  const [modalType, setModalType] = useState("");
+
+  // store selected item details for modal
+  const [selectedItemName, setSelectedItemName] = useState("");
+
+  // store selected item details for modal
+  const [selectedUnit, setSelectedUnit] = useState("");
+
+  // when clicking the top "Request New Item" button
+  const handleOpenNewItemModal = () => {
+    setModalType("ADD_NEW_ITEM");
+    setSelectedItemName("");
+    setSelectedUnit("");
+    setIsModalOpen(true);
+  };
+
+  // when clicking the "Request" button on a specific row
+  const handleOpenRefillModal = (item) => {
+    setModalType("REFILL_STOCK");
+    setSelectedItemName(item.name); // from DTO
+    setSelectedUnit(item.unit);     // from DTO
+    setIsModalOpen(true);
+  };
+
+  // function to Submit the Modal
+  const handleModalSubmit = async (requestData) => {
+    // send data to backend
+    const { data, error } = await createInventoryRequestAPI(requestData);
+    
+    if (error) {
+      alert("Failed to send request: " + error);
+    } else {
+      // message from the backend
+      alert(data.message);
+      setIsModalOpen(false); // close modal on success
+    }
+  };
 
   //fetch data from API
+  // move the function outside of useEffect so handleUpdateSubmit can call it
+  // added 'showLoading' parameter, it defaults to true for the first page load
+  const fetchInventory = async (showLoading = true) => {
+    if (showLoading) setLoading(true); // Only show loading text if requested
+    const { data, error } = await getAllInventoryAPI();
+    if (data) {
+      setInventoryData(data);
+    } else {
+      console.error("Failed to load inventory:", error);
+    }
+    if (showLoading) setLoading(false);
+  };
+
+  // useEffect now just calls the function when the page loads
+  // this happens when the chef first open the page (shows loading screen)
   useEffect(() => {
-    const fetchInventory = async () => {
-      setLoading(true);
-      const { data, error } = await getAllInventoryAPI();
-      if (data) {
-        setInventoryData(data);
-      } else {
-        console.error("Failed to load inventory:", error);
-      }
-      setLoading(false);
-    };
-    fetchInventory();
+    fetchInventory(true);
   }, []);
 
   if (loading) {
@@ -101,7 +142,10 @@ const InventoryTable = () => {
           </div>
         </div>
         <div className="mb-8 flex flex-row justify-end gap-3">
-          <button className="flex items-center gap-2 rounded-2xl bg-orange-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700">
+          <button
+            // call the function to open modal to add a new item
+            onClick={handleOpenNewItemModal}
+            className="flex items-center gap-2 rounded-2xl bg-orange-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700">
             <Plus size={18} /> Request New Item
           </button>
           <button className="flex items-center gap-2 rounded-2xl border border-orange-100 bg-orange-50 px-6 py-3 text-sm font-bold text-orange-600 transition-all hover:bg-orange-100">
@@ -130,7 +174,7 @@ const InventoryTable = () => {
                 className="group transition-colors hover:bg-gray-50/50"
               >
                 <td className="px-6 py-5 text-lg font-bold text-gray-800">
-                  {item.itemName}
+                  {item.name}
                 </td>
                 <td className="px-6 py-5 font-medium text-gray-400">
                   {item.unit}
@@ -152,7 +196,7 @@ const InventoryTable = () => {
                       />
                     </div>
                     <span className="w-10 text-right text-lg font-black text-gray-800">
-                      {item.availableCount}
+                      {item.quantity}
                     </span>
                   </div>
                 </td>
@@ -179,10 +223,16 @@ const InventoryTable = () => {
                 {/* action buttons */}
                 <td className="px-6 py-5 text-center">
                   <div className="flex items-center justify-center gap-2">
-                    <button className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
+                    <button
+                      // call the function to open modal to update stock
+                      onClick={() => handleOpenUpdateModal(item)}
+                      className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
                       Update
                     </button>
-                    <button className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
+                    <button
+                      // call the function to open modal to request stock refill
+                      onClick={() => handleOpenRefillModal(item)}
+                      className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100">
                       Request
                     </button>
                   </div>
@@ -192,54 +242,30 @@ const InventoryTable = () => {
           </tbody>
         </table>
       </div>
+      
+      {/* the inventory request modal */}
+      <InventoryRequestModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        requestType={modalType}
+        initialItemName={selectedItemName}
+        initialUnit={selectedUnit}
+      />
+
+      {/* the Update Stock Modal */}
+      <UpdateStockModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        onSubmit={handleUpdateSubmit}
+        itemName={updateItemName}
+        unit={updateUnit}
+        currentQuantity={updateCurrentQty}
+        maxStock={updateMaxStock}
+      />
+
     </div>
   );
 };
 
 export default InventoryTable;
-
-
-
-  // mock data to match your image
-  // const inventoryData = [
-  //   {
-  //     itemName: "Garlic",
-  //     unit: "kg",
-  //     availableCount: 10,
-  //     maxStock: 50,
-  //     warningLevel: "CRITICAL",
-  //     percentage: 20,
-  //   },
-  //   {
-  //     itemName: "Tomato",
-  //     unit: "kg",
-  //     availableCount: 15,
-  //     maxStock: 60,
-  //     warningLevel: "LOW",
-  //     percentage: 25,
-  //   },
-  //   {
-  //     itemName: "Onion",
-  //     unit: "kg",
-  //     availableCount: 20,
-  //     maxStock: 80,
-  //     warningLevel: "LOW",
-  //     percentage: 25,
-  //   },
-  //   {
-  //     itemName: "Chicken Breast",
-  //     unit: "kg",
-  //     availableCount: 85,
-  //     maxStock: 100,
-  //     warningLevel: "OK",
-  //     percentage: 85,
-  //   },
-  //   {
-  //     itemName: "Olive Oil",
-  //     unit: "Litre",
-  //     availableCount: 120,
-  //     maxStock: 150,
-  //     warningLevel: "OK",
-  //     percentage: 80,
-  //   },
-  // ];
