@@ -78,5 +78,20 @@ export const holdOrderAPI = async (orderId, holdReason) => {
   }
 };
 
+// start preparing a specific meal item
+export const startMealAPI = async (itemId) => {
+  try {
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/start`,
+      { method: "PUT" }
+    );
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    console.error(`Error starting meal #${itemId}:`, error);
+    return { data: null, error: error };
+  }
+};
+
 
 
