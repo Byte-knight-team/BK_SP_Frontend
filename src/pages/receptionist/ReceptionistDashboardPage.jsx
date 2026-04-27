@@ -58,9 +58,7 @@ const ReceptionistDashboardPage = () => {
         />
       </div>
 
-      {/* 3. Main Content Section (මෙන්න මෙතන තමයි වෙනස වෙන්නේ) */}
       <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
-        {/* වම් පැත්තේ විශාල කොටස - Table (Columns 12න් 6ක් ගන්නවා) */}
         <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:col-span-6">
           <h2 className="border-b border-gray-50 p-6 text-xl font-bold tracking-tight text-gray-900">
             Recent Pending Orders
@@ -68,12 +66,10 @@ const ReceptionistDashboardPage = () => {
           <PendingOrdersTable />
         </div>
 
-        {/* මැද කොටස - Stats (Columns 12න් 3ක් ගන්නවා) */}
         <div className="lg:col-span-3">
           <PaymentStat />
         </div>
 
-        {/* දකුණු පැත්තේ කොටස - Tables (Columns 12න් 3ක් ගන්නවා) */}
         <div className="lg:col-span-3">
           <TableStatusCard />
         </div>
