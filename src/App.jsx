@@ -78,6 +78,7 @@ import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
 import ScanPage from './pages/customer/ScanPage'
+import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
 
 // Kitchen pages
 import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
@@ -261,9 +262,36 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/menu" element={<MenuPage />} />
         <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/payment" element={<CardPaymentPage />} />
-        <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+        <Route
+          path="/checkout"
+          element={
+            <CustomerProtectedRoute allowQrSession unauthenticatedRedirect="/menu">
+              <CheckoutPage />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment"
+          element={
+            <CustomerProtectedRoute
+              requireCustomerJwt
+              unauthenticatedRedirect="/login?redirect=/payment"
+            >
+              <CardPaymentPage />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-confirmation"
+          element={
+            <CustomerProtectedRoute
+              requireCustomerJwt
+              unauthenticatedRedirect="/login?redirect=/order-confirmation"
+            >
+              <OrderConfirmationPage />
+            </CustomerProtectedRoute>
+          }
+        />
         <Route path="/login" element={<CustomerLoginPage />} />
         <Route path="/signup" element={<SignupPersonalPage />} />
         <Route path="/signup/address" element={<SignupAddressPage />} />
@@ -271,8 +299,29 @@ export default function App() {
         <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />
         <Route path="/verify-otp" element={<OtpVerificationPage />} />
         <Route path="/scan/:qrToken?" element={<ScanPage />} />
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/orders" element={<OrdersPage />} />
+        <Route
+          path="/account"
+          element={
+            <CustomerProtectedRoute
+              requireCustomerJwt
+              unauthenticatedRedirect="/login?redirect=/account"
+            >
+              <AccountPage />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <CustomerProtectedRoute
+              requireCustomerJwt
+              qrOnlyRedirect="/signup/qr?redirect=/orders"
+              unauthenticatedRedirect="/login?redirect=/orders"
+            >
+              <OrdersPage />
+            </CustomerProtectedRoute>
+          }
+        />
       </Route>
 
       {/* CHEF / KITCHEN area */}
