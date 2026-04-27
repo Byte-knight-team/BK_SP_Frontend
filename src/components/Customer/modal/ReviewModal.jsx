@@ -27,6 +27,7 @@ export default function ReviewModal({ order, onClose, onSuccess }) {
   const handleSubmit = async () => {
     setError('');
 
+    // Build one payload for the order itself and another for optional item ratings.
     let payloadOrderReview = null;
     if (orderRating > 0) {
       payloadOrderReview = { rating: orderRating, comment: orderComment };
