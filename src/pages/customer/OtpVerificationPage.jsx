@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+import { getQrSessionClaims } from '../../utils/authToken';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -60,9 +61,11 @@ export default function OtpVerificationPage() {
     setError('');
 
     try {
-      // 1. Grab the Session ID from localStorage (Saved by ScanPage)
-      const qrSessionData = JSON.parse(localStorage.getItem('qr_session') || '{}');
-      const sessionId = qrSessionData.sessionId || null;
+      // Decode the current QR session token on-demand.
+      // We no longer store the decoded session object in localStorage.
+      const qrSessionToken = localStorage.getItem('qr_session_token');
+      const qrClaims = qrSessionToken ? getQrSessionClaims(qrSessionToken) : null;
+      const sessionId = qrClaims?.session_id || null;
       
       const res = await fetch(`${API_BASE}/api/v1/auth/customer/verify-otp`, {
         method: 'POST',
