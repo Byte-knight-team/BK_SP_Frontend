@@ -62,7 +62,7 @@ export default function PaymentMethodsBreakdown({ cardTotal, cashTotal, dineIn, 
 
       {/* Breakdown by Source */}
       <div className="pt-10 border-t border-gray-50">
-        <p className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-8">Breakdown by Source</p>
+        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8">Breakdown by Source</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <SourceItem label="Dine-in Orders" amount={dineIn} icon={Utensils} />
           <SourceItem label="Delivery" amount={delivery} icon={MapPin} />
