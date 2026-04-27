@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { Search, Filter, ArrowUpRight, CreditCard, Banknote, Globe } from 'lucide-react'
-import Badge from '../../ui/Badge'
+import Badge from '../ui/Badge'
 
 const PAGE_SIZE = 8
 
