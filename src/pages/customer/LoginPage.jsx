@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation} from 'react-router-dom';
 import { ArrowLeft, Mail, Lock} from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+import { customerApiFetch } from '../../apis/apiHelper';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -25,9 +24,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/auth/customer/login`, {
+      const res = await customerApiFetch('/api/v1/auth/customer/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim(),
           password,
