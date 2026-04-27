@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, MapPin, Hash, Home } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
-import { customerApiFetch } from '../../apis/apiHelper';
+import { registerCustomer } from '../../apis/customer/auth';
 
 export default function SignupAddressPage() {
   const navigate = useNavigate();
@@ -45,15 +45,12 @@ export default function SignupAddressPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await customerApiFetch('/api/v1/auth/customer/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          username: personal.fullName.trim(),
-          email: personal.email.trim(),
-          phone: personal.phone.trim(),
-          password: personal.password,
-          address: fullAddress,
-        }),
+      const res = await registerCustomer({
+        username: personal.fullName.trim(),
+        email: personal.email.trim(),
+        phone: personal.phone.trim(),
+        password: personal.password,
+        address: fullAddress,
       });
 
       const payload = await res.json().catch(() => ({}));
