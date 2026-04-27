@@ -4,8 +4,7 @@ import PreparingOrdersTab from "./PreparingOrdersTab";
 import CompletedOrdersTab from "./CompletedOrdersTab";
 import OnHoldOrdersTab from "./OnHoldOrdersTab";
 
-const OrderTabs = ({ handleOrderClick, selectedOrderId }) => {
-  const [activeTab, setActiveTab] = useState(1);
+const OrderTabs = ({ handleOrderClick, selectedOrderId, activeTab, setActiveTab }) => {
 
   const tabs = [
     { id: 1, label: "Pending", color: "orange" },

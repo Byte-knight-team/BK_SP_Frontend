@@ -20,7 +20,7 @@ const statusColors = {
   ON_HOLD: "bg-red-50 text-red-600",
 };
 
-const SelectedOrder = ({ orderId }) => {
+const SelectedOrder = ({ orderId,setActiveTab }) => {
   const [order, setOrder] = useState(null); // Stores the fully formatted order data
   const [loading, setLoading] = useState(false); // Controls the loading state UI
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls the Chef Modal visibility
@@ -89,6 +89,8 @@ const SelectedOrder = ({ orderId }) => {
       alert("Order put on hold successfully.");
       setIsHoldModalOpen(false); // Close the modal
       fetchOrderDetails(false); // This is the background fetch! (No loading screen)
+      // Switch to On Hold tab (Tab ID is 4)
+      setActiveTab(4); 
     } else {
       alert("Failed to hold order. Please try again.");
     }
