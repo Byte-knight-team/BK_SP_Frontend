@@ -13,18 +13,17 @@ export function useInventoryData() {
   const fetchInventory = async () => {
     try {
       setLoading(true)
-      const [realItems, summaryData] = await Promise.all([
+      const [items, summary, logs] = await Promise.all([
         InventoryService.getAllItems(branchId),
         InventoryService.getSummary(branchId),
+        InventoryService.getInventoryLogs(branchId),
       ])
 
       setData({
-        branch: summaryData.branch,
-        totalInventoryValue: summaryData.totalInventoryValue,
-        pendingChefDrafts: summaryData.pendingChefDrafts,
-        lowStockAlerts: summaryData.lowStockAlerts,
-        chefRequests: summaryData.chefRequests,
-        stockItems: realItems,
+        stockItems: items,
+        chefRequests: summary.chefRequests || [],
+        logs: logs || [],
+        summary: summary,
       })
       setError(null)
     } catch (err) {
