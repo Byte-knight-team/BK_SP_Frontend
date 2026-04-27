@@ -27,6 +27,7 @@ const SelectedOrder = ({ orderId }) => {
   const [loading, setLoading] = useState(false); // Controls the loading state UI
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls the Chef Modal visibility
   const [targetMeal, setTargetMeal] = useState(null); // Remembers which meal is currently being assigned
+  const [isHoldModalOpen, setIsHoldModalOpen] = useState(false); //Controls the Hold Modal visibility
 
   // Fetches the latest data from the Backend API (whenever orderId changes or we can call it manually right after the chef is assigned successfully)
   const fetchOrderDetails = async (showLoading = true) => {
@@ -59,7 +60,7 @@ const SelectedOrder = ({ orderId }) => {
     fetchOrderDetails(true);
   }, [orderId]);
 
-  // Handler for when the Modal returns a selected Chef ID
+  // Handler for when the AssignChefModal returns a selected Chef ID
   const handleChefAssignment = async (chefStaffId) => {
     if (!targetMeal) return;
 
@@ -81,6 +82,8 @@ const SelectedOrder = ({ orderId }) => {
     setTargetMeal(meal); // store the meal that needs to be assigned
     setIsModalOpen(true); // open the modal
   };
+
+  
 
   // State Management: If data is loading, show animation
   if (loading)

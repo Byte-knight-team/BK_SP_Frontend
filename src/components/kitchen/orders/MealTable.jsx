@@ -7,7 +7,13 @@ const statusStyles = {
   ON_HOLD: "bg-red-50 text-red-500",
 };
 
-const MealTable = ({mealsData, orderStatus, onAssignChef, onStartMeal, onCompleteMeal,}) => {
+const MealTable = ({
+  mealsData,
+  orderStatus,
+  onAssignChef,
+  onStartMeal,
+  onCompleteMeal,
+}) => {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-100">
       <table className="w-full border-collapse text-left">
