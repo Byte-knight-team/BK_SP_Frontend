@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Hash, Users, MapPin, Save, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Hash, Users, Save, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 // Admin page for registering a new dining table.
@@ -8,7 +8,6 @@ export default function AddTablePage() {
   const [formData, setFormData] = useState({
     tableNumber: '01',
     seatingCapacity: '1',
-    zone: 'Indoor - Main',
     status: 'Available'
   });
 
@@ -29,7 +28,7 @@ export default function AddTablePage() {
           tableNumber: parseInt(formData.tableNumber),
           capacity: parseInt(formData.seatingCapacity),
           status: formData.status.toUpperCase(),
-          branchId: 1 // Default branch since zone mapper isn't implemented
+          branchId: 1
         })
       });
 
@@ -57,7 +56,7 @@ export default function AddTablePage() {
           <div className="bg-white border border-gray-100 shadow-sm rounded-[24px] p-10 max-w-[850px]">
             <div className="mb-10">
               <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">Add New Table</h1>
-              <p className="text-gray-500 text-[15px] mt-1.5 font-medium">Configure table details and floor assignment</p>
+              <p className="text-gray-500 text-[15px] mt-1.5 font-medium">Configure table details and status</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -95,29 +94,7 @@ export default function AddTablePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Zone / Location */}
-                <div className="space-y-2.5">
-                  <label className="flex items-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                    <MapPin size={14} className="mr-1.5" />
-                    ZONE / LOCATION
-                  </label>
-                  <div className="relative">
-                    <select
-                      name="zone"
-                      value={formData.zone}
-                      onChange={handleChange}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl text-[15px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors appearance-none cursor-pointer"
-                    >
-                      <option value="Indoor - Main">Indoor - Main</option>
-                      <option value="Outdoor - Terrace">Outdoor - Terrace</option>
-                      <option value="VIP Lounge">VIP Lounge</option>
-                      <option value="Indoor - Window">Indoor - Window</option>
-                    </select>
-                    <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-
+              <div className="grid grid-cols-1">
                 {/* Status */}
                 <div className="space-y-2.5">
                   <label className="block flex items-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">
