@@ -29,9 +29,6 @@ function DashHeader() {
         <button className="btn-outline flex items-center gap-2 text-base">
           <UserCheck className="w-5 h-5" /> Assign Driver
         </button>
-        <button className="btn-primary flex items-center gap-2 text-base">
-          <Eye className="w-5 h-5" /> View Live Orders
-        </button>
       </div>
     </div>
   )
