@@ -169,7 +169,7 @@ export default function Navbar() {
               <>
                 <Link
                   to="/orders"
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50"
                 >
                   <Package size={18} />
                   <span>Orders</span>
@@ -179,7 +179,7 @@ export default function Navbar() {
                 {!auth.isQrCustomer && (
                   <Link
                     to="/account"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50"
                   >
                     <UserCircle2 size={18} />
                     <span className="max-w-[100px] truncate">
@@ -192,7 +192,7 @@ export default function Navbar() {
                 {auth.isQrCustomer ? (
                   <button
                     onClick={handleLeaveTable}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200"
                     title="Leave Table"
                   >
                     <DoorOpen size={18} />
@@ -201,10 +201,11 @@ export default function Navbar() {
                 ) : (
                   <button
                     onClick={handleLogout}
-                    className="inline-flex items-center justify-center p-2 rounded-xl text-red-500 hover:bg-red-50 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
                     title="Logout"
                   >
                     <LogOut size={18} />
+                    <span>Logout</span>
                   </button>
                 )}
               </>
@@ -215,14 +216,14 @@ export default function Navbar() {
               <>
                 <button
                   onClick={handleTableOrderClick}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50"
                 >
                   <Package size={18} />
                   <span>Table Orders</span>
                 </button>
                 <button
                   onClick={handleLeaveTable}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200"
                   title="Leave Table"
                 >
                   <DoorOpen size={18} />
@@ -234,7 +235,7 @@ export default function Navbar() {
 
           <Link
             to="/cart"
-            className="relative ml-2 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-orange-400 hover:text-orange-600"
+            className="relative ml-2 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50"
             aria-label="Open cart"
           >
             <ShoppingBag size={18} />
@@ -248,7 +249,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMenu}
-            className="inline-flex xl:hidden ml-2 items-center justify-center h-10 w-10 rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+            className="inline-flex xl:hidden ml-2 items-center justify-center h-10 w-10 rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50"
           >
             {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
