@@ -23,9 +23,9 @@ export default function RecentOrdersTable({ orders }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {orders.map((order) => (
+          {(orders || []).map((order) => (
             <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-              <td className="py-4 font-medium text-gray-800">#{order.id}</td>
+              <td className="py-4 font-medium text-gray-800">{order.id}</td>
               <td className="py-4 text-gray-500 uppercase text-sm tracking-wide">
                 {order.type}
               </td>

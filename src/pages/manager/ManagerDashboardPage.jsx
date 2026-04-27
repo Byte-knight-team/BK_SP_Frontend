@@ -51,9 +51,23 @@ function LoadingSkeleton() {
 }
 
 export default function ManagerDashboardPage() {
-  const { data, loading } = useDashboardData()
+  const { data, loading, error, refetch } = useDashboardData()
 
   if (loading) return <LoadingSkeleton />
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="text-red-500 font-medium">Failed to load dashboard: {error || 'Unknown error'}</div>
+        <button 
+          onClick={refetch}
+          className="btn-primary"
+        >
+          Try Again
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
