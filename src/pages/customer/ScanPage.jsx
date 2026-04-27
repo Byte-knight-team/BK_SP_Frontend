@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { decodeJwtPayload } from '../../utils/authToken';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -23,6 +24,11 @@ export default function ScanPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const toValidNumber = (value) => {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  };
 
   useEffect(() => {
     if (startAttemptedRef.current) {
@@ -52,27 +58,30 @@ export default function ScanPage() {
         }
 
         const data = payload.data;
-        if (!data?.session_token || !data?.session_id) {
-          throw new Error('QR session response is missing required fields.');
+        if (!data?.session_token) {
+          throw new Error('QR session response is missing session token.');
         }
 
-        // Inside ScanPage.jsx, right before you set the new QR session:
-        localStorage.removeItem('customer_jwt'); // Wipe old auth!
+        const claims = decodeJwtPayload(data.session_token) || {};
+        const sessionId = toValidNumber(claims.session_id);
+        const branchId = toValidNumber(claims.branch_id);
+        const tableId = toValidNumber(claims.table_id);
+
+        if (!sessionId || !branchId || !tableId) {
+          throw new Error('QR session token is missing required claims.');
+        }
+
+        // Wipe old auth when starting QR session
+        localStorage.removeItem('customer_jwt');
         localStorage.removeItem('customer_user_id');
         localStorage.removeItem('customer_name');
 
-        const session = {
-          sessionToken: data.session_token,
-          sessionId: data.session_id,
-          branchId: data.branch_id,
-          tableId: data.table_id,
-          expiresAt: data.expires_at,
-        };
-
-        localStorage.setItem('qr_session', JSON.stringify(session));
-        localStorage.setItem('qr_session_token', session.sessionToken);
-        localStorage.setItem('qr_branch_id', String(session.branchId ?? ''));
-        localStorage.setItem('qr_table_id', String(session.tableId ?? ''));
+        // Store ONLY the token, never store decoded IDs
+        localStorage.setItem('qr_session_token', data.session_token);
+        // Remove legacy keys if they exist
+        localStorage.removeItem('qr_session');
+        localStorage.removeItem('qr_branch_id');
+        localStorage.removeItem('qr_table_id');
 
         navigate('/menu', { replace: true });
       } catch (err) {
