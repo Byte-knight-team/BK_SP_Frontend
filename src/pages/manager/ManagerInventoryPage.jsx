@@ -4,6 +4,7 @@ import { InventoryService } from '../../apis/manager/InventoryService'
 import InventoryHeader from '../../components/manager/inventory/InventoryHeader'
 import InventorySummaryCards from '../../components/manager/inventory/InventorySummaryCards'
 import CurrentStockTable from '../../components/manager/inventory/CurrentStockTable'
+import InventoryUpdateLogTable from '../../components/manager/inventory/InventoryUpdateLogTable'
 import ChefRequestsSection from '../../components/manager/inventory/ChefRequestsSection'
 import AddInventoryItemModal from '../../components/manager/inventory/AddInventoryItemModal'
 import UpdateInventoryItemModal from '../../components/manager/inventory/UpdateInventoryItemModal'
@@ -77,18 +78,19 @@ export default function ManagerInventoryPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <InventoryHeader
-        branch={data.branch}
+        branch={data.summary.branch}
         onAddItem={() => setIsAddModalOpen(true)}
       />
       <InventorySummaryCards
-        totalValue={data.totalInventoryValue}
-        pendingDrafts={data.pendingChefDrafts}
-        lowStockAlerts={data.lowStockAlerts}
+        totalValue={data.summary.totalInventoryValue}
+        pendingDrafts={data.summary.pendingChefDrafts}
+        lowStockAlerts={data.summary.lowStockAlerts}
       />
       <CurrentStockTable
         items={data.stockItems}
         onUpdateItem={(item) => setUpdateModal({ open: true, item })}
       />
+      <InventoryUpdateLogTable logs={data.logs} />
       <ChefRequestsSection requests={data.chefRequests} />
 
       {/* Add Item Modal */}
