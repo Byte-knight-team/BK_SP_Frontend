@@ -10,7 +10,6 @@ import {
   EllipsisVertical,
   Clock3,
   Pencil,
-  Trash2,
   ChevronDown,
   ImageOff,
 } from 'lucide-react';
@@ -20,12 +19,12 @@ import {
   getMenuItemsAPI,
   getMenuCategoriesAPI,
   getMenuSubcategoriesAPI,
-  deleteMenuItemAPI,
   deleteMenuCategoryAPI,
   getMenuCategoriesCountAPI,
   getMenuSubcategoriesCountAPI,
   getMenuItemsCountAPI,
   getAvailableItemsCountAPI,
+  updateMenuItemAPI,
 } from '../../apis/admin/menu';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
@@ -42,10 +41,9 @@ export default function MenuManagementPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState('');
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState(null);
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
+  const [togglingItemId, setTogglingItemId] = useState(null);
   const [totalCategoriesCount, setTotalCategoriesCount] = useState(0);
   const [totalSubCategoriesCount, setTotalSubCategoriesCount] = useState(0);
   const [totalMenuItemsCount, setTotalMenuItemsCount] = useState(0);
@@ -191,17 +189,32 @@ export default function MenuManagementPage() {
     return counts;
   }, [menuItems, activeCategory]);
 
-  const handleDelete = async (itemId) => {
-    setIsDeleting(true);
+  const handleToggleAvailability = async (item) => {
+    const currentStatus = item.status?.toUpperCase();
+    const nextStatus = currentStatus === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
+    setTogglingItemId(item.id);
 
     try {
-      await deleteMenuItemAPI(itemId);
-      setMenuItems((prev) => prev.filter((item) => item.id !== itemId));
-      setDeleteConfirm(null);
+      const updatedItem = await updateMenuItemAPI(item.id, {
+        ...item,
+        status: nextStatus,
+      });
+
+      setMenuItems((prev) =>
+        prev.map((entry) =>
+          entry.id === item.id
+            ? {
+                ...entry,
+                ...(updatedItem || {}),
+                status: (updatedItem?.status || nextStatus).toUpperCase(),
+              }
+            : entry,
+        ),
+      );
     } catch (error) {
-      setApiError(error.message || 'Unable to delete menu item.');
+      setApiError(error.message || 'Unable to update item status.');
     } finally {
-      setIsDeleting(false);
+      setTogglingItemId(null);
     }
   };
 
@@ -303,34 +316,6 @@ export default function MenuManagementPage() {
               >
                 Dismiss
               </button>
-            </div>
-          )}
-
-          {/* Delete Confirmation Modal */}
-          {deleteConfirm && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Menu Item</h3>
-                <p className="text-sm text-gray-600 mb-5">
-                  Are you sure you want to delete <span className="font-semibold">"{deleteConfirm.name}"</span>? This action cannot be undone.
-                </p>
-                <div className="flex items-center gap-3 justify-end">
-                  <button
-                    onClick={() => setDeleteConfirm(null)}
-                    disabled={isDeleting}
-                    className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleDelete(deleteConfirm.id)}
-                    disabled={isDeleting}
-                    className="rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-70"
-                  >
-                    {isDeleting ? 'Deleting...' : 'Delete'}
-                  </button>
-                </div>
-              </div>
             </div>
           )}
 
@@ -525,19 +510,27 @@ export default function MenuManagementPage() {
                         <div className="mt-auto flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
                           <button
                             type="button"
+                            onClick={() => handleToggleAvailability(item)}
+                            disabled={togglingItemId === item.id}
+                            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-70 ${
+                              item.status?.toUpperCase() === 'AVAILABLE'
+                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                : 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'
+                            }`}
+                          >
+                            {togglingItemId === item.id
+                              ? 'Updating...'
+                              : item.status?.toUpperCase() === 'AVAILABLE'
+                                ? 'ON'
+                                : 'OFF'}
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => navigate(`/admin/menu/edit/${item.id}`)}
                             className="grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                             aria-label="Edit"
                           >
                             <Pencil size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteConfirm(item)}
-                            className="grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors text-red-500 hover:text-red-700 hover:bg-red-50"
-                            aria-label="Delete"
-                          >
-                            <Trash2 size={14} />
                           </button>
                         </div>
                       </div>

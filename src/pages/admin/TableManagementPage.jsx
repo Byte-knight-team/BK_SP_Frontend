@@ -19,10 +19,15 @@ export default function TableManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchParams] = useSearchParams();
   const statusFilter = searchParams.get('status');
+  const [activeStatusFilter, setActiveStatusFilter] = useState(statusFilter ? statusFilter.toUpperCase() : 'ALL');
 
   useEffect(() => {
     fetchTables();
   }, []);
+
+  useEffect(() => {
+    setActiveStatusFilter(statusFilter ? statusFilter.toUpperCase() : 'ALL');
+  }, [statusFilter]);
 
   const fetchTables = async () => {
     try {
@@ -43,9 +48,9 @@ export default function TableManagementPage() {
 
   // Filter tables based on sidebar status filter + search query
   const filteredTables = tables.filter(table => {
-    // Status filter from URL query param
-    if (statusFilter) {
-      if (table.status !== statusFilter.toUpperCase()) return false;
+    // Status filter from stats buttons / URL query param
+    if (activeStatusFilter !== 'ALL') {
+      if (table.status !== activeStatusFilter) return false;
     }
     // Search query filter
     if (!searchQuery.trim()) return true;
@@ -186,22 +191,54 @@ export default function TableManagementPage() {
 
           {/* Stats Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col justify-center">
+            <button
+              type="button"
+              onClick={() => setActiveStatusFilter('ALL')}
+              className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${
+                activeStatusFilter === 'ALL'
+                  ? 'bg-orange-50 border-orange-200 ring-2 ring-orange-200/70'
+                  : 'bg-white border-gray-100 hover:border-orange-100'
+              }`}
+            >
               <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">TOTAL TABLES</div>
               <div className="text-3xl font-extrabold text-gray-900">{totalTables}</div>
-            </div>
-            <div className="bg-green-50 rounded-2xl p-5 border border-green-100/50 shadow-sm flex flex-col justify-center">
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveStatusFilter('AVAILABLE')}
+              className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${
+                activeStatusFilter === 'AVAILABLE'
+                  ? 'bg-green-100 border-green-200 ring-2 ring-green-200/80'
+                  : 'bg-green-50 border-green-100/50 hover:border-green-200'
+              }`}
+            >
               <div className="text-[11px] font-bold text-green-500 uppercase tracking-wider mb-2">AVAILABLE</div>
               <div className="text-3xl font-extrabold text-green-600">{availableTables}</div>
-            </div>
-            <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100/50 shadow-sm flex flex-col justify-center">
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveStatusFilter('OCCUPIED')}
+              className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${
+                activeStatusFilter === 'OCCUPIED'
+                  ? 'bg-orange-100 border-orange-200 ring-2 ring-orange-200/80'
+                  : 'bg-orange-50 border-orange-100/50 hover:border-orange-200'
+              }`}
+            >
               <div className="text-[11px] font-bold text-orange-500 uppercase tracking-wider mb-2">OCCUPIED</div>
               <div className="text-3xl font-extrabold text-orange-600">{occupiedTables}</div>
-            </div>
-            <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100/50 shadow-sm flex flex-col justify-center">
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveStatusFilter('RESERVED')}
+              className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${
+                activeStatusFilter === 'RESERVED'
+                  ? 'bg-blue-100 border-blue-200 ring-2 ring-blue-200/80'
+                  : 'bg-blue-50 border-blue-100/50 hover:border-blue-200'
+              }`}
+            >
               <div className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-2">RESERVED</div>
               <div className="text-3xl font-extrabold text-blue-600">{reservedTables}</div>
-            </div>
+            </button>
           </div>
 
           {/* Search & View Controls Row */}
@@ -210,7 +247,7 @@ export default function TableManagementPage() {
               <Search size={18} className="text-gray-400 mr-3" />
               <input 
                 type="text" 
-                placeholder="Search by table ID, number, branch, or status..." 
+                placeholder="Search by table number..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400" 
