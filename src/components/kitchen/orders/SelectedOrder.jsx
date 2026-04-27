@@ -135,16 +135,14 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     }
     
   } else {
-    // Call the Complete API
-    const { error } = await completeMealAPI(targetMeal.id);
+    // Call the Complete API and we get the order stataus immediately
+    const { data, error } = await completeMealAPI(targetMeal.id);
 
     if (!error) {
       setIsActionModalOpen(false); // Close modal
-      // Background refresh the data and catch the new status (Wait for it to finish)
-      const newStatus = await fetchOrderDetails(false); 
-    
+      fetchOrderDetails(false); // Background refresh
       //if the backend returns the final order status as complete, then switch to the completed tab
-      if (newStatus === "COMPLETED") {
+      if (data && data.status === "COMPLETED") {
         setActiveTab(3); // Switch to Completed tab (Tab ID is 3)
       }
     } else {
