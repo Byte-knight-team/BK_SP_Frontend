@@ -55,10 +55,12 @@ import ManagerDriversPage from './pages/manager/ManagerDriversPage'
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import MenuManagementPage from './pages/admin/MenuManagementPage'
+import AddCategoryPage from './pages/admin/AddCategoryPage'
 import AddMenuItemPage from './pages/admin/AddMenuItemPage'
 import EditMenuItemPage from './pages/admin/EditMenuItemPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
 import AddTablePage from './pages/admin/AddTablePage'
+import TableQrPage from './pages/admin/TableQrPage'
 import CouponsPage from './pages/admin/CouponsPage'
 
 // Customer pages
@@ -205,8 +207,10 @@ export default function App() {
 
         <Route path="tables" element={<TableManagementPage />} />
         <Route path="tables/add" element={<AddTablePage />} />
+        <Route path="tables/:tableId/qr" element={<TableQrPage />} />
 
         <Route path="menu" element={<MenuManagementPage />} />
+        <Route path="menu/category/add" element={<AddCategoryPage />} />
         <Route path="menu/add" element={<AddMenuItemPage />} />
         <Route path="menu/edit" element={<EditMenuItemPage />} />
 
