@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/Navbar';
 import { getQrSessionClaims } from '../../utils/authToken';
+import { getCustomerMenu } from '../../apis/customer/menu';
 import menuCover from '../../assets/menu cover image.avif';
 import {
   ArrowLeft,
@@ -15,8 +16,6 @@ import {
   ShoppingCart,
   Search
 } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 function getBranchId() {
   // Decode branchId from QR session token on-the-fly, never store decoded IDs
@@ -49,7 +48,7 @@ export default function MenuPage() {
 
       try {
         const branchId = getBranchId();
-        const res = await fetch(`${API_BASE}/api/v1/menu/customer?branchId=${branchId}`);
+        const res = await getCustomerMenu(branchId);
         const payload = await res.json().catch(() => ({}));
 
         if (!res.ok) {

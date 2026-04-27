@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Phone, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+import { sendCustomerOtp } from '../../apis/customer/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -34,11 +35,7 @@ export default function MobileVerificationPage() {
     setError('');
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/auth/customer/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim() }),
-      });
+      const res = await sendCustomerOtp(phone.trim());
 
       const payload = await res.json().catch(() => ({}));
 

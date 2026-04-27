@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { getQrSessionClaims } from '../../utils/authToken';
+import { endQrSession } from '../../apis/customer/qrSessions';
 import BrandLogo from './BrandLogo';
 import LoginButton from './LoginCustomer';
 import SignupButton from './SignupCustomer';
@@ -69,7 +70,7 @@ export default function Navbar() {
     // Call backend to formally end the session (fire-and-forget, don't block on failure)
     if (sessionId) {
       try {
-        await fetch(`${API_BASE}/api/v1/qr-sessions/${sessionId}/end`, { method: 'PUT' });
+        await endQrSession(sessionId);
       } catch {
         // Silent — we still clear frontend regardless
       }

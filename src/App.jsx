@@ -100,7 +100,6 @@ function isTokenExpired(token) {
 }
 
 // Customer / QR token cleanup only.
-// Staff authentication is handled by AuthContext and ProtectedRoute.
 function AuthGuard() {
   const location = useLocation()
 
