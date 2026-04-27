@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Banknote, ChevronRight, CreditCard, Gift, Home, Loader2, Lock, Mail, MapPin, Package, Phone, ReceiptText, Tag, User, AlertCircle, } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { getQrSessionClaims } from '../../utils/authToken';
+import { calculateCheckout, placeCustomerOrder } from '../../apis/customer/checkout';
+import { getCustomerProfile } from '../../apis/customer/profile';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 //checkout state savings
@@ -30,16 +33,17 @@ function safeParse(value, fallback) {
 // Reads saved data to "seed" the initial state. This prevents users from losing their typed addresses or coupons if they accidentally refresh the page.
 function readCheckoutSeed() {
   const saved = safeParse(localStorage.getItem(CHECKOUT_STORAGE_KEY), {});
-  const qrSession = safeParse(localStorage.getItem('qr_session'), {});
-  const isQrCustomer = Boolean(qrSession?.sessionToken);
+  const qrSessionToken = localStorage.getItem('qr_session_token');
+  const qrClaims = qrSessionToken ? getQrSessionClaims(qrSessionToken) : null;
+  const isQrCustomer = Boolean(qrSessionToken && qrClaims);
 
   return {
     isQrCustomer,
     orderType: isQrCustomer ? 'QR' : saved.orderType || 'ONLINE_PICKUP',
     paymentMethod: saved.paymentMethod || 'CASH',
-    branchId: Number(qrSession?.branchId || saved.branchId || 1),
-    tableId: qrSession?.tableId || saved.tableId || null,
-    qrSessionId: qrSession?.sessionId || null,
+    branchId: Number(qrClaims?.branch_id || saved.branchId || 1),
+    tableId: qrClaims?.table_id || saved.tableId || null,
+    qrSessionId: qrClaims?.session_id || null,
     contact: {
       username: saved.contact?.username || '',
       email: saved.contact?.email || '',
@@ -104,9 +108,7 @@ export default function CheckoutPage() {
 
       setIsLoadingProfile(true);
       try {
-        const res = await fetch(`${API_BASE}/api/v1/customer/profile`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
+        const res = await getCustomerProfile();
 
         if (!res.ok) {
           return;
@@ -178,14 +180,7 @@ export default function CheckoutPage() {
       })),
     };
 
-    const res = await fetch(`${API_BASE}/api/v1/checkout/calculate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    const res = await calculateCheckout(payload);
 
     const payloadJson = await res.json().catch(() => ({}));
 
@@ -397,14 +392,7 @@ export default function CheckoutPage() {
         paymentMethod,
       };
 
-      const res = await fetch(`${API_BASE}/api/v1/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const res = await placeCustomerOrder(payload);
 
       const responseJson = await res.json().catch(() => ({}));
 

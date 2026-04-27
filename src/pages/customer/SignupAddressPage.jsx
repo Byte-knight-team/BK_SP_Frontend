@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, MapPin, Hash, Home } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+import { registerCustomer } from '../../apis/customer/auth';
 
 export default function SignupAddressPage() {
   const navigate = useNavigate();
@@ -46,16 +45,12 @@ export default function SignupAddressPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/auth/customer/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: personal.fullName.trim(),
-          email: personal.email.trim(),
-          phone: personal.phone.trim(),
-          password: personal.password,
-          address: fullAddress,
-        }),
+      const res = await registerCustomer({
+        username: personal.fullName.trim(),
+        email: personal.email.trim(),
+        phone: personal.phone.trim(),
+        password: personal.password,
+        address: fullAddress,
       });
 
       const payload = await res.json().catch(() => ({}));
@@ -67,7 +62,6 @@ export default function SignupAddressPage() {
       const data = payload.data;
 
       localStorage.setItem('customer_jwt', data.token);
-      localStorage.setItem('customer_user_id', String(data.user_id));
       localStorage.setItem('customer_name', personal.fullName.trim());
 
       localStorage.removeItem('qr_session');

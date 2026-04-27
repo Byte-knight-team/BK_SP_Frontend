@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft, MessageSquare, Clock, MapPin, Home, CheckCircle2, ChefHat, Truck, CircleCheckBig, Loader2, XCircle, CreditCard
 } from 'lucide-react';
+import { getCustomerOrder } from '../../apis/customer/orders';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -40,10 +41,7 @@ export default function OrderConfirmationPage() {
 
     const fetchOrder = async () => {
       try {
-        const token = localStorage.getItem('customer_jwt');
-        const res = await fetch(`${API_BASE}/api/v1/orders/${orderId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await getCustomerOrder(orderId);
         const json = await res.json();
         if (res.ok && json.data) {
           setOrder(json.data);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Star, X, Loader2, CheckCircle2} from 'lucide-react';
+import { submitCustomerReview } from '../../apis/customer/orders';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -57,17 +58,9 @@ export default function ReviewModal({ order, onClose, onSuccess }) {
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('customer_jwt');
-      const res = await fetch(`${API_BASE}/api/v1/orders/${order.orderId}/reviews`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          orderReview: payloadOrderReview,
-          itemReviews: payloadItemReviews
-        })
+      const res = await submitCustomerReview(order.orderId, {
+        orderReview: payloadOrderReview,
+        itemReviews: payloadItemReviews,
       });
 
       const json = await res.json().catch(() => ({}));
