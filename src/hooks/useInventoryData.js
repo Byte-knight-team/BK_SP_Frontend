@@ -45,5 +45,16 @@ export function useInventoryData() {
     }
   }, [hydrated, user, branchId])
 
-  return { data, loading, error, refetch: fetchInventory }
+  const resolveChefRequest = async (requestId, status, managerNote) => {
+    try {
+      await InventoryService.resolveChefRequest(requestId, { status, managerNote })
+      await fetchInventory() // Refresh the dashboard data
+      return { success: true }
+    } catch (err) {
+      console.error('Failed to resolve chef request:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  return { data, loading, error, refetch: fetchInventory, resolveChefRequest }
 }
