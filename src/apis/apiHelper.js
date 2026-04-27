@@ -1,5 +1,15 @@
 import { clearAuthStorage, getAuthToken } from "../utils/authToken";
 
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+export const buildApiUrl = (path) => {
+  if (!path) {
+    return API_BASE_URL;
+  }
+
+  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+};
+
 /*
   Build Authorization headers using only the JWT token.
 */
@@ -57,4 +67,27 @@ export const authFetch = async (url, options = {}) => {
   }
 
   return response;
+};
+
+export const customerApiFetch = async (path, options = {}) => {
+  return fetch(buildApiUrl(path), {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+export const customerAuthFetch = async (path, options = {}) => {
+  const token = localStorage.getItem("customer_jwt");
+
+  return fetch(buildApiUrl(path), {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  });
 };

@@ -100,6 +100,31 @@ export function getCurrentUserFromToken(token = getAuthToken()) {
 }
 
 /*
+  Decode QR session claims from the session token.
+  Returns the claim values, NOT storing them anywhere.
+  Use this at point-of-use (e.g., API calls, UI display).
+*/
+export function getQrSessionClaims(sessionToken) {
+  if (!sessionToken) {
+    return null;
+  }
+
+  const payload = decodeJwtPayload(sessionToken);
+  if (!payload) {
+    return null;
+  }
+
+  return {
+    session_id: payload.session_id || null,
+    branch_id: payload.branch_id || null,
+    table_id: payload.table_id || null,
+    qr_id: payload.qr_id || null,
+    status: payload.status || null,
+    exp: payload.exp || null,
+  };
+}
+
+/*
   Central dashboard redirect logic.
 */
 export function getDashboardPathByRole(roleName) {
