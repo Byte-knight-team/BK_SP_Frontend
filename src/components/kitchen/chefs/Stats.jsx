@@ -12,10 +12,10 @@ const formatStatCardDetails = (apiData) => {
       iconBgColor: "bg-orange-50",
     },
     {
-      title: "Available Chefs",
-      value: apiData.availableChefs || 0,
-      icon: <Users color="#4F83FF" size={40} />,
-      iconBgColor: "bg-blue-50",
+      title: "On-duty Chefs",
+      value: apiData.onDutyChefs || 0,
+      icon: <Users color="#A855F7" size={40} />,
+      iconBgColor: "bg-purple-50",
     },
     {
       title: "Off-duty Chefs",
@@ -24,10 +24,10 @@ const formatStatCardDetails = (apiData) => {
       iconBgColor: "bg-green-50",
     },
     {
-      title: "On-duty Chefs",
-      value: apiData.onDutyChefs || 0,
-      icon: <Users color="#A855F7" size={40} />,
-      iconBgColor: "bg-purple-50",
+      title: "Available Chefs",
+      value: apiData.availableChefs || 0,
+      icon: <Users color="#4F83FF" size={40} />,
+      iconBgColor: "bg-blue-50",
     },
   ];
 };
