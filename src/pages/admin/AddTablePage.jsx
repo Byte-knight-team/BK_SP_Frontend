@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Hash, Users, MapPin, Save, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
+// Admin page for registering a new dining table.
 export default function AddTablePage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({

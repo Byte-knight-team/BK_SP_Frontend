@@ -10,6 +10,7 @@ import {
   getAdminDashboardStatsAPI,
 } from '../../apis/admin/dashboard';
 
+// Admin landing page that summarizes key business metrics.
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState({
     totalRevenue: 0,

@@ -34,6 +34,7 @@ const mapVisibilityToStatus = (visibility) => {
   }
 };
 
+// Admin page for adding a new menu item and its metadata.
 export default function AddMenuItemPage() {
   const navigate = useNavigate();
   const subCategoryWrapperRef = useRef(null);

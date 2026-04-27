@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 
+// Admin page for managing table records, status, and QR actions.
 export default function TableManagementPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [openDropdownId, setOpenDropdownId] = useState(null);
