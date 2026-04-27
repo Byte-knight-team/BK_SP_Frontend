@@ -1,8 +1,12 @@
 import { DollarSign, ClipboardList, AlertTriangle } from 'lucide-react'
 
-function SummaryCard({ icon, iconBg, label, value, valueColor, subtitle }) {
+function SummaryCard({ icon, iconBg, label, value, valueColor, subtitle, onClick }) {
+  const Tag = onClick ? 'button' : 'div'
   return (
-    <div className="card flex items-start justify-between">
+    <Tag
+      className={`card flex items-start justify-between text-left w-full ${onClick ? 'cursor-pointer hover:ring-2 hover:ring-brand/30 transition-all' : ''}`}
+      onClick={onClick}
+    >
       <div>
         <p className="text-sm text-gray-500 font-medium">{label}</p>
         <p
@@ -13,7 +17,7 @@ function SummaryCard({ icon, iconBg, label, value, valueColor, subtitle }) {
         <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
       </div>
       <div className={`p-3 rounded-xl ${iconBg}`}>{icon}</div>
-    </div>
+    </Tag>
   )
 }
 
@@ -21,6 +25,7 @@ export default function InventorySummaryCards({
   totalValue,
   pendingDrafts,
   lowStockAlerts,
+  onPendingDraftsClick,
 }) {
   const safeTotalValue = totalValue || 0;
   const safePendingDrafts = pendingDrafts || 0;
@@ -41,6 +46,7 @@ export default function InventorySummaryCards({
         label="Pending Chef Drafts"
         value={`${safePendingDrafts} Drafts`}
         subtitle="Awaiting Manager Approval"
+        onClick={onPendingDraftsClick}
       />
       <SummaryCard
         icon={<AlertTriangle className="w-6 h-6 text-red-500" />}
