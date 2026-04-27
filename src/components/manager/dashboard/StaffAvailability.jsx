@@ -29,7 +29,7 @@ export default function StaffAvailability({ kitchen, fleet }) {
             Branch Staff
           </h2>
         </div>
-        <button className="btn-primary px-5 py-2.5 text-base">
+        <button className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors">
           View Staff Details
         </button>
       </div>
