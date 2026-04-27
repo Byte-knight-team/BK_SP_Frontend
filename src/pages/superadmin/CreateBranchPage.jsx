@@ -6,6 +6,8 @@ import {
     RiAddLine,
 } from "@remixicon/react";
 
+import { useAuth } from "../../context/AuthContext";
+
 import { createBranchAPI } from "../../apis/staff/branches";
 
 export default function CreateBranchPage() {
@@ -46,11 +48,14 @@ export default function CreateBranchPage() {
     const [error, setError] = useState("");
 
     /*
-        Read logged-in user role from localStorage.
-        Branch Management is only allowed for SUPER_ADMIN.
+    Read logged-in user from AuthContext.
+
+    AuthContext now gets user data from the decoded JWT token.
+    We no longer read authUser from localStorage.
     */
-    const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
-    const loggedInRole = authUser.roleName || authUser.role || "";
+    const { user } = useAuth();
+
+    const loggedInRole = user?.roleName || user?.role || "";
     const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
 
     /*
@@ -74,13 +79,74 @@ export default function CreateBranchPage() {
         If user types inside the name field,
         this updates formData.name.
     */
+        /*
+        Update formData when user types or selects something.
+    
+        Example:
+        If input has name="email",
+        this function updates formData.email.
+    
+        Special handling:
+        - phone field allows only digits
+        - phone field is limited to 10 digits
+        - role change auto-fills salary
+        - SUPER_ADMIN role clears branchId because SUPER_ADMIN is global
+    */
     const handleChange = (event) => {
         const { name, value } = event.target;
-
-        setFormData((previousData) => ({
-            ...previousData,
-            [name]: value,
-        }));
+    
+        setFormData((previous) => {
+            /*
+                Phone number cleanup.
+    
+                value.replace(/\D/g, "")
+                - removes anything that is not a digit
+    
+                .slice(0, 10)
+                - limits phone number to maximum 10 digits
+    
+                This keeps the input simple and avoids users typing letters,
+                spaces, or more than 10 digits.
+            */
+            const cleanedValue =
+                name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value;
+    
+            /*
+                Update the changed field.
+            */
+            const updatedData = {
+                ...previous,
+                [name]: cleanedValue,
+            };
+    
+            /*
+                SUPER_ADMIN does not belong to a branch.
+    
+                So if role is changed to SUPER_ADMIN,
+                branchId must be cleared.
+            */
+            if (name === "roleName" && cleanedValue === "SUPER_ADMIN") {
+                updatedData.branchId = "";
+            }
+    
+            /*
+                When role changes, auto-fill salary from the selected role's base salary.
+    
+                Example:
+                If RECEPTIONIST baseSalary is 50000,
+                selecting RECEPTIONIST auto-fills salary as 50000.
+    
+                User can still manually edit the salary after this.
+            */
+            if (name === "roleName") {
+                updatedData.salary =
+                    cleanedValue === "SUPER_ADMIN"
+                        ? ""
+                        : getDefaultSalaryForRole(cleanedValue);
+            }
+    
+            return updatedData;
+        });
     };
 
     /*

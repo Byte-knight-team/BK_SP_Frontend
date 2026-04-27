@@ -2,25 +2,7 @@ import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-
-function getDashboardPathByRole(roleName) {
-  switch (roleName) {
-    case "SUPER_ADMIN":
-      return "/staff";
-    case "ADMIN":
-      return "/staff";
-    case "RECEPTIONIST":
-      return "/receptionist";
-    case "CHEF":
-      return "/kitchen";
-    case "MANAGER":
-      return "/staff";
-    case "DELIVERY":
-      return "/staff";
-    default:
-      return "/staff";
-  }
-}
+import { getDashboardPathByRole } from "../../utils/authToken";
 
 export default function LoginPage() {
   const navigate = useNavigate();

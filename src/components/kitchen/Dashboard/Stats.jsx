@@ -64,9 +64,22 @@ const Stats = () => {
     fetchStatsDetails();
   }, []);
 
+  // When loading show 4 skeleton components
   if (loading) {
-    return <div>Loading...</div>;
-  }
+  return (
+    <>
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="flex h-32 animate-pulse flex-col justify-between rounded-3xl border border-gray-100 bg-white p-6"
+        >
+          <div className="h-4 w-24 rounded bg-gray-100" />
+          <div className="h-8 w-16 rounded bg-gray-200" />
+        </div>
+      ))}
+    </>
+  );
+}
 
   return (
     <>

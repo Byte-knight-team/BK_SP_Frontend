@@ -1,6 +1,6 @@
 // src/pages/superadmin/SystemConfigPage.jsx
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
   RiErrorWarningLine,
@@ -16,6 +16,8 @@ import {
   getGlobalConfigAPI,
   updateGlobalConfigAPI,
 } from "../../apis/staff/systemConfig";
+
+import { useAuth } from "../../context/AuthContext";
 
 /**
  * Default form values for global system configuration.
@@ -39,18 +41,6 @@ const DEFAULT_FORM = {
   // Hidden backend field. Do not show this in frontend for now.
   orderCancelWindowMinutes: 10,
 };
-
-/**
- * Safely read logged-in user from localStorage.
- */
-function getStoredAuthUser() {
-  try {
-    const rawUser = localStorage.getItem("authUser");
-    return rawUser ? JSON.parse(rawUser) : null;
-  } catch (error) {
-    return null;
-  }
-}
 
 /**
  * Support both possible role fields from login response.
@@ -87,7 +77,14 @@ export default function SystemConfigPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const authUser = useMemo(() => getStoredAuthUser(), []);
+  /*
+    Read logged-in user from AuthContext.
+
+    AuthContext now gets user data from the decoded JWT token.
+    We no longer read authUser from localStorage.
+  */
+  const { user: authUser } = useAuth();
+
   const roleName = getUserRoleName(authUser);
 
   // Global system configuration is SUPER_ADMIN only.
