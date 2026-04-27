@@ -7,9 +7,9 @@ import { endQrSession } from '../../apis/customer/qrSessions';
 import BrandLogo from './BrandLogo';
 import LoginButton from './LoginCustomer';
 import SignupButton from './SignupCustomer';
-import Button from '../ui/Button';
-import IconButton from '../ui/IconButton';
-import LinkButton from '../ui/LinkButton';
+import Button from './buttons/Button';
+import IconButton from './buttons/IconButton';
+import LinkButton from './buttons/LinkButton';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
