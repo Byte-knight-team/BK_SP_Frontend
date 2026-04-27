@@ -115,7 +115,7 @@ export default function App() {
           <Route path="menu" element={<MenuManagementPage />} />
           <Route path="menu/category/add" element={<AddCategoryPage />} />
           <Route path="menu/add" element={<AddMenuItemPage />} />
-          <Route path="menu/edit" element={<EditMenuItemPage />} />
+          <Route path="menu/edit/:id" element={<EditMenuItemPage />} />
           <Route path="tables" element={<TableManagementPage />} />
           <Route path="tables/add" element={<AddTablePage />} />
           <Route path="tables/:tableId/qr" element={<TableQrPage />} />

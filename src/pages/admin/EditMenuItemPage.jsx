@@ -275,9 +275,6 @@ export default function EditMenuItemPage() {
 
   return (
     <div className="bg-[#FAFAFA] font-sans">
-        {/* Header */}
-        {/* Header */}
-        <AdminHeader />
 
         {/* Scrollable Content Area */}
         <div className="px-10 pb-10">
