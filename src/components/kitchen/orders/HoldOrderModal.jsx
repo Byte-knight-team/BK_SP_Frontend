@@ -44,6 +44,7 @@ const HoldOrderModal = ({ isOpen, onClose, onConfirm }) => {
             Cancel
           </button>
           <button
+            //Executes the confirmation logic with the reason, then clears the input for the next use.
             onClick={() => { onConfirm(reason); setReason(""); }}
             disabled={!reason.trim()}
             className="flex-1 rounded-2xl bg-red-500 py-4 text-sm font-bold text-white shadow-lg shadow-red-200 transition-all hover:bg-red-600 disabled:bg-gray-200 disabled:shadow-none"

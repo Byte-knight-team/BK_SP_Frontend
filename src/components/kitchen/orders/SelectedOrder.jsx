@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import OrderStepper from "../OrderStepper";
 import MealTable from "./MealTable";
-import { XCircle, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import AssignChefModal from "./AssignChefModal";
-import {
-  getOrderDetailsAPI,
-  assignChefToMealAPI,
-} from "../../../apis/kitchen/orders";
+import HoldOrderModal from "./HoldOrderModal";
+import { getOrderDetailsAPI,assignChefToMealAPI,holdOrderAPI } from "../../../apis/kitchen/orders";
 
 const statusLabels = {
   PENDING: "Placed on",
@@ -83,7 +81,19 @@ const SelectedOrder = ({ orderId }) => {
     setIsModalOpen(true); // open the modal
   };
 
-  
+  // calls the Hold API and then calls fetchOrderDetails(false) to update silently.
+  const handleHoldOrder = async (reason) => {
+    const { error } = await holdOrderAPI(orderId, reason);
+    
+    if (!error) {
+      alert("Order put on hold successfully.");
+      setIsHoldModalOpen(false); // Close the modal
+      fetchOrderDetails(false); // This is the background fetch! (No loading screen)
+    } else {
+      alert("Failed to hold order. Please try again.");
+    }
+  };
+
 
   // State Management: If data is loading, show animation
   if (loading)
@@ -117,9 +127,6 @@ const SelectedOrder = ({ orderId }) => {
     console.log(`API Call: Completing Meal ${mealId}`);
   };
 
-  const handleHoldOrder = () => {
-    console.log(`API Call: Putting Order on Hold`);
-  };
 
   return (
     <div className="rounded-3xl border border-gray-100 bg-white p-8">
@@ -145,10 +152,10 @@ const SelectedOrder = ({ orderId }) => {
           {/* display hold the order button (when order is pending) */}
           {order.status === "PENDING" && (
             <button
-              onClick={handleHoldOrder}
+              onClick={() => setIsHoldModalOpen(true)} // This opens the modal
               className="flex items-center gap-1 rounded-full border border-red-100 px-4 py-1.5 text-[10px] font-bold text-red-500 transition-all hover:bg-red-50"
             >
-              <XCircle size={14} /> Hold Order
+              <AlertCircle size={18} /> Hold Order
             </button>
           )}
         </div>
@@ -202,6 +209,13 @@ const SelectedOrder = ({ orderId }) => {
         // Passes the name of the selected meal to the Modal.
         // The '?.' (Optional Chaining) ensures the app doesn't crash if no meal is selected yet.
         mealName={targetMeal?.name}
+      />
+
+      {/* Hold Order Modal */}
+      <HoldOrderModal
+        isOpen={isHoldModalOpen}
+        onClose={() => setIsHoldModalOpen(false)}
+        onConfirm={handleHoldOrder} // Connects to the handler above
       />
     </div>
   );
