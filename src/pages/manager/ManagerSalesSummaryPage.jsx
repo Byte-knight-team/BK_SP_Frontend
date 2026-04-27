@@ -2,11 +2,16 @@ import React from 'react'
 import SalesSummaryHeader from '../../components/manager/sales/SalesSummaryHeader'
 import FinancialStatsGrid from '../../components/manager/sales/FinancialStatsGrid'
 import TransactionLogTable from '../../components/manager/sales/TransactionLogTable'
+import PaymentMethodsBreakdown from '../../components/manager/sales/PaymentMethodsBreakdown'
 
 const MOCK_DATA = {
   grossSales: 5450,
   netSales: 4450,
   totalRefunds: 2387,
+  cardPayments: 3825,
+  cashPayments: 1625,
+  dineInOrders: 2100,
+  deliveryOrders: 3350,
   transactions: [
     { id: 'TRX-9823', date: 'Today, 10:42 AM', customer: 'Alex Johnson', mode: 'Credit Card', amount: 45.50, status: 'Completed' },
     { id: 'TRX-9822', date: 'Today, 10:38 AM', customer: 'Maria Garcia', mode: 'Online Payment', amount: 128.20, status: 'Completed' },
@@ -21,7 +26,7 @@ const MOCK_DATA = {
 
 export default function ManagerSalesSummaryPage() {
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-10">
       <SalesSummaryHeader />
       
       <FinancialStatsGrid 
@@ -34,9 +39,12 @@ export default function ManagerSalesSummaryPage() {
         transactions={MOCK_DATA.transactions}
       />
 
-      <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm p-12 text-center">
-        <p className="text-gray-400 font-medium italic">Payment breakdown coming in next sub-phase...</p>
-      </div>
+      <PaymentMethodsBreakdown 
+        cardTotal={MOCK_DATA.cardPayments}
+        cashTotal={MOCK_DATA.cashPayments}
+        dineIn={MOCK_DATA.dineInOrders}
+        delivery={MOCK_DATA.deliveryOrders}
+      />
     </div>
   )
 }
