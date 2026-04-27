@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, ChevronDown, XCircle, CreditCard, ExternalLink, Loader2, Star, Utensils } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import ReviewModal from '../../components/customer/ReviewModal';
+import { cancelCustomerOrder, listCustomerOrders } from '../../apis/customer/orders';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -29,17 +30,7 @@ export default function OrdersPage() {
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('customer_jwt');
-      // Build the dynamic URL. activeTab determines the boolean flag.
-      let url = `${API_BASE}/api/v1/orders?active=${activeTab === 'active'}`;
-      // Only append the type filter if selected "ALL"
-      if (orderTypeFilter !== 'ALL') {
-        url += `&type=${orderTypeFilter}`;
-      }
-
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await listCustomerOrders({ active: activeTab === 'active', type: orderTypeFilter });
       const json = await res.json();
       if (res.ok && json.data) {
         setOrders(json.data);
@@ -61,15 +52,7 @@ export default function OrdersPage() {
     if (!cancelReason.trim()) return;
     setIsCancelling(true);
     try {
-      const token = localStorage.getItem('customer_jwt');
-      const res = await fetch(`${API_BASE}/api/v1/orders/${orderToCancel.orderId}/cancel`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify({ cancellationReason: cancelReason })
-      });
+      const res = await cancelCustomerOrder(orderToCancel.orderId, cancelReason);
       if (res.ok) {
         // Success: Close modal, clear form, and refresh the list to show the new status
         setCancelModalOpen(false);
