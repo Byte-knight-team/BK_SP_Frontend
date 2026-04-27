@@ -63,7 +63,7 @@ export default function TransactionLogTable({ transactions = [] }) {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="text-xs text-gray-400 font-bold uppercase tracking-[0.1em] border-b border-gray-50">
+            <tr className="text-xs text-gray-400 font-bold uppercase tracking-widest border-b border-gray-50">
               <th className="px-8 py-5 text-left">Order ID</th>
               <th className="px-8 py-5 text-left">Date & Time</th>
               <th className="px-8 py-5 text-left">Customer</th>
