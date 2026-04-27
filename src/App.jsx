@@ -265,7 +265,11 @@ export default function App() {
         <Route
           path="/checkout"
           element={
-            <CustomerProtectedRoute allowQrSession unauthenticatedRedirect="/menu">
+            <CustomerProtectedRoute
+              requireCustomerJwt
+              qrOnlyRedirect="/signup/qr?redirect=/checkout"
+              unauthenticatedRedirect="/login?redirect=/checkout"
+            >
               <CheckoutPage />
             </CustomerProtectedRoute>
           }
@@ -275,6 +279,7 @@ export default function App() {
           element={
             <CustomerProtectedRoute
               requireCustomerJwt
+              qrOnlyRedirect="/signup/qr?redirect=/payment"
               unauthenticatedRedirect="/login?redirect=/payment"
             >
               <CardPaymentPage />
@@ -286,6 +291,7 @@ export default function App() {
           element={
             <CustomerProtectedRoute
               requireCustomerJwt
+              qrOnlyRedirect="/signup/qr?redirect=/order-confirmation"
               unauthenticatedRedirect="/login?redirect=/order-confirmation"
             >
               <OrderConfirmationPage />
@@ -304,6 +310,7 @@ export default function App() {
           element={
             <CustomerProtectedRoute
               requireCustomerJwt
+              qrOnlyRedirect="/signup/qr?redirect=/account"
               unauthenticatedRedirect="/login?redirect=/account"
             >
               <AccountPage />
