@@ -105,11 +105,11 @@ export default function Navbar() {
 
   const handleTableOrderClick = () => {
     const token = localStorage.getItem('customer_jwt');
-    const qrSessionData = localStorage.getItem('qr_session');
+    const qrSessionToken = localStorage.getItem('qr_session_token');
 
     //f they are NOT logged in, intercept them:
     if (!token) {
-      if (qrSessionData) {
+      if (qrSessionToken) {
         // Force OTP verify to link this new QR session to their old account
         navigate('/signup/qr?redirect=/orders', { replace: true });
       } else {
