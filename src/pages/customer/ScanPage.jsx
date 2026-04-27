@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { decodeJwtPayload } from '../../utils/authToken';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+import { customerApiFetch } from '../../apis/apiHelper';
 
 export default function ScanPage() {
   const location = useLocation();
@@ -45,9 +44,8 @@ export default function ScanPage() {
 
     const startSession = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/v1/qr-sessions/start`, {
+        const res = await customerApiFetch('/api/v1/qr-sessions/start', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ qr_token: tokenFromUrl }),
         });
 
