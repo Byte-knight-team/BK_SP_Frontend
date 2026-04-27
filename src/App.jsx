@@ -142,30 +142,6 @@ export default function App() {
       {/* Public common staff login */}
       <Route path="/staff/login" element={<StaffLoginPage />} />
 
-<<<<<<< HEAD
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <MainLayout Sidebar={AdminSidebar} Header={AdminHeader} />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<AdminDashboardPage />} />
-          <Route path="menu" element={<MenuManagementPage />} />
-          <Route path="menu/category/add" element={<AddCategoryPage />} />
-          <Route path="menu/add" element={<AddMenuItemPage />} />
-          <Route path="menu/edit/:id" element={<EditMenuItemPage />} />
-          <Route path="tables" element={<TableManagementPage />} />
-          <Route path="tables/add" element={<AddTablePage />} />
-          <Route path="tables/:tableId/qr" element={<TableQrPage />} />
-          <Route path="staff" element={<UserManagementPage />} />
-          <Route path="staff/add" element={<AddNewUserPage />} />
-          <Route path="users" element={<UserManagementPage />} />
-          <Route path="users/add" element={<AddNewUserPage />} />
-          <Route path="coupons" element={<CouponsPage />} />
-        </Route>
-=======
       {/* Common password change page for all logged-in staff roles */}
       <Route
         path="/staff/change-password"
@@ -175,7 +151,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
->>>>>>> bdf0b7d119316d0e8b6a1dd6713415194a57a3fb
 
       {/* SUPER_ADMIN area */}
       <Route
