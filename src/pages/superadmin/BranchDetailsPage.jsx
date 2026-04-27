@@ -19,6 +19,8 @@ import {
     updateBranchConfigAPI,
 } from "../../apis/staff/systemConfig";
 
+import { useAuth } from "../../context/AuthContext";
+
 export default function BranchDetailsPage() {
     /*
         useParams reads route parameters.
@@ -74,14 +76,15 @@ export default function BranchDetailsPage() {
     const [configSuccessMessage, setConfigSuccessMessage] = useState("");
 
     /*
-        Read logged-in user role from localStorage.
+    Read logged-in user from AuthContext.
 
-        Branch Management is SUPER_ADMIN only.
-    */
-    const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
-    const loggedInRole = authUser.roleName || authUser.role || "";
+    AuthContext now gets user data from the decoded JWT token.
+    We no longer read authUser from localStorage.
+*/
+    const { user } = useAuth();
+
+    const loggedInRole = user?.roleName || user?.role || "";
     const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
-
     /*
         Set page header information for the shared layout.
     */
@@ -432,11 +435,10 @@ export default function BranchDetailsPage() {
                         type="button"
                         disabled={actionLoading}
                         onClick={handleToggleStatus}
-                        className={`rounded-2xl px-4 py-2 text-sm font-semibold disabled:opacity-50 ${
-                            active
+                        className={`rounded-2xl px-4 py-2 text-sm font-semibold disabled:opacity-50 ${active
                                 ? "bg-red-50 text-red-600 hover:bg-red-100"
                                 : "bg-green-50 text-green-700 hover:bg-green-100"
-                        }`}
+                            }`}
                     >
                         {actionLoading
                             ? "Updating..."
@@ -475,11 +477,10 @@ export default function BranchDetailsPage() {
 
                     {/* Status badge */}
                     <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                            active
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${active
                                 ? "bg-green-50 text-green-700"
                                 : "bg-gray-100 text-gray-500"
-                        }`}
+                            }`}
                     >
                         {active ? "Active" : "Inactive"}
                     </span>
