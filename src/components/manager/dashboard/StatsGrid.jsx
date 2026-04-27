@@ -8,7 +8,7 @@ export default function StatsGrid({ data }) {
         icon={<DollarSign className="text-brand h-8 w-8" />}
         iconBg="bg-brand-light"
         label="Today's Revenue So Far"
-        value={`$ ${Number(data.revenue).toLocaleString()}`}
+        value={`Rs. ${Number(data.revenue).toLocaleString()}`}
         badge={{ text: '+12%', className: 'bg-green-50 text-green-600' }}
       />
       <StatCard

@@ -19,6 +19,7 @@ export default function RecentOrdersTable({ orders }) {
             <th className="text-left pb-3 font-medium">Order ID</th>
             <th className="text-left pb-3 font-medium">Type</th>
             <th className="text-left pb-3 font-medium">Status</th>
+            <th className="text-center pb-3 font-medium">Order Amount</th>
             <th className="text-right pb-3 font-medium">Timer</th>
           </tr>
         </thead>
@@ -31,6 +32,9 @@ export default function RecentOrdersTable({ orders }) {
               </td>
               <td className="py-4">
                 <Badge status={order.status.toLowerCase()} />
+              </td>
+              <td className="py-4 text-center font-medium text-gray-900">
+                Rs.{Number(order.amount).toLocaleString()}
               </td>
               <td className="py-4 text-right text-gray-500 font-mono text-sm">
                 {order.timer}
