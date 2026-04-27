@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/Navbar';
+import { getQrSessionClaims } from '../../utils/authToken';
 import menuCover from '../../assets/menu cover image.avif';
 import {
   ArrowLeft,
@@ -18,8 +19,15 @@ import {
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 function getBranchId() {
-  const savedBranchId = Number(localStorage.getItem('qr_branch_id'));
-  return Number.isFinite(savedBranchId) && savedBranchId > 0 ? savedBranchId : 1;
+  // Decode branchId from QR session token on-the-fly, never store decoded IDs
+  const qrSessionToken = localStorage.getItem('qr_session_token');
+  if (qrSessionToken) {
+    const claims = getQrSessionClaims(qrSessionToken);
+    if (claims?.branch_id && Number.isFinite(claims.branch_id) && claims.branch_id > 0) {
+      return claims.branch_id;
+    }
+  }
+  return 1; // Default branch
 }
 
 export default function MenuPage() {

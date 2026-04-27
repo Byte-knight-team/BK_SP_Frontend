@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Banknote, ChevronRight, CreditCard, Gift, Home, Loader2, Lock, Mail, MapPin, Package, Phone, ReceiptText, Tag, User, AlertCircle, } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { getQrSessionClaims } from '../../utils/authToken';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 //checkout state savings
@@ -30,16 +31,17 @@ function safeParse(value, fallback) {
 // Reads saved data to "seed" the initial state. This prevents users from losing their typed addresses or coupons if they accidentally refresh the page.
 function readCheckoutSeed() {
   const saved = safeParse(localStorage.getItem(CHECKOUT_STORAGE_KEY), {});
-  const qrSession = safeParse(localStorage.getItem('qr_session'), {});
-  const isQrCustomer = Boolean(qrSession?.sessionToken);
+  const qrSessionToken = localStorage.getItem('qr_session_token');
+  const qrClaims = qrSessionToken ? getQrSessionClaims(qrSessionToken) : null;
+  const isQrCustomer = Boolean(qrSessionToken && qrClaims);
 
   return {
     isQrCustomer,
     orderType: isQrCustomer ? 'QR' : saved.orderType || 'ONLINE_PICKUP',
     paymentMethod: saved.paymentMethod || 'CASH',
-    branchId: Number(qrSession?.branchId || saved.branchId || 1),
-    tableId: qrSession?.tableId || saved.tableId || null,
-    qrSessionId: qrSession?.sessionId || null,
+    branchId: Number(qrClaims?.branch_id || saved.branchId || 1),
+    tableId: qrClaims?.table_id || saved.tableId || null,
+    qrSessionId: qrClaims?.session_id || null,
     contact: {
       username: saved.contact?.username || '',
       email: saved.contact?.email || '',

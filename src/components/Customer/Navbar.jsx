@@ -2,18 +2,19 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { getQrSessionClaims } from '../../utils/authToken';
 import BrandLogo from './BrandLogo';
 import LoginButton from './LoginCustomer';
 import SignupButton from './SignupCustomer';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
-function getQrSession() {
-  try {
-    return JSON.parse(localStorage.getItem('qr_session') || 'null');
-  } catch {
-    return null;
-  }
+function getQrSessionClaim(claimName) {
+  // Decode claim on-the-fly from token, never read from localStorage
+  const qrSessionToken = localStorage.getItem('qr_session_token');
+  if (!qrSessionToken) return null;
+  const claims = getQrSessionClaims(qrSessionToken);
+  return claims?.[claimName] || null;
 }
 
 export default function Navbar() {
@@ -63,8 +64,7 @@ export default function Navbar() {
 
   // ── Leave Table: end QR session (backend + frontend), wipe everything ──
   const handleLeaveTable = async () => {
-    const qrSession = getQrSession();
-    const sessionId = qrSession?.sessionId;
+    const sessionId = getQrSessionClaim('session_id');
 
     // Call backend to formally end the session (fire-and-forget, don't block on failure)
     if (sessionId) {
