@@ -93,5 +93,20 @@ export const startMealAPI = async (itemId) => {
   }
 };
 
+// complete a specific meal item
+export const completeMealAPI = async (itemId) => {
+  try {
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/complete`,
+      { method: "PUT" }
+    );
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
+
+
 
 
