@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useInventoryData } from '../../hooks/useInventoryData'
 import { InventoryService } from '../../apis/manager/InventoryService'
 import InventoryHeader from '../../components/manager/inventory/InventoryHeader'
@@ -28,6 +28,11 @@ export default function ManagerInventoryPage() {
   const { data, loading, error, refetch } = useInventoryData()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [updateModal, setUpdateModal] = useState({ open: false, item: null })
+  const chefRequestsRef = useRef(null)
+
+  const scrollToChefRequests = () => {
+    chefRequestsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   if (loading) return <LoadingSkeleton />
 
@@ -85,13 +90,14 @@ export default function ManagerInventoryPage() {
         totalValue={data.summary.totalInventoryValue}
         pendingDrafts={data.summary.pendingChefDrafts}
         lowStockAlerts={data.summary.lowStockAlerts}
+        onPendingDraftsClick={scrollToChefRequests}
       />
       <CurrentStockTable
         items={data.stockItems}
         onUpdateItem={(item) => setUpdateModal({ open: true, item })}
       />
       <InventoryUpdateLogTable logs={data.logs} />
-      <ChefRequestsSection requests={data.chefRequests} />
+      <ChefRequestsSection requests={data.chefRequests} scrollRef={chefRequestsRef} />
 
       {/* Add Item Modal */}
       <AddInventoryItemModal

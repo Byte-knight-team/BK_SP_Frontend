@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
-import { Eye } from 'lucide-react'
+import React, { useState, useRef } from 'react'
+import { Eye, ChevronDown, ChevronUp } from 'lucide-react'
 import ResolveChefRequestModal from './ResolveChefRequestModal'
+
+const INITIAL_VISIBLE = 3
 
 function ChefRequestCard({ request, onViewRequest }) {
   // Generate initials for the avatar
@@ -57,22 +59,34 @@ function ChefRequestCard({ request, onViewRequest }) {
   )
 }
 
-export default function ChefRequestsSection({ requests = [] }) {
+export default function ChefRequestsSection({ requests = [], scrollRef }) {
   const [selectedRequest, setSelectedRequest] = useState(null)
+  const [expanded, setExpanded] = useState(false)
   const safeRequests = requests || []
+
+  const hasMore = safeRequests.length > INITIAL_VISIBLE
+  const visibleRequests = expanded ? safeRequests : safeRequests.slice(0, INITIAL_VISIBLE)
+
   return (
-    <div className="card">
+    <div className="card" ref={scrollRef}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <h2 className="text-xl font-bold text-gray-900">Chef Requests</h2>
         <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
-          {safeRequests.length}
+          {safeRequests.length} Pending
         </span>
       </div>
 
+      {/* Empty state */}
+      {safeRequests.length === 0 && (
+        <p className="text-sm text-gray-400 text-center py-8">
+          No pending chef requests at the moment.
+        </p>
+      )}
+
       {/* Cards grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {safeRequests.map((request) => (
+        {visibleRequests.map((request) => (
           <ChefRequestCard 
             key={request.id} 
             request={request} 
@@ -81,11 +95,24 @@ export default function ChefRequestsSection({ requests = [] }) {
         ))}
       </div>
 
-      {/* View more */}
-      {safeRequests.length > 3 && (
+      {/* View more / View less toggle */}
+      {hasMore && (
         <div className="mt-5 text-center">
-          <button className="text-sm text-brand font-medium hover:underline inline-flex items-center gap-1">
-            View more
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="inline-flex items-center gap-1.5 text-sm text-brand font-semibold hover:underline transition-colors"
+          >
+            {expanded ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                View {safeRequests.length - INITIAL_VISIBLE} More Request{safeRequests.length - INITIAL_VISIBLE !== 1 ? 's' : ''}
+              </>
+            )}
           </button>
         </div>
       )}
