@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Lock } from 'lucide-react';
+import { updateCustomerPayment } from '../../apis/customer/checkout';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -91,22 +92,13 @@ export default function CardPaymentPage() {
     setIsPaying(true);
 
     try {
-      const token = localStorage.getItem('customer_jwt');
-
       // Generate a fake transaction ID for the database
       const fakeTransactionId = `DUMMY_TX_${Math.floor(Math.random() * 100000000)}`;
 
       // Tell the backend the card went through
-      const res = await fetch(`${API_BASE}/api/v1/orders/${orderId}/payment`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          paymentStatus: 'PAID',
-          transactionId: fakeTransactionId,
-        }),
+      const res = await updateCustomerPayment(orderId, {
+        paymentStatus: 'PAID',
+        transactionId: fakeTransactionId,
       });
 
       if (!res.ok) throw new Error('Server failed to update payment status');
