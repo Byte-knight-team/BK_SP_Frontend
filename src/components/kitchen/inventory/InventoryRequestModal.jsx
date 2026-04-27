@@ -1,142 +1,125 @@
-import { useState, useEffect } from "react";
-import { PackagePlus, X } from "lucide-react";
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { PackagePlus, X } from 'lucide-react'
+import { inventoryRequestSchema } from '../../../schemas/inventoryRequestSchema'
+import { FormInput } from '../../common/formComponents/FormInput'
+import { FormTextarea } from '../../common/formComponents/FormTextarea'
+import { Modal } from '../../common/Modal'
 
-const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initialItemName, initialUnit }) => {
-  const [itemName, setItemName] = useState("");
-  const [unit, setUnit] = useState("");
-  const [requestedQuantity, setRequestedQuantity] = useState("");
-  const [chefNote, setChefNote] = useState("");
+const InventoryRequestModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  requestType,
+  initialItemName,
+  initialUnit,
+}) => {
+  const isRefill = requestType === 'REFILL_STOCK'
 
-  // if the requestType is REFILL_STOCK, then it is a refill request
-  // otherwise it is a new item request
-  const isRefill = requestType === "REFILL_STOCK";
+  const { control, handleSubmit, reset } = useForm({
+    resolver: zodResolver(inventoryRequestSchema),
+    defaultValues: {
+      itemName: '',
+      unit: '',
+      requestedQuantity: '',
+      chefNote: '',
+    },
+  })
 
-  // reset or pre-fill the form fields whenever the modal opens or the item(name/unit) changes
-  // pre fill the hidden data if it's a refill request
   useEffect(() => {
     if (isOpen) {
-      setItemName(initialItemName || "");
-      setUnit(initialUnit || "");
-      setRequestedQuantity("");
-      setChefNote("");
+      reset({
+        itemName: initialItemName || '',
+        unit: initialUnit || '',
+        requestedQuantity: '',
+        chefNote: '',
+      })
     }
-  }, [isOpen, initialItemName, initialUnit]);
+  }, [isOpen, initialItemName, initialUnit, reset])
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
-  const handleSubmit = () => {
-    //basic validation
-    if (!itemName || !unit || !requestedQuantity) {
-      alert("Please fill in all required fields!");
-      return;
-    }
-
-    // Convert quantity to a number
-    const numericQuantity = parseFloat(requestedQuantity);
-
-    // check for negative numbers
-    if (numericQuantity < 0) {
-      alert("Error: Requested quantity cannot be negative!");
-      return;
-    }
-
-    // create an object. it matches exactly what backend InventoryRequestDTO expects
+  const onFormSubmit = (data) => {
     const requestData = {
-      itemName: itemName,
-      unit: unit,
-      requestedQuantity: numericQuantity,
-      chefNote: chefNote,
-      requestType: requestType
-    };
-
-    // send the validated and formatted data back to the parent component for API submission
-    onSubmit(requestData);
-  };
+      ...data,
+      requestedQuantity: parseFloat(data.requestedQuantity),
+      requestType: requestType,
+      itemName: isRefill ? initialItemName : data.itemName,
+      unit: isRefill ? initialUnit : data.unit,
+    }
+    onSubmit(requestData)
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-white rounded-4xl shadow-2xl p-8 border border-gray-100">
-        
-        {/* header icon and close button */}
-        <div className="flex justify-between items-start mb-6">
-          <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
-            <PackagePlus size={24} />
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        isRefill ? `Request Refill: ${initialItemName}` : 'Request New Item'
+      }
+      description={
+        isRefill
+          ? `Specify the quantity needed in ${initialUnit}.`
+          : 'Enter the details for the new item request.'
+      }
+      icon={PackagePlus}
+      maxWidth="max-w-2xl"
+    >
+      <form
+        onSubmit={handleSubmit(onFormSubmit)}
+        className="flex flex-col gap-4"
+      >
+        {!isRefill && (
+          <div className="flex flex-col gap-4">
+            <FormInput
+              name="itemName"
+              control={control}
+              label="Item Name"
+              placeholder="e.g. Garlic"
+            />
+            <FormInput
+              name="unit"
+              control={control}
+              label="Unit"
+              placeholder="e.g. kg, Liters, Pcs"
+            />
           </div>
-          {/* trigger the close function from parent to hide the modal when 'X' is clicked */}
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
-          </button>
-        </div>
+        )}
+        <FormInput
+          name="requestedQuantity"
+          control={control}
+          type="number"
+          step="0.01"
+          label={`Requested Quantity ${isRefill ? `(${initialUnit})` : ''}`}
+          placeholder="0.00"
+        />
+        <FormTextarea
+          name="chefNote"
+          control={control}
+          label="Additional Note (Optional)"
+          placeholder="Why do you need this?"
+          rows={3}
+        />
 
-        {/* dynamic title based on request type */}
-        <h3 className="text-xl font-bold text-gray-900 mb-2 text-left">
-          {isRefill ? `Request Refill: ${initialItemName}` : "Request New Item"}
-        </h3>
-        <p className="text-gray-400 text-sm mb-6 text-left">
-          {isRefill 
-            ? `Enter the quantity needed for ${initialItemName} in ${initialUnit}.` 
-            : "Submit a request to add a brand new item to the inventory system."}
-        </p>
-
-        {/* form fields */}
-        <div className="flex flex-col gap-4 mb-8">
-          
-          {/* only show these if it is a new item */}
-          {!isRefill && (
-            <>
-              <input
-                type="text"
-                placeholder="Item Name (e.g. Garlic)"
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-                className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-              />
-              <input
-                type="text"
-                placeholder="Unit (e.g. kg, Liters, Pcs)"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-              />
-            </>
-          )}
-
-          {/* always show quantity and note */}
-          <input
-            type="number" //when we use the type as number it will display arrows to increase/decrease but it does not validate the input
-            placeholder={`Requested Quantity ${isRefill ? `(${initialUnit})` : ""}`}
-            value={requestedQuantity}
-            onChange={(e) => setRequestedQuantity(e.target.value)}
-            className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-          />
-
-          <textarea
-            placeholder="Add a reason or note (optional)..."
-            value={chefNote}
-            onChange={(e) => setChefNote(e.target.value)}
-            rows="3"
-            className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
-          />
-        </div>
-
-        {/* action buttons */}
-        <div className="flex gap-4">
-          {/* trigger the close function from parent to hide the modal when 'Cancel' is clicked */}
-          <button onClick={onClose} className="flex-1 py-4 text-sm font-bold text-gray-400 hover:bg-gray-50 rounded-2xl transition-all">
+        <div className="mt-4 flex gap-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-2xl py-4 text-sm font-bold text-gray-400 transition-all hover:bg-gray-50"
+          >
             Cancel
           </button>
-          {/* send the validated and formatted data back to the parent component for processing */}
           <button
-            onClick={handleSubmit}
-            className="flex-1 py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all"
+            type="submit"
+            className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 active:scale-95"
           >
             Send Request
           </button>
         </div>
+      </form>
+    </Modal>
+  )
+}
 
-      </div>
-    </div>
-  );
-};
-
-export default InventoryRequestModal;
+export default InventoryRequestModal
