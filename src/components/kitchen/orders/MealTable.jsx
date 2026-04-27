@@ -86,7 +86,7 @@ const MealTable = ({
                           <UserPlus size={14} /> Assign
                         </button>
                         <button
-                          onClick={() => onStartMeal(meal.id)}
+                          onClick={() => onStartMeal(meal)}
                           // Check if a chef is assigned. If not, disable the button
                           disabled={meal.chefName === "Not Assigned"}
                           className={`flex items-center gap-1 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
@@ -102,7 +102,7 @@ const MealTable = ({
                     {meal.status === "PREPARING" &&
                       orderStatus === "PREPARING" && (
                         <button
-                          onClick={() => onCompleteMeal(meal.id)}
+                          onClick={() => onCompleteMeal(meal)}
                           className="flex items-center gap-1 rounded-xl border border-green-100 px-3 py-2 text-xs font-bold text-green-600 transition-all hover:bg-green-50"
                         >
                           <Check size={14} /> Complete

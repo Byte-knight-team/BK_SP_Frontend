@@ -4,6 +4,7 @@ import MealTable from "./MealTable";
 import { AlertCircle } from "lucide-react";
 import AssignChefModal from "./AssignChefModal";
 import HoldOrderModal from "./HoldOrderModal";
+import ActionConfirmationModal from "./ActionConfirmationModal";
 import {
   getOrderDetailsAPI,
   assignChefToMealAPI,
@@ -26,11 +27,14 @@ const statusColors = {
 };
 
 const SelectedOrder = ({ orderId, setActiveTab }) => {
+
   const [order, setOrder] = useState(null); // Stores the fully formatted order data
   const [loading, setLoading] = useState(false); // Controls the loading state UI
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls the Chef Modal visibility
   const [targetMeal, setTargetMeal] = useState(null); // Remembers which meal is currently being assigned
   const [isHoldModalOpen, setIsHoldModalOpen] = useState(false); //Controls the Hold Modal visibility
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [actionType, setActionType] = useState(""); // Stores "START" or "COMPLETE"
 
   // Fetches the latest data from the Backend API (whenever orderId changes or we can call it manually right after the chef is assigned successfully)
   const fetchOrderDetails = async (showLoading = true) => {
@@ -57,6 +61,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
       });
     }
     setLoading(false);
+    return data?.status; // return order status to update the tab
   };
 
   useEffect(() => {
@@ -101,35 +106,52 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     }
   };
 
-  // Function to start a meal and move the order to the Preparing tab
-  const handleStartMeal = async (mealId) => {
-    const { error } = await startMealAPI(mealId);
+  const handleStartMeal = (meal) => {
+    setTargetMeal(meal);
+    setActionType("START");
+    setIsActionModalOpen(true);
+  };
+
+  const handleCompleteMeal = (meal) => {
+    setTargetMeal(meal);
+    setActionType("COMPLETE");
+    setIsActionModalOpen(true);
+  };
+
+  const confirmMealAction = async () => {
+  if (!targetMeal) return;
+
+  if (actionType === "START") {
+    // Call the Start API
+    const { error } = await startMealAPI(targetMeal.id);
+    
+    // If it works, do the success logic for START
+    if (!error) {
+      setActiveTab(2);             // Switch to Preparing tab
+      setIsActionModalOpen(false); // Close modal
+      fetchOrderDetails(false);    // Background refresh
+    } else {
+      alert("Failed to start meal. Please try again.");
+    }
+    
+  } else {
+    // Call the Complete API
+    const { error } = await completeMealAPI(targetMeal.id);
 
     if (!error) {
-      // Silent Refresh to show the new status in the table
-      fetchOrderDetails(false);
-
-      // Automatically switch the sidebar to the "Preparing" tab (Tab ID #2)
-      setActiveTab(2);
+      setIsActionModalOpen(false); // Close modal
+      // Background refresh the data and catch the new status (Wait for it to finish)
+      const newStatus = await fetchOrderDetails(false); 
+    
+      //if the backend returns the final order status as complete, then switch to the completed tab
+      if (newStatus === "COMPLETED") {
+        setActiveTab(3); // Switch to Completed tab (Tab ID is 3)
+      }
     } else {
-      alert("Failed to start meal. Please check if chef is available.");
+      alert("Failed to complete meal. Please try again.");
     }
-  };
-
-    const handleCompleteMeal = (mealId) => {
-    // 1. API Call to Backend
-    //const { error } = await completeMealAPI(mealId);
-    // 2. Handle Error
-    // if (error) {
-    //   alert("Failed to complete meal");
-    //   return;
-    // }
-    // 3. Refresh the UI (Fetch Data Again)
-    //fetchOrderDetails(false); // False = Don't show loading spinner (keep it smooth)
-
-    // Optional: 4. Auto-switch to "Completed" Tab (Tab ID #3) if you want
-    // setActiveTab(3);
-  };
+  }
+};
 
   // State Management: If data is loading, show animation
   if (loading)
@@ -149,8 +171,6 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         </p>
       </div>
     );
-
-
 
   return (
     <div className="rounded-3xl border border-gray-100 bg-white p-8">
@@ -240,6 +260,16 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         isOpen={isHoldModalOpen}
         onClose={() => setIsHoldModalOpen(false)}
         onConfirm={handleHoldOrder} // Connects to the handler above
+      />
+
+      {/* Action Confirmation Modal */}
+      <ActionConfirmationModal
+        isOpen={isActionModalOpen}
+        onClose={() => setIsActionModalOpen(false)}
+        onConfirm={confirmMealAction}
+        type={actionType}
+        mealName={targetMeal?.name}
+        chefName={targetMeal?.chefName}
       />
     </div>
   );
