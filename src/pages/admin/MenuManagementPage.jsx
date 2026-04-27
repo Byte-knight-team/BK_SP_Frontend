@@ -25,9 +25,20 @@ import {
   getMenuItemsCountAPI,
   getAvailableItemsCountAPI,
   updateMenuItemAPI,
+  approveMenuItemAPI,
+  rejectMenuItemAPI,
 } from '../../apis/admin/menu';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
+
+const normalizeStatus = (status) => {
+  const normalized = status?.toUpperCase();
+
+  if (normalized === 'AVAILABLE') return 'ACTIVE';
+  if (normalized === 'UNAVAILABLE') return 'INACTIVE';
+
+  return normalized || '';
+};
 
 // Admin page for managing menu categories, filters, and item actions.
 export default function MenuManagementPage() {
@@ -45,6 +56,7 @@ export default function MenuManagementPage() {
   const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState(null);
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
   const [togglingItemId, setTogglingItemId] = useState(null);
+  const [decisionItemId, setDecisionItemId] = useState(null);
   const [totalCategoriesCount, setTotalCategoriesCount] = useState(0);
   const [totalSubCategoriesCount, setTotalSubCategoriesCount] = useState(0);
   const [totalMenuItemsCount, setTotalMenuItemsCount] = useState(0);
@@ -150,7 +162,7 @@ export default function MenuManagementPage() {
     return menuItems.filter((item) => {
       const itemCategory = item.categoryName || item.category || '';
       const itemSubCategory = item.subCategory || '';
-      const itemStatus = item.status || '';
+      const itemStatus = normalizeStatus(item.status);
       const itemName = item.name || '';
 
       const matchesCategory = !activeCategory || itemCategory === activeCategory;
@@ -159,7 +171,7 @@ export default function MenuManagementPage() {
       const matchesSearch = itemName.toLowerCase().includes(searchText.toLowerCase());
       const matchesStatus =
         statusFilter === 'ALL' ||
-        itemStatus.toUpperCase() === statusFilter.toUpperCase();
+        itemStatus === statusFilter.toUpperCase();
 
       return matchesCategory && matchesSubCategory && matchesSearch && matchesStatus;
     });
@@ -191,8 +203,12 @@ export default function MenuManagementPage() {
   }, [menuItems, activeCategory]);
 
   const handleToggleAvailability = async (item) => {
-    const currentStatus = item.status?.toUpperCase();
-    const nextStatus = currentStatus === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
+    const currentStatus = normalizeStatus(item.status);
+    if (currentStatus !== 'ACTIVE' && currentStatus !== 'INACTIVE') {
+      return;
+    }
+
+    const nextStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     setTogglingItemId(item.id);
 
     try {
@@ -216,6 +232,61 @@ export default function MenuManagementPage() {
       setApiError(error.message || 'Unable to update item status.');
     } finally {
       setTogglingItemId(null);
+    }
+  };
+
+  const handleApprovePendingItem = async (item) => {
+    setDecisionItemId(item.id);
+    setApiError('');
+
+    try {
+      const action = await approveMenuItemAPI(item.id, {});
+      const nextStatus = normalizeStatus(action?.type) || 'ACTIVE';
+
+      setMenuItems((prev) =>
+        prev.map((entry) =>
+          entry.id === item.id
+            ? { ...entry, status: nextStatus, isAvailable: nextStatus === 'ACTIVE' }
+            : entry,
+        ),
+      );
+    } catch (error) {
+      setApiError(error.message || 'Unable to approve item.');
+    } finally {
+      setDecisionItemId(null);
+    }
+  };
+
+  const handleRejectPendingItem = async (item) => {
+    const reason = window.prompt('Enter rejection reason for chef:');
+
+    if (reason === null) {
+      return;
+    }
+
+    if (!reason.trim()) {
+      setApiError('Rejection reason is required.');
+      return;
+    }
+
+    setDecisionItemId(item.id);
+    setApiError('');
+
+    try {
+      const action = await rejectMenuItemAPI(item.id, reason.trim());
+      const nextStatus = normalizeStatus(action?.type) || 'REJECTED';
+
+      setMenuItems((prev) =>
+        prev.map((entry) =>
+          entry.id === item.id
+            ? { ...entry, status: nextStatus, isAvailable: false }
+            : entry,
+        ),
+      );
+    } catch (error) {
+      setApiError(error.message || 'Unable to reject item.');
+    } finally {
+      setDecisionItemId(null);
     }
   };
 
@@ -243,22 +314,30 @@ export default function MenuManagementPage() {
   };
 
   const getStatusDisplay = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'AVAILABLE':
-        return 'Available';
-      case 'UNAVAILABLE':
-        return 'Unavailable';
+    switch (normalizeStatus(status)) {
+      case 'ACTIVE':
+        return 'Active';
+      case 'INACTIVE':
+        return 'Inactive';
+      case 'PENDING':
+        return 'Pending';
+      case 'REJECTED':
+        return 'Rejected';
       default:
         return status || 'Unknown';
     }
   };
 
   const getStatusColor = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'AVAILABLE':
+    switch (normalizeStatus(status)) {
+      case 'ACTIVE':
         return 'bg-[#d8f5e4] text-[#118a45]';
-      case 'UNAVAILABLE':
+      case 'INACTIVE':
         return 'bg-[#ffe2d1] text-[#c85b1d]';
+      case 'PENDING':
+        return 'bg-[#fff6cc] text-[#a17a00]';
+      case 'REJECTED':
+        return 'bg-[#ffe3e3] text-[#c53030]';
       default:
         return 'bg-gray-100 text-gray-600';
     }
@@ -285,7 +364,7 @@ export default function MenuManagementPage() {
       tone: 'bg-orange-50 text-orange-600',
     },
     {
-      label: 'Available Items',
+      label: 'Active Items',
       value: String(totalAvailableItemsCount),
       tone: 'bg-emerald-50 text-emerald-600',
     },
@@ -450,8 +529,8 @@ export default function MenuManagementPage() {
                       className="appearance-none rounded-xl border border-gray-200 bg-white py-2 pl-3 pr-9 text-sm text-gray-700 outline-none"
                     >
                       <option value="ALL">All Status</option>
-                      <option value="AVAILABLE">Available</option>
-                      <option value="UNAVAILABLE">Unavailable</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
                       <option value="PENDING">Pending</option>
                       <option value="REJECTED">Rejected</option>
                     </select>
@@ -509,22 +588,46 @@ export default function MenuManagementPage() {
                         )}
 
                         <div className="mt-auto flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleAvailability(item)}
-                            disabled={togglingItemId === item.id}
-                            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-70 ${
-                              item.status?.toUpperCase() === 'AVAILABLE'
-                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                : 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'
-                            }`}
-                          >
-                            {togglingItemId === item.id
-                              ? 'Updating...'
-                              : item.status?.toUpperCase() === 'AVAILABLE'
-                                ? 'ON'
-                                : 'OFF'}
-                          </button>
+                          {normalizeStatus(item.status) === 'PENDING' ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleApprovePendingItem(item)}
+                                disabled={decisionItemId === item.id}
+                                className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-70"
+                              >
+                                {decisionItemId === item.id ? 'Processing...' : 'Approve'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRejectPendingItem(item)}
+                                disabled={decisionItemId === item.id}
+                                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-70"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleAvailability(item)}
+                              disabled={
+                                togglingItemId === item.id
+                                || (normalizeStatus(item.status) !== 'ACTIVE' && normalizeStatus(item.status) !== 'INACTIVE')
+                              }
+                              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-70 ${
+                                normalizeStatus(item.status) === 'ACTIVE'
+                                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                  : 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'
+                              }`}
+                            >
+                              {togglingItemId === item.id
+                                ? 'Updating...'
+                                : normalizeStatus(item.status) === 'ACTIVE'
+                                  ? 'ON'
+                                  : 'OFF'}
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => navigate(`/admin/menu/edit/${item.id}`)}

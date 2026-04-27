@@ -27,17 +27,17 @@ const normalizeSubCategory = (value) => {
 const mapVisibilityToStatus = (visibility) => {
   switch (visibility) {
     case 'Available':
-      return 'AVAILABLE';
+      return 'ACTIVE';
     case 'Unavailable':
-      return 'UNAVAILABLE';
+      return 'INACTIVE';
     default:
-      return 'AVAILABLE';
+      return 'ACTIVE';
   }
 };
 
 const mapStatusToVisibility = (status) => {
   switch (status?.toUpperCase()) {
-    case 'UNAVAILABLE':
+    case 'INACTIVE':
       return 'Unavailable';
     default:
       return 'Available';
@@ -221,10 +221,6 @@ export default function EditMenuItemPage() {
       nextErrors.basePrice = 'Base price must be greater than 0.';
     }
 
-    if (description.trim().length < 10) {
-      nextErrors.description = 'Description must be at least 10 characters.';
-    }
-
     if (!imageData?.secure_url) {
       nextErrors.image = 'Please upload an item image.';
     }
@@ -244,11 +240,11 @@ export default function EditMenuItemPage() {
     try {
       await updateMenuItemAPI(itemId, {
         name: itemName.trim(),
-        categoryId,
+        categoryId: Number(categoryId),
         categoryName,
         subCategory: normalizedSubCategory,
         price: Number(basePrice),
-        description: description.trim(),
+        description: description.trim() || null,
         status: mapVisibilityToStatus(visibility),
         imageUrl: imageData.secure_url,
         imagePublicId: imageData.public_id,
@@ -418,7 +414,7 @@ export default function EditMenuItemPage() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Description (Optional)</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}

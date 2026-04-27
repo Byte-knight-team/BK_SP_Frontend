@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, Bell, HelpCircle, Settings, ArrowLeft, CheckCircle2, CircleDot
+  Search, Bell, HelpCircle, Settings, ArrowLeft, CircleDot
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CloudinaryImageUpload from '../../components/admin/CloudinaryImageUpload';
@@ -23,17 +23,6 @@ const normalizeSubCategory = (value) => {
     .join(' ');
 };
 
-const mapVisibilityToStatus = (visibility) => {
-  switch (visibility) {
-    case 'Available':
-      return 'AVAILABLE';
-    case 'Unavailable':
-      return 'UNAVAILABLE';
-    default:
-      return 'AVAILABLE';
-  }
-};
-
 // Admin page for adding a new menu item and its metadata.
 export default function AddMenuItemPage() {
   const navigate = useNavigate();
@@ -46,7 +35,6 @@ export default function AddMenuItemPage() {
   const [basePrice, setBasePrice] = useState('0');
   const [preparationTime, setPreparationTime] = useState('');
   const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState('Available');
   const [imageData, setImageData] = useState(null);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [subCategoryOptions, setSubCategoryOptions] = useState([]);
@@ -55,11 +43,6 @@ export default function AddMenuItemPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
-
-  const visibilityOptions = [
-    { label: 'Available', color: 'text-orange-500' },
-    { label: 'Unavailable', color: 'text-gray-700' },
-  ];
 
   const subCategorySuggestions = useMemo(() => {
     const normalized = subCategory.trim().toLowerCase();
@@ -170,10 +153,6 @@ export default function AddMenuItemPage() {
       nextErrors.preparationTime = 'Preparation time must be greater than 0.';
     }
 
-    if (description.trim().length < 10) {
-      nextErrors.description = 'Description must be at least 10 characters.';
-    }
-
     if (!imageData?.secure_url || !imageData?.public_id) {
       nextErrors.image = 'Please upload an item image.';
     }
@@ -199,8 +178,8 @@ export default function AddMenuItemPage() {
         subCategory: normalizedSubCategory,
         price: Number(basePrice),
         preparationTime: Number(preparationTime),
-        description: description.trim(),
-        isAvailable: visibility === 'Available',
+        description: description.trim() || null,
+        isAvailable: true,
         imageUrl: imageData.secure_url,
       });
 
@@ -230,7 +209,7 @@ export default function AddMenuItemPage() {
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Add New Menu Item</h1>
-                <p className="text-gray-500 text-sm mt-1">Configure item details, variants, and availability</p>
+                <p className="text-gray-500 text-sm mt-1">Configure item details and preparation metadata</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -371,7 +350,7 @@ export default function AddMenuItemPage() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Description (Optional)</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -394,28 +373,6 @@ export default function AddMenuItemPage() {
                   className="w-full"
                 />
                 {errors.image && <p className="mt-1 text-xs text-red-600">{errors.image}</p>}
-              </div>
-
-              {/* Visibility */}
-              <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm p-6">
-                <h2 className="text-base font-bold text-gray-900 mb-4">Visibility</h2>
-                <div className="flex flex-col gap-1">
-                  {visibilityOptions.map((option) => (
-                    <button
-                      key={option.label}
-                      onClick={() => setVisibility(option.label)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${visibility === option.label
-                        ? 'bg-orange-50 text-orange-500 border border-orange-200'
-                        : 'text-gray-600 hover:bg-gray-50 border border-transparent'
-                        }`}
-                    >
-                      <span>{option.label}</span>
-                      {visibility === option.label && (
-                        <CheckCircle2 size={18} className="text-orange-500" />
-                      )}
-                    </button>
-                  ))}
-                </div>
               </div>
 
             </div>
