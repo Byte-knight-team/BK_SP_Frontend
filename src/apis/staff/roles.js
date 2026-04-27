@@ -27,7 +27,7 @@ async function handleResponse(response, fallbackErrorMessage) {
     responseData = await response.text();
   }
 
-  // If backend returns an error status, show a readable message.
+  // If backend returns an error status, show a readable message in the UI.
   if (!response.ok) {
     const errorMessage =
       responseData?.message ||
@@ -48,7 +48,7 @@ async function handleResponse(response, fallbackErrorMessage) {
  *
  * Loads all roles.
  *
- * Backend now returns:
+ * Backend returns:
  * - id
  * - name
  * - description
@@ -78,6 +78,35 @@ export async function getRoleByIdAPI(id) {
 }
 
 /**
+ * POST /api/admin/roles
+ *
+ * Creates a new custom role.
+ *
+ * Important:
+ * - Only SUPER_ADMIN should call this.
+ * - This only creates the role.
+ * - Permissions are assigned later using the existing checkbox area.
+ *
+ * Example body:
+ * {
+ *   "name": "WAITER",
+ *   "description": "Handles table service and customer assistance",
+ *   "baseSalary": 45000
+ * }
+ */
+export async function createRoleAPI(roleData) {
+  const response = await authFetch(`${ADMIN_API_BASE_URL}/roles`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(roleData),
+  });
+
+  return handleResponse(response, "Failed to create role.");
+}
+
+/**
  * PUT /api/admin/roles/{id}
  *
  * Updates role details.
@@ -101,6 +130,24 @@ export async function updateRoleAPI(id, roleData) {
   });
 
   return handleResponse(response, "Failed to update role.");
+}
+
+/**
+ * DELETE /api/admin/roles/{id}
+ *
+ * Deletes a custom role.
+ *
+ * Important:
+ * - Backend should block core roles.
+ * - Backend should block roles already assigned to users.
+ * - Frontend also blocks obvious cases before sending the request.
+ */
+export async function deleteRoleAPI(id) {
+  const response = await authFetch(`${ADMIN_API_BASE_URL}/roles/${id}`, {
+    method: "DELETE",
+  });
+
+  return handleResponse(response, "Failed to delete role.");
 }
 
 /**
@@ -137,16 +184,13 @@ export async function getPrivilegesAPI() {
  *
  * Replaces permissions assigned to a role.
  *
- * Note:
- * Your backend controller earlier accepted a direct Set<String>.
- * If your current backend expects direct array, this body should be:
- * JSON.stringify(permissionNames)
+ * Your current backend accepts a direct Set<String>,
+ * so this sends a direct JSON array:
  *
- * If your current backend expects:
- * { "permissionNames": [...] }
- * then keep the object version.
- *
- * Since your RBAC page was already working, keep this as your current frontend expects.
+ * [
+ *   "VIEW_ORDERS",
+ *   "MANAGE_ORDERS"
+ * ]
  */
 export async function updateRolePermissionsAPI(id, permissionNames) {
   const response = await authFetch(
@@ -156,12 +200,6 @@ export async function updateRolePermissionsAPI(id, permissionNames) {
       headers: {
         "Content-Type": "application/json",
       },
-
-      // Backend expects a direct JSON array:
-      // [
-      //   "VIEW_ORDERS",
-      //   "MANAGE_ORDERS"
-      // ]
       body: JSON.stringify(permissionNames),
     }
   );

@@ -18,7 +18,7 @@ export default function ManagerSidebar() {
       branchName={user?.branchName || "Assigned Branch"}
       userName={user?.fullName || user?.username || user?.email || "Manager"}
       roleLabel={user?.roleName || "MANAGER"}
-      profilePath="/staff/profile"
+      profilePath="/manager/profile"
       onLogout={handleLogout}
     />
   );
