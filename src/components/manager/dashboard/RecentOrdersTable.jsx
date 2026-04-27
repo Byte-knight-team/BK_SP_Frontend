@@ -1,17 +1,35 @@
+import { useState, useMemo, useRef } from 'react'
 import Badge from '../ui/Badge'
-import { Link } from 'react-router-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-export default function RecentOrdersTable({ orders }) {
+export default function RecentOrdersTable({ orders = [] }) {
+  const [currentPage, setCurrentPage] = useState(0)
+  const tableRef = useRef(null)
+  const PAGE_SIZE = 10
+
+  const displayedOrders = useMemo(() => {
+    if (currentPage === 0) {
+      return (orders || []).slice(0, 5)
+    }
+    const start = (currentPage - 1) * PAGE_SIZE
+    const end = currentPage * PAGE_SIZE
+    return (orders || []).slice(start, end)
+  }, [orders, currentPage])
+
+  const handleViewMore = () => {
+    setCurrentPage(1)
+    setTimeout(() => {
+      tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
   return (
-    <div className="card">
+    <div className="card" ref={tableRef}>
       <div className="mb-5 flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
-        <Link
-          to="/orders"
-          className="text-brand flex items-center gap-1 text-base font-medium hover:underline"
-        >
-          View All →
-        </Link>
+        <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
+          {orders.length}
+        </span>
       </div>
       <table className="w-full text-base">
         <thead>
@@ -24,7 +42,7 @@ export default function RecentOrdersTable({ orders }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {(orders || []).map((order) => (
+          {displayedOrders.map((order) => (
             <tr key={order.id} className="transition-colors hover:bg-gray-50">
               <td className="py-4 font-medium text-gray-800">{order.id}</td>
               <td className="py-4 text-sm tracking-wide text-gray-500 uppercase">
@@ -41,8 +59,53 @@ export default function RecentOrdersTable({ orders }) {
               </td>
             </tr>
           ))}
+          {displayedOrders.length === 0 && (
+            <tr>
+              <td colSpan={5} className="py-8 text-center text-sm text-gray-400">
+                No recent orders found.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
+
+      {/* Pagination Footer */}
+      <div className="mt-6 flex items-center justify-center border-t border-gray-50 pt-5">
+        {currentPage === 0 ? (
+          orders.length > 5 && (
+            <button
+              onClick={handleViewMore}
+              className="text-sm text-brand font-bold hover:underline inline-flex items-center gap-1 transition-all"
+            >
+              View all
+            </button>
+          )
+        ) : (
+          <div className="flex items-center gap-4">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </button>
+
+            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-md">
+              Page {currentPage}
+            </span>
+
+            <button
+              disabled={currentPage * PAGE_SIZE >= orders.length}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
