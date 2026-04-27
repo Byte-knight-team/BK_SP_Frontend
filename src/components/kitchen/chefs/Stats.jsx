@@ -29,12 +29,6 @@ const formatStatCardDetails = (apiData) => {
       icon: <Users color="#A855F7" size={40} />,
       iconBgColor: "bg-purple-50",
     },
-    {
-      title: "Total Meal Served",
-      value: apiData.totalMealServed || 0,
-      icon: <CookingPot color="#A855F7" size={40} />,
-      iconBgColor: "bg-purple-50",
-    },
   ];
 };
 
