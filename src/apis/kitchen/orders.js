@@ -59,4 +59,24 @@ export const assignChefToMealAPI = async (itemId, chefStaffId) => {
   }
 };
 
+// Put an order on hold by sending the reason
+export const holdOrderAPI = async (orderId, holdReason) => {
+  try {
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/orders/${orderId}/hold`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holdReason: holdReason }),
+      }
+    );
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    console.error(`Error holding order #${orderId}:`, error);
+    return { data: null, error: error };
+  }
+};
+
+
 
