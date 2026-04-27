@@ -88,17 +88,6 @@ export default function CheckoutPage() {
   const isPickup = orderType === 'ONLINE_PICKUP';
   const authToken = localStorage.getItem('customer_jwt');
 
-  //AUTH GUARD: Bounce doen't logged users immediately
-  useEffect(() => {
-    if (!authToken) {
-      if (isQrCustomer) {
-        navigate('/signup/qr?redirect=/checkout', { replace: true });
-      } else {
-        navigate('/login?redirect=/checkout', { replace: true });
-      }
-    }
-  }, [authToken, isQrCustomer, navigate]);
-
   //Auto-fill customer details
   useEffect(() => {
     const loadProfile = async () => {
