@@ -18,7 +18,7 @@ export default function DeliverySidebar() {
       branchName={user?.branchName || "Assigned Branch"}
       userName={user?.fullName || user?.username || user?.email || "Delivery Staff"}
       roleLabel={user?.roleName || "DELIVERY"}
-      profilePath="/staff/profile"
+      profilePath="/delivery/profile"
       onLogout={handleLogout}
     />
   );

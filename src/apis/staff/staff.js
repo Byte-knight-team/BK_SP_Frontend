@@ -37,16 +37,32 @@ export const createStaffAPI = async (staffData) => {
     });
 
     const result = await response.json();
+    const body = result?.data || result;
 
     if (!response.ok) {
       return {
         data: null,
-        error: result?.message || "Failed to create staff",
+        error:
+          result?.message ||
+          body?.message ||
+          "Failed to create staff",
+      };
+    }
+
+    /*
+      Defensive fallback:
+      If backend accidentally returns 200 OK with only a message
+      and no created staff ID, treat it as an error.
+    */
+    if (body?.message && !body?.id && !body?.userId) {
+      return {
+        data: null,
+        error: body.message,
       };
     }
 
     return {
-      data: result?.data || result,
+      data: body,
       error: null,
     };
   } catch (error) {

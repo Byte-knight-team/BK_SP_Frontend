@@ -57,10 +57,10 @@ export const getInventoryAlertsAPI = async () => {
 };
 
 //get orders by status
-export const getOrdersAPI = async (orderStatus) => {
+export const getOrderCardsAPI = async (orderStatus) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/orders?status=${orderStatus}`,
+      `http://localhost:8080/api/v1/kitchen/order-cards?status=${orderStatus}`,
     );
     const result = await response.json();
     return { data: result.data, error: null };

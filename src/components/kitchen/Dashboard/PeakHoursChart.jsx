@@ -1,18 +1,6 @@
-import React from "react";
 import { BarChart } from "../BarChart";
 import { getPeakHoursAPI } from "../../../apis/kitchen/dashboard";
 import { useState, useEffect } from "react";
-
-// Dataset for the hourly performance bar chart. Represents the number of meals prepared during specific time shifts
-// const graphData = [
-//   { time: "8AM-10AM", mealsCount: 90 },
-//   { time: "10AM-12PM", mealsCount: 50 },
-//   { time: "12PM-2PM", mealsCount: 20 },
-//   { time: "2PM-4PM", mealsCount: 10 },
-//   { time: "4PM-6PM", mealsCount: 100 },
-//   { time: "6PM-8PM", mealsCount: 50 },
-//   { time: "8PM-10PM", mealsCount: 10 },
-// ];
 
 const PeakHoursChart = () => {
       const [graphData, setGraphData] = useState([]);
@@ -31,8 +19,6 @@ const PeakHoursChart = () => {
           }
           //handle success
           if (data) {
-            //const formattedData = formatOrdersDetails(data);
-            //setPendingOrdersDetails(formattedData);
             setGraphData(data);
           }
           //disable loading
@@ -42,9 +28,40 @@ const PeakHoursChart = () => {
         fetchGraphData();
       }, []);
     
-      if (loading) {
-        return <div>Loading...</div>;
-      }
+        if (loading) {
+          return (
+            <div className="flex flex-col gap-6">
+              {/* Header Skeleton */}
+              <div className="flex items-center justify-between">
+                <div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
+                <div className="h-4 w-20 animate-pulse rounded bg-gray-50" />
+              </div>
+
+              {/* Bar Chart Skeleton */}
+              <div className="flex h-[200px] items-end justify-between gap-3 px-2">
+                {/* create 7 bars with random heights */}
+                {[60, 40, 85, 50, 70, 30, 90].map((height, i) => (
+                  <div
+                    key={i}
+                    style={{ height: `${height}%` }}
+                    className="w-full animate-pulse rounded-t-lg bg-gray-100/80"
+                  />
+                ))}
+              </div>
+
+              {/* X-Axis labels skeleton */}
+              <div className="flex justify-between px-1">
+                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <div
+                    key={i}
+                    className="h-2 w-8 animate-pulse rounded bg-gray-50"
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        }
+
   return (
     <>
       <div className="flex items-center justify-between">
