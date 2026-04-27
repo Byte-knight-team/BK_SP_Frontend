@@ -12,6 +12,8 @@ import {
     deactivateBranchAPI,
 } from "../../apis/staff/branches";
 
+import { useAuth } from "../../context/AuthContext";
+
 export default function BranchListPage() {
     /*
         useLocation is used to read messages sent from another page.
@@ -51,14 +53,14 @@ export default function BranchListPage() {
     const [successMessage, setSuccessMessage] = useState("");
 
     /*
-        Read the logged-in user from localStorage.
+        Read logged-in user from AuthContext.
 
-        Your login system stores authUser in localStorage.
-        Some parts may use roleName, some may use role.
-        So this supports both.
+        AuthContext now gets user data from the decoded JWT token.
+        We no longer read authUser from localStorage.
     */
-    const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
-    const loggedInRole = authUser.roleName || authUser.role || "";
+    const { user } = useAuth();
+
+    const loggedInRole = user?.roleName || user?.role || "";
 
     /*
         Branch Management should only be available to SUPER_ADMIN.
@@ -392,11 +394,10 @@ export default function BranchListPage() {
                                             {/* Active / inactive badge */}
                                             <td className="px-6 py-4">
                                                 <span
-                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                                                        active
-                                                            ? "bg-green-50 text-green-700"
-                                                            : "bg-gray-100 text-gray-500"
-                                                    }`}
+                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${active
+                                                        ? "bg-green-50 text-green-700"
+                                                        : "bg-gray-100 text-gray-500"
+                                                        }`}
                                                 >
                                                     {active ? "Active" : "Inactive"}
                                                 </span>
@@ -426,11 +427,10 @@ export default function BranchListPage() {
                                                         type="button"
                                                         disabled={isActionLoading}
                                                         onClick={() => handleToggleStatus(branch)}
-                                                        className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${
-                                                            active
-                                                                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                                                : "bg-green-50 text-green-700 hover:bg-green-100"
-                                                        }`}
+                                                        className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${active
+                                                            ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                                            : "bg-green-50 text-green-700 hover:bg-green-100"
+                                                            }`}
                                                     >
                                                         {active ? "Deactivate" : "Activate"}
                                                     </button>
