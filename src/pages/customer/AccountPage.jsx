@@ -4,6 +4,7 @@ import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loade
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
 import { useCart } from '../../context/CartContext';
+import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile } from '../../apis/customer/profile';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -34,9 +35,7 @@ export default function AccountPage() {
       }
 
       try {
-        const res = await fetch(`${API_BASE}/api/v1/customer/profile`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await getCustomerProfile();
         
         const payload = await res.json().catch(() => ({}));
         
@@ -86,17 +85,10 @@ export default function AccountPage() {
     const token = localStorage.getItem('customer_jwt');
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/customer/profile`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          phone: formData.phone,
-          address: formData.address
-        })
+      const res = await updateCustomerProfile({
+        username: formData.username,
+        phone: formData.phone,
+        address: formData.address,
       });
 
       const payload = await res.json().catch(() => ({}));
@@ -132,16 +124,9 @@ export default function AccountPage() {
     const token = localStorage.getItem('customer_jwt');
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/customer/profile/password`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
+      const res = await updateCustomerPassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
       });
 
       const payload = await res.json().catch(() => ({}));
