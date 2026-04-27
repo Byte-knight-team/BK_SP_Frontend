@@ -4,7 +4,12 @@ import MealTable from "./MealTable";
 import { AlertCircle } from "lucide-react";
 import AssignChefModal from "./AssignChefModal";
 import HoldOrderModal from "./HoldOrderModal";
-import { getOrderDetailsAPI,assignChefToMealAPI,holdOrderAPI } from "../../../apis/kitchen/orders";
+import {
+  getOrderDetailsAPI,
+  assignChefToMealAPI,
+  holdOrderAPI,
+  startMealAPI,
+} from "../../../apis/kitchen/orders";
 
 const statusLabels = {
   PENDING: "Placed on",
@@ -20,7 +25,7 @@ const statusColors = {
   ON_HOLD: "bg-red-50 text-red-600",
 };
 
-const SelectedOrder = ({ orderId,setActiveTab }) => {
+const SelectedOrder = ({ orderId, setActiveTab }) => {
   const [order, setOrder] = useState(null); // Stores the fully formatted order data
   const [loading, setLoading] = useState(false); // Controls the loading state UI
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls the Chef Modal visibility
@@ -84,18 +89,47 @@ const SelectedOrder = ({ orderId,setActiveTab }) => {
   // calls the Hold API and then calls fetchOrderDetails(false) to update silently.
   const handleHoldOrder = async (reason) => {
     const { error } = await holdOrderAPI(orderId, reason);
-    
+
     if (!error) {
       alert("Order put on hold successfully.");
       setIsHoldModalOpen(false); // Close the modal
       fetchOrderDetails(false); // This is the background fetch! (No loading screen)
       // Switch to On Hold tab (Tab ID is 4)
-      setActiveTab(4); 
+      setActiveTab(4);
     } else {
       alert("Failed to hold order. Please try again.");
     }
   };
 
+  // Function to start a meal and move the order to the Preparing tab
+  const handleStartMeal = async (mealId) => {
+    const { error } = await startMealAPI(mealId);
+
+    if (!error) {
+      // Silent Refresh to show the new status in the table
+      fetchOrderDetails(false);
+
+      // Automatically switch the sidebar to the "Preparing" tab (Tab ID #2)
+      setActiveTab(2);
+    } else {
+      alert("Failed to start meal. Please check if chef is available.");
+    }
+  };
+
+    const handleCompleteMeal = (mealId) => {
+    // 1. API Call to Backend
+    //const { error } = await completeMealAPI(mealId);
+    // 2. Handle Error
+    // if (error) {
+    //   alert("Failed to complete meal");
+    //   return;
+    // }
+    // 3. Refresh the UI (Fetch Data Again)
+    //fetchOrderDetails(false); // False = Don't show loading spinner (keep it smooth)
+
+    // Optional: 4. Auto-switch to "Completed" Tab (Tab ID #3) if you want
+    // setActiveTab(3);
+  };
 
   // State Management: If data is loading, show animation
   if (loading)
@@ -116,18 +150,6 @@ const SelectedOrder = ({ orderId,setActiveTab }) => {
       </div>
     );
 
-  // Placeholder functions for future API implementations
-  // const confirmAssignment = (chefName) => {
-  //   console.log(`Assigning ${chefName} to ${targetMeal?.name}`);
-  // };
-
-  const handleStartMeal = (mealId) => {
-    console.log(`API Call: Starting Meal ${mealId}`);
-  };
-
-  const handleCompleteMeal = (mealId) => {
-    console.log(`API Call: Completing Meal ${mealId}`);
-  };
 
 
   return (
