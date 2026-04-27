@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Shield, ChevronDown, ChevronUp, Save, Check } from 'lucide-react';
 
+// Admin page for creating a new staff user profile.
 export default function AddNewUserPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({

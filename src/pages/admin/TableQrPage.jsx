@@ -9,6 +9,7 @@ import {
   regenerateQrCodeAPI, revokeQrCodeAPI, downloadQrCodeAPI 
 } from '../../apis/admin/table';
 
+// Admin page for table-specific QR generation and lifecycle controls.
 export default function TableQrPage() {
   const { tableId } = useParams();
   const navigate = useNavigate();

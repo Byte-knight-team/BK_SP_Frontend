@@ -29,6 +29,7 @@ const createCouponCode = (length = 10) => {
   return nextCode;
 };
 
+// Admin page for creating and configuring coupon campaigns.
 export default function CouponsPage() {
   const [formData, setFormData] = useState(initialFormState);
 

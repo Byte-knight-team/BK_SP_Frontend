@@ -44,6 +44,7 @@ const mapStatusToVisibility = (status) => {
   }
 };
 
+// Admin page for updating an existing menu item.
 export default function EditMenuItemPage() {
   const navigate = useNavigate();
   const { id: itemId } = useParams();
