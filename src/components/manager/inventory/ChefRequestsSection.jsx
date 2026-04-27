@@ -59,7 +59,7 @@ function ChefRequestCard({ request, onViewRequest }) {
   )
 }
 
-export default function ChefRequestsSection({ requests = [], scrollRef }) {
+export default function ChefRequestsSection({ requests = [], scrollRef, resolveChefRequest }) {
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [expanded, setExpanded] = useState(false)
   const safeRequests = requests || []
@@ -121,6 +121,7 @@ export default function ChefRequestsSection({ requests = [], scrollRef }) {
       <ResolveChefRequestModal 
         request={selectedRequest}
         onClose={() => setSelectedRequest(null)}
+        resolveChefRequest={resolveChefRequest}
       />
     </div>
   )
