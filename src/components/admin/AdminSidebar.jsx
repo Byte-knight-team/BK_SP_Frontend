@@ -15,10 +15,10 @@ export default function AdminSidebar() {
   return (
     <AppSidebar
       navItems={adminNav}
-      branchName={user?.branchName || "Assigned Branch"}
-      userName={user?.fullName || user?.username || user?.email || "Admin"}
+      branchName={user?.branchName || "Admin Access"}
+      userName={user?.username || user?.email || "Admin"}
       roleLabel={user?.roleName || "ADMIN"}
-      profilePath="/staff/profile"
+      profilePath="/admin-panel/profile"
       onLogout={handleLogout}
     />
   );
