@@ -4,7 +4,7 @@
 // authFetch automatically attaches Authorization: Bearer <token>.
 import { authFetch } from "../apiHelper";
 
-// All RBAC endpoints should now use /api/admin.
+// All RBAC endpoints use /api/admin.
 const ADMIN_API_BASE_URL = "http://localhost:8080/api/admin";
 
 /**
@@ -27,7 +27,7 @@ async function handleResponse(response, fallbackErrorMessage) {
     responseData = await response.text();
   }
 
-  // If backend returns an error status, show a readable message.
+  // If backend returns an error status, show a readable message in the UI.
   if (!response.ok) {
     const errorMessage =
       responseData?.message ||
@@ -47,6 +47,14 @@ async function handleResponse(response, fallbackErrorMessage) {
  * GET /api/admin/roles
  *
  * Loads all roles.
+ *
+ * Backend returns:
+ * - id
+ * - name
+ * - description
+ * - permissionCount
+ * - activeUserCount
+ * - baseSalary
  */
 export async function getRolesAPI() {
   const response = await authFetch(`${ADMIN_API_BASE_URL}/roles`, {
@@ -70,6 +78,79 @@ export async function getRoleByIdAPI(id) {
 }
 
 /**
+ * POST /api/admin/roles
+ *
+ * Creates a new custom role.
+ *
+ * Important:
+ * - Only SUPER_ADMIN should call this.
+ * - This only creates the role.
+ * - Permissions are assigned later using the existing checkbox area.
+ *
+ * Example body:
+ * {
+ *   "name": "WAITER",
+ *   "description": "Handles table service and customer assistance",
+ *   "baseSalary": 45000
+ * }
+ */
+export async function createRoleAPI(roleData) {
+  const response = await authFetch(`${ADMIN_API_BASE_URL}/roles`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(roleData),
+  });
+
+  return handleResponse(response, "Failed to create role.");
+}
+
+/**
+ * PUT /api/admin/roles/{id}
+ *
+ * Updates role details.
+ *
+ * For salary feature, we mainly use:
+ * {
+ *   "baseSalary": 60000
+ * }
+ *
+ * Important:
+ * Updating role baseSalary does NOT automatically update old staff salaries.
+ * It is used as the default salary for newly created staff.
+ */
+export async function updateRoleAPI(id, roleData) {
+  const response = await authFetch(`${ADMIN_API_BASE_URL}/roles/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(roleData),
+  });
+
+  return handleResponse(response, "Failed to update role.");
+}
+
+/**
+ * DELETE /api/admin/roles/{id}
+ *
+ * Deletes a custom role.
+ *
+ * Important:
+ * - Backend should block core roles.
+ * - Backend should block roles already assigned to users.
+ * - Frontend also blocks obvious cases before sending the request.
+ */
+export async function deleteRoleAPI(id) {
+  const response = await authFetch(`${ADMIN_API_BASE_URL}/roles/${id}`, {
+    method: "DELETE",
+  });
+
+  return handleResponse(response, "Failed to delete role.");
+}
+
+/**
  * GET /api/admin/roles/{id}/permissions
  *
  * Loads permissions assigned to one role.
@@ -89,9 +170,6 @@ export async function getRolePermissionsAPI(id) {
  * GET /api/admin/privileges
  *
  * Loads all privileges in the system.
- *
- * This was previously /api/privileges,
- * but now we are changing it to /api/admin/privileges.
  */
 export async function getPrivilegesAPI() {
   const response = await authFetch(`${ADMIN_API_BASE_URL}/privileges`, {
@@ -106,29 +184,23 @@ export async function getPrivilegesAPI() {
  *
  * Replaces permissions assigned to a role.
  *
- * Backend expects:
- * {
- *   permissionNames: [
- *     "CREATE_STAFF",
- *     "VIEW_BRANCH"
- *   ]
- * }
+ * Your current backend accepts a direct Set<String>,
+ * so this sends a direct JSON array:
+ *
+ * [
+ *   "VIEW_ORDERS",
+ *   "MANAGE_ORDERS"
+ * ]
  */
 export async function updateRolePermissionsAPI(id, permissionNames) {
   const response = await authFetch(
     `${ADMIN_API_BASE_URL}/roles/${id}/permissions`,
     {
       method: "PUT",
-
-      // Tell backend that request body is JSON.
       headers: {
         "Content-Type": "application/json",
       },
-
-      // Send selected privilege names to backend.
-      body: JSON.stringify({
-        permissionNames,
-      }),
+      body: JSON.stringify(permissionNames),
     }
   );
 
@@ -137,39 +209,28 @@ export async function updateRolePermissionsAPI(id, permissionNames) {
 
 /**
  * Converts role permission response into a clean string array.
- *
- * Current backend response:
- * [
- *   "CREATE_STAFF",
- *   "VIEW_BRANCH"
- * ]
  */
 export function normalizePermissionNames(permissionResponse) {
   if (!permissionResponse) {
     return [];
   }
 
-  // Current case: backend returns direct array.
   if (Array.isArray(permissionResponse)) {
     return permissionResponse
       .map((item) => {
-        // If item is already a string, return it.
         if (typeof item === "string") {
           return item;
         }
 
-        // Future-safe support if backend later returns objects.
         return item.name || item.privilegeName || item.permissionName || "";
       })
       .filter(Boolean);
   }
 
-  // Future-safe support for { permissions: [...] }.
   if (Array.isArray(permissionResponse.permissions)) {
     return normalizePermissionNames(permissionResponse.permissions);
   }
 
-  // Future-safe support for { permissionNames: [...] }.
   if (Array.isArray(permissionResponse.permissionNames)) {
     return normalizePermissionNames(permissionResponse.permissionNames);
   }
@@ -179,29 +240,18 @@ export function normalizePermissionNames(permissionResponse) {
 
 /**
  * Converts privileges response into frontend-friendly objects.
- *
- * Current backend response:
- * [
- *   {
- *     id: 1,
- *     name: "CREATE_STAFF",
- *     description: null
- *   }
- * ]
  */
 export function normalizePrivileges(privilegeResponse) {
   if (!privilegeResponse) {
     return [];
   }
 
-  // Support direct array or wrapped object response.
   const privilegesArray = Array.isArray(privilegeResponse)
     ? privilegeResponse
     : privilegeResponse.privileges || privilegeResponse.permissionNames || [];
 
   return privilegesArray
     .map((item, index) => {
-      // If backend returns privilege as a string.
       if (typeof item === "string") {
         return {
           id: item,
@@ -211,7 +261,6 @@ export function normalizePrivileges(privilegeResponse) {
         };
       }
 
-      // If backend returns privilege as an object.
       return {
         id: item.id ?? item.name ?? item.privilegeName ?? index,
         name: item.name || item.privilegeName || item.permissionName || "",

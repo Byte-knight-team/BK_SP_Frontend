@@ -4,7 +4,8 @@ import { getDashboardPopularMealsAPI } from "../../../apis/kitchen/dashboard";
 
 const BAR_COLORS = ["#4CAF50", "#4F83FF", "#E64919", "#A855F7", "#FF9800"];
 
-const formatPopularMealsDetails = (apiData) => { //to convert the data from the API to the format required by the component
+const formatPopularMealsDetails = (apiData) => { 
+  //convert the data from the API to the format required by the component
   return apiData.map((meal, index) => ({
     mealName: meal.mealName,
     percentage: meal.percentage,
@@ -40,9 +41,25 @@ const MostPopularMeals = () => {
     fetchPopularMealsDetails();
   }, []);
 
+  // When loading show five skeleton components
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="mt-6 flex flex-col gap-6">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="space-y-2">
+            <div className="flex justify-between">
+              <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
+              <div className="h-4 w-10 animate-pulse rounded bg-gray-100" />
+            </div>
+            <div className="h-3 w-full overflow-hidden rounded-full bg-gray-50">
+              <div className="h-full w-[70%] animate-pulse bg-gray-200" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
+
 
   return (
     <>

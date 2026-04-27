@@ -18,8 +18,8 @@ export default function AdminSidebar() {
       branchName={user?.branchName || "Admin Access"}
       userName={user?.username || user?.email || "Admin"}
       roleLabel={user?.roleName || "ADMIN"}
-      //profilePath="/staff/profile"
-      //onLogout={handleLogout}
+      profilePath="/admin/profile"
+      onLogout={handleLogout}
     />
   );
 }
