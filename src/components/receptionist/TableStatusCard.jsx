@@ -2,7 +2,6 @@ import React from "react";
 import { RiCheckboxCircleFill, RiProhibitedFill } from "@remixicon/react";
 
 const TableStatusCard = () => {
-  // මේක උදාහරණ දත්ත (Data)
   const freeTables = ["01", "04", "07", "09", "12"];
   const reservedTables = ["02", "03", "05", "08"];
   const occupiedTables = ["06", "10", "11"];
