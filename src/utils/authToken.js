@@ -108,7 +108,7 @@ export function getDashboardPathByRole(roleName) {
       return "/staff";
 
     case "ADMIN":
-      return "/admin-panel";
+      return "/admin";
 
     case "MANAGER":
       return "/manager";

@@ -127,16 +127,16 @@ export default function EditStaffPage() {
     /staff/staff/:id/edit
   
     ADMIN route:
-    /admin-panel/staff/:id/edit
+    /admin/staff/:id/edit
   */
-  const isAdminPanelRoute = location.pathname.startsWith("/admin-panel");
+  const isAdminPanelRoute = location.pathname.startsWith("/admin");
 
   const staffListPath = isAdminPanelRoute
-    ? "/admin-panel/staff"
+    ? "/admin/staff"
     : "/staff/staff";
 
   const staffDetailsPath = isAdminPanelRoute
-    ? `/admin-panel/staff/${id}`
+    ? `/admin/staff/${id}`
     : `/staff/staff/${id}`;
 
   /*

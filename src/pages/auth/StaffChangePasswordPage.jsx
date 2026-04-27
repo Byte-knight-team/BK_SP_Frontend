@@ -12,7 +12,7 @@ function getProfilePathByRole(roleName) {
       return "/staff/profile";
 
     case "ADMIN":
-      return "/admin-panel/profile";
+      return "/admin/profile";
 
     case "MANAGER":
       return "/manager/profile";
@@ -139,7 +139,7 @@ export default function ChangePasswordPage() {
   const submitLabel = isFirstTimeSetup ? "Set Password" : "Update Password";
 
   const roleName = user?.roleName || user?.role || "";
-const profilePath = location.state?.returnTo || getProfilePathByRole(roleName);
+  const profilePath = location.state?.returnTo || getProfilePathByRole(roleName);
 
   /*
     Close/back button logic.
