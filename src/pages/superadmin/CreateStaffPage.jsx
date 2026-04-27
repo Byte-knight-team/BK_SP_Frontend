@@ -382,6 +382,13 @@ export default function CreateStaffPage() {
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        /*
+    Final phone validation before calling backend.
+
+    Even though the input already allows only 10 digits,
+    we keep this validation to make sure the submitted value is exactly valid.
+    */
         const phoneRegex = /^\d{10}$/;
 
         if (!emailRegex.test(payload.email)) {
@@ -474,10 +481,43 @@ export default function CreateStaffPage() {
         const createdStaffRole = data?.roleName || payload.roleName;
         const createdStaffBranch = getCreatedStaffBranchName(payload, data);
 
+        /*
+        Build clear success message for StaffListPage.
+    
+        We show the created staff details in both success and email-failed scenarios.
+    
+        Why:
+        - Admin may create many staff users.
+        - If email fails, admin must know exactly which staff account the temporary
+          password belongs to.
+        - If email succeeds, we still show clear confirmation details.
+    */
+        /*
+        Build clear multi-line success message for StaffListPage.
+    
+        \n creates line breaks inside the string.
+        StaffListPage must use whitespace-pre-line to display those line breaks.
+    */
         const successMessage =
             data?.emailSent === true
-                ? `Staff member created successfully. Invite email has been sent to ${createdStaffEmail}. Staff: ${createdStaffName} (@${createdStaffUsername}), Role: ${createdStaffRole}, Branch: ${createdStaffBranch}.`
-                : `Staff member created successfully, but invite email failed. Staff: ${createdStaffName} (@${createdStaffUsername}), Email: ${createdStaffEmail}, Role: ${createdStaffRole}, Branch: ${createdStaffBranch}. Temporary password: ${data?.temporaryPassword || "Not returned"}`;
+                ? `Staff account created successfully.
+    Invite email sent successfully.
+    
+    Name: ${createdStaffName}
+    Username: @${createdStaffUsername}
+    Email: ${createdStaffEmail}
+    Role: ${createdStaffRole}
+    Branch: ${createdStaffBranch}`
+                : `Staff account created successfully, but invite email failed.
+    
+    Name: ${createdStaffName}
+    Username: @${createdStaffUsername}
+    Email: ${createdStaffEmail}
+    Role: ${createdStaffRole}
+    Branch: ${createdStaffBranch}
+    Temporary password: ${data?.temporaryPassword || "Not returned"}
+    
+    Please manually share this temporary password with the staff member.`;
 
         setLoading(false);
 
@@ -567,14 +607,21 @@ export default function CreateStaffPage() {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Phone
                             </label>
+
                             <input
                                 type="text"
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleChange}
                                 placeholder="0771234567"
+                                inputMode="numeric"
+                                maxLength={10}
                                 className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
                             />
+
+                            <p className="mt-1 text-xs text-gray-400">
+                                Phone number must be exactly 10 digits.
+                            </p>
                         </div>
 
                         {/* Role dropdown */}

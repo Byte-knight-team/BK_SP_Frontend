@@ -27,6 +27,7 @@ import DeliveryHeader from "./components/delivery/DeliveryHeader";
 // Common staff auth pages
 import StaffLoginPage from "./pages/auth/StaffLoginPage";
 import StaffChangePasswordPage from "./pages/auth/StaffChangePasswordPage";
+import ProfilePage from "./pages/ProfilePage";
 
 // Common protected route component
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -44,7 +45,6 @@ import EditBranchPage from "./pages/superadmin/EditBranchPage";
 import SystemConfigPage from "./pages/superadmin/SystemConfigPage";
 import AuditLogsPage from "./pages/superadmin/AuditLogsPage";
 import RolesPage from "./pages/superadmin/RolesPage";
-import ProfilePage from "./pages/superadmin/ProfilePage";
 import ComingSoonPage from "./pages/superadmin/ComingSoonPage";
 
 // Admin pages from other modules
@@ -233,6 +233,7 @@ export default function App() {
         <Route path="reports" element={<ComingSoonPage />} />
         <Route path="staff" element={<ComingSoonPage />} />
         <Route path="inventory" element={<ComingSoonPage />} />
+        <Route path="profile" element={<ProfilePage />} />
 
         <Route path="*" element={<Navigate to="/manager" replace />} />
       </Route>
@@ -250,6 +251,7 @@ export default function App() {
         <Route path="orders" element={<ComingSoonPage />} />
         <Route path="routes" element={<ComingSoonPage />} />
         <Route path="status" element={<ComingSoonPage />} />
+        <Route path="profile" element={<ProfilePage />} />
 
         <Route path="*" element={<Navigate to="/delivery" replace />} />
       </Route>
@@ -289,6 +291,7 @@ export default function App() {
         <Route path="menu" element={<MenuAndRecipesPage />} />
         <Route path="approvals" element={<ApprovalsPage />} />
         <Route path="settings" element={<KitchenSettingsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
 
         <Route path="*" element={<Navigate to="/kitchen" replace />} />
       </Route>
@@ -310,6 +313,7 @@ export default function App() {
         <Route path="orders" element={<ComingSoonPage />} />
         <Route path="tables" element={<ComingSoonPage />} />
         <Route path="settings" element={<ComingSoonPage />} />
+        <Route path="profile" element={<ProfilePage />} />
 
         <Route path="*" element={<Navigate to="/receptionist" replace />} />
       </Route>

@@ -18,7 +18,7 @@ export default function KitchenSidebar() {
       branchName={user?.branchName || "Assigned Branch"}
       userName={user?.fullName || user?.username || user?.email || "Chef"}
       roleLabel={user?.roleName || "CHEF"}
-      profilePath="/staff/profile"
+      profilePath="/kitchen/profile"
       onLogout={handleLogout}
     />
   );
