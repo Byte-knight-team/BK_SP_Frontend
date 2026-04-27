@@ -81,4 +81,17 @@ export const InventoryService = {
     const result = await response.json()
     return result.data || result
   },
+
+  // 8. Resolve Chef Request
+  resolveChefRequest: async (requestId, resolutionData) => {
+    const response = await authFetch(
+      `${BASE_URL}/inventory/chef-requests/${requestId}/resolve`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(resolutionData),
+      },
+    )
+    const result = await response.json()
+    return result.data || result
+  },
 }
