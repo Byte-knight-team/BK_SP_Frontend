@@ -2,39 +2,37 @@ import { useState, useMemo, useRef } from 'react'
 import {
   Search,
   SlidersHorizontal,
-  ChevronLeft,
-  ChevronRight,
   PlusCircle,
   Trash2,
   Pencil,
-  History,
-  Clock
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import clsx from 'clsx'
 
 /**
- * Configuration for the update types, including labels and styling.
+ * Configuration for update type badges to match the Status badges in the stock table.
  */
 const TYPE_CONFIG = {
   RESTOCK: {
     label: 'Restock',
     icon: PlusCircle,
-    className: 'bg-green-50 text-green-600 border-green-100',
+    className: 'bg-green-50 text-green-600',
   },
   WASTAGE: {
     label: 'Wastage',
     icon: Trash2,
-    className: 'bg-red-50 text-red-600 border-red-100',
+    className: 'bg-red-50 text-red-600',
   },
   CORRECTION: {
     label: 'Correction',
     icon: Pencil,
-    className: 'bg-amber-50 text-amber-600 border-amber-100',
+    className: 'bg-amber-50 text-amber-600',
   },
 }
 
 /**
- * Renders a stylized badge based on the update type.
+ * stylized badge component for update types.
  */
 function TypeBadge({ type }) {
   const config = TYPE_CONFIG[type] || TYPE_CONFIG.RESTOCK
@@ -42,18 +40,19 @@ function TypeBadge({ type }) {
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border',
+        'inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full',
         config.className,
       )}
     >
-      <Icon className="w-3 h-3" />
+      <Icon className="w-3.5 h-3.5" />
       {config.label}
     </span>
   )
 }
 
 /**
- * Component to display the history of inventory updates in a table format.
+ * Inventory Update Log Table component.
+ * Designed to be visually identical to the Current Stock table.
  */
 export default function InventoryUpdateLogTable({ logs = [] }) {
   const safeLogs = logs || []
@@ -64,10 +63,8 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
 
   const PAGE_SIZE = 8
 
-  // Derive unique types for filtering
   const types = ['All Types', 'RESTOCK', 'WASTAGE', 'CORRECTION']
 
-  // Filter logs based on search query and selected type
   const filteredLogs = useMemo(() => {
     return safeLogs.filter((log) => {
       const matchesSearch = (log.itemName || '')
@@ -79,8 +76,6 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
     })
   }, [logs, searchQuery, selectedType])
 
-  // Pagination Logic: Displays 5 items on the initial dashboard view, 
-  // and 8 per page in the expanded view.
   const displayedLogs = useMemo(() => {
     if (currentPage === 0) {
       return filteredLogs.slice(0, 5) 
@@ -101,40 +96,36 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
 
   return (
     <div className="card" ref={tableRef}>
-      {/* Header row with search and filters */}
+      {/* Header row - Matches CurrentStockTable */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-gray-200">
-            <History className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Inventory Update Log</h2>
-            <p className="text-xs text-gray-500 font-medium">History of recent stock movements</p>
-          </div>
-          <span className="ml-2 bg-gray-100 text-gray-600 text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200">
-            {logs.length} Total
+          <h2 className="text-xl font-bold text-gray-900">Inventory Update Log</h2>
+          <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
+            {logs.length}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 w-56 border border-transparent focus-within:border-gray-200 focus-within:bg-white transition-all">
+          {/* Search Bar */}
+          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 w-56">
             <Search className="w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by item..."
+              placeholder="Search item..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent text-sm text-gray-600 outline-none w-full placeholder-gray-400"
             />
           </div>
 
+          {/* Type Filter */}
           <div className="relative">
-            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors">
+            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer">
               <SlidersHorizontal className="w-4 h-4 text-gray-500" />
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="bg-transparent text-sm font-semibold text-gray-700 outline-none appearance-none cursor-pointer pr-4"
+                className="bg-transparent text-sm font-medium text-gray-700 outline-none appearance-none cursor-pointer pr-4"
               >
                 {types.map((type) => (
                   <option key={type} value={type}>
@@ -147,83 +138,79 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
         </div>
       </div>
 
-      {/* Table Structure */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
-              <th className="text-left pb-3 font-bold w-[25%]">Item Name</th>
-              <th className="text-left pb-3 font-bold w-[20%] pl-4">Updated At</th>
-              <th className="text-center pb-3 font-bold w-[15%]">Update Type</th>
-              <th className="text-left pb-3 font-bold w-[40%] pl-6">Update Note</th>
+      {/* Table - Matches CurrentStockTable structure */}
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
+            <th className="text-left pb-3 font-semibold w-[25%]">Item Name</th>
+            <th className="text-left pb-3 font-semibold w-[20%] pl-8">Updated At</th>
+            <th className="text-center pb-3 font-semibold w-[15%]">Update Type</th>
+            <th className="text-left pb-3 font-semibold w-[40%] pl-8">Update Note</th>
+          </tr>
+        </thead>
+        <tbody
+          key={currentPage}
+          className="divide-y divide-gray-50 animate-table-fade"
+        >
+          {displayedLogs.map((log, idx) => (
+            <tr key={`${log.itemName}-${idx}`} className="hover:bg-gray-50/50 transition-colors">
+              {/* Item Name + ID (Matches screenshot style) */}
+              <td className="py-4">
+                <p className="text-sm font-semibold text-gray-900">
+                  {log.itemName}
+                </p>
+                <p className="text-xs text-gray-400">Activity Log</p>
+              </td>
+
+              {/* Updated At */}
+              <td className="py-4 text-sm text-gray-700 pl-8">
+                {log.updatedAt}
+              </td>
+
+              {/* Update Type Badge */}
+              <td className="py-4 text-center">
+                <TypeBadge type={log.updateType} />
+              </td>
+
+              {/* Note */}
+              <td className="py-4 text-sm text-gray-700 pl-8">
+                <p className="line-clamp-1 italic">
+                  {log.notes || 'No notes provided'}
+                </p>
+              </td>
             </tr>
-          </thead>
-          <tbody
-            key={currentPage}
-            className="divide-y divide-gray-50 animate-table-fade"
-          >
-            {displayedLogs.map((log, idx) => (
-              <tr key={`${log.itemName}-${idx}`} className="hover:bg-gray-50/50 transition-colors group">
-                <td className="py-4">
-                  <p className="text-sm font-bold text-gray-900 group-hover:text-brand transition-colors">
-                    {log.itemName}
-                  </p>
-                </td>
+          ))}
 
-                <td className="py-4 pl-4">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Clock className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-sm font-medium">{log.updatedAt}</span>
-                  </div>
-                </td>
-
-                <td className="py-4 text-center">
-                  <TypeBadge type={log.updateType} />
-                </td>
-
-                <td className="py-4 pl-6">
-                  <p className="text-sm text-gray-600 line-clamp-1 italic font-medium">
-                    "{log.notes || 'No notes provided'}"
-                  </p>
-                </td>
+          {/* Static Height Padding rows */}
+          {emptyRowsCount > 0 &&
+            Array.from({ length: emptyRowsCount }).map((_, idx) => (
+              <tr key={`empty-${idx}`} className="h-[73px]">
+                <td colSpan={4}>&nbsp;</td>
               </tr>
             ))}
 
-            {/* Static Height Padding rows */}
-            {emptyRowsCount > 0 &&
-              Array.from({ length: emptyRowsCount }).map((_, idx) => (
-                <tr key={`empty-${idx}`} className="h-[73px]">
-                  <td colSpan={4}>&nbsp;</td>
-                </tr>
-              ))}
+          {displayedLogs.length === 0 && (
+            <tr>
+              <td
+                colSpan={4}
+                className="py-8 text-center text-sm text-gray-400"
+              >
+                No history matches your search.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
 
-            {displayedLogs.length === 0 && (
-              <tr>
-                <td
-                  colSpan={4}
-                  className="py-12 text-center"
-                >
-                  <div className="flex flex-col items-center gap-2 opacity-40 text-gray-400">
-                    <History className="w-8 h-8" />
-                    <p className="text-sm font-bold">No update logs found</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Table Pagination controls */}
+      {/* Pagination Footer - Matches CurrentStockTable style */}
       <div className="mt-6 flex items-center justify-center border-t border-gray-50 pt-5">
         {currentPage === 0 ? (
           filteredLogs.length > 5 && (
             <button
               onClick={handleViewMore}
-              className="px-6 py-2 rounded-full border-2 border-gray-100 text-sm text-gray-600 font-bold hover:bg-gray-50 hover:border-gray-200 transition-all flex items-center gap-2 group"
+              className="text-sm text-brand font-bold hover:underline inline-flex items-center gap-1 transition-all"
             >
-              View All History
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              View more
             </button>
           )
         ) : (
@@ -231,20 +218,20 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => prev - 1)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="w-4 h-4" />
               Previous
             </button>
 
-            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-4 py-2 rounded-lg border border-gray-200">
-              Page {currentPage} of {Math.ceil(filteredLogs.length / PAGE_SIZE)}
+            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-md">
+              Page {currentPage}
             </span>
 
             <button
               disabled={currentPage * PAGE_SIZE >= filteredLogs.length}
               onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Next
               <ChevronRight className="w-4 h-4" />
