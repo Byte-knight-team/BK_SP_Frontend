@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import { getQrSessionClaims } from '../../utils/authToken';
+import { verifyCustomerOtp } from '../../apis/customer/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -67,11 +68,7 @@ export default function OtpVerificationPage() {
       const qrClaims = qrSessionToken ? getQrSessionClaims(qrSessionToken) : null;
       const sessionId = qrClaims?.session_id || null;
       
-      const res = await fetch(`${API_BASE}/api/v1/auth/customer/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code, sessionId}),
-      });
+      const res = await verifyCustomerOtp({ phone, code, sessionId });
 
       const payload = await res.json().catch(() => ({}));
 

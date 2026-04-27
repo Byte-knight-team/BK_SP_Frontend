@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation} from 'react-router-dom';
 import { ArrowLeft, Mail, Lock} from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
-import { customerApiFetch } from '../../apis/apiHelper';
+import { loginCustomer } from '../../apis/customer/auth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -24,12 +24,9 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await customerApiFetch('/api/v1/auth/customer/login', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-        }),
+      const res = await loginCustomer({
+        email: email.trim(),
+        password,
       });
 
       const payload = await res.json().catch(() => ({}));
