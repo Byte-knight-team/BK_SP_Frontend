@@ -10,6 +10,7 @@ import {
   assignChefToMealAPI,
   holdOrderAPI,
   startMealAPI,
+  completeMealAPI,
 } from "../../../apis/kitchen/orders";
 
 const statusLabels = {
@@ -142,7 +143,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
       setIsActionModalOpen(false); // Close modal
       fetchOrderDetails(false); // Background refresh
       //if the backend returns the final order status as complete, then switch to the completed tab
-      if (data && data.status === "COMPLETED") {
+      if (data && data.orderStatus === "COMPLETED") {
         setActiveTab(3); // Switch to Completed tab (Tab ID is 3)
       }
     } else {
