@@ -3,16 +3,16 @@ import { DollarSign, ListOrdered, Truck, AlertTriangle } from 'lucide-react'
 
 export default function StatsGrid({ data }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
       <StatCard
-        icon={<DollarSign className="w-8 h-8 text-brand" />}
+        icon={<DollarSign className="text-brand h-8 w-8" />}
         iconBg="bg-brand-light"
-        label="Today's Revenue"
+        label="Today's Revenue So Far"
         value={`$ ${data.revenue.toLocaleString()}`}
         badge={{ text: '+12%', className: 'bg-green-50 text-green-600' }}
       />
       <StatCard
-        icon={<ListOrdered className="w-8 h-8 text-brand" />}
+        icon={<ListOrdered className="text-brand h-8 w-8" />}
         iconBg="bg-brand-light"
         label="Active Orders"
         value={data.activeOrders}
@@ -20,14 +20,14 @@ export default function StatsGrid({ data }) {
         subtitle="Pending & Cooking"
       />
       <StatCard
-        icon={<Truck className="w-8 h-8 text-brand" />}
+        icon={<Truck className="text-brand h-8 w-8" />}
         iconBg="bg-brand-light"
         label="Pending Deliveries"
         value={data.pendingDeliveries}
         subtitle="Waiting assignment"
       />
       <StatCard
-        icon={<AlertTriangle className="w-8 h-8 text-brand" />}
+        icon={<AlertTriangle className="text-brand h-8 w-8" />}
         iconBg="bg-brand-light"
         label="Low Stock Alerts"
         value={data.lowStockAlerts}
