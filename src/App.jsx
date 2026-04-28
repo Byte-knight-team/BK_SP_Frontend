@@ -1,6 +1,9 @@
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
