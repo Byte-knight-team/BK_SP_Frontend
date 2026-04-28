@@ -10,6 +10,15 @@ export const DeliveryService = {
     return response.json();
   },
 
+  getActiveOrder: async () => {
+    const response = await authFetch("/api/delivery/orders/active");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to fetch active order");
+    }
+    return response.json();
+  },
+
   acceptOrder: async (orderId) => {
     const response = await authFetch(`/api/delivery/orders/${orderId}/accept`, {
       method: "POST",
