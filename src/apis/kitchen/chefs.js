@@ -1,3 +1,5 @@
+import { authFetch } from "../../helpers/axios";
+
 const chefsStats = {
   totalChefs: 10,
   availableChefs: 5,
@@ -19,21 +21,25 @@ export const getChefsStatsAPI = async () => {
     return { data: null, error: error };
   }
 };
-// Get all chefs details
+
+
+// Get all chefs details for today (Real API call)
 export const getChefsAPI = async () => {
   try {
-    // TODO: uncomment this section once the API is ready
-    // const response = await fetch(
-    //   `https://mpc2e51a3b857d0cbb58.free.beeceptor.com/chefs`,
-    // );
-    // const data = await response.json();
-    // return {data, error: null};
-    return { data: dummyChefs, error: null };
+    const response = await authFetch(
+      "http://localhost:8080/api/v1/kitchen/chefs/today-details"
+    );
+    
+    const result = await response.json();
+    
+    // We return result.data because the backend wraps everything in a StandardResponse
+    return { data: result.data, error: null };
   } catch (error) {
-    console.error("Error fetching chefs:", error);
+    console.error("Error fetching chefs details:", error);
     return { data: null, error: error };
   }
 };
+
 
 // Get all available Line Chefs for the assign dropdown
 export const getAvailableChefsAPI = async () => {
