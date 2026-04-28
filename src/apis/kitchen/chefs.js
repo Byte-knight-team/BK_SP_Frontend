@@ -23,7 +23,7 @@ export const getChefsStatsAPI = async () => {
 };
 
 
-// Get all chefs details for today (Real API call)
+// Get all chefs details for today
 export const getChefsAPI = async () => {
   try {
     const response = await authFetch(

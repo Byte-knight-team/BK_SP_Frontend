@@ -38,10 +38,12 @@ const ChefDetailsTable = () => {
         {/* --- Table Header --- */}
         <thead className="bg-gray-50 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
           <tr>
-            <th className="px-6 py-4">Chef Name</th>
+            <th className="px-6 py-4 text-left">Chef Name</th>
+            <th className="px-6 py-4 text-center">Chef ID</th>
+            <th className="px-6 py-4 text-center">Clock In Time</th>
             <th className="px-6 py-4 text-center">Status</th>
-            <th className="px-6 py-4 text-center">Total Meals Assigned</th>
-            <th className="px-6 py-4 text-right">Avg Prep Time</th>
+            <th className="px-6 py-4 text-center">Meals Today</th>
+            <th className="px-6 py-4 text-right">Actions</th>
           </tr>
         </thead>
 
@@ -56,49 +58,42 @@ const ChefDetailsTable = () => {
                     <User size={20} />
                   </div>
                   <div>
-                    <p className="font-bold text-gray-800">{chef.name}</p>
+                    <p className="font-bold text-gray-800">{chef.fullName}</p>
                   </div>
                 </div>
+              </td>
+
+              {/* Chef ID */}
+              <td className="px-6 py-4 text-center font-bold text-gray-700">
+                {`#CH ${chef.staffId}`}
+              </td>
+
+              {/* Clock In Time */}
+              <td className="px-6 py-4 text-center font-bold text-gray-700">
+                {chef.clockInTime}
               </td>
 
               {/* Status Badge */}
               <td className="px-6 py-4 text-center">
-                <button
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${
-                    chef.status === 'Available'
-                      ? 'bg-green-50 text-green-600'
-                      : chef.status === 'Busy'
-                        ? 'bg-orange-50 text-orange-600'
-                        : 'bg-gray-100 text-gray-500'
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    chef.workStatus === 'AVAILABLE'
+                      ? 'bg-green-600'
+                      : chef.workStatus === 'COOKING'
+                        ? 'bg-orange-600'
+                        : chef.workStatus === 'ON_BREAK'
+                          ? 'bg-blue-600'
+                          : 'bg-gray-500' //for unavlible chefs
                   }`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      chef.status === 'Available'
-                        ? 'bg-green-600'
-                        : chef.status === 'Busy'
-                          ? 'bg-orange-600'
-                          : 'bg-gray-500'
-                    }`}
-                  ></span>
-                  {chef.status}
-                </button>
+                ></span>
+                {/* Format the text to look nice (e.g., "AVAILABLE" -> "Available") */}
+                {chef.workStatus === 'ON_BREAK' ? 'On Break' :
+                  chef.workStatus.charAt(0) + chef.workStatus.slice(1).toLowerCase()}
               </td>
 
-              {/* Meals Assigned */}
+              {/* Meals Today */}
               <td className="px-6 py-4 text-center font-bold text-gray-700">
-                {chef.mealsAssigned}
-              </td>
-
-              {/* Avg Prep Time with Trend */}
-              <td className="px-6 py-4 text-right">
-                <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-gray-700">
-                      {chef.avgPrepTime}
-                    </span>
-                  </div>
-                </div>
+                {chef.totalMealsToday}
               </td>
             </tr>
           ))}
