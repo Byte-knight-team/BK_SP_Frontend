@@ -9,6 +9,7 @@ export default function StatsGrid({ data }) {
         iconBg="bg-brand-light"
         label="Today's Revenue So Far"
         value={`Rs. ${Number(data.revenue).toLocaleString()}`}
+        subtitle="Based on completed orders"
       />
       <StatCard
         icon={<ListOrdered className="text-brand h-8 w-8" />}
