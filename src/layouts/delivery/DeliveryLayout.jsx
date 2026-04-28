@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import AppSidebar from "../../components/common/AppSidebar";
+import DeliveryHeader from "../../components/delivery/DeliveryHeader";
 import { deliveryNav } from "../../config/nav/deliveryNav";
 
 export default function DeliveryLayout() {
@@ -33,6 +34,7 @@ export default function DeliveryLayout() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <DeliveryHeader branchName={user?.branchName} />
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 px-4 py-4 lg:px-8 lg:py-8">
           <Outlet />
         </main>
