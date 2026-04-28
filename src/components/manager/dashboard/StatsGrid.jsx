@@ -24,7 +24,7 @@ export default function StatsGrid({ data }) {
         iconBg="bg-brand-light"
         label="Pending Deliveries"
         value={data.pendingDeliveries}
-        subtitle="Waiting assignment"
+        subtitle="Orders Ready to Assign & Out for Delivery"
       />
       <StatCard
         icon={<AlertTriangle className="text-brand h-8 w-8" />}
