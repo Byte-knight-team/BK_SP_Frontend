@@ -331,7 +331,13 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <ToastContainer theme="colored" />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={4000}
+        hideProgressBar={false} // Show the timer bar
+        theme="colored" // Keep this for vibrant colors
+        pauseOnHover={true} // Stop the timer if the mouse is over it
+      />
     </>
   )
 }
