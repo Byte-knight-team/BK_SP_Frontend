@@ -121,20 +121,13 @@ export default function DriverStatusBoard({ drivers }) {
             >
               {/* Driver info */}
               <td className="py-4">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={driver.avatar}
-                    alt={driver.name}
-                    className="w-9 h-9 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {driver.name}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
-                      <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                      {driver.rating}
-                    </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {driver.name}
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                    {driver.rating}
                   </div>
                 </div>
               </td>
