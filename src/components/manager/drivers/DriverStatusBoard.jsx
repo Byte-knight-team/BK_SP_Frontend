@@ -119,6 +119,7 @@ export default function DriverStatusBoard({ drivers }) {
           <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase">
             <th className="pb-3 text-left font-semibold">Driver</th>
             <th className="pb-3 text-left font-semibold">Status</th>
+            <th className="pb-3 text-center font-semibold">Assigned Time</th>
             <th className="pb-3 text-right font-semibold">Current Task</th>
           </tr>
         </thead>
@@ -142,22 +143,26 @@ export default function DriverStatusBoard({ drivers }) {
                 <StatusBadge status={driver.status} />
               </td>
 
+              {/* Assigned Time */}
+              <td className="py-4 text-center">
+                {driver.currentTask ? (
+                  <div className="flex items-center justify-center gap-1.5 text-sm font-medium text-gray-600">
+                    <Clock className="h-3.5 w-3.5 text-gray-400" />
+                    {driver.currentTask.assignedTime}
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-300 italic">No active assignments</span>
+                )}
+              </td>
+
               {/* Current task */}
               <td className="py-4 text-right">
                 {driver.currentTask ? (
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {driver.currentTask.orderId}
-                    </p>
-                    <div className="flex items-center justify-end gap-1 text-xs text-gray-400">
-                      <Clock className="h-3 w-3" />
-                      {driver.currentTask.eta}
-                    </div>
-                  </div>
+                  <p className="text-sm font-bold text-brand">
+                    {driver.currentTask.orderId}
+                  </p>
                 ) : (
-                  <span className="text-xs text-gray-400 italic">
-                    No active order
-                  </span>
+                  <span className="text-xs text-gray-300 italic">No active assignments</span>
                 )}
               </td>
             </tr>
