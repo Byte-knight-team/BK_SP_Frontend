@@ -131,7 +131,7 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
     showXAxis = true,
     showYAxis = true,
     showGridLines = true,
-    yAxisWidth = 56,
+    yAxisWidth = 30,
     showTooltip = true,
     showLegend = true,
     className,
@@ -178,10 +178,10 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
           barCategoryGap={barCategoryGap}
           stackOffset={type === "percent" ? "expand" : undefined}
           margin={{
-            bottom: xAxisLabel ? 30 : undefined,
-            left: yAxisLabel ? 20 : undefined,
-            right: yAxisLabel ? 5 : undefined,
-            top: 5,
+            bottom: xAxisLabel ? 30 : 20,
+            left: yAxisLabel ? 20 : 10,
+            right: 10,
+            top: 10,
           }}
         >
           {showGridLines && (
@@ -193,11 +193,12 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
             type={layout === "vertical" ? "number" : "category"}
             tickLine={false}
             axisLine={false}
-            className="text-[10px] fill-gray-500"
+            className="text-[9px] fill-gray-500"
             interval={0}        
             angle={-45}         
             textAnchor="end"    
-            height={60}
+            height={65}
+            dy={10}
           >
             {xAxisLabel && <Label position="insideBottom" offset={-20} className="fill-gray-800 font-medium">{xAxisLabel}</Label>}
           </XAxis>
@@ -208,7 +209,7 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
             type={layout === "horizontal" ? "number" : "category"}
             tickLine={false}
             axisLine={false}
-            className="text-xs fill-gray-500"
+            className="text-[8px] fill-gray-500"
             tickFormatter={type === "percent" ? (v) => `${(v * 100).toFixed(0)}%` : valueFormatter}
           >
             {yAxisLabel && <Label position="insideLeft" angle={-90} offset={-15} style={{ textAnchor: "middle" }} className="fill-gray-800 font-medium">{yAxisLabel}</Label>}

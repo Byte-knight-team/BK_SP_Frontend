@@ -69,7 +69,7 @@ const PeakHoursChart = () => {
         <span className="text-sm font-medium text-gray-400">Past 7 Days</span>
       </div>
 
-      <div className="mt-2 flex items-center justify-center">
+      <div className="mt-2 w-full">
         <BarChart
           data={graphData}
           index="time"
