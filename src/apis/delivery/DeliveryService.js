@@ -41,4 +41,16 @@ export const DeliveryService = {
     }
     return response.json();
   },
+
+  updateDeliveryStatus: async (orderId, status) => {
+    const response = await authFetch(`/api/delivery/orders/${orderId}/status`, {
+      method: "POST",
+      body: JSON.stringify({ status }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to update status");
+    }
+    return response.json();
+  },
 };

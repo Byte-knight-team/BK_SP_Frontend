@@ -57,6 +57,7 @@ import ManagerStaffPage from './pages/manager/ManagerStaffPage'
 // Delivery pages
 import DeliveryLayout from './layouts/delivery/DeliveryLayout'
 import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
+import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 
 // Admin pages from other modules
 import AdminDashboardPage from './pages/AdminDashboardPage'
@@ -259,6 +260,7 @@ export default function App() {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DeliveryDashboardPage />} />
+        <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
         <Route path="history" element={<ComingSoonPage />} />
         <Route path="profile" element={<ProfilePage />} />
 
