@@ -40,8 +40,7 @@ export default function AssignDriverModal({
               </p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-500">Zone: {order?.zone}</p>
-              <p className="text-xs text-gray-400">{order?.distance}</p>
+              <p className="text-xs text-gray-500">{order?.zone}</p>
             </div>
           </div>
         </div>
