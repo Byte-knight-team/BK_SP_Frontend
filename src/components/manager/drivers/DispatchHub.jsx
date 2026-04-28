@@ -31,7 +31,7 @@ function DispatchOrderCard({ order, onAssign }) {
       {/* Zone */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
         <MapPin className="w-3.5 h-3.5" />
-        Zone: {order.zone} ({order.distance})
+        {order.zone}
       </div>
 
       {/* Assign button */}
