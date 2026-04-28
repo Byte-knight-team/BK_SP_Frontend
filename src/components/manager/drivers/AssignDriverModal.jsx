@@ -62,7 +62,7 @@ export default function AssignDriverModal({
             </option>
             {availableDrivers.map((driver) => (
               <option key={driver.id} value={driver.id}>
-                {driver.name} — ★ {driver.rating}
+                {driver.name}
               </option>
             ))}
           </select>
