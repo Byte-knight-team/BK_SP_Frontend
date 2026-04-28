@@ -36,21 +36,21 @@ const MealTable = ({
           {mealsData.map((meal) => (
             <tr key={meal.id} className="transition-colors hover:bg-gray-50/50">
               {/* meal name */}
-              <td className="px-6 py-5">
+              <td className="px-4 py-3">
                 <div className="flex flex-col text-left">
                   <span className="font-bold text-gray-800">{meal.name}</span>
                 </div>
               </td>
 
               {/* quantity */}
-              <td className="px-6 py-5 text-center">
+              <td className="px-4 py-3 text-center">
                 <span className="rounded-lg bg-gray-50 px-3 py-1 text-sm font-bold text-gray-800">
                   x{meal.qty}
                 </span>
               </td>
 
               {/* status badge */}
-              <td className="px-6 py-5 text-center">
+              <td className="px-4 py-3 text-center">
                 <span
                   className={`inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase ${
                     statusStyles[meal.status] || "bg-gray-50 text-gray-400"
@@ -61,7 +61,7 @@ const MealTable = ({
               </td>
 
               {/* chef name column */}
-              <td className="px-6 py-5 text-center">
+              <td className="px-4 py-3 text-center">
                 <p
                   className={`text-xs font-bold tracking-tight ${
                     meal.chefName === "Not Assigned"
@@ -75,7 +75,7 @@ const MealTable = ({
 
               {/* action buttons column */}
               {(orderStatus === "PENDING" || orderStatus === "PREPARING") && (
-                <td className="px-6 py-5">
+                <td className="px-4 py-3">
                   <div className="flex justify-center gap-2">
                     {meal.status === "PENDING" && (
                       <>

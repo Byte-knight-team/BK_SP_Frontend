@@ -172,11 +172,11 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     );
 
   return (
-    <div className="rounded-3xl border border-gray-100 bg-white p-8">
+    <div className="rounded-3xl border border-gray-100 bg-white p-5">
       {/* header section */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Order {order.id}</h1>
+          <h1 className="text-xl font-bold text-gray-800">Order {order.id}</h1>
           <p className="mt-1 text-sm font-medium text-gray-400">
             {statusLabels[order.status] || "Updated at"} {order.time}
           </p>
@@ -205,7 +205,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
       </div>
 
       {/* stepper logic */}
-      <div className="mt-6">
+      <div className="mt-4">
         {order.status === "ON_HOLD" ? (
           <div className="flex items-start gap-4 rounded-2xl border border-red-100 bg-red-50 p-6">
             <AlertCircle size={24} className="mt-0.5 text-red-500" />
@@ -234,7 +234,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
       )}
 
       {/* table section */}
-      <div className="mt-8">
+      <div className="mt-5">
         <MealTable
           mealsData={order.meals}
           orderStatus={order.status}

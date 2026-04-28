@@ -129,7 +129,7 @@ const InventoryTable = () => {
   }
 
   return (
-    <div className="flex flex-col rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+    <div className="flex flex-col rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
       {/* header actions */}
       <div className="flex flex-row justify-between">
         <div>
@@ -150,11 +150,11 @@ const InventoryTable = () => {
           <button
             // call the function to open modal to add a new item
             onClick={handleOpenNewItemModal}
-            className="flex items-center gap-2 rounded-2xl bg-orange-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700"
+            className="flex items-center gap-2 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700"
           >
             <Plus size={18} /> Request New Item
           </button>
-          <button className="flex items-center gap-2 rounded-2xl border border-orange-100 bg-orange-50 px-6 py-3 text-sm font-bold text-orange-600 transition-all hover:bg-orange-100">
+          <button className="flex items-center gap-2 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-2 text-sm font-bold text-orange-600 transition-all hover:bg-orange-100">
             <RotateCcw size={18} /> Start-of-day Update
           </button>
         </div>
@@ -179,15 +179,15 @@ const InventoryTable = () => {
                 key={index}
                 className="group transition-colors hover:bg-gray-50/50"
               >
-                <td className="px-6 py-5 text-lg font-bold text-gray-800">
+                <td className="px-4 py-3 text-sm font-bold text-gray-800">
                   {item.name}
                 </td>
-                <td className="px-6 py-5 font-medium text-gray-400">
+                <td className="px-4 py-3 text-sm font-medium text-gray-400">
                   {item.unit}
                 </td>
 
                 {/* progress bar column */}
-                <td className="px-6 py-5">
+                <td className="px-4 py-3">
                   <div className="flex min-w-[220px] items-center gap-4">
                     <div className="flex-1">
                       <ProgressBar
@@ -201,18 +201,18 @@ const InventoryTable = () => {
                         }
                       />
                     </div>
-                    <span className="w-10 text-right text-lg font-black text-gray-800">
+                    <span className="w-10 text-right text-sm font-black text-gray-800">
                       {item.quantity}
                     </span>
                   </div>
                 </td>
 
-                <td className="px-6 py-5 text-lg font-bold text-gray-400">
+                <td className="px-4 py-3 text-sm font-bold text-gray-400">
                   {item.maxStock}
                 </td>
 
                 {/* status */}
-                <td className="px-6 py-5">
+                <td className="px-4 py-3">
                   <span
                     className={`rounded-full px-4 py-1.5 text-[11px] font-black tracking-tighter uppercase ${
                       item.warningLevel === 'CRITICAL'
@@ -227,7 +227,7 @@ const InventoryTable = () => {
                 </td>
 
                 {/* action buttons */}
-                <td className="px-6 py-5 text-center">
+                <td className="px-4 py-3 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <button
                       // call the function to open modal to update stock
