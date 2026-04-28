@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import './index.css';
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
