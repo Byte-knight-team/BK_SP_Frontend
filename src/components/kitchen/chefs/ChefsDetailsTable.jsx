@@ -1,21 +1,21 @@
 import { User } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getChefsAPI } from '../../../apis/kitchen/chefs'
-import ChefActionModal from './ChefActionModal'; 
+import ChefActionModal from './ChefActionModal'
 
 const ChefDetailsTable = () => {
-  const [chefs, setChefs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'CHECK_IN', 'CHECK_OUT', or 'UPDATE_STATUS'
-  const [selectedChef, setSelectedChef] = useState(null);
+  const [chefs, setChefs] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalType, setModalType] = useState('') // 'CHECK_IN', 'CHECK_OUT', or 'UPDATE_STATUS'
+  const [selectedChef, setSelectedChef] = useState(null)
 
   // Helper function to open the modal
   const handleOpenModal = (type, chef) => {
-    setModalType(type);
-    setSelectedChef(chef);
-    setIsModalOpen(true);
-  };
+    setModalType(type)
+    setSelectedChef(chef)
+    setIsModalOpen(true)
+  }
 
   useEffect(() => {
     const fetchChefs = async () => {
@@ -73,29 +73,31 @@ const ChefDetailsTable = () => {
           {chefs.map((chef, index) => (
             <tr key={index} className="transition-colors hover:bg-gray-50/50">
               {/* Chef Name & Avatar */}
-              <td className="px-6 py-4 text-left pl-20">
-                <div className="flex items-center gap-3 justify-start">
+              <td className="px-6 py-4 pl-20 text-left">
+                <div className="flex items-center justify-start gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400">
                     <User size={20} />
                   </div>
                   <div>
-                    <p className="font-bold text-sm text-gray-800">{chef.fullName}</p>
+                    <p className="text-sm font-bold text-gray-800">
+                      {chef.fullName}
+                    </p>
                   </div>
                 </div>
               </td>
 
               {/* Chef ID */}
-              <td className="px-6 py-4 text-sm text-center font-bold text-gray-700">
+              <td className="px-6 py-4 text-center text-sm font-bold text-gray-700">
                 {`#CH ${chef.staffId}`}
               </td>
 
               {/* Clock In Time */}
-              <td className="px-6 py-4 text-sm text-center font-bold text-gray-700">
+              <td className="px-6 py-4 text-center text-sm font-bold text-gray-700">
                 {chef.clockInTime}
               </td>
 
               {/* Status Badge */}
-              <td className="px-6 py-4 text-sm text-center">
+              <td className="px-6 py-4 text-center text-sm">
                 <div
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black tracking-tighter uppercase shadow-sm ${
                     chef.workStatus === 'AVAILABLE'
@@ -132,7 +134,7 @@ const ChefDetailsTable = () => {
               </td>
 
               {/* Meals Today */}
-              <td className="px-6 py-4 text-sm text-center font-bold text-gray-700">
+              <td className="px-6 py-4 text-center text-sm font-bold text-gray-700">
                 {chef.totalMealsToday}
               </td>
 
@@ -171,6 +173,8 @@ const ChefDetailsTable = () => {
           ))}
         </tbody>
       </table>
+      
+      
     </div>
   )
 }
