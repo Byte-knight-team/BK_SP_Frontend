@@ -68,23 +68,23 @@ const ChefDetailsTable = () => {
                     <User size={20} />
                   </div>
                   <div>
-                    <p className="font-bold text-gray-800">{chef.fullName}</p>
+                    <p className="font-bold text-sm text-gray-800">{chef.fullName}</p>
                   </div>
                 </div>
               </td>
 
               {/* Chef ID */}
-              <td className="px-6 py-4 text-center font-bold text-gray-700">
+              <td className="px-6 py-4 text-sm text-center font-bold text-gray-700">
                 {`#CH ${chef.staffId}`}
               </td>
 
               {/* Clock In Time */}
-              <td className="px-6 py-4 text-center font-bold text-gray-700">
+              <td className="px-6 py-4 text-sm text-center font-bold text-gray-700">
                 {chef.clockInTime}
               </td>
 
               {/* Status Badge */}
-              <td className="px-6 py-4 text-center">
+              <td className="px-6 py-4 text-sm text-center">
                 <div
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black tracking-tighter uppercase shadow-sm ${
                     chef.workStatus === 'AVAILABLE'
@@ -121,7 +121,7 @@ const ChefDetailsTable = () => {
               </td>
 
               {/* Meals Today */}
-              <td className="px-6 py-4 text-center font-bold text-gray-700">
+              <td className="px-6 py-4 text-sm text-center font-bold text-gray-700">
                 {chef.totalMealsToday}
               </td>
 
@@ -137,7 +137,7 @@ const ChefDetailsTable = () => {
                       CHECK IN
                     </button>
                   ) : (
-                    /*Show these two if they ARE working */
+                    /*Show these two if they are working */
                     <>
                       <button
                         onClick={() => console.log('Update Status', chef.staffId)}
