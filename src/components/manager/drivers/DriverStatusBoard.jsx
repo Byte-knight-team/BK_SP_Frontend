@@ -36,6 +36,10 @@ const STATUS_STYLES = {
 
 function StatusBadge({ status }) {
   const style = STATUS_STYLES[status] || STATUS_STYLES.Offline
+  
+  // Format the status string (e.g., OUT_FOR_DELIVERY -> OUT FOR DELIVERY)
+  const displayStatus = status.replace(/_/g, ' ')
+
   return (
     <span
       className={clsx(
@@ -44,7 +48,7 @@ function StatusBadge({ status }) {
       )}
     >
       <span className={clsx('h-1.5 w-1.5 rounded-full', style.dot)} />
-      {status}
+      {displayStatus}
     </span>
   )
 }
