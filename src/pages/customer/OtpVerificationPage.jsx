@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { verifyCustomerOtp } from '../../apis/customer/auth';
 
@@ -91,8 +92,8 @@ export default function OtpVerificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-10">
-      <div className="mx-auto w-full max-w-[360px]">
+    <CustomerPageShell maxWidth="max-w-4xl">
+      <div className="mx-auto w-full max-w-[420px]">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -102,8 +103,8 @@ export default function OtpVerificationPage() {
           Back
         </button>
 
-        <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
+        <div className="overflow-hidden rounded-[2rem] bg-white shadow-[0_18px_42px_rgba(15,23,42,0.10)] border border-slate-200">
+          <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
             <BrandLogo />
             <h1 className="mt-3 text-2xl font-bold">Verify OTP</h1>
             <p className="mt-2 text-sm text-orange-100 px-2 opacity-90">
@@ -154,6 +155,6 @@ export default function OtpVerificationPage() {
           </form>
         </div>
       </div>
-    </div>
+    </CustomerPageShell>
   );
 }

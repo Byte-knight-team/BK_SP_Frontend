@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import { useCart } from '../../context/CartContext';
 import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile } from '../../apis/customer/profile';
 
@@ -144,15 +146,19 @@ export default function AccountPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f3f1ee] flex flex-col items-center justify-center px-4">
-        <Loader2 size={32} className="animate-spin text-orange-500 mb-4" />
-        <p className="text-slate-500 font-medium">Loading your profile...</p>
-      </div>
+      <CustomerPageShell maxWidth="max-w-3xl">
+        <CustomerStateCard
+          variant="loading"
+          title="Loading your profile"
+          description="We’re fetching your account details and loyalty information."
+          className="mx-auto max-w-2xl"
+        />
+      </CustomerPageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-6">
+    <CustomerPageShell maxWidth="max-w-3xl">
       <div className="mx-auto w-full max-w-[600px]">
         {/* Header */}
         <button
@@ -370,6 +376,6 @@ export default function AccountPage() {
           Sign Out
         </button>
       </div>
-    </div>
+    </CustomerPageShell>
   );
 }

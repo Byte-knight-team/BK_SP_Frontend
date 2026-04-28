@@ -4,6 +4,8 @@ import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, ChevronDown, XCi
 import BrandLogo from '../../components/customer/BrandLogo';
 import ReviewModal from '../../components/customer/modal/ReviewModal';
 import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import { cancelCustomerOrder, listCustomerOrders } from '../../apis/customer/orders';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
@@ -193,7 +195,7 @@ export default function OrdersPage() {
   };
   // MAIN PAGE
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-6 md:py-10">
+    <CustomerPageShell maxWidth="max-w-4xl">
       <div className="mx-auto w-full max-w-[700px]">
         {/* Back Button */}
         <button
@@ -257,10 +259,12 @@ export default function OrdersPage() {
 
         {/* ORDER LISTING (Loading vs Data vs Empty State) */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 size={32} className="animate-spin text-orange-500 mb-4" />
-            <p className="text-slate-500 font-medium">Loading your orders...</p>
-          </div>
+          <CustomerStateCard
+            variant="loading"
+            title="Loading your orders"
+            description="We’re building your order timeline and status cards."
+            className="mx-auto max-w-2xl"
+          />
         ) : orders.length > 0 ? (
           <div className="space-y-4">
             {orders.map(order => (
@@ -315,6 +319,6 @@ export default function OrdersPage() {
           }}
         />
       )}
-    </div>
+    </CustomerPageShell>
   );
 }
