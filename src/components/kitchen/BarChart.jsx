@@ -211,6 +211,8 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
             axisLine={false}
             className="text-[8px] fill-gray-500"
             tickFormatter={type === "percent" ? (v) => `${(v * 100).toFixed(0)}%` : valueFormatter}
+            allowDecimals={false} // prevent 1.5, 2.5 etc.
+            tickCount={6}         // control how many numbers show up
           >
             {yAxisLabel && <Label position="insideLeft" angle={-90} offset={-15} style={{ textAnchor: "middle" }} className="fill-gray-800 font-medium">{yAxisLabel}</Label>}
           </YAxis>
