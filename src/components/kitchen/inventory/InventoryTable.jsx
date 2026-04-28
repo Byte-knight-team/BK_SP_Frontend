@@ -8,6 +8,7 @@ import {
 } from '../../../apis/kitchen/inventory'
 import InventoryRequestModal from './InventoryRequestModal'
 import UpdateStockModal from './UpdateStockModal'
+import { toast } from 'react-toastify';
 
 const InventoryTable = () => {
   // set loading state
@@ -47,10 +48,11 @@ const InventoryTable = () => {
     const { data, error } = await updateInventoryStockAPI(updateData)
 
     if (error) {
-      alert('Failed to update stock: ' + error)
+      toast.error('Failed to update stock: ' + error)
     } else {
       // message from the backend
-      alert(data.message)
+      toast.success(data.message) 
+
       setIsUpdateModalOpen(false)
       // call the function to refresh the table data
       // this is a background fetch (false = don't show the loading screen)

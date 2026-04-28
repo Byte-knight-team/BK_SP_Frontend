@@ -1,4 +1,4 @@
-import { authFetch } from "../../helpers/axios";
+import { authFetch } from "../apiHelper";
 
 const chefsStats = {
   totalChefs: 10,
