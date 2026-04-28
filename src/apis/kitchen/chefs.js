@@ -1,11 +1,11 @@
-import { authFetch } from "../apiHelper";
+import { authFetch } from '../apiHelper'
 
 const chefsStats = {
   totalChefs: 10,
   availableChefs: 5,
   busyChefs: 5,
   averagePrepTimeInMinutes: 15,
-};
+}
 
 export const getChefsStatsAPI = async () => {
   try {
@@ -15,44 +15,42 @@ export const getChefsStatsAPI = async () => {
     // );
     // const data = await response.json();
     // return {data, error: null};
-    return { data: chefsStats, error: null };
+    return { data: chefsStats, error: null }
   } catch (error) {
-    console.error("Error fetching chefs stats:", error);
-    return { data: null, error: error };
+    console.error('Error fetching chefs stats:', error)
+    return { data: null, error: error }
   }
-};
-
+}
 
 // Get all chefs details for today
 export const getChefsAPI = async () => {
   try {
     const response = await authFetch(
-      "http://localhost:8080/api/v1/kitchen/chefs/today-details"
-    );
-    
-    const result = await response.json();
-    
-    // We return result.data because the backend wraps everything in a StandardResponse
-    return { data: result.data, error: null };
-  } catch (error) {
-    console.error("Error fetching chefs details:", error);
-    return { data: null, error: error };
-  }
-};
+      'http://localhost:8080/api/v1/kitchen/chefs/today-details',
+    )
 
+    const result = await response.json()
+
+    // We return result.data because the backend wraps everything in a StandardResponse
+    return { data: result.data, error: null }
+  } catch (error) {
+    console.error('Error fetching chefs details:', error)
+    return { data: null, error: error }
+  }
+}
 
 // Get all available Line Chefs for the assign dropdown
 export const getAvailableChefsAPI = async () => {
   try {
     const response = await authFetch(
-      "http://localhost:8080/api/v1/kitchen/available-chefs",
-    );
+      'http://localhost:8080/api/v1/kitchen/available-chefs',
+    )
 
-    const result = await response.json();
+    const result = await response.json()
 
-    return { data: result.data, error: null };
+    return { data: result.data, error: null }
   } catch (error) {
-    console.error("Error fetching available chefs:", error);
-    return { data: null, error: error };
+    console.error('Error fetching available chefs:', error)
+    return { data: null, error: error }
   }
-};
+}
