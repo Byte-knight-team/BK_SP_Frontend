@@ -7,7 +7,10 @@ import StaffAvailability from '../../components/manager/dashboard/StaffAvailabil
 import FleetTrackerBanner from '../../components/manager/dashboard/FleetTrackerBanner'
 import { Plus, UserCheck, Eye } from 'lucide-react'
 
+import { useNavigate } from 'react-router-dom'
+
 function DashHeader() {
+  const navigate = useNavigate()
   const now = new Date().toLocaleString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -23,10 +26,16 @@ function DashHeader() {
         <p className="mt-1 text-sm text-gray-400">{now}</p>
       </div>
       <div className="flex items-center gap-3">
-        <button className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors">
+        <button 
+          onClick={() => navigate('/manager/inventory', { state: { openAddModal: true } })}
+          className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors"
+        >
           <Plus className="h-5 w-5" /> Add Inventory
         </button>
-        <button className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors">
+        <button 
+          onClick={() => navigate('/manager/drivers', { state: { scrollToDispatch: true } })}
+          className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors"
+        >
           <UserCheck className="h-5 w-5" /> Assign Drivers
         </button>
       </div>
