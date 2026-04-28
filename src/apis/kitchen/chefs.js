@@ -78,3 +78,19 @@ export const checkOutChefAPI = async (chefId) => {
     return { data: null, error: error.message };
   }
 };
+
+// Update chef work status
+export const updateChefStatusAPI = async (chefId, newStatus) => {
+  try {
+    const response = await authFetch(`http://localhost:8080/api/v1/kitchen/chefs/${chefId}/work-status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newStatus }),
+    });
+    const result = await response.json();
+    if (!response.ok) return { data: null, error: result.message || "Status update failed" };
+    return { data: result, error: null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
