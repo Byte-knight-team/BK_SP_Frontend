@@ -170,7 +170,7 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
   }
 
   return (
-    <div ref={forwardedRef} className={cx("h-80 w-full", className)} {...other}>
+    <div ref={forwardedRef} className={cx("h-56 w-full", className)} {...other}>
       <ResponsiveContainer>
         <RechartsBarChart
           data={data}
@@ -197,7 +197,7 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
             interval={0}        
             angle={-45}         
             textAnchor="end"    
-            height={80}
+            height={60}
           >
             {xAxisLabel && <Label position="insideBottom" offset={-20} className="fill-gray-800 font-medium">{xAxisLabel}</Label>}
           </XAxis>

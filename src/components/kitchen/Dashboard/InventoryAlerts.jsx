@@ -74,7 +74,7 @@ const InventoryAlerts = () => {
   return (
     <>
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Inventory Alerts</h2>
+        <h2 className="text-base font-bold text-gray-800">Inventory Alerts</h2>
         <span
           className="text-sm font-medium text-gray-400"
           style={{
@@ -88,7 +88,7 @@ const InventoryAlerts = () => {
         </span>
       </div>
 
-      <div className="flex h-[380px] flex-col gap-2 overflow-y-auto pr-2">
+      <div className="flex h-[300px] flex-col gap-2 overflow-y-auto pr-2">
         {inventoryAlertsDetails.map((item, index) => (
           <KitchenStatBar
             key={index}

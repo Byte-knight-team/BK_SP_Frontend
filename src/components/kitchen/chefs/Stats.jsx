@@ -8,7 +8,7 @@ const formatStatCardDetails = (apiData) => {
     {
       title: "Total Chefs",
       value: apiData.totalChefs || 0,
-      icon: <Users color="#E64919" size={40} />,
+      icon: <Users color="#E64919" size={28} />,
       iconBgColor: "bg-orange-50",
     },
     {

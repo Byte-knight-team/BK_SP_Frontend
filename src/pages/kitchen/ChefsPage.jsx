@@ -17,16 +17,16 @@ const ChefsPage = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 p-4">
-      <div className="mt-6 grid grid-cols-4 gap-4">
+    <div className="flex min-h-screen flex-col bg-gray-50 p-3">
+      <div className="mt-4 grid grid-cols-4 gap-3">
         <Stats />
       </div>
 
       <div className="mt-6 flex flex-1 rounded-2xl bg-white p-4">
         <div className="flex w-full flex-col">
           <div className="flex items-center gap-2">
-            <ChefHat color="orange" size={32}/>
-            <h1 className="text-2xl font-bold tracking-tight text-orange-500 p-2">
+            <ChefHat color="orange" size={20}/>
+            <h1 className="text-xl font-bold tracking-tight text-orange-500 p-2">
               Chefs Details
             </h1>
           </div>
