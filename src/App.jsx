@@ -54,6 +54,10 @@ import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
 import ManagerDriversPage from './pages/manager/ManagerDriversPage'
 import ManagerStaffPage from './pages/manager/ManagerStaffPage'
 
+// Delivery pages
+import DeliveryLayout from './layouts/delivery/DeliveryLayout'
+import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
+
 // Admin pages from other modules
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import MenuManagementPage from './pages/MenuManagementPage'
@@ -249,14 +253,13 @@ export default function App() {
         path="/delivery"
         element={
           <ProtectedRoute allowedRoles={['DELIVERY']}>
-            <MainLayout Sidebar={DeliverySidebar} Header={DeliveryHeader} />
+            <DeliveryLayout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<ComingSoonPage />} />
-        <Route path="orders" element={<ComingSoonPage />} />
-        <Route path="routes" element={<ComingSoonPage />} />
-        <Route path="status" element={<ComingSoonPage />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DeliveryDashboardPage />} />
+        <Route path="history" element={<ComingSoonPage />} />
         <Route path="profile" element={<ProfilePage />} />
 
         <Route path="*" element={<Navigate to="/delivery" replace />} />
