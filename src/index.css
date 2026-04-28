@@ -121,3 +121,29 @@ section[id] {
 }
 
 
+/* --- Toastify Customization --- */
+
+/* Global Container Styles */
+.Toastify__toast {
+  border-radius: 16px !important; 
+  font-family: 'Inter', sans-serif !important;
+  font-size: 14px !important;
+}
+
+/* Success Toast (Emerald Green) */
+.Toastify__toast--success.Toastify__toast-theme--colored {
+  background: linear-gradient(to right, #10b981, #059669) !important;
+  /*for a single color background*/
+  /*background-color: #10b981 !important;*/
+}
+
+/* Error Toast (Crimson Red) */
+.Toastify__toast--error.Toastify__toast-theme--colored {
+  background: linear-gradient(to right, #ef4444, #dc2626) !important;
+}
+
+/* Progress Bar Customization */
+.Toastify__progress-bar {
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+}
