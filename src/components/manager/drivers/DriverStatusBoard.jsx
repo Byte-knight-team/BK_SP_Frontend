@@ -8,7 +8,7 @@ const FILTER_OPTIONS = [
   'ASSIGNED',
   'OUT_FOR_DELIVERY',
   'DELIVERED',
-  'Offline',
+  'INACTIVE',
 ]
 
 const STATUS_STYLES = {
@@ -28,14 +28,14 @@ const STATUS_STYLES = {
     dot: 'bg-purple-500',
     badge: 'bg-purple-50 text-purple-600',
   },
-  Offline: {
+  INACTIVE: {
     dot: 'bg-gray-400',
     badge: 'bg-gray-100 text-gray-500',
   },
 }
 
 function StatusBadge({ status }) {
-  const style = STATUS_STYLES[status] || STATUS_STYLES.Offline
+  const style = STATUS_STYLES[status] || STATUS_STYLES.INACTIVE
 
   // Format the status string (e.g., OUT_FOR_DELIVERY -> OUT FOR DELIVERY)
   const displayStatus = status.replace(/_/g, ' ')
