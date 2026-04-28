@@ -6,12 +6,14 @@ import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { getCustomerMenu } from '../../apis/customer/menu';
+import menuCover from '../../assets/menu cover image.avif';
 import {
   ArrowLeft,
   Heart,
   Star,
   Clock,
   ShoppingCart,
+  ChefHat,
   Search
 } from 'lucide-react';
 
@@ -208,21 +210,6 @@ export default function MenuPage() {
                 CLEAR
               </button>
             )}
-          </div>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Branch</p>
-            <p className="mt-1 text-base font-bold text-slate-900">#{getBranchId()}</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Categories</p>
-            <p className="mt-1 text-base font-bold text-slate-900">{Object.keys(groupedCategories).length || 0}</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Items</p>
-            <p className="mt-1 text-base font-bold text-slate-900">{menuItems.length}</p>
           </div>
         </div>
       </div>
