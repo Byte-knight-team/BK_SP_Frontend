@@ -170,7 +170,7 @@ const BarChart = React.forwardRef((props, forwardedRef) => {
   }
 
   return (
-    <div ref={forwardedRef} className={cx("h-56 w-full", className)} {...other}>
+    <div ref={forwardedRef} className={cx(className ? className : "h-56", "w-full")} {...other}>
       <ResponsiveContainer>
         <RechartsBarChart
           data={data}
