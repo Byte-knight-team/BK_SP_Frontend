@@ -29,19 +29,18 @@ const ChefDetailsTable = () => {
   }, [])
 
   if (loading) {
-  return (
-    <div className="flex h-64 w-full flex-col items-center justify-center gap-4">
-      {/* Animated Spinner Ring */}
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-100 border-t-orange-500"></div>
-      
-      {/* Subtle Loading Text */}
-      <p className="animate-pulse text-sm font-bold tracking-widest text-gray-400 uppercase">
-        Fetching Chefs...
-      </p>
-    </div>
-  );
-}
+    return (
+      <div className="flex h-64 w-full flex-col items-center justify-center gap-4">
+        {/* Animated Spinner Ring */}
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-100 border-t-orange-500"></div>
 
+        {/* Subtle Loading Text */}
+        <p className="animate-pulse text-sm font-bold tracking-widest text-gray-400 uppercase">
+          Fetching Chefs...
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full overflow-hidden">
@@ -49,12 +48,12 @@ const ChefDetailsTable = () => {
         {/* --- Table Header --- */}
         <thead className="bg-gray-50 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
           <tr>
-            <th className="px-6 py-4 text-left">Chef Name</th>
+            <th className="px-6 py-4 text-center">Chef Name</th>
             <th className="px-6 py-4 text-center">Chef ID</th>
             <th className="px-6 py-4 text-center">Clock In Time</th>
             <th className="px-6 py-4 text-center">Status</th>
             <th className="px-6 py-4 text-center">Meals Today</th>
-            <th className="px-6 py-4 text-right">Actions</th>
+            <th className="px-6 py-4 text-center">Actions</th>
           </tr>
         </thead>
 
@@ -63,8 +62,8 @@ const ChefDetailsTable = () => {
           {chefs.map((chef, index) => (
             <tr key={index} className="transition-colors hover:bg-gray-50/50">
               {/* Chef Name & Avatar */}
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-3">
+              <td className="px-6 py-4 text-left pl-20">
+                <div className="flex items-center gap-3 justify-start">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400">
                     <User size={20} />
                   </div>
@@ -124,6 +123,38 @@ const ChefDetailsTable = () => {
               {/* Meals Today */}
               <td className="px-6 py-4 text-center font-bold text-gray-700">
                 {chef.totalMealsToday}
+              </td>
+
+              {/* Action Buttons */}
+              <td className="px-6 py-4 text-center">
+                <div className="flex justify-center gap-2">
+                  {/* Only show Check In if they are Off Duty */}
+                  {chef.workStatus === 'OFF_DUTY' ? (
+                    <button
+                      onClick={() => console.log('Check In', chef.staffId)}
+                      className="rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-[10px] font-bold text-green-600 transition-all hover:bg-green-100"
+                    >
+                      CHECK IN
+                    </button>
+                  ) : (
+                    /*Show these two if they ARE working */
+                    <>
+                      <button
+                        onClick={() => console.log('Update Status', chef.staffId)}
+                        className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-[10px] font-bold text-orange-600 transition-all hover:bg-orange-100"
+                      >
+                        UPDATE STATUS
+                      </button>
+
+                      <button
+                        onClick={() => console.log('Check Out', chef.staffId)}
+                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-bold text-red-600 transition-all hover:bg-red-100"
+                      >
+                        CHECK OUT
+                      </button>
+                    </>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
