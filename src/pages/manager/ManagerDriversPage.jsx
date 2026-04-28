@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useDriversData } from '../../hooks/useDriversData'
 import DriversHeader from '../../components/manager/drivers/DriversHeader'
 import DriversSummaryCards from '../../components/manager/drivers/DriversSummaryCards'
@@ -31,6 +32,17 @@ export default function ManagerDriversPage() {
     open: false,
     order: null,
   })
+  const dispatchHubRef = useRef(null)
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.state?.scrollToDispatch) {
+      setTimeout(() => {
+        dispatchHubRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 500) // Small delay to allow components to render
+      window.history.replaceState({}, document.title)
+    }
+  }, [location])
 
   if (loading) return <LoadingSkeleton />
 
@@ -76,10 +88,12 @@ export default function ManagerDriversPage() {
         pendingDispatch={data.pendingDispatch}
       />
 
-      <DispatchHub
-        orders={data.dispatchOrders}
-        onAssignDriver={handleAssignDriver}
-      />
+      <div ref={dispatchHubRef}>
+        <DispatchHub
+          orders={data.dispatchOrders}
+          onAssignDriver={handleAssignDriver}
+        />
+      </div>
       <DriverStatusBoard drivers={data.drivers} />
 
       {/* Assign Driver Modal */}

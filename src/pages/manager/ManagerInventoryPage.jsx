@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useInventoryData } from '../../hooks/useInventoryData'
 import { InventoryService } from '../../apis/manager/InventoryService'
 import InventoryHeader from '../../components/manager/inventory/InventoryHeader'
@@ -29,6 +30,15 @@ export default function ManagerInventoryPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [updateModal, setUpdateModal] = useState({ open: false, item: null })
   const chefRequestsRef = useRef(null)
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      setIsAddModalOpen(true)
+      // Clear state so it doesn't reopen on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location])
 
   const scrollToChefRequests = () => {
     chefRequestsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
