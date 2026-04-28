@@ -5,8 +5,9 @@ import clsx from 'clsx'
 const FILTER_OPTIONS = [
   'All',
   'Available',
-  'Delivering',
-  'Returning',
+  'ASSIGNED',
+  'OUT_FOR_DELIVERY',
+  'DELIVERED',
   'Offline',
 ]
 
@@ -15,13 +16,17 @@ const STATUS_STYLES = {
     dot: 'bg-green-500',
     badge: 'bg-green-50 text-green-600',
   },
-  Delivering: {
+  ASSIGNED: {
+    dot: 'bg-blue-500',
+    badge: 'bg-blue-50 text-blue-600',
+  },
+  OUT_FOR_DELIVERY: {
     dot: 'bg-brand',
     badge: 'bg-brand-light text-brand',
   },
-  Returning: {
-    dot: 'bg-amber-500',
-    badge: 'bg-amber-50 text-amber-600',
+  DELIVERED: {
+    dot: 'bg-purple-500',
+    badge: 'bg-purple-50 text-purple-600',
   },
   Offline: {
     dot: 'bg-gray-400',
