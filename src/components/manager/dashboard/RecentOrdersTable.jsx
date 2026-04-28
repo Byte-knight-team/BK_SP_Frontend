@@ -140,12 +140,19 @@ export default function RecentOrdersTable({ orders = [] }) {
                 </td>
               </tr>
             )}
-            {/* Fill empty space if fewer than PAGE_SIZE rows */}
-            {currentPage > 0 && displayedOrders.length < PAGE_SIZE && displayedOrders.length > 0 && (
-              <tr style={{ height: `${(PAGE_SIZE - displayedOrders.length) * 60}px` }}>
-                <td colSpan={5}></td>
-              </tr>
-            )}
+            {/* Fill empty space to keep table height static during pagination/filtering */}
+            {(() => {
+              const targetRows = currentPage === 0 ? 5 : PAGE_SIZE
+              const emptyRows = targetRows - displayedOrders.length
+              if (emptyRows > 0 && displayedOrders.length > 0) {
+                return (
+                  <tr style={{ height: `${emptyRows * 60}px` }}>
+                    <td colSpan={5}></td>
+                  </tr>
+                )
+              }
+              return null
+            })()}
           </tbody>
         </table>
       </div>
