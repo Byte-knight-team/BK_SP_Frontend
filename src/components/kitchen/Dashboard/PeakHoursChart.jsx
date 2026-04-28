@@ -59,6 +59,12 @@ const PeakHoursChart = () => {
     )
   }
 
+  // Transform the data so it matches the label the user wants
+  const formattedData = graphData.map((item) => ({
+    ...item,
+    'Orders Count': item.ordersCount,
+  }))
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -68,9 +74,9 @@ const PeakHoursChart = () => {
 
       <div className="mt-2 w-full">
         <BarChart
-          data={graphData}
+          data={formattedData}
           index="time"
-          categories={['mealsCount']}
+          categories={['Orders Count']}
           colors={['orange']}
           showLegend={false}
           showXAxis={false}
