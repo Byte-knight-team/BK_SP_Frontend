@@ -228,18 +228,22 @@ export default function MenuPage() {
       </div>
 
       {!searchQuery && (
-        <section className="mx-4 mt-4 rounded-[2rem] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)] sm:mx-6 sm:px-8 sm:py-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-500">Menu</p>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Crafted dishes, clean presentation</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-[0.95rem]">
-                Browse a consistent menu layout with focused cards and clear hierarchy.
-              </p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              Freshly prepared for branch #{getBranchId()}
-            </div>
+        <section
+          className="relative mx-4 flex h-[220px] items-end overflow-hidden rounded-[16px] bg-cover bg-center sm:mx-6 sm:h-[280px]"
+          style={{ backgroundImage: `url(${menuCover})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/15" />
+          <div className="relative z-[1] p-5 text-white sm:p-8">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-[8px] text-[0.7rem] font-semibold tracking-[0.5px] uppercase text-white mb-3">
+              <ChefHat size={14} /> CURATED BY Professionals
+            </span>
+            <h1 className="mb-2.5 font-heading text-[1.6rem] font-extrabold leading-[1.1] sm:text-[2.5rem]">
+              Culinary Excellence
+            </h1>
+            <p className="max-w-[540px] text-[0.82rem] leading-relaxed opacity-[0.88] sm:text-[0.9rem]">
+              Experience the finest flavors crafted with passion, premium
+              ingredients, and decades of culinary expertise
+            </p>
           </div>
         </section>
       )}
