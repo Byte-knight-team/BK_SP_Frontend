@@ -1,4 +1,5 @@
-import { User, MapPin, ArrowRight } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { User, MapPin, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import clsx from 'clsx'
 
 const STATUS_STYLES = {
@@ -45,20 +46,53 @@ function DispatchOrderCard({ order, onAssign }) {
   )
 }
 
-export default function DispatchHub({ orders, onAssignDriver }) {
+export default function DispatchHub({ orders = [], onAssignDriver }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const containerRef = useRef(null)
+  
+  const INITIAL_COUNT = 6
+  const PAGE_SIZE = 9
+
+  const displayedOrders = !isExpanded 
+    ? orders.slice(0, INITIAL_COUNT)
+    : orders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  const handleViewMore = () => {
+    setIsExpanded(true)
+    setTimeout(() => {
+      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage)
+    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
-    <div className="card">
+    <div className="card scroll-mt-6" ref={containerRef}>
       {/* Header */}
-      <div className="mb-5 flex items-center gap-3">
-        <h2 className="text-xl font-bold text-gray-900">Dispatch Hub</h2>
-        <span className="bg-brand rounded-full px-2.5 py-1 text-xs font-bold text-white">
-          {orders.length}
-        </span>
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-gray-900">Dispatch Hub</h2>
+          <span className="bg-brand rounded-full px-2.5 py-1 text-xs font-bold text-white">
+            {orders.length}
+          </span>
+        </div>
+        {isExpanded && (
+          <button 
+            onClick={() => setIsExpanded(false)}
+            className="text-xs font-bold text-gray-400 hover:text-brand transition-colors"
+          >
+            Collapse View
+          </button>
+        )}
       </div>
 
       {/* Cards grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {orders.map((order) => (
+        {displayedOrders.map((order) => (
           <DispatchOrderCard
             key={order.id}
             order={order}
@@ -67,12 +101,41 @@ export default function DispatchHub({ orders, onAssignDriver }) {
         ))}
       </div>
 
-      {/* View more */}
-      <div className="mt-5 text-center">
-        <button className="text-brand inline-flex items-center gap-1 text-sm font-medium hover:underline">
-          View more
-        </button>
-      </div>
+      {/* View more / Pagination */}
+      {!isExpanded && orders.length > INITIAL_COUNT && (
+        <div className="mt-5 text-center">
+          <button 
+            onClick={handleViewMore}
+            className="text-brand inline-flex items-center gap-1 text-sm font-medium hover:underline"
+          >
+            View more
+          </button>
+        </div>
+      )}
+
+      {isExpanded && orders.length > PAGE_SIZE && (
+        <div className="mt-8 flex items-center justify-center gap-4 border-t border-gray-50 pt-6">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+            className="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="w-4 h-4" /> Prev
+          </button>
+          
+          <span className="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-md">
+            Page {currentPage} of {Math.ceil(orders.length / PAGE_SIZE)}
+          </span>
+
+          <button
+            disabled={currentPage * PAGE_SIZE >= orders.length}
+            onClick={() => handlePageChange(currentPage + 1)}
+            className="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Next <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
