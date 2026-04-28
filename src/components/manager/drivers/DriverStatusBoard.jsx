@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Star, Clock, Search, SlidersHorizontal } from 'lucide-react'
+import { Clock, Search, SlidersHorizontal } from 'lucide-react'
 import clsx from 'clsx'
 
 const FILTER_OPTIONS = [
@@ -134,10 +134,6 @@ export default function DriverStatusBoard({ drivers }) {
                   <p className="text-sm font-semibold text-gray-900">
                     {driver.name}
                   </p>
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    {driver.rating}
-                  </div>
                 </div>
               </td>
 
