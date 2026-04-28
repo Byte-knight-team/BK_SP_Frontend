@@ -22,11 +22,11 @@ const ChefsPage = () => {
         <Stats />
       </div>
             {/* 2. Action Buttons Section */}
-      <div className="mt-6 flex gap-4 justify-end">
+      <div className="mt-6 flex gap-4 justify-end gap-3">
         {/* Check In Button */}
         <button 
           onClick={() => console.log("Check In Clicked")}
-          className="flex item-center gap-2 p-3 rounded-xl border border-orange-100 bg"
+          className="flex item-center gap-2 p-3 rounded-xl border border-orange-100 bg-white text-sm text-orange-600 transition-all hover:bg-orange-50 shadow-sm"
         >
           <LogIn size={24} />
           <div className="text-left">
@@ -37,7 +37,7 @@ const ChefsPage = () => {
         {/* Check Out Button */}
         <button 
           onClick={() => console.log("Check Out Clicked")}
-          className="flex item-center gap-2 p-3 rounded-xl border border-orange-100"
+          className="flex item-center gap-2 p-3 rounded-xl border border-orange-100 bg-white text-sm text-orange-600 transition-all hover:bg-orange-50 shadow-sm"
         >
           <LogOut size={24} />
           <div className="text-left">
