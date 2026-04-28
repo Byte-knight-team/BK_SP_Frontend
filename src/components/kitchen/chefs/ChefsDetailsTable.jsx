@@ -1,10 +1,21 @@
 import { User } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getChefsAPI } from '../../../apis/kitchen/chefs'
+import ChefActionModal from './ChefActionModal'; 
 
 const ChefDetailsTable = () => {
-  const [chefs, setChefs] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [chefs, setChefs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState(''); // 'CHECK_IN', 'CHECK_OUT', or 'UPDATE_STATUS'
+  const [selectedChef, setSelectedChef] = useState(null);
+
+  // Helper function to open the modal
+  const handleOpenModal = (type, chef) => {
+    setModalType(type);
+    setSelectedChef(chef);
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchChefs = async () => {
@@ -131,7 +142,7 @@ const ChefDetailsTable = () => {
                   {/* Only show Check In if they are Off Duty */}
                   {chef.workStatus === 'OFF_DUTY' ? (
                     <button
-                      onClick={() => console.log('Check In', chef.staffId)}
+                      onClick={() => handleOpenModal('CHECK_IN', chef)}
                       className="rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-[10px] font-bold text-green-600 transition-all hover:bg-green-100"
                     >
                       CHECK IN
@@ -140,14 +151,14 @@ const ChefDetailsTable = () => {
                     /*Show these two if they are working */
                     <>
                       <button
-                        onClick={() => console.log('Update Status', chef.staffId)}
+                        onClick={() => handleOpenModal('UPDATE_STATUS', chef)}
                         className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-[10px] font-bold text-orange-600 transition-all hover:bg-orange-100"
                       >
                         UPDATE STATUS
                       </button>
 
                       <button
-                        onClick={() => console.log('Check Out', chef.staffId)}
+                        onClick={() => handleOpenModal('CHECK_OUT', chef)}
                         className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-bold text-red-600 transition-all hover:bg-red-100"
                       >
                         CHECK OUT
