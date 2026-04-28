@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, ChevronDown, XCircle, CreditCard, ExternalLink, Loader2, Star, Utensils } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
-import ReviewModal from '../../components/customer/ReviewModal';
+import ReviewModal from '../../components/customer/modal/ReviewModal';
+import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, listCustomerOrders } from '../../apis/customer/orders';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
@@ -287,37 +288,19 @@ export default function OrdersPage() {
         )}
       </div>
       
-      {/* Cancel Order Modal */}
-      {cancelModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-[24px] bg-white p-7 shadow-2xl">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Cancel Order</h3>
-            <p className="text-sm text-slate-500 mb-5">Please let us know why you are cancelling order #{orderToCancel?.orderNumber || orderToCancel?.orderId}.</p>
-            
-            <textarea
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm focus:border-orange-500 outline-none resize-none h-28 mb-5 transition-colors"
-              placeholder="Cancellation reason (required)"
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-            />
-            
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setCancelModalOpen(false); setCancelReason(''); setOrderToCancel(null); }}
-                className="flex-1 rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-700 hover:bg-slate-200 transition-colors"
-              >
-                Keep Order
-              </button>
-              <button
-                onClick={handleCancelOrder}
-                disabled={isCancelling || !cancelReason.trim()}
-                className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-md shadow-red-600/20 hover:bg-red-700 disabled:opacity-50 transition-all flex items-center justify-center"
-              >
-                {isCancelling ? <Loader2 size={18} className="animate-spin" /> : 'Confirm Cancel'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {cancelModalOpen && orderToCancel && (
+        <CancelOrderModal
+          order={orderToCancel}
+          cancelReason={cancelReason}
+          onCancelReasonChange={setCancelReason}
+          onClose={() => {
+            setCancelModalOpen(false);
+            setCancelReason('');
+            setOrderToCancel(null);
+          }}
+          onConfirm={handleCancelOrder}
+          isSubmitting={isCancelling}
+        />
       )}
 
       {/* Review Modal */}

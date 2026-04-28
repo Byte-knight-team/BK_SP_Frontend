@@ -25,15 +25,6 @@ export default function AccountPage() {
   // 1. Fetch Profile on Load
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem('customer_jwt');
-      const isQrCustomer = Boolean(localStorage.getItem('qr_session_token'));
-
-      // If no token, or if they are a QR customer don't let access
-      if (!token || isQrCustomer) {
-        navigate('/menu', { replace: true });
-        return;
-      }
-
       try {
         const res = await getCustomerProfile();
         
@@ -53,7 +44,7 @@ export default function AccountPage() {
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, []);
 
   const handleEdit = (section) => {
     setError('');
@@ -82,7 +73,6 @@ export default function AccountPage() {
   const handleSaveProfile = async () => {
     setIsSaving(true);
     setError('');
-    const token = localStorage.getItem('customer_jwt');
 
     try {
       const res = await updateCustomerProfile({
@@ -121,7 +111,6 @@ export default function AccountPage() {
 
     setIsSaving(true);
     setError('');
-    const token = localStorage.getItem('customer_jwt');
 
     try {
       const res = await updateCustomerPassword({

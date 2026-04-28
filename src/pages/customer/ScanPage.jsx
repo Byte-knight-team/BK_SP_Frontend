@@ -71,7 +71,7 @@ export default function ScanPage() {
         localStorage.removeItem('customer_user_id');
         localStorage.removeItem('customer_name');
 
-        // Store ONLY the token, never store decoded IDs
+        // Store ONLY the token
         localStorage.setItem('qr_session_token', data.session_token);
         // Remove legacy keys if they exist
         localStorage.removeItem('qr_session');
