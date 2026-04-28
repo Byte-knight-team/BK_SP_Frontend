@@ -114,13 +114,13 @@ export default function DriverStatusBoard({ drivers }) {
       </div>
 
       {/* Table */}
-      <table className="w-full text-sm">
+      <table className="w-full text-sm table-fixed">
         <thead>
           <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase">
-            <th className="pb-3 text-left font-semibold">Driver</th>
-            <th className="pb-3 text-left font-semibold">Status</th>
-            <th className="pb-3 text-center font-semibold">Assigned Time</th>
-            <th className="pb-3 text-right font-semibold">Current Task</th>
+            <th className="w-1/4 pb-3 text-left font-semibold">Driver</th>
+            <th className="w-1/4 pb-3 text-left font-semibold">Status</th>
+            <th className="w-1/4 pb-3 text-center font-semibold">Assigned Time</th>
+            <th className="w-1/4 pb-3 text-right font-semibold">Current Task</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
