@@ -29,5 +29,5 @@ export function useSalesData() {
     fetchSalesData()
   }, [fetchSalesData])
 
-  return { data, loading, error, refetch: fetchSalesData }
+  return { data, loading, error, refetch: fetchSalesData, user }
 }

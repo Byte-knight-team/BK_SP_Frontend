@@ -7,7 +7,7 @@ import { useSalesData } from '../../hooks/useSalesData'
 import { Loader2, AlertCircle, RefreshCcw } from 'lucide-react'
 
 export default function ManagerSalesSummaryPage() {
-  const { data, loading, error, refetch } = useSalesData()
+  const { data, loading, error, refetch, user } = useSalesData()
 
   if (loading) {
     return (
@@ -41,7 +41,7 @@ export default function ManagerSalesSummaryPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <SalesSummaryHeader />
+      <SalesSummaryHeader branch={user?.branchName} />
       
       <FinancialStatsGrid 
         gross={data?.grossSales || 0}
