@@ -66,3 +66,15 @@ export const checkInChefAPI = async (chefId) => {
     return { data: null, error: error.message };
   }
 };
+
+// Check out a chef
+export const checkOutChefAPI = async (chefId) => {
+  try {
+    const response = await authFetch(`http://localhost:8080/api/v1/kitchen/chefs/${chefId}/check-out`, { method: "POST" });
+    const result = await response.json();
+    if (!response.ok) return { data: null, error: result.message || "Check-out failed" };
+    return { data: result, error: null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
