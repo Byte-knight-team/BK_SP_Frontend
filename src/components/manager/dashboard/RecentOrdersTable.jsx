@@ -102,20 +102,20 @@ export default function RecentOrdersTable({ orders = [] }) {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-base">
+        <table className="w-full text-base table-fixed">
           <thead>
             <tr className="border-b border-gray-100 text-sm tracking-wider text-gray-400 uppercase">
-              <th className="pb-3 text-left font-medium">Order ID</th>
-              <th className="pb-3 text-left font-medium">Type</th>
-              <th className="pb-3 text-left font-medium">Status</th>
-              <th className="pb-3 text-center font-medium">Order Amount</th>
-              <th className="pb-3 text-right font-medium">Placed On</th>
+              <th className="w-[20%] pb-3 text-left font-medium">Order ID</th>
+              <th className="w-[20%] pb-3 text-left font-medium">Type</th>
+              <th className="w-[20%] pb-3 text-left font-medium">Status</th>
+              <th className="w-[20%] pb-3 text-center font-medium">Order Amount</th>
+              <th className="w-[20%] pb-3 text-right font-medium">Placed On</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-gray-50 min-h-[450px]">
             {displayedOrders.map((order) => (
               <tr key={order.id} className="transition-colors hover:bg-gray-50">
-                <td className="py-4 font-medium text-gray-800">{order.id}</td>
+                <td className="py-4 font-medium text-gray-800 truncate">{order.id}</td>
                 <td className="py-4 text-sm tracking-wide text-gray-500 uppercase">
                   {order.type}
                 </td>
@@ -138,6 +138,12 @@ export default function RecentOrdersTable({ orders = [] }) {
                     <p>No orders match your search criteria.</p>
                   </div>
                 </td>
+              </tr>
+            )}
+            {/* Fill empty space if fewer than PAGE_SIZE rows */}
+            {currentPage > 0 && displayedOrders.length < PAGE_SIZE && displayedOrders.length > 0 && (
+              <tr style={{ height: `${(PAGE_SIZE - displayedOrders.length) * 60}px` }}>
+                <td colSpan={5}></td>
               </tr>
             )}
           </tbody>
