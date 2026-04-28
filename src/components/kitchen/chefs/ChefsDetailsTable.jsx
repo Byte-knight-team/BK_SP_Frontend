@@ -1,6 +1,7 @@
 import { User } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { getChefsAPI } from '../../../apis/kitchen/chefs'
+import { getChefsAPI, checkInChefAPI, checkOutChefAPI, updateChefStatusAPI } from '../../../apis/kitchen/chefs';
+import { toast } from 'react-toastify';
 import ChefActionModal from './ChefActionModal'
 
 const ChefDetailsTable = () => {
@@ -17,26 +18,24 @@ const ChefDetailsTable = () => {
     setIsModalOpen(true)
   }
 
-  useEffect(() => {
-    const fetchChefs = async () => {
-      //enable loading
-      setLoading(true)
-      //api call
-      const { data, error } = await getChefsAPI()
-      //handle error
-      if (error) {
-        console.error('Error fetching chefs:', error)
-        return
-      }
-      //handle success
-      if (data) {
-        setChefs(data)
-      }
-      //disable loading
-      setLoading(false)
+  // Move fetchChefs outside of useEffect
+  const fetchChefs = async (showLoading = true) => {
+    if (showLoading) setLoading(true) // Only show spinner if showLoading is true
+
+    const { data, error } = await getChefsAPI()
+
+    if (error) {
+      console.error('Error fetching chefs:', error)
+    } else if (data) {
+      setChefs(data)
     }
 
-    fetchChefs()
+    if (showLoading) setLoading(false)
+  }
+
+  // 2. Initial load
+  useEffect(() => {
+    fetchChefs(true)
   }, [])
 
   if (loading) {
@@ -52,6 +51,8 @@ const ChefDetailsTable = () => {
       </div>
     )
   }
+
+  
 
   return (
     <div className="w-full overflow-hidden">
@@ -173,24 +174,30 @@ const ChefDetailsTable = () => {
           ))}
         </tbody>
       </table>
-      
+
       <ChefActionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         type={modalType}
         chefName={selectedChef?.fullName}
         currentStatus={selectedChef?.workStatus}
-        onConfirm={(data) => {
-          console.log(
-            'Confirming action:',
-            modalType,
-            'for',
-            selectedChef.staffId,
-            'with data:',
-            data,
-          )
+        onConfirm={async (data) => {
+          let result;
+          
+          if (modalType === 'CHECK_IN') {
+            result = await checkInChefAPI(selectedChef.staffId);
+          } else if (modalType === 'CHECK_OUT') {
+            result = await checkOutChefAPI(selectedChef.staffId);
+          } else if (modalType === 'UPDATE_STATUS') {
+            result = await updateChefStatusAPI(selectedChef.staffId, data);
+          }
+          if (result.error) {
+            toast.error(result.error);
+          } else {
+            toast.success(result.data.message || "Success");
+            fetchChefs(false); // Background fetch!
+          }
           setIsModalOpen(false)
-          // We will add the API calls here next!
         }}
       />
     </div>
