@@ -1,47 +1,44 @@
 import { ChefHat, Truck, UserRound } from 'lucide-react'
 
-export default function StaffSummaryCards({ kitchenCount = 0, deliveryCount = 0, receptionistCount = 0 }) {
-  const cards = [
-    {
-      title: 'Kitchen team',
-      count: kitchenCount,
-      label: 'Active Kitchen Staff',
-      icon: ChefHat,
-      iconBg: 'bg-orange-50',
-      iconColor: 'text-orange-500'
-    },
-    {
-      title: 'Delivery Fleet',
-      count: deliveryCount,
-      label: 'Active Delivery Fleet',
-      icon: Truck,
-      iconBg: 'bg-red-50',
-      iconColor: 'text-red-500'
-    },
-    {
-      title: 'Receptionists',
-      count: receptionistCount,
-      label: 'Active Receptionists',
-      icon: UserRound,
-      iconBg: 'bg-orange-50',
-      iconColor: 'text-orange-500'
-    }
-  ]
-
+function SummaryCard({ icon, iconBg, label, value, subtitle }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-      {cards.map((card) => (
-        <div key={card.title} className="bg-white p-6 rounded-4xl border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
-          <div className="space-y-1">
-            <h3 className="text-gray-500 text-sm font-medium">{card.title}</h3>
-            <div className="text-4xl font-bold text-gray-900">{card.count}</div>
-            <p className="text-gray-400 text-xs font-medium">{card.label}</p>
-          </div>
-          <div className={`p-4 ${card.iconBg} rounded-2xl`}>
-            <card.icon className={`w-8 h-8 ${card.iconColor}`} />
-          </div>
-        </div>
-      ))}
+    <div className="card flex items-start justify-between text-left w-full">
+      <div>
+        <p className="text-sm text-gray-500 font-medium">{label}</p>
+        <p className="text-3xl font-extrabold mt-2 text-gray-900">
+          {value}
+        </p>
+        <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
+      </div>
+      <div className={`p-3 rounded-xl ${iconBg}`}>{icon}</div>
+    </div>
+  )
+}
+
+export default function StaffSummaryCards({ kitchenCount = 0, deliveryCount = 0, receptionistCount = 0 }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <SummaryCard
+        icon={<ChefHat className="w-6 h-6 text-orange-500" />}
+        iconBg="bg-orange-50"
+        label="Kitchen team"
+        value={`${kitchenCount} Staff`}
+        subtitle="Active Kitchen Staff"
+      />
+      <SummaryCard
+        icon={<Truck className="w-6 h-6 text-blue-600" />}
+        iconBg="bg-blue-50"
+        label="Delivery Fleet"
+        value={`${deliveryCount} Riders`}
+        subtitle="Active Delivery Fleet"
+      />
+      <SummaryCard
+        icon={<UserRound className="w-6 h-6 text-brand" />}
+        iconBg="bg-brand-light"
+        label="Receptionists"
+        value={`${receptionistCount} Staff`}
+        subtitle="Active Receptionists"
+      />
     </div>
   )
 }
