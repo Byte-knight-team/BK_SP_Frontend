@@ -12,7 +12,7 @@ export default function DeliveryHeader({ branchName }) {
 
   const fetchStatus = async () => {
     try {
-      const response = await authFetch("/api/delivery/status");
+      const response = await authFetch("http://localhost:8080/api/delivery/status");
       if (response.ok) {
         const data = await response.json();
         setIsOnline(data.isOnline);
@@ -25,16 +25,25 @@ export default function DeliveryHeader({ branchName }) {
   };
 
   const toggleStatus = async () => {
+    const oldStatus = isOnline;
     const newStatus = !isOnline;
+
+    // Optimistic update
+    setIsOnline(newStatus);
+
     try {
-      const response = await authFetch("/api/delivery/status/toggle", {
+      const response = await authFetch("http://localhost:8080/api/delivery/status/toggle", {
         method: "POST",
         body: JSON.stringify({ isOnline: newStatus }),
       });
-      if (response.ok) {
-        setIsOnline(newStatus);
+      if (!response.ok) {
+        // Revert on failure
+        setIsOnline(oldStatus);
+        console.error("Failed to toggle status");
       }
     } catch (error) {
+      // Revert on error
+      setIsOnline(oldStatus);
       console.error("Failed to toggle status:", error);
     }
   };
