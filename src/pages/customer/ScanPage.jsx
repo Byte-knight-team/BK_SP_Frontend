@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { decodeJwtPayload } from '../../utils/authToken';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import { startQrSession } from '../../apis/customer/qrSessions';
 
 export default function ScanPage() {
@@ -89,19 +91,16 @@ export default function ScanPage() {
   }, [navigate, tokenFromUrl]);
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-10 flex items-center justify-center">
-      <div className="w-full max-w-[420px] rounded-3xl bg-white px-6 py-10 text-center shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/25">
-          <Loader2 size={28} className={isLoading ? 'animate-spin' : ''} />
-        </div>
-
-        <h1 className="mt-5 text-2xl font-bold text-slate-900">
-          {error ? 'Session unavailable' : 'Starting your table session'}
-        </h1>
-        <p className="mt-2 text-sm text-slate-500">
-          {error || 'Please wait while we open your menu.'}
-        </p>
+    <CustomerPageShell maxWidth="max-w-4xl">
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <CustomerStateCard
+          variant={error ? 'error' : 'loading'}
+          icon={error ? AlertCircle : undefined}
+          title={error ? 'Session unavailable' : 'Starting your table session'}
+          description={error || 'Please wait while we open your menu.'}
+          className="mx-auto max-w-xl"
+        />
       </div>
-    </div>
+    </CustomerPageShell>
   );
 }
