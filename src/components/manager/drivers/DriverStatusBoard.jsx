@@ -36,7 +36,7 @@ const STATUS_STYLES = {
 
 function StatusBadge({ status }) {
   const style = STATUS_STYLES[status] || STATUS_STYLES.Offline
-  
+
   // Format the status string (e.g., OUT_FOR_DELIVERY -> OUT FOR DELIVERY)
   const displayStatus = status.replace(/_/g, ' ')
 
@@ -114,13 +114,17 @@ export default function DriverStatusBoard({ drivers }) {
       </div>
 
       {/* Table */}
-      <table className="w-full text-sm table-fixed">
+      <table className="w-full table-fixed text-sm">
         <thead>
           <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase">
             <th className="w-1/4 pb-3 text-left font-semibold">Driver</th>
             <th className="w-1/4 pb-3 text-left font-semibold">Status</th>
-            <th className="w-1/4 pb-3 text-center font-semibold">Assigned Time</th>
-            <th className="w-1/4 pb-3 text-right font-semibold">Current Task</th>
+            <th className="w-1/4 pb-3 text-center font-semibold">
+              Assigned Time
+            </th>
+            <th className="w-1/4 pb-3 text-right font-semibold">
+              Current Task
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
@@ -151,18 +155,22 @@ export default function DriverStatusBoard({ drivers }) {
                     {driver.currentTask.assignedTime}
                   </div>
                 ) : (
-                  <span className="text-xs text-gray-300 italic">No active assignments</span>
+                  <span className="text-xs text-gray-300 italic">
+                    No active assignments
+                  </span>
                 )}
               </td>
 
               {/* Current task */}
               <td className="py-4 text-right">
                 {driver.currentTask ? (
-                  <p className="text-sm font-bold text-brand">
+                  <p className="text-grey-900 text-sm font-bold">
                     {driver.currentTask.orderId}
                   </p>
                 ) : (
-                  <span className="text-xs text-gray-300 italic">No active assignments</span>
+                  <span className="text-xs text-gray-300 italic">
+                    No active assignments
+                  </span>
                 )}
               </td>
             </tr>

@@ -91,7 +91,10 @@ export default function DispatchHub({ orders = [], onAssignDriver }) {
       </div>
 
       {/* Cards grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={clsx(
+        "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3",
+        isExpanded && "min-h-[400px]" // Prevent collapse/jump during pagination
+      )}>
         {displayedOrders.map((order) => (
           <DispatchOrderCard
             key={order.id}
@@ -113,7 +116,7 @@ export default function DispatchHub({ orders = [], onAssignDriver }) {
         </div>
       )}
 
-      {isExpanded && orders.length > PAGE_SIZE && (
+      {isExpanded && (
         <div className="mt-8 flex items-center justify-center gap-4 border-t border-gray-50 pt-6">
           <button
             disabled={currentPage === 1}
@@ -124,7 +127,7 @@ export default function DispatchHub({ orders = [], onAssignDriver }) {
           </button>
           
           <span className="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-md">
-            Page {currentPage} of {Math.ceil(orders.length / PAGE_SIZE)}
+            Page {currentPage} of {Math.max(1, Math.ceil(orders.length / PAGE_SIZE))}
           </span>
 
           <button
