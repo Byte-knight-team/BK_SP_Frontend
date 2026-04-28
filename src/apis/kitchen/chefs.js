@@ -58,39 +58,51 @@ export const getAvailableChefsAPI = async () => {
 // Check in a chef
 export const checkInChefAPI = async (chefId) => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/kitchen/chefs/${chefId}/check-in`, { method: "POST" });
-    const result = await response.json();
-    if (!response.ok) return { data: null, error: result.message || "Check-in failed" };
-    return { data: result, error: null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/chefs/${chefId}/check-in`,
+      { method: 'POST' },
+    )
+    const result = await response.json()
+    if (!response.ok)
+      return { data: null, error: result.message || 'Check-in failed' }
+    return { data: result, error: null }
   } catch (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: error.message }
   }
-};
+}
 
 // Check out a chef
 export const checkOutChefAPI = async (chefId) => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/kitchen/chefs/${chefId}/check-out`, { method: "POST" });
-    const result = await response.json();
-    if (!response.ok) return { data: null, error: result.message || "Check-out failed" };
-    return { data: result, error: null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/chefs/${chefId}/check-out`,
+      { method: 'POST' },
+    )
+    const result = await response.json()
+    if (!response.ok)
+      return { data: null, error: result.message || 'Check-out failed' }
+    return { data: result, error: null }
   } catch (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: error.message }
   }
-};
+}
 
 // Update chef work status
 export const updateChefStatusAPI = async (chefId, newStatus) => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/kitchen/chefs/${chefId}/work-status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newStatus }),
-    });
-    const result = await response.json();
-    if (!response.ok) return { data: null, error: result.message || "Status update failed" };
-    return { data: result, error: null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/kitchen/chefs/${chefId}/work-status`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newStatus }),
+      },
+    )
+    const result = await response.json()
+    if (!response.ok)
+      return { data: null, error: result.message || 'Status update failed' }
+    return { data: result, error: null }
   } catch (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: error.message }
   }
-};
+}
