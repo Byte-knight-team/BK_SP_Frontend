@@ -28,7 +28,7 @@ export default function ProfileHeader({ name }) {
   };
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-[2rem] p-8 text-white shadow-xl shadow-orange-200">
+    <div className="relative overflow-hidden bg-linear-to-br from-orange-500 to-orange-600 rounded-4xl p-8 text-white shadow-xl shadow-orange-200">
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 -mr-8 -mt-8 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-black opacity-5 rounded-full blur-2xl"></div>
