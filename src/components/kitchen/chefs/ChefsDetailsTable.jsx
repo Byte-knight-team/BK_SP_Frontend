@@ -174,7 +174,25 @@ const ChefDetailsTable = () => {
         </tbody>
       </table>
       
-      
+      <ChefActionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        type={modalType}
+        chefName={selectedChef?.fullName}
+        currentStatus={selectedChef?.workStatus}
+        onConfirm={(data) => {
+          console.log(
+            'Confirming action:',
+            modalType,
+            'for',
+            selectedChef.staffId,
+            'with data:',
+            data,
+          )
+          setIsModalOpen(false)
+          // We will add the API calls here next!
+        }}
+      />
     </div>
   )
 }
