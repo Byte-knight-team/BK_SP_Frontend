@@ -52,6 +52,7 @@ import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
 import ManagerSalesSummaryPage from './pages/manager/ManagerSalesSummaryPage'
 import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
 import ManagerDriversPage from './pages/manager/ManagerDriversPage'
+import ManagerStaffPage from './pages/manager/ManagerStaffPage'
 
 // Admin pages from other modules
 import AdminDashboardPage from './pages/AdminDashboardPage'
@@ -235,7 +236,7 @@ export default function App() {
         <Route path="sales" element={<ManagerSalesSummaryPage />} />
         <Route path="orders" element={<ComingSoonPage />} />
         <Route path="reports" element={<ComingSoonPage />} />
-        <Route path="staff" element={<ComingSoonPage />} />
+        <Route path="staff" element={<ManagerStaffPage />} />
         <Route path="inventory" element={<ManagerInventoryPage />} />
         <Route path="drivers" element={<ManagerDriversPage />} />
         <Route path="profile" element={<ProfilePage />} />
