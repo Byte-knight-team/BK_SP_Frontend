@@ -29,8 +29,19 @@ const ChefDetailsTable = () => {
   }, [])
 
   if (loading) {
-    return <div>Loading...</div>
-  }
+  return (
+    <div className="flex h-64 w-full flex-col items-center justify-center gap-4">
+      {/* Animated Spinner Ring */}
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-100 border-t-orange-500"></div>
+      
+      {/* Subtle Loading Text */}
+      <p className="animate-pulse text-sm font-bold tracking-widest text-gray-400 uppercase">
+        Fetching Chefs...
+      </p>
+    </div>
+  );
+}
+
 
   return (
     <div className="w-full overflow-hidden">
@@ -75,20 +86,39 @@ const ChefDetailsTable = () => {
 
               {/* Status Badge */}
               <td className="px-6 py-4 text-center">
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
+                <div
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black tracking-tighter uppercase shadow-sm ${
                     chef.workStatus === 'AVAILABLE'
-                      ? 'bg-green-600'
+                      ? 'border-green-100 bg-green-50 text-green-600'
                       : chef.workStatus === 'COOKING'
-                        ? 'bg-orange-600'
+                        ? 'border-orange-100 bg-orange-50 text-orange-600'
                         : chef.workStatus === 'ON_BREAK'
-                          ? 'bg-blue-600'
-                          : 'bg-gray-500' //for unavlible chefs
+                          ? 'border-blue-100 bg-blue-50 text-blue-600'
+                          : 'border-gray-100 bg-gray-50 text-gray-400' // Handles OFF_DUTY
                   }`}
-                ></span>
-                {/* Format the text to look nice (e.g., "AVAILABLE" -> "Available") */}
-                {chef.workStatus === 'ON_BREAK' ? 'On Break' :
-                  chef.workStatus.charAt(0) + chef.workStatus.slice(1).toLowerCase()}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      chef.workStatus === 'AVAILABLE'
+                        ? 'bg-green-600'
+                        : chef.workStatus === 'COOKING'
+                          ? 'bg-orange-600'
+                          : chef.workStatus === 'ON_BREAK'
+                            ? 'bg-blue-600'
+                            : 'bg-gray-400'
+                    }`}
+                  ></span>
+                  {/* Format the text to look nice */}
+                  {chef.workStatus === 'ON_BREAK'
+                    ? 'On Break'
+                    : chef.workStatus === 'OFF_DUTY'
+                      ? 'Off Duty'
+                      : chef.workStatus.charAt(0) +
+                        chef.workStatus
+                          .slice(1)
+                          .toLowerCase()
+                          .replace('_', ' ')}
+                </div>
               </td>
 
               {/* Meals Today */}
