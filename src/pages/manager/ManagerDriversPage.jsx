@@ -23,8 +23,10 @@ function LoadingSkeleton() {
   )
 }
 
+import { ManagerDriverService } from '../../apis/manager/ManagerDriverService'
+
 export default function ManagerDriversPage() {
-  const { data, loading, error } = useDriversData()
+  const { data, loading, error, refetch } = useDriversData()
   const [assignModal, setAssignModal] = useState({
     open: false,
     order: null,
@@ -36,6 +38,12 @@ export default function ManagerDriversPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <div className="text-red-500 font-medium">Failed to load drivers: {error || 'Unknown error'}</div>
+        <button 
+          onClick={refetch}
+          className="px-6 py-2 bg-brand text-white rounded-full font-bold shadow-lg hover:bg-brand-hover transition-all"
+        >
+          Try Again
+        </button>
       </div>
     )
   }
@@ -44,10 +52,15 @@ export default function ManagerDriversPage() {
     setAssignModal({ open: true, order })
   }
 
-  const handleConfirmAssign = (orderId, driverId) => {
-    console.log(`Assigning driver ${driverId} to order ${orderId}`)
-    // TODO: POST to backend API
-    setAssignModal({ open: false, order: null })
+  const handleConfirmAssign = async (orderId, driverId) => {
+    try {
+      await ManagerDriverService.assignDriver(orderId, driverId)
+      setAssignModal({ open: false, order: null })
+      refetch()
+    } catch (err) {
+      console.error('Assignment failed:', err)
+      alert(err.message || 'Failed to assign driver. Please try again.')
+    }
   }
 
   const availableDrivers = (data.drivers || []).filter((d) => d.status === 'Available')

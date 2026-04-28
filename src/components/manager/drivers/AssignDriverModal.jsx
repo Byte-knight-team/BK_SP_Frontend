@@ -13,7 +13,7 @@ export default function AssignDriverModal({
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!selectedDriverId) return
-    onConfirm(order?.id, Number(selectedDriverId))
+    onConfirm(order?.orderId, Number(selectedDriverId))
     setSelectedDriverId('')
   }
 
