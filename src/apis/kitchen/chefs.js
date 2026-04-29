@@ -22,6 +22,22 @@ export const getChefsStatsAPI = async () => {
   }
 }
 
+// Get all available Line Chefs for the assign dropdown
+export const getAvailableChefsAPI = async () => {
+  try {
+    const response = await authFetch(
+      'http://localhost:8080/api/v1/kitchen/available-chefs',
+    )
+
+    const result = await response.json()
+
+    return { data: result.data, error: null }
+  } catch (error) {
+    console.error('Error fetching available chefs:', error)
+    return { data: null, error: error }
+  }
+}
+
 // Get all chefs details for today
 export const getChefsAPI = async () => {
   try {
@@ -35,22 +51,6 @@ export const getChefsAPI = async () => {
     return { data: result.data, error: null }
   } catch (error) {
     console.error('Error fetching chefs details:', error)
-    return { data: null, error: error }
-  }
-}
-
-// Get all available Line Chefs for the assign dropdown
-export const getAvailableChefsAPI = async () => {
-  try {
-    const response = await authFetch(
-      'http://localhost:8080/api/v1/kitchen/available-chefs',
-    )
-
-    const result = await response.json()
-
-    return { data: result.data, error: null }
-  } catch (error) {
-    console.error('Error fetching available chefs:', error)
     return { data: null, error: error }
   }
 }
