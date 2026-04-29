@@ -107,7 +107,38 @@ const ChefDetailsTable = () => {
               </td>
 
               {/* Status Badge */}
-              
+              <td className="px-6 py-4 text-center text-sm">
+                <div
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black tracking-tighter uppercase shadow-sm ${
+                    chef.workStatus === 'AVAILABLE'
+                      ? 'border-green-100 bg-green-50 text-green-600'
+                      : chef.workStatus === 'COOKING'
+                        ? 'border-orange-100 bg-orange-50 text-orange-600'
+                        : chef.workStatus === 'ON_BREAK'
+                          ? 'border-blue-100 bg-blue-50 text-blue-600'
+                          : 'border-gray-100 bg-gray-50 text-gray-400' // For UNAVAILABLE
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      chef.workStatus === 'AVAILABLE'
+                        ? 'bg-green-600'
+                        : chef.workStatus === 'COOKING'
+                          ? 'bg-orange-600'
+                          : chef.workStatus === 'ON_BREAK'
+                            ? 'bg-blue-600'
+                            : 'bg-gray-400' // For UNAVAILABLE
+                    }`}
+                  ></span>
+
+                  {/* Simplified Name Display */}
+                  {chef.workStatus === 'ON_BREAK'
+                    ? 'ON BREAK'
+                    : chef.workStatus === 'UNAVAILABLE'
+                      ? 'OFF DUTY'
+                      : chef.workStatus}
+                </div>
+              </td>
 
               {/* Meals Today */}
               <td className="px-6 py-4 text-center text-sm font-bold text-gray-700">
