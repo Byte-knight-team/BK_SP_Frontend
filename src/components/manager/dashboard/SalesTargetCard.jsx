@@ -33,7 +33,7 @@ export default function SalesTargetCard({ current, goal }) {
           {pct}% Achieved
         </span>
         <span className="text-sm text-gray-400">
-          Rs.{remaining.toLocaleString()} more to reach daily goal
+          Rs.{remaining.toLocaleString()} more to reach daily goalx
         </span>
       </div>
     </div>
