@@ -16,7 +16,7 @@ const OrderTabs = ({ handleOrderClick, selectedOrderId, activeTab, setActiveTab 
   return (
     <div className="w-full">
       {/* Tabs Header */}
-      <div className="flex flex-wrap gap-1 border-b border-gray-100 pb-2">
+      <div className="flex flex-wrap justify-center gap-1 border-b border-gray-100 pb-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}
