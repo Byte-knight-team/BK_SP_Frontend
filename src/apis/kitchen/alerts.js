@@ -26,3 +26,17 @@ export const getActiveAlertsAPI = async () => {
     return { data: null, error: error.message };
   }
 };
+
+// 3. Mark an alert as solved
+export const resolveAlertAPI = async (id) => {
+  try {
+    const response = await authFetch(`${BASE_URL}/${id}/resolve`, {
+      method: "PATCH",
+    });
+    const result = await response.json();
+    if (!response.ok) return { data: null, error: result.message };
+    return { data: result, error: null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
