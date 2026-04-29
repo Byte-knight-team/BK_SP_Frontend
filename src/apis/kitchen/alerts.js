@@ -15,3 +15,14 @@ export const createAlertAPI = async (message, type) => {
     return { data: null, error: error.message };
   }
 };
+
+// 2. Get all active (unresolved) alerts
+export const getActiveAlertsAPI = async () => {
+  try {
+    const response = await authFetch(`${BASE_URL}/active`);
+    const result = await response.json();
+    return { data: result.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
