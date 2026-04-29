@@ -8,8 +8,8 @@ export const ManagerDriverService = {
    */
   getSummary: async (branchId) => {
     const url = branchId 
-      ? `${BASE_URL}/drivers/manager/summary?branchId=${branchId}&_t=${Date.now()}`
-      : `${BASE_URL}/drivers/manager/summary?_t=${Date.now()}`
+      ? `${BASE_URL}/api/drivers/manager/summary?branchId=${branchId}&_t=${Date.now()}`
+      : `${BASE_URL}/api/drivers/manager/summary?_t=${Date.now()}`
       
     const response = await authFetch(url)
     const result = await response.json()
@@ -20,7 +20,7 @@ export const ManagerDriverService = {
    * Assigns a driver to a specific order.
    */
   assignDriver: async (orderId, driverId) => {
-    const url = `${BASE_URL}/drivers/manager/assign?orderId=${orderId}&driverId=${driverId}`
+    const url = `${BASE_URL}/api/drivers/manager/assign?orderId=${orderId}&driverId=${driverId}`
     const response = await authFetch(url, {
       method: 'POST'
     })

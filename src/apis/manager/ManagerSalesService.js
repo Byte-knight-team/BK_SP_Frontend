@@ -8,8 +8,8 @@ export const ManagerSalesService = {
    */
   getSalesSummary: async (branchId) => {
     const url = branchId 
-      ? `${BASE_URL}/sales/manager/summary?branchId=${branchId}&_t=${Date.now()}`
-      : `${BASE_URL}/sales/manager/summary?_t=${Date.now()}`
+      ? `${BASE_URL}/api/sales/manager/summary?branchId=${branchId}&_t=${Date.now()}`
+      : `${BASE_URL}/api/sales/manager/summary?_t=${Date.now()}`
       
     const response = await authFetch(url)
     const result = await response.json()
