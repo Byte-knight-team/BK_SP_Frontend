@@ -1,7 +1,12 @@
 import { User } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { getChefsAPI, checkInChefAPI, checkOutChefAPI, updateChefStatusAPI } from '../../../apis/kitchen/chefs';
-import { toast } from 'react-toastify';
+import {
+  getChefsAPI,
+  checkInChefAPI,
+  checkOutChefAPI,
+  updateChefStatusAPI,
+} from '../../../apis/kitchen/chefs'
+import { toast } from 'react-toastify'
 import ChefActionModal from './ChefActionModal'
 
 const ChefDetailsTable = () => {
@@ -52,8 +57,6 @@ const ChefDetailsTable = () => {
     )
   }
 
-  
-
   return (
     <div className="w-full overflow-hidden">
       <table className="w-full border-collapse text-left">
@@ -63,6 +66,7 @@ const ChefDetailsTable = () => {
             <th className="px-6 py-4 text-center">Chef Name</th>
             <th className="px-6 py-4 text-center">Chef ID</th>
             <th className="px-6 py-4 text-center">Clock In Time</th>
+            <th className="px-6 py-4 text-center">Clock Out</th>
             <th className="px-6 py-4 text-center">Status</th>
             <th className="px-6 py-4 text-center">Meals Today</th>
             <th className="px-6 py-4 text-center">Actions</th>
@@ -182,20 +186,20 @@ const ChefDetailsTable = () => {
         chefName={selectedChef?.fullName}
         currentStatus={selectedChef?.workStatus}
         onConfirm={async (data) => {
-          let result;
-          
+          let result
+
           if (modalType === 'CHECK_IN') {
-            result = await checkInChefAPI(selectedChef.staffId);
+            result = await checkInChefAPI(selectedChef.staffId)
           } else if (modalType === 'CHECK_OUT') {
-            result = await checkOutChefAPI(selectedChef.staffId);
+            result = await checkOutChefAPI(selectedChef.staffId)
           } else if (modalType === 'UPDATE_STATUS') {
-            result = await updateChefStatusAPI(selectedChef.staffId, data);
+            result = await updateChefStatusAPI(selectedChef.staffId, data)
           }
           if (result.error) {
-            toast.error(result.error);
+            toast.error(result.error)
           } else {
-            toast.success(result.data.message || "Success");
-            fetchChefs(false); // Background fetch!
+            toast.success(result.data.message || 'Success')
+            fetchChefs(false) // Background fetch!
           }
           setIsModalOpen(false)
         }}
