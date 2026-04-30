@@ -1,31 +1,31 @@
-import { useState } from "react";
-import { AlertTriangle, X } from "lucide-react";
-import { toast } from "react-toastify";
-import { createAlertAPI } from "../../../apis/kitchen/alerts";
+import { useState } from 'react'
+import { AlertTriangle, X } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { createAlertAPI } from '../../../apis/kitchen/alerts'
 
 const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
-  const [message, setMessage] = useState("");
-  const [type, setType] = useState("CRITICAL");
-  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('')
+  const [type, setType] = useState('CRITICAL')
+  const [loading, setLoading] = useState(false)
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   const handleSend = async () => {
-    if (!message.trim()) return toast.warning("Please type a message");
+    if (!message.trim()) return toast.warning('Please type a message')
 
-    setLoading(true);
-    const { error } = await createAlertAPI(message, type);
-    setLoading(false);
+    setLoading(true)
+    const { error } = await createAlertAPI(message, type)
+    setLoading(false)
 
     if (error) {
-      toast.error(error);
+      toast.error(error)
     } else {
-      toast.success("Broadcast alert sent to Receptionist!");
-      onAlertSent(); 
-      onClose();
-      setMessage(""); 
+      toast.success('Broadcast alert sent to Receptionist!')
+      onAlertSent()
+      onClose()
+      setMessage('')
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -36,34 +36,45 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
             <AlertTriangle size={20} />
             <h3 className="text-lg font-bold">Broadcast Kitchen Issue</h3>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={20}/>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={20} />
           </button>
         </div>
 
         <div className="space-y-4">
           {/* Severity Select */}
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Issue Severity</label>
-            <select 
-              value={type} 
+            <label className="mb-1 block text-xs font-bold text-gray-400 uppercase">
+              Issue Severity
+            </label>
+            <select
+              value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="CRITICAL">Critical (e.g. Oven broken, No gas)</option>
-              <option value="WARNING">Warning (e.g. Ingredient over, Item unavailable)</option>
+              <option value="CRITICAL">
+                Critical (e.g. Oven broken, No gas)
+              </option>
+              <option value="WARNING">
+                Warning (e.g. Ingredient over, Item unavailable)
+              </option>
               <option value="INFO">Info (e.g. General delays)</option>
             </select>
           </div>
 
           {/* Message Textarea */}
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase mb-1">What happened?</label>
+            <label className="mb-1 block text-xs font-bold text-gray-400 uppercase">
+              What happened?
+            </label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Ex: Pineapple is over, cannot make juice anymore..."
-              className="h-24 w-full rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="h-24 w-full rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none"
             />
           </div>
 
@@ -73,12 +84,12 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
             disabled={loading}
             className="w-full rounded-xl bg-orange-600 py-3 font-bold text-white shadow-lg transition-all hover:bg-orange-700 disabled:bg-gray-300"
           >
-            {loading ? "Sending..." : "SEND TO RECEPTIONIST"}
+            {loading ? 'Sending...' : 'SEND TO RECEPTIONIST'}
           </button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AlertModal;
+export default AlertModal
