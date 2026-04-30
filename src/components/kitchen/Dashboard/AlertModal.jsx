@@ -21,7 +21,7 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
       toast.error(error);
     } else {
       toast.success('Broadcast alert sent to Receptionist!');
-      onAlertSent(false); // tells dashboard to refresh WITHOUT spinner
+      onAlertSent(false); // Background refresh
       onClose();
       setMessage('');
     }
