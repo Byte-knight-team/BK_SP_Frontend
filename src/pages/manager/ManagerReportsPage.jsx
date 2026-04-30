@@ -6,6 +6,7 @@ import RevenueTrendChart from '../../components/manager/reports/RevenueTrendChar
 import ChannelDistributionChart from '../../components/manager/reports/ChannelDistributionChart'
 import PeakHoursChart from '../../components/manager/reports/PeakHoursChart'
 import TopSellingItemsTable from '../../components/manager/reports/TopSellingItemsTable'
+import InventoryHealthChart from '../../components/manager/reports/InventoryHealthChart'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 /**
@@ -83,6 +84,9 @@ export default function ManagerReportsPage() {
 
         {/* 4. Top Selling Items - Spans 1 column */}
         <TopSellingItemsTable data={data.topSellingItems} />
+
+        {/* 5. Inventory Health - Spans full width (3 columns) */}
+        <InventoryHealthChart data={data.inventoryByCategory} />
       </div>
     </div>
   )
