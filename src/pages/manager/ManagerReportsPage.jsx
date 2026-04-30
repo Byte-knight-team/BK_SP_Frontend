@@ -2,6 +2,7 @@ import React from 'react'
 import { useAnalyticsData } from '../../hooks/useAnalyticsData'
 import ReportsHeader from '../../components/manager/reports/ReportsHeader'
 import AnalyticsStats from '../../components/manager/reports/AnalyticsStats'
+import RevenueTrendChart from '../../components/manager/reports/RevenueTrendChart'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 /**
@@ -64,13 +65,15 @@ export default function ManagerReportsPage() {
       {/* 1. Summary Stats */}
       <AnalyticsStats data={data} />
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 gap-6">
-        {/* Placeholder for Analytics Widgets (Steps 3.3 - 3.5) */}
-        <div className="flex min-h-[300px] items-center justify-center rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50/50">
+      {/* 2. Charts Section */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Revenue Trend - Spans 2 columns */}
+        <RevenueTrendChart data={data.revenueTrends} />
+
+        {/* Placeholder for Channel Distribution (Step 3.4) */}
+        <div className="flex min-h-[400px] items-center justify-center rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50/50">
           <div className="text-center">
-            <p className="text-sm font-medium text-gray-400">Analytical widgets will be implemented in subsequent steps</p>
-            <p className="text-xs text-gray-300 mt-1">Revenue Trends and Channel Distribution coming soon</p>
+            <p className="text-sm font-medium text-gray-400">Channel Distribution coming soon</p>
           </div>
         </div>
       </div>
