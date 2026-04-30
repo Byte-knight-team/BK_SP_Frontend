@@ -54,6 +54,8 @@ import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
 import ManagerDriversPage from './pages/manager/ManagerDriversPage'
 import ManagerStaffPage from './pages/manager/ManagerStaffPage'
 
+import ManagerReportsPage from './pages/manager/ManagerReportsPage'
+
 // Delivery pages
 import DeliveryLayout from './layouts/delivery/DeliveryLayout'
 import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
@@ -240,7 +242,7 @@ export default function App() {
         <Route index element={<ManagerDashboardPage />} />
         <Route path="sales" element={<ManagerSalesSummaryPage />} />
         <Route path="orders" element={<ComingSoonPage />} />
-        <Route path="reports" element={<ComingSoonPage />} />
+        <Route path="reports" element={<ManagerReportsPage />} />
         <Route path="staff" element={<ManagerStaffPage />} />
         <Route path="inventory" element={<ManagerInventoryPage />} />
         <Route path="drivers" element={<ManagerDriversPage />} />
