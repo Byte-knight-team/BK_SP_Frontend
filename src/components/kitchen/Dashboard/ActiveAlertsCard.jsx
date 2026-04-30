@@ -1,34 +1,38 @@
+import { useState, useEffect } from 'react'
 import { CheckCircle, Clock, Megaphone } from 'lucide-react'
-import { resolveAlertAPI } from '../../../apis/kitchen/alerts'
+import { getActiveAlertsAPI, resolveAlertAPI } from '../../../apis/kitchen/alerts'
 import { toast } from 'react-toastify'
+import AlertModal from './AlertModal'
 
 const ActiveAlertsCard = () => {
-  const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [alerts, setAlerts] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const fetchAlerts = async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-    const { data } = await getActiveAlertsAPI();
-    if (data) setAlerts(data);
-    if (showLoading) setLoading(false);
-  };
+    if (showLoading) setLoading(true)
+    const { data } = await getActiveAlertsAPI()
+    if (data) setAlerts(data)
+    if (showLoading) setLoading(false)
+  }
+
 
   useEffect(() => {
-    fetchAlerts(true);
-  }, []);
+    fetchAlerts(true)
+  }, [])
 
 
   const handleResolve = async (id) => {
-    const { error } = await resolveAlertAPI(id);
+    const { error } = await resolveAlertAPI(id)
     if (error) {
       toast.error(error)
     } else {
-      toast.success('Issue marked as Resolved!');
-      onRefresh(false); //Tells dashboard to refresh WITHOUT spinner
+      toast.success('Issue marked as Resolved!')
+      fetchAlerts(false) // Background refresh
     }
   }
 
+  // SKELETON
   if (loading) {
     return (
       <div className="flex flex-col gap-3">
@@ -36,7 +40,7 @@ const ActiveAlertsCard = () => {
           <div key={i} className="h-20 w-full animate-pulse rounded-2xl border border-gray-100 bg-gray-50/50" />
         ))}
       </div>
-    );
+    )
   }
 
   return (
@@ -48,21 +52,15 @@ const ActiveAlertsCard = () => {
         </h2>
 
         <button
-          onClick={onBroadcast}
+          onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 rounded-full bg-orange-600 px-4 py-1.5 text-[10px] font-bold text-white shadow-lg transition-all hover:bg-orange-700 active:scale-95"
         >
           <Megaphone size={14} /> BROADCAST
         </button>
       </div>
+
       <div className="custom-scrollbar max-h-[300px] space-y-3 overflow-y-auto pr-2">
-        {loading ? (
-          <div className="flex h-32 w-full flex-col items-center justify-center gap-2">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-100 border-t-orange-500"></div>
-            <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
-              Fetching Alerts...
-            </p>
-          </div>
-        ) : alerts.length === 0 ? (
+        {alerts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-gray-300">
             <CheckCircle
               size={40}
@@ -103,6 +101,12 @@ const ActiveAlertsCard = () => {
           ))
         )}
       </div>
+      {/* MODAL */}
+      <AlertModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onAlertSent={() => fetchAlerts(false)} 
+      />
     </div>
   )
 }
