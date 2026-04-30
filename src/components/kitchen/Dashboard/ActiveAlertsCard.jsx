@@ -3,11 +3,14 @@ import { CheckCircle, Clock, Megaphone } from 'lucide-react'
 import { getActiveAlertsAPI, resolveAlertAPI } from '../../../apis/kitchen/alerts'
 import { toast } from 'react-toastify'
 import AlertModal from './AlertModal'
+import ResolveConfirmationModal from './ResolveConfirmationModal'
 
 const ActiveAlertsCard = () => {
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [selectedAlert, setSelectedAlert] = useState(null)
 
   const fetchAlerts = async (showLoading = true) => {
     if (showLoading) setLoading(true)
@@ -16,23 +19,32 @@ const ActiveAlertsCard = () => {
     if (showLoading) setLoading(false)
   }
 
-
   useEffect(() => {
     fetchAlerts(true)
   }, [])
 
+  // Open the confirmation modal
+  const handleResolveClick = (alert) => {
+    setSelectedAlert(alert)
+    setIsConfirmOpen(true)
+  }
 
-  const handleResolve = async (id) => {
-    const { error } = await resolveAlertAPI(id)
+  // Call the API after confirmation
+  const handleConfirmResolve = async () => {
+    if (!selectedAlert) return
+    
+    const { error } = await resolveAlertAPI(selectedAlert.id)
     if (error) {
       toast.error(error)
     } else {
       toast.success('Issue marked as Resolved!')
       fetchAlerts(false) // Background refresh
+      setIsConfirmOpen(false)
+      setSelectedAlert(null)
     }
   }
 
-  // SKELETON
+  // SKELETON loading
   if (loading) {
     return (
       <div className="flex flex-col gap-3">
@@ -45,7 +57,7 @@ const ActiveAlertsCard = () => {
 
   return (
     <div className="flex h-full flex-col">
-      {/* ... Header ... */}
+      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-base font-bold text-gray-800">
           Operational Alerts
@@ -59,6 +71,7 @@ const ActiveAlertsCard = () => {
         </button>
       </div>
 
+      {/* Alerts List */}
       <div className="custom-scrollbar max-h-[300px] space-y-3 overflow-y-auto pr-2 pb-4">
         {alerts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-gray-300">
@@ -92,7 +105,7 @@ const ActiveAlertsCard = () => {
               </div>
 
               <button
-                onClick={() => handleResolve(alert.id)}
+                onClick={() => handleResolveClick(alert)}
                 className="flex shrink-0 items-center gap-1 rounded-lg bg-green-500 px-3 py-1.5 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-green-600 active:scale-95"
               >
                 <CheckCircle size={12} /> FIXED
@@ -101,7 +114,15 @@ const ActiveAlertsCard = () => {
           ))
         )}
       </div>
-      {/* MODAL */}
+      {/* Resolve Confirmation Modal */}
+      <ResolveConfirmationModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmResolve}
+        alertMessage={selectedAlert?.message}
+      />
+
+      {/* Broadcast Alert Modal */}
       <AlertModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
