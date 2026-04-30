@@ -38,7 +38,7 @@ export default function ChannelDistributionChart({ data }) {
 
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart style={{ outline: 'none' }}>
             <Pie
               data={data}
               cx="50%"

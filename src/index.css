@@ -119,3 +119,10 @@ section[id] {
 .animate-table-fade {
   animation: tableFadeIn 0.35s ease-out forwards;
 }
+
+/* ── Recharts Fixes ── */
+.recharts-wrapper:focus, 
+.recharts-surface:focus {
+  outline: none !important;
+}
+

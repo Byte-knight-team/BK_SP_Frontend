@@ -43,6 +43,7 @@ export default function InventoryHealthChart({ data }) {
             data={data} 
             layout="vertical"
             margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+            style={{ outline: 'none' }}
           >
             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
             <XAxis 
