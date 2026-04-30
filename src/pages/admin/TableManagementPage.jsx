@@ -5,9 +5,9 @@ import {
   Printer, Plus, LayoutGrid, List, Filter,
   MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle, UserCheck, ShoppingBag
 } from 'lucide-react';
-import AdminSidebar from '../components/AdminSidebar';
-import AdminHeader from '../components/AdminHeader';
 
+
+// Admin page for managing table records, status, and QR actions.
 export default function TableManagementPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -20,10 +20,15 @@ export default function TableManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchParams] = useSearchParams();
   const statusFilter = searchParams.get('status');
+  const [activeStatusFilter, setActiveStatusFilter] = useState(statusFilter ? statusFilter.toUpperCase() : 'ALL');
 
   useEffect(() => {
     fetchTables();
   }, []);
+
+  useEffect(() => {
+    setActiveStatusFilter(statusFilter ? statusFilter.toUpperCase() : 'ALL');
+  }, [statusFilter]);
 
   const fetchTables = async () => {
     try {
@@ -44,9 +49,9 @@ export default function TableManagementPage() {
 
   // Filter tables based on sidebar status filter + search query
   const filteredTables = tables.filter(table => {
-    // Status filter from URL query param
-    if (statusFilter) {
-      if (table.status !== statusFilter.toUpperCase()) return false;
+    // Status filter from stats buttons / URL query param
+    if (activeStatusFilter !== 'ALL') {
+      if (table.status !== activeStatusFilter) return false;
     }
     // Search query filter
     if (!searchQuery.trim()) return true;
@@ -169,15 +174,7 @@ export default function TableManagementPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
-      <AdminSidebar activePage="/admin/tables" />
-
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
-        {/* Header - Identical to AdminDashboard */}
-        <AdminHeader />
-
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
+    <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
           
           {/* Page Title & Actions */}
           <div className="flex items-center justify-between mb-8">
@@ -186,10 +183,6 @@ export default function TableManagementPage() {
               <p className="text-gray-500 text-sm mt-1">Configure floor plans and QR code ordering tables</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all shadow-sm">
-                <Printer size={16} />
-                Print All QR
-              </button>
               <Link to="/admin/tables/add" className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">
                 <Plus size={18} />
                 Add Table
@@ -199,22 +192,54 @@ export default function TableManagementPage() {
 
           {/* Stats Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col justify-center">
+            <button
+              type="button"
+              onClick={() => setActiveStatusFilter('ALL')}
+              className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${
+                activeStatusFilter === 'ALL'
+                  ? 'bg-orange-50 border-orange-200 ring-2 ring-orange-200/70'
+                  : 'bg-white border-gray-100 hover:border-orange-100'
+              }`}
+            >
               <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">TOTAL TABLES</div>
               <div className="text-3xl font-extrabold text-gray-900">{totalTables}</div>
-            </div>
-            <div className="bg-green-50 rounded-2xl p-5 border border-green-100/50 shadow-sm flex flex-col justify-center">
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveStatusFilter('AVAILABLE')}
+              className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${
+                activeStatusFilter === 'AVAILABLE'
+                  ? 'bg-green-100 border-green-200 ring-2 ring-green-200/80'
+                  : 'bg-green-50 border-green-100/50 hover:border-green-200'
+              }`}
+            >
               <div className="text-[11px] font-bold text-green-500 uppercase tracking-wider mb-2">AVAILABLE</div>
               <div className="text-3xl font-extrabold text-green-600">{availableTables}</div>
-            </div>
-            <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100/50 shadow-sm flex flex-col justify-center">
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveStatusFilter('OCCUPIED')}
+              className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${
+                activeStatusFilter === 'OCCUPIED'
+                  ? 'bg-orange-100 border-orange-200 ring-2 ring-orange-200/80'
+                  : 'bg-orange-50 border-orange-100/50 hover:border-orange-200'
+              }`}
+            >
               <div className="text-[11px] font-bold text-orange-500 uppercase tracking-wider mb-2">OCCUPIED</div>
               <div className="text-3xl font-extrabold text-orange-600">{occupiedTables}</div>
-            </div>
-            <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100/50 shadow-sm flex flex-col justify-center">
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveStatusFilter('RESERVED')}
+              className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${
+                activeStatusFilter === 'RESERVED'
+                  ? 'bg-blue-100 border-blue-200 ring-2 ring-blue-200/80'
+                  : 'bg-blue-50 border-blue-100/50 hover:border-blue-200'
+              }`}
+            >
               <div className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-2">RESERVED</div>
               <div className="text-3xl font-extrabold text-blue-600">{reservedTables}</div>
-            </div>
+            </button>
           </div>
 
           {/* Search & View Controls Row */}
@@ -223,7 +248,7 @@ export default function TableManagementPage() {
               <Search size={18} className="text-gray-400 mr-3" />
               <input 
                 type="text" 
-                placeholder="Search by table ID, number, branch, or status..." 
+                placeholder="Search by table number..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400" 
@@ -339,9 +364,12 @@ export default function TableManagementPage() {
                       <Edit2 size={14} />
                       Edit
                     </button>
-                    <button className="w-[42px] h-[42px] flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors">
+                    <Link 
+                      to={`/admin/tables/${table.id}/qr`}
+                      className="w-[42px] h-[42px] flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors"
+                    >
                       <QrCode size={18} />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -412,9 +440,12 @@ export default function TableManagementPage() {
                         <Edit2 size={14} />
                         Edit
                       </button>
-                      <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors">
+                      <Link 
+                        to={`/admin/tables/${table.id}/qr`}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border border-transparent transition-colors"
+                      >
                         <QrCode size={16} />
-                      </button>
+                      </Link>
                       <div className="relative">
                         <button 
                           className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-300 hover:text-gray-500 transition-colors"
@@ -447,8 +478,6 @@ export default function TableManagementPage() {
               </Link>
             </div>
           )}
-
-        </div>
 
         {/* Edit Table Modal */}
         {editingTable && (
@@ -566,7 +595,6 @@ export default function TableManagementPage() {
             </div>
           </div>
         )}
-      </main>
     </div>
   );
 }

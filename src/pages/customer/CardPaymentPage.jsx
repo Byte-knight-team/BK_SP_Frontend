@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Lock } from 'lucide-react';
+import { updateCustomerPayment } from '../../apis/customer/checkout';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -8,8 +9,7 @@ export default function CardPaymentPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Data passed from CheckoutPage when paymentMethod === 'CARD'
-  const { confirmationState, receipt } = location.state || {};
+  const { orderId, finalAmount } = location.state || {};
 
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
@@ -19,38 +19,38 @@ export default function CardPaymentPage() {
   const [isPaying, setIsPaying] = useState(false);
 
   // ---------- No order session guard ----------
-  if (!confirmationState) {
+  if (!orderId || !finalAmount) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
           <CreditCard size={40} className="mx-auto mb-4 text-gray-400" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">No payment session</h1>
           <p className="text-sm text-gray-500 mb-6">
-            Please go back to checkout and place your order again.
+            Please go back to your orders to retry payment.
           </p>
           <button
             type="button"
-            onClick={() => navigate('/checkout', { replace: true })}
+            onClick={() => navigate('/orders', { replace: true })}
             className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
           >
-            <ArrowLeft size={16} /> Back to Checkout
+            <ArrowLeft size={16} /> Back to Orders
           </button>
         </div>
       </div>
     );
   }
 
-  const totalAmount = Number(
-    receipt?.finalTotal || confirmationState?.total || 0
-  );
+  const totalAmount = Number(finalAmount || 0);
 
-  // ---------- Formatters ----------
+ // AUTO-FORMATTING INPUTS on every keystroke
   const formatCardNumber = (value) => {
+    //1. Strip all non-numbers (\D), . Keep only first 16.  //2. Add a space after every 4th number.
     const digits = value.replace(/\D/g, '').slice(0, 16);
     return digits.replace(/(.{4})/g, '$1 ').trim();
   };
 
   const formatExpiry = (value) => {
+    //1. Strip non-numbers., Keep only first 4.  //2. Automatically insert the slash after the month.
     const digits = value.replace(/\D/g, '').slice(0, 4);
     if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
     return digits;
@@ -81,35 +81,24 @@ export default function CardPaymentPage() {
 
     if (!cvv) next.cvv = 'CVV is required.';
     else if (!/^\d{3,4}$/.test(cvv)) next.cvv = 'Enter a valid 3 or 4 digit CVV.';
-
+    // If 'next' has no keys, it means no errors were found. Returns true.
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-  // ---------- Submit (dummy) ----------
+  //THE API SUBMISSION
   const handlePay = async () => {
     if (!validate()) return;
     setIsPaying(true);
 
     try {
-      const token = localStorage.getItem('customer_jwt');
-      // The order ID was passed from CheckoutPage inside confirmationState
-      const orderId = confirmationState.serverOrder?.orderId || confirmationState.orderId;
-
       // Generate a fake transaction ID for the database
       const fakeTransactionId = `DUMMY_TX_${Math.floor(Math.random() * 100000000)}`;
 
       // Tell the backend the card went through
-      const res = await fetch(`${API_BASE}/api/v1/orders/${orderId}/payment`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          paymentStatus: 'PAID',
-          transactionId: fakeTransactionId,
-        }),
+      const res = await updateCustomerPayment(orderId, {
+        paymentStatus: 'PAID',
+        transactionId: fakeTransactionId,
       });
 
       if (!res.ok) throw new Error('Server failed to update payment status');
@@ -117,10 +106,7 @@ export default function CardPaymentPage() {
       // Success — navigate to confirmation screen
       navigate('/order-confirmation', {
         replace: true,
-        state: {
-          ...confirmationState,
-          paymentStatus: 'PAID',
-        },
+        state: { orderId },
       });
     } catch (err) {
       console.error(err);
@@ -147,9 +133,6 @@ export default function CardPaymentPage() {
             <ArrowLeft size={18} />
           </button>
           <h1 className="ml-3 text-lg font-bold text-gray-900">Card Payment</h1>
-          <div className="ml-auto flex items-center gap-1.5 text-xs text-gray-400">
-            <Lock size={12} /> Secure
-          </div>
         </div>
       </header>
 
@@ -250,10 +233,6 @@ export default function CardPaymentPage() {
           >
             {isPaying ? 'Processing…' : `Pay LKR ${totalAmount.toLocaleString()}`}
           </button>
-
-          <p className="mt-4 text-center text-xs text-gray-400">
-            This is a demo payment page. No real charges will be made.
-          </p>
 
           {errors.submit && (
             <p className="mt-3 text-center text-sm font-medium text-red-500">

@@ -31,7 +31,7 @@ import { useAuth } from "../../context/AuthContext";
     /staff/staff
 
     ADMIN:
-    /admin-panel/staff
+    /admin/staff
 
     Important:
     - This page should not read authUser from localStorage.
@@ -48,13 +48,13 @@ export default function StaffListPage() {
     /*
         This page is shared by SUPER_ADMIN and ADMIN.
 
-        If current route starts with /admin-panel,
-        links should stay inside /admin-panel/staff.
+        If current route starts with /admin,
+        links should stay inside /admin/staff.
 
         Otherwise, links should use Super Admin route /staff/staff.
     */
-    const staffBasePath = location.pathname.startsWith("/admin-panel")
-        ? "/admin-panel/staff"
+    const staffBasePath = location.pathname.startsWith("/admin")
+        ? "/admin/staff"
         : "/staff/staff";
 
     /*

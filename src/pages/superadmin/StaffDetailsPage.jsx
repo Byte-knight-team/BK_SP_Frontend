@@ -27,11 +27,11 @@ import { getStaffByIdAPI } from "../../apis/staff/staff";
 
   Routes:
   - SUPER_ADMIN: /staff/staff/:id
-  - ADMIN:       /admin-panel/staff/:id
+  - ADMIN:       /admin/staff/:id
 
   Important:
   - This page detects the current route.
-  - If opened from /admin-panel, back/edit links stay in /admin-panel.
+  - If opened from /admin, back/edit links stay in /admin.
   - If opened from /staff, back/edit links stay in /staff.
 */
 export default function StaffDetailsPage() {
@@ -63,34 +63,34 @@ export default function StaffDetailsPage() {
     /staff/staff/:id
 
     ADMIN route:
-    /admin-panel/staff/:id
+    /admin/staff/:id
   */
-  const isAdminPanelRoute = location.pathname.startsWith("/admin-panel");
+  const isAdminPanelRoute = location.pathname.startsWith("/admin");
 
   /*
     Back button path.
 
     If Admin opened this page, go back to:
-    /admin-panel/staff
+    /admin/staff
 
     If Super Admin opened this page, go back to:
     /staff/staff
   */
   const staffListPath = isAdminPanelRoute
-    ? "/admin-panel/staff"
+    ? "/admin/staff"
     : "/staff/staff";
 
   /*
     Edit button path.
 
     If Admin opened this page, edit route should be:
-    /admin-panel/staff/:id/edit
+    /admin/staff/:id/edit
 
     If Super Admin opened this page, edit route should be:
     /staff/staff/:id/edit
   */
   const staffEditPath = isAdminPanelRoute
-    ? `/admin-panel/staff/${id}/edit`
+    ? `/admin/staff/${id}/edit`
     : `/staff/staff/${id}/edit`;
 
   /*
