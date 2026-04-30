@@ -8,8 +8,7 @@ import { DollarSign, ShoppingBag, Clock, Package } from 'lucide-react'
 export default function AnalyticsStats({ data }) {
   if (!data) return null
 
-  const formatCurrency = (val) => 
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
+  const formatCurrency = (val) => `Rs. ${(val || 0).toLocaleString()}`
 
   const stats = [
     {

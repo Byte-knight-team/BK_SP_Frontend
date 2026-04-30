@@ -13,8 +13,7 @@ export default function TopSellingItemsTable({ data }) {
     )
   }
 
-  const formatCurrency = (val) => 
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
+  const formatCurrency = (val) => `Rs. ${(val || 0).toLocaleString()}`
 
   return (
     <div className="card h-full">

@@ -50,7 +50,7 @@ export default function InventoryHealthChart({ data }) {
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 11, fontWeight: 500, fill: '#9ca3af' }}
-              tickFormatter={(val) => `$${val}`}
+              tickFormatter={(val) => `Rs. ${val.toLocaleString()}`}
             />
             <YAxis 
               dataKey="category" 
@@ -67,7 +67,7 @@ export default function InventoryHealthChart({ data }) {
                 border: 'none', 
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' 
               }}
-              formatter={(val) => [`$${val.toFixed(2)}`, 'Valuation']}
+              formatter={(val) => [`Rs. ${val.toLocaleString()}`, 'Valuation']}
             />
             <Bar 
               dataKey="value" 
