@@ -37,7 +37,11 @@ export default function PeakHoursChart({ data }) {
 
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <BarChart 
+            data={data} 
+            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            style={{ outline: 'none' }}
+          >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
             <XAxis 
               dataKey="hour" 
