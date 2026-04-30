@@ -8,7 +8,7 @@ import {
 } from '../../../apis/kitchen/inventory'
 import InventoryRequestModal from './InventoryRequestModal'
 import UpdateStockModal from './UpdateStockModal'
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify'
 
 const InventoryTable = () => {
   // set loading state
@@ -16,6 +16,9 @@ const InventoryTable = () => {
 
   // save inventory data
   const [inventoryData, setInventoryData] = useState([])
+
+  // Stores what the user types in the search bar
+  const [searchTerm, setSearchTerm] = useState('')
 
   //-------------- Update Stock Modal --------------
 
@@ -51,7 +54,7 @@ const InventoryTable = () => {
       toast.error('Failed to update stock: ' + error)
     } else {
       // message from the backend
-      toast.success(data.message) 
+      toast.success(data.message)
 
       setIsUpdateModalOpen(false)
       // call the function to refresh the table data
@@ -124,8 +127,18 @@ const InventoryTable = () => {
     fetchInventory(true)
   }, [])
 
+  // FILTERING LOGIC: We create a new array containing only items that match the search term
+  // We use .toLowerCase() so that searching for "Chicken" or "chicken" both work.
+  const filteredInventory = inventoryData.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <div className="flex h-64 items-center justify-center text-sm font-medium text-gray-400">
+        Loading inventory...
+      </div>
+    )
   }
 
   return (
@@ -133,16 +146,17 @@ const InventoryTable = () => {
       {/* header actions */}
       <div className="flex flex-row justify-between">
         <div>
-          <div className="flex items-center pl-4 text-gray-400">
-            <div className="pr-4">
+          {/* SEARCH BAR: Using relative positioning to put the icon inside the box */}
+          <div className="relative w-full max-w-md">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
               <Search size={18} />
             </div>
             <input
               type="text"
               placeholder="Search inventory..."
               className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-3 pr-4 pl-11 text-sm font-medium"
-              // value={searchTerm}
-              //onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm} // Connect to state
+              onChange={(e) => setSearchTerm(e.target.value)} // Update state on type
             />
           </div>
         </div>
@@ -165,88 +179,103 @@ const InventoryTable = () => {
         <table className="w-full border-separate border-spacing-y-4 text-center">
           <thead>
             <tr className="text-sm font-black text-gray-400 uppercase">
-              <th className="px-6 pb-2">Item Name</th>
-              <th className="px-6 pb-2">Unit</th>
-              <th className="px-6 pb-2">Current Qty</th>
-              <th className="px-6 pb-2">Max Stock</th>
-              <th className="px-6 pb-2">Status</th>
+              <th className="px-6 pb-2 text-left">Item Name</th>
+              <th className="px-6 pb-2 text-center">Unit</th>
+              <th className="px-6 pb-2 text-left">
+                Stock Status (Current Qty)
+              </th>
+              <th className="px-6 pb-2 text-center">Max Stock</th>
+              <th className="px-6 pb-2 text-center">Level</th>
               <th className="px-6 pb-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {inventoryData.map((item, index) => (
-              <tr
-                key={index}
-                className="group transition-colors hover:bg-gray-50/50"
-              >
-                <td className="px-4 py-3 text-sm font-bold text-gray-800">
-                  {item.name}
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-gray-400">
-                  {item.unit}
-                </td>
+            {/* RENDER FILTERED DATA: We map over filteredInventory instead of inventoryData */}
+            {filteredInventory.length > 0 ? (
+              filteredInventory.map((item, index) => (
+                <tr
+                  key={index}
+                  className="group transition-colors hover:bg-gray-50/50"
+                >
+                  <td className="px-4 py-3 text-sm font-bold text-gray-800">
+                    {item.name}
+                  </td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-400">
+                    {item.unit}
+                  </td>
 
-                {/* progress bar column */}
-                <td className="px-4 py-3">
-                  <div className="flex min-w-[220px] items-center gap-4">
-                    <div className="flex-1">
-                      <ProgressBar
-                        percentage={item.percentage}
-                        color={
-                          item.warningLevel === 'CRITICAL'
-                            ? '#EF4444'
-                            : item.warningLevel === 'LOW'
-                              ? '#F97316'
-                              : '#EA580C'
-                        }
-                      />
+                  {/* progress bar column */}
+                  <td className="px-4 py-3">
+                    <div className="flex min-w-[220px] items-center gap-4">
+                      <div className="flex-1">
+                        <ProgressBar
+                          percentage={item.percentage}
+                          color={
+                            item.warningLevel === 'CRITICAL'
+                              ? '#EF4444'
+                              : item.warningLevel === 'LOW'
+                                ? '#F97316'
+                                : '#EA580C'
+                          }
+                        />
+                      </div>
+                      <span className="w-10 text-right text-sm font-black text-gray-800">
+                        {item.quantity}
+                      </span>
                     </div>
-                    <span className="w-10 text-right text-sm font-black text-gray-800">
-                      {item.quantity}
+                  </td>
+
+                  <td className="px-4 py-3 text-sm font-bold text-gray-400">
+                    {item.maxStock}
+                  </td>
+
+                  {/* status */}
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-4 py-1.5 text-[11px] font-black tracking-tighter uppercase ${
+                        item.warningLevel === 'CRITICAL'
+                          ? 'border border-red-100 bg-red-50 text-red-500'
+                          : item.warningLevel === 'LOW'
+                            ? 'border border-orange-100 bg-orange-50 text-orange-500'
+                            : 'border border-green-100 bg-green-50 text-green-500'
+                      }`}
+                    >
+                      {item.warningLevel}
                     </span>
-                  </div>
-                </td>
+                  </td>
 
-                <td className="px-4 py-3 text-sm font-bold text-gray-400">
-                  {item.maxStock}
-                </td>
-
-                {/* status */}
-                <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-4 py-1.5 text-[11px] font-black tracking-tighter uppercase ${
-                      item.warningLevel === 'CRITICAL'
-                        ? 'border border-red-100 bg-red-50 text-red-500'
-                        : item.warningLevel === 'LOW'
-                          ? 'border border-orange-100 bg-orange-50 text-orange-500'
-                          : 'border border-green-100 bg-green-50 text-green-500'
-                    }`}
-                  >
-                    {item.warningLevel}
-                  </span>
-                </td>
-
-                {/* action buttons */}
-                <td className="px-4 py-3 text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <button
-                      // call the function to open modal to update stock
-                      onClick={() => handleOpenUpdateModal(item)}
-                      className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100"
-                    >
-                      Update
-                    </button>
-                    <button
-                      // call the function to open modal to request stock refill
-                      onClick={() => handleOpenRefillModal(item)}
-                      className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100"
-                    >
-                      Request
-                    </button>
-                  </div>
+                  {/* action buttons */}
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        // call the function to open modal to update stock
+                        onClick={() => handleOpenUpdateModal(item)}
+                        className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100"
+                      >
+                        Update
+                      </button>
+                      <button
+                        // call the function to open modal to request stock refill
+                        onClick={() => handleOpenRefillModal(item)}
+                        className="rounded-lg bg-orange-50 px-4 py-2 text-[11px] font-bold text-orange-700 transition-all hover:bg-orange-100"
+                      >
+                        Request
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              // Show this if no items match the search
+              <tr>
+                <td
+                  colSpan="6"
+                  className="py-20 text-center font-medium text-gray-400"
+                >
+                  No items match "{searchTerm}"
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
