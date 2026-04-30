@@ -7,6 +7,7 @@ import ChannelDistributionChart from '../../components/manager/reports/ChannelDi
 import PeakHoursChart from '../../components/manager/reports/PeakHoursChart'
 import TopSellingItemsTable from '../../components/manager/reports/TopSellingItemsTable'
 import InventoryHealthChart from '../../components/manager/reports/InventoryHealthChart'
+import ReportsSkeleton from '../../components/manager/reports/ReportsSkeleton'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 /**
@@ -28,15 +29,7 @@ export default function ManagerReportsPage() {
   }
 
   if (loading && !data) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4">
-        <div className="relative">
-          <div className="h-12 w-12 rounded-full border-4 border-gray-100" />
-          <div className="absolute top-0 h-12 w-12 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-        </div>
-        <p className="text-sm font-medium text-gray-500 animate-pulse">Analyzing business data...</p>
-      </div>
-    )
+    return <ReportsSkeleton />
   }
 
   if (error) {
