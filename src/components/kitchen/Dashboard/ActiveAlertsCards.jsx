@@ -18,9 +18,6 @@ const ActiveAlertsCard = ({ alerts, onRefresh }) => {
     <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-50 h-full">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-base font-bold text-gray-800">Operational Alerts</h2>
-        <span className="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-bold text-orange-600 uppercase tracking-wider">
-          {alerts.length} ACTIVE
-        </span>
       </div>
 
       <div className="space-y-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
