@@ -50,10 +50,10 @@ export default function CreateStaffPage() {
         /staff/staff
     
         ADMIN route:
-        /admin-panel/staff
+        /admin/staff
     */
-    const staffListPath = location.pathname.startsWith("/admin-panel")
-        ? "/admin-panel/staff"
+    const staffListPath = location.pathname.startsWith("/admin")
+        ? "/admin/staff"
         : "/staff/staff";
 
     /*

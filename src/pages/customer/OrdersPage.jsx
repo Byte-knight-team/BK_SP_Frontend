@@ -1,188 +1,190 @@
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, DollarSign, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, ChevronDown, XCircle, CreditCard, ExternalLink, Loader2, Star, Utensils } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+import ReviewModal from '../../components/customer/modal/ReviewModal';
+import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import CustomerStateCard from '../../components/customer/CustomerStateCard';
+import { cancelCustomerOrder, listCustomerOrders } from '../../apis/customer/orders';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function OrdersPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('active');
+  // FILTER & TAB STATE
+  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'previous'
+  const [orderTypeFilter, setOrderTypeFilter] = useState('ALL'); // 'ALL', 'QR', 'ONLINE_DELIVERY', 'ONLINE_PICKUP'
+  // Tracks which specific order card is currently dropped down/expanded
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock order data
-  const orders = {
-    active: [
-      {
-        id: '#ORD001',
-        date: 'Today, 6:30 PM',
-        status: 'preparing',
-        items: [
-          { name: 'Spicy Biryani', qty: 2, price: 450 },
-          { name: 'Garlic Naan', qty: 1, price: 80 },
-        ],
-        subtotal: 980,
-        tax: 118,
-        delivery: 50,
-        total: 1148,
-        deliveryType: 'delivery',
-        eta: '25 mins',
-      },
-      {
-        id: '#ORD002',
-        date: 'Today, 4:15 PM',
-        status: 'out_for_delivery',
-        items: [
-          { name: 'Butter Chicken', qty: 1, price: 520 },
-          { name: 'Rice', qty: 1, price: 120 },
-        ],
-        subtotal: 640,
-        tax: 77,
-        delivery: 50,
-        total: 767,
-        deliveryType: 'delivery',
-        eta: '10 mins',
-      },
-    ],
-    previous: [
-      {
-        id: '#ORD-2024-089',
-        date: 'April 10, 2024 at 7:45 PM',
-        status: 'delivered',
-        items: [
-          { name: 'Chicken Tikka Masala', qty: 1, price: 580 },
-          { name: 'Basmati Rice', qty: 1, price: 120 },
-          { name: 'Lassi', qty: 2, price: 120 },
-        ],
-        subtotal: 820,
-        tax: 98,
-        delivery: 50,
-        total: 968,
-        deliveryType: 'delivery',
-        rating: 4.5,
-      },
-      {
-        id: '#ORD-2024-088',
-        date: 'April 8, 2024 at 1:30 PM',
-        status: 'delivered',
-        items: [
-          { name: 'Paneer Butter Masala', qty: 1, price: 420 },
-          { name: 'Garlic Naan', qty: 2, price: 160 },
-        ],
-        subtotal: 580,
-        tax: 70,
-        delivery: 0,
-        total: 650,
-        deliveryType: 'pickup',
-        rating: 5,
-      },
-    ],
+  // Review Modal State
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [orderToReview, setOrderToReview] = useState(null);
+  
+  // Cancellation Modal State
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isCancelling, setIsCancelling] = useState(false);
+  // API INTEGRATION
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await listCustomerOrders({ active: activeTab === 'active', type: orderTypeFilter });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setOrders(json.data);
+      } else {
+        setOrders([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, orderTypeFilter]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const handleCancelOrder = async () => {
+    if (!cancelReason.trim()) return;
+    setIsCancelling(true);
+    try {
+      const res = await cancelCustomerOrder(orderToCancel.orderId, cancelReason);
+      if (res.ok) {
+        // Success: Close modal, clear form, and refresh the list to show the new status
+        setCancelModalOpen(false);
+        setCancelModalOpen(false);
+        setCancelReason('');
+        setOrderToCancel(null);
+        fetchOrders();
+      } else {
+        alert('Failed to cancel order.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred.');
+    } finally {
+      setIsCancelling(false);
+    }
   };
-
+  // UI HELPER FUNCTIONS
   const getStatusBadge = (status) => {
-    const statusConfig = {
-      preparing: { label: 'Preparing', color: 'bg-blue-100 text-blue-700', icon: Clock },
-      out_for_delivery: { label: 'Out for Delivery', color: 'bg-amber-100 text-amber-700', icon: Truck },
-      delivered: { label: 'Delivered', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-    };
-    return statusConfig[status] || statusConfig.preparing;
+    const s = status || 'UNKNOWN';
+    if (s === 'CANCELLED' || s === 'REJECTED') return { label: 'Cancelled', color: 'text-red-600 bg-red-50 border-red-100', icon: XCircle };
+    if (s === 'SERVED' || s === 'COMPLETED') return { label: 'Completed', color: 'text-green-600 bg-green-50 border-green-100', icon: CheckCircle };
+    if (s === 'OUT_FOR_DELIVERY') return { label: 'Out for Delivery', color: 'text-orange-600 bg-orange-50 border-orange-100', icon: Truck };
+    // Default fallback replacing underscores with spaces (e.g., ON_HOLD -> ON HOLD)
+    return { label: s.replace(/_/g, ' '), color: 'text-orange-600 bg-orange-50 border-orange-100', icon: Clock };
   };
 
-  const OrderCard = ({ order, isActive }) => {
-    const config = getStatusBadge(order.status);
+  const getOrderTypeLabel = (type) => {
+    if (type === 'QR') return { label: 'DINE IN', icon: Utensils };
+    if (type === 'ONLINE_DELIVERY') return { label: 'DELIVERY', icon: Truck };
+    if (type === 'ONLINE_PICKUP') return { label: 'PICKUP', icon: Package };
+    return { label: 'ORDER', icon: Package };
+  };
+  // Defined inside the main component so it has access to parent state (like activeTab)
+  const OrderCard = ({ order }) => {
+    const config = getStatusBadge(order.orderStatus);
+    // Check if this specific card's ID matches the globally
     const StatusIcon = config.icon;
-    const isExpanded = expandedOrder === order.id;
+    const isExpanded = expandedOrder === order.orderId;
+    const typeInfo = getOrderTypeLabel(order.orderType);
+    const TypeIcon = typeInfo.icon;
+
+    // Determines if order is cancellable
+    const isCancellable = activeTab === 'active' && ['PLACED', 'PENDING', 'ON_HOLD'].includes(order.orderStatus);
 
     return (
-      <div className="border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
-        <div
-          className="bg-gradient-to-r from-slate-50 to-slate-100 p-4 cursor-pointer"
-          onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+      <div className="bg-white rounded-3xl p-6 shadow-[0_14px_30px_rgba(15,23,42,0.06)] mb-5 transition-all hover:shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
+        {/* CARD HEADER (Always Visible) */}
+        <div 
+          className="cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
+          onClick={() => setExpandedOrder(isExpanded ? null : order.orderId)}
         >
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <p className="font-bold text-slate-900">{order.id}</p>
-                <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${config.color}`}>
-                  <StatusIcon size={14} />
-                  {config.label}
-                </span>
-              </div>
-              <p className="text-sm text-slate-500">{order.date}</p>
-              {isActive && <p className="text-xs font-medium text-orange-600 mt-1">Est. arrival: {order.eta}</p>}
+          {/* Left block: Type, ID, Status, Time */}
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 text-white text-[0.65rem] font-bold rounded-md tracking-wider">
+                <TypeIcon size={12} /> {typeInfo.label}
+              </span>
+              <span className={`flex items-center gap-1.5 px-2.5 py-1 border text-[0.65rem] font-bold rounded-md uppercase tracking-wider ${config.color}`}>
+                <StatusIcon size={12} /> {config.label}
+              </span>
             </div>
-            <div className="text-right">
-              <p className="text-lg font-bold text-slate-900">LKR {order.total}</p>
-              <ChevronDown
-                size={18}
-                className={`ml-auto text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-              />
+            <h3 className="text-lg font-bold text-slate-900">Order #{order.orderNumber || order.orderId}</h3>
+            <p className="text-sm text-slate-500 mt-0.5">{new Date(order.createdAt).toLocaleString()}</p>
+          </div>
+
+          {/* Right block: Price, Payment, Expand */}
+          <div className="flex flex-row md:flex-col items-center md:items-end justify-between">
+            <div className="text-left md:text-right">
+              <p className="text-xl font-extrabold text-slate-900 mb-1">LKR {order.finalTotal?.toLocaleString()}</p>
+              <span className={`inline-flex items-center gap-1.5 text-[0.7rem] font-bold px-2 py-0.5 rounded-full ${order.paymentStatus === 'PAID' ? 'text-green-700 bg-green-50 border border-green-200' : 'text-orange-700 bg-orange-50 border border-orange-200'}`}>
+                <CreditCard size={12} /> {order.paymentStatus === 'PAID' ? 'PAID' : 'UNPAID'}
+              </span>
+            </div>
+            <div className="ml-4 md:ml-0 md:mt-3 bg-slate-50 p-1.5 rounded-full text-slate-400">
+              {/* Rotate the arrow 180 degrees if the card is expanded */}
+              <ChevronDown size={18} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
           </div>
         </div>
 
+        {/* Expanded View */}
         {isExpanded && (
-          <div className="border-t border-slate-200 p-4 space-y-4">
-            {/* Items List */}
-            <div>
-              <p className="text-xs font-semibold uppercase text-slate-500 tracking-wide mb-2">Items</p>
+          <div className="mt-5 pt-5 border-t border-slate-100">
+            <div className="mb-5">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Order Items</p>
               <div className="space-y-2">
-                {order.items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm">
-                    <span className="text-slate-700">
-                      {item.name} <span className="text-slate-500">×{item.qty}</span>
+                {order.items?.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-sm">
+                    <span className="font-semibold text-slate-700">
+                      {item.itemName} <span className="text-slate-400 font-normal ml-1">× {item.quantity}</span>
                     </span>
-                    <span className="font-medium text-slate-900">LKR {item.price}</span>
+                    <span className="font-bold text-slate-900">LKR {item.subtotal?.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Pricing Breakdown */}
-            <div className="border-t border-slate-200 pt-3 space-y-1.5 text-sm">
-              <div className="flex justify-between text-slate-600">
-                <span>Subtotal</span>
-                <span>LKR {order.subtotal}</span>
+            {/* Cancellation Reason (Only shows if the order was cancelled) */}
+            {order.cancellationReason && (
+              <div className="mb-5 p-4 bg-red-50 border border-red-100 rounded-xl">
+                <span className="block text-xs font-bold text-red-800 uppercase tracking-wider mb-1">Cancellation Reason</span>
+                <span className="text-sm text-red-600 font-medium">{order.cancellationReason}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Tax</span>
-                <span>LKR {order.tax}</span>
-              </div>
-              {order.deliveryType === 'delivery' && (
-                <div className="flex justify-between text-slate-600">
-                  <span>Delivery</span>
-                  <span>LKR {order.delivery}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-slate-900 pt-1">
-                <span>Total</span>
-                <span>LKR {order.total}</span>
-              </div>
-            </div>
-
-            {/* Order Details */}
-            <div className="border-t border-slate-200 pt-3 space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin size={16} className="text-slate-400" />
-                <span className="text-slate-600">
-                  {order.deliveryType === 'delivery' ? 'Delivery to your address' : 'Pickup'}
-                </span>
-              </div>
-              {!isActive && order.rating && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-slate-600">Rating:</span>
-                  <span className="text-sm font-bold text-amber-500">★ {order.rating}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 pt-2">
-              {isActive ? (
-                <button className="flex-1 rounded-lg bg-orange-500 text-white text-sm font-medium py-2 transition-colors hover:bg-orange-600">
-                  Track Order
+            )}
+            {/* Action Buttons Container */}
+            <div className="flex gap-3 flex-wrap">
+              {/* Universal Track Details Button */}
+              <button 
+                onClick={(e) => { e.stopPropagation(); navigate('/order-confirmation', { state: { orderId: order.orderId } }); }}
+                className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-slate-900 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-black transition-colors"
+              >
+                <ExternalLink size={16} /> Track Details
+              </button>
+              {/* Conditional Leave Review Button */}
+              {activeTab === 'previous' && order.orderStatus === 'SERVED' && !order.isReviewed && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setOrderToReview(order); setReviewModalOpen(true); }}
+                  className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-orange-500 text-white py-2.5 rounded-xl text-sm font-bold shadow-md shadow-orange-500/20 hover:bg-orange-600 transition-colors"
+                >
+                  <Star size={16} /> Leave Review
                 </button>
-              ) : (
-                <button className="flex-1 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium py-2 transition-colors hover:bg-slate-50">
-                  Reorder
+              )}
+              {/* Conditional Cancel Order Button */}
+              {isCancellable && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setOrderToCancel(order); setCancelModalOpen(true); }}
+                  className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-white border-2 border-red-100 text-red-600 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 transition-colors"
+                >
+                  <XCircle size={16} /> Cancel Order
                 </button>
               )}
             </div>
@@ -191,103 +193,132 @@ export default function OrdersPage() {
       </div>
     );
   };
-
-  const currentOrders = activeTab === 'active' ? orders.active : orders.previous;
-
+  // MAIN PAGE
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-6">
+    <CustomerPageShell maxWidth="max-w-4xl">
       <div className="mx-auto w-full max-w-[700px]">
-        {/* Header */}
+        {/* Back Button */}
         <button
-          type="button"
           onClick={() => navigate('/menu')}
           className="mb-6 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
         >
-          <ArrowLeft size={16} />
-          Back to Menu
+          <ArrowLeft size={16} /> Back to Menu
         </button>
 
-        {/* Title Card */}
-        <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)] mb-6">
+        {/* Top Card: Branding & Filters */}
+        <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] mb-6">
+          {/* Orange Header with Logo */}
           <div className="bg-orange-500 px-6 py-8 text-center text-white flex flex-col items-center">
             <BrandLogo />
             <h1 className="mt-3 text-3xl font-bold">My Orders</h1>
           </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-slate-200">
+          {/* Tab & Filters Container */}
+          <div className="p-4 flex flex-col md:flex-row gap-4 justify-between items-center bg-white">
+          <div className="flex w-full md:w-auto bg-slate-50 rounded-xl p-1">
             <button
               onClick={() => setActiveTab('active')}
-              className={`flex-1 px-6 py-4 text-sm font-semibold transition-colors ${
-                activeTab === 'active'
-                  ? 'border-b-2 border-orange-500 text-orange-600'
-                  : 'text-slate-600 hover:text-slate-900'
+              className={`flex-1 md:w-[140px] py-2.5 text-sm font-bold rounded-lg transition-all ${
+                activeTab === 'active' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Package size={16} />
-                <span>Active</span>
-                {orders.active.length > 0 && (
-                  <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">
-                    {orders.active.length}
-                  </span>
-                )}
-              </div>
+              Active
             </button>
             <button
               onClick={() => setActiveTab('previous')}
-              className={`flex-1 px-6 py-4 text-sm font-semibold transition-colors ${
-                activeTab === 'previous'
-                  ? 'border-b-2 border-orange-500 text-orange-600'
-                  : 'text-slate-600 hover:text-slate-900'
+              className={`flex-1 md:w-[140px] py-2.5 text-sm font-bold rounded-lg transition-all ${
+                activeTab === 'previous' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <CheckCircle size={16} />
-                <span>Previous</span>
-                {orders.previous.length > 0 && (
-                  <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">
-                    {orders.previous.length}
-                  </span>
-                )}
-              </div>
+              History
             </button>
           </div>
+          {/* Order Type Chips */}
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 px-2 md:px-0">
+            {[
+              { id: 'ALL', label: 'All Types' },
+              { id: 'QR', label: 'Dine-In' },
+              { id: 'ONLINE_DELIVERY', label: 'Delivery' },
+              { id: 'ONLINE_PICKUP', label: 'Pickup' }
+            ].map(type => (
+              <button
+                key={type.id}
+                onClick={() => setOrderTypeFilter(type.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
+                  orderTypeFilter === type.id 
+                    ? 'bg-slate-900 text-white' 
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
+        </div>
         </div>
 
-        {/* Orders List */}
-        <div className="space-y-4">
-          {currentOrders.length > 0 ? (
-            currentOrders.map(order => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                isActive={activeTab === 'active'}
-              />
-            ))
-          ) : (
-            <div className="rounded-2xl bg-white p-12 text-center border border-slate-200">
-              <Package size={48} className="mx-auto mb-3 text-slate-300" />
-              <p className="text-lg font-semibold text-slate-900 mb-2">
-                {activeTab === 'active' ? 'No Active Orders' : 'No Previous Orders'}
-              </p>
-              <p className="text-sm text-slate-500">
-                {activeTab === 'active'
-                  ? 'You have no orders being prepared or delivered.'
-                  : 'You haven\'t placed any orders yet.'}
-              </p>
-              {activeTab === 'previous' && (
-                <button
-                  onClick={() => navigate('/menu')}
-                  className="mt-4 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600"
-                >
-                  Start Ordering
-                </button>
-              )}
+        {/* ORDER LISTING (Loading vs Data vs Empty State) */}
+        {loading ? (
+          <CustomerStateCard
+            variant="loading"
+            title="Loading your orders"
+            description="We’re building your order timeline and status cards."
+            className="mx-auto max-w-2xl"
+          />
+        ) : orders.length > 0 ? (
+          <div className="space-y-4">
+            {orders.map(order => (
+              <OrderCard key={order.orderId} order={order} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl p-16 text-center shadow-[0_14px_30px_rgba(15,23,42,0.06)] flex flex-col items-center">
+            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-6">
+              <Package size={32} className="text-orange-500" />
             </div>
-          )}
-        </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">No Orders Found</h3>
+            <p className="text-slate-500 max-w-sm mx-auto mb-8">
+              {activeTab === 'active'
+                ? "You don't have any active orders matching this filter."
+                : "You haven't placed any orders matching this filter yet."}
+            </p>
+            <button
+              onClick={() => navigate('/menu')}
+              className="bg-orange-500 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-colors"
+            >
+              Browse Full Menu
+            </button>
+          </div>
+        )}
       </div>
-    </div>
+      
+      {cancelModalOpen && orderToCancel && (
+        <CancelOrderModal
+          order={orderToCancel}
+          cancelReason={cancelReason}
+          onCancelReasonChange={setCancelReason}
+          onClose={() => {
+            setCancelModalOpen(false);
+            setCancelReason('');
+            setOrderToCancel(null);
+          }}
+          onConfirm={handleCancelOrder}
+          isSubmitting={isCancelling}
+        />
+      )}
+
+      {/* Review Modal */}
+      {reviewModalOpen && orderToReview && (
+        <ReviewModal
+          order={orderToReview}
+          onClose={() => { setReviewModalOpen(false); setOrderToReview(null); }}
+          onSuccess={() => {
+            setReviewModalOpen(false);
+            setOrderToReview(null);
+            fetchOrders(); 
+          }}
+        />
+      )}
+    </CustomerPageShell>
   );
 }

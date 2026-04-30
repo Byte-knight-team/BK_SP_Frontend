@@ -100,6 +100,104 @@ export function getCurrentUserFromToken(token = getAuthToken()) {
 }
 
 /*
+  Decode QR session claims from the session token.
+  Returns the claim values, NOT storing them anywhere.
+  Use this at point-of-use (e.g., API calls, UI display).
+*/
+export function getQrSessionClaims(sessionToken) {
+  if (!sessionToken) {
+    return null;
+  }
+
+  const payload = decodeJwtPayload(sessionToken);
+  if (!payload) {
+    return null;
+  }
+
+  return {
+    session_id: payload.session_id || null,
+    branch_id: payload.branch_id || null,
+    table_id: payload.table_id || null,
+    qr_id: payload.qr_id || null,
+    status: payload.status || null,
+    exp: payload.exp || null,
+  };
+}
+
+/*
+  SECURE: Validate customer JWT by checking claims, not just existence.
+  
+  Returns decoded claims if valid:
+  - Token not expired
+  - Has 'CUSTOMER' role in roles array
+  - Has valid customer ID (sub)
+  
+  Returns null if invalid, expired, or missing required claims.
+  Frontend only—signature verification is backend responsibility.
+*/
+export function validateCustomerJwt(token) {
+  if (!token) {
+    return null;
+  }
+
+  const payload = decodeJwtPayload(token);
+  if (!payload) {
+    return null; // Malformed
+  }
+
+  // Check expiry
+  if (payload.exp && payload.exp * 1000 < Date.now()) {
+    return null; // Expired
+  }
+
+  // Check CUSTOMER role exists
+  const roles = Array.isArray(payload.roles) ? payload.roles : [];
+  if (!roles.includes('CUSTOMER')) {
+    return null; // Not a customer token
+  }
+
+  // Check customer ID (sub)
+  if (!payload.sub) {
+    return null; // No customer ID
+  }
+
+  return payload; // Valid
+}
+
+/*
+  SECURE: Validate QR session token by checking claims, not just existence.
+  
+  Returns decoded claims if valid:
+  - Token not expired
+  - Has 'session_id' claim
+  
+  Returns null if invalid, expired, or missing session_id.
+  Frontend only—signature verification is backend responsibility.
+*/
+export function validateQrSessionToken(token) {
+  if (!token) {
+    return null;
+  }
+
+  const payload = decodeJwtPayload(token);
+  if (!payload) {
+    return null; // Malformed
+  }
+
+  // Check expiry
+  if (payload.exp && payload.exp * 1000 < Date.now()) {
+    return null; // Expired
+  }
+
+  // Check session_id exists
+  if (!payload.session_id) {
+    return null; // No session ID
+  }
+
+  return payload; // Valid
+}
+
+/*
   Central dashboard redirect logic.
 */
 export function getDashboardPathByRole(roleName) {
@@ -108,7 +206,7 @@ export function getDashboardPathByRole(roleName) {
       return "/staff";
 
     case "ADMIN":
-      return "/admin-panel";
+      return "/admin";
 
     case "MANAGER":
       return "/manager";
