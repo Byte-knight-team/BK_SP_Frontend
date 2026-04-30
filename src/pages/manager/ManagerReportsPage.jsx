@@ -4,6 +4,7 @@ import ReportsHeader from '../../components/manager/reports/ReportsHeader'
 import AnalyticsStats from '../../components/manager/reports/AnalyticsStats'
 import RevenueTrendChart from '../../components/manager/reports/RevenueTrendChart'
 import ChannelDistributionChart from '../../components/manager/reports/ChannelDistributionChart'
+import PeakHoursChart from '../../components/manager/reports/PeakHoursChart'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 /**
@@ -73,6 +74,9 @@ export default function ManagerReportsPage() {
 
         {/* Channel Distribution - Spans 1 column */}
         <ChannelDistributionChart data={data.channelDistribution} />
+
+        {/* 3. Peak Hours - Spans full width (3 columns) */}
+        <PeakHoursChart data={data.peakHours} />
       </div>
     </div>
   )
