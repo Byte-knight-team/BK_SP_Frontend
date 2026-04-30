@@ -81,6 +81,8 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
           {/* Action Button */}
           <button
             onClick={handleSend}
+            // Prevents multiple submissions while the API request is in progress
+            // Disable the button if loading is true to prevent duplicate submissions
             disabled={loading}
             className="w-full rounded-xl bg-orange-600 py-3 font-bold text-white shadow-lg transition-all hover:bg-orange-700 disabled:bg-gray-300"
           >
