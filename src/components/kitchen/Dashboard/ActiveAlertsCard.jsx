@@ -59,7 +59,7 @@ const ActiveAlertsCard = () => {
         </button>
       </div>
 
-      <div className="custom-scrollbar max-h-[300px] space-y-3 overflow-y-auto pr-2">
+      <div className="custom-scrollbar max-h-[300px] space-y-3 overflow-y-auto pr-2 pb-4">
         {alerts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-gray-300">
             <CheckCircle
@@ -73,7 +73,7 @@ const ActiveAlertsCard = () => {
           alerts.map((alert) => (
             <div
               key={alert.id}
-              className="group relative flex items-start gap-3 rounded-2xl border border-gray-50 bg-gray-50/50 p-4 transition-all hover:bg-white hover:shadow-md"
+              className="group relative m-1 flex items-start gap-3 rounded-2xl border border-gray-50 bg-gray-50/50 p-4 transition-all hover:bg-white hover:shadow-md"
             >
               <div
                 className={`mt-1 h-2 w-2 shrink-0 animate-pulse rounded-full ${
