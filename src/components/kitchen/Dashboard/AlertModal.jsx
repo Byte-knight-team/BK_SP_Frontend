@@ -11,19 +11,19 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
   if (!isOpen) return null
 
   const handleSend = async () => {
-    if (!message.trim()) return toast.warning('Please type a message')
+    if (!message.trim()) return toast.warning('Please type a message');
 
-    setLoading(true)
-    const { error } = await createAlertAPI(message, type)
-    setLoading(false)
+    setLoading(true);
+    const { error } = await createAlertAPI(message, type);
+    setLoading(false);
 
     if (error) {
-      toast.error(error)
+      toast.error(error);
     } else {
-      toast.success('Broadcast alert sent to Receptionist!')
-      onAlertSent()
-      onClose()
-      setMessage('')
+      toast.success('Broadcast alert sent to Receptionist!');
+      onAlertSent(false); // tells dashboard to refresh WITHOUT spinner
+      onClose();
+      setMessage('');
     }
   }
 
