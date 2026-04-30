@@ -18,19 +18,50 @@ const KitchenDashboardPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch alerts from backend
-  const fetchAlerts = async () => {
-    const { data } = await getActiveAlertsAPI();
-    if (data) setActiveAlerts(data);
-  };
+  // Inside KitchenDashboardPage.jsx
 
-  useEffect(() => {
+const fetchAlerts = async () => {
+  // 1. We COMMENT OUT the real API call for now
+  // const { data } = await getActiveAlertsAPI();
+  // if (data) setActiveAlerts(data);
+
+  // 2. We add our DUMMY DATA here
+  const dummyAlerts = [
+    {
+      id: 1,
+      message: "Oven #1 is not working. Cannot prepare any Pizza orders!",
+      type: "CRITICAL",
+      timeAgo: "2m",
+    },
+    {
+      id: 2,
+      message: "Pineapple stock is over. Pineapple Juice is unavailable.",
+      type: "WARNING",
+      timeAgo: "15m",
+    },
+    {
+      id: 3,
+      message: "Main gas tank is 20% low. Please inform supplier.",
+      type: "INFO",
+      timeAgo: "1h",
+    }
+  ];
+
+  setActiveAlerts(dummyAlerts); // Set the dummy data to the state
+};
+
+
+    useEffect(() => {
     // set the header info for this page
     setHeaderInfo({
       title: "Kitchen Dashboard Overview",
       description: "Real-time performance metrics for Crave House",
       Icon: LayoutDashboard,
     });
+
+    fetchAlerts(); // <--- ADD THIS LINE HERE
   }, []);
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 p-4">
