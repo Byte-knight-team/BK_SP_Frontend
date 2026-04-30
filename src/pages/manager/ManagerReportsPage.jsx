@@ -3,6 +3,7 @@ import { useAnalyticsData } from '../../hooks/useAnalyticsData'
 import ReportsHeader from '../../components/manager/reports/ReportsHeader'
 import AnalyticsStats from '../../components/manager/reports/AnalyticsStats'
 import RevenueTrendChart from '../../components/manager/reports/RevenueTrendChart'
+import ChannelDistributionChart from '../../components/manager/reports/ChannelDistributionChart'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 /**
@@ -70,12 +71,8 @@ export default function ManagerReportsPage() {
         {/* Revenue Trend - Spans 2 columns */}
         <RevenueTrendChart data={data.revenueTrends} />
 
-        {/* Placeholder for Channel Distribution (Step 3.4) */}
-        <div className="flex min-h-[400px] items-center justify-center rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50/50">
-          <div className="text-center">
-            <p className="text-sm font-medium text-gray-400">Channel Distribution coming soon</p>
-          </div>
-        </div>
+        {/* Channel Distribution - Spans 1 column */}
+        <ChannelDistributionChart data={data.channelDistribution} />
       </div>
     </div>
   )
