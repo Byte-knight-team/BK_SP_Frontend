@@ -1,52 +1,52 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+import { buildApiUrl } from "../apis/apiHelper";
 
 export async function loginStaff({ email, password }) {
-  const response = await fetch(`${API_BASE_URL}/api/auth/staff/login`, {
-    method: "POST",
+  const response = await fetch(buildApiUrl('/api/auth/staff/login'), {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({ email, password }),
-  });
+  })
 
-  let data = null;
+  let data = null
 
   try {
-    data = await response.json();
+    data = await response.json()
   } catch {
-    data = null;
+    data = null
   }
 
   if (!response.ok) {
-    throw new Error(data?.message || "Login failed");
+    throw new Error(data?.message || 'Login failed')
   }
 
-  return data;
+  return data
 }
 
 export async function changeStaffPassword(payload) {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token')
 
-  const response = await fetch(`${API_BASE_URL}/api/auth/staff/change-password`, {
-    method: "PUT",
+  const response = await fetch(buildApiUrl('/api/auth/staff/change-password'), {
+    method: 'PUT',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(payload),
-  });
+  })
 
-  let data = null;
+  let data = null
 
   try {
-    data = await response.json();
+    data = await response.json()
   } catch {
-    data = null;
+    data = null
   }
 
   if (!response.ok) {
-    throw new Error(data?.message || "Password change failed");
+    throw new Error(data?.message || 'Password change failed')
   }
 
-  return data;
+  return data
 }

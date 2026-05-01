@@ -1,9 +1,149 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: #f97316;
+  --color-brand-hover: #ea6c0a;
+  --color-brand-light: #fff3e8;
+  --color-brand-muted: #fee8d4;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
 html {
-	scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 section[id] {
-	scroll-margin-top: 5rem;
+  scroll-margin-top: 5rem;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+    font-family: var(--font-sans);
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100 p-6;
+  }
+  .btn-primary {
+    @apply bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg
+           hover:bg-gray-800 transition-colors duration-150;
+  }
+  .btn-outline {
+    @apply border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2
+           rounded-lg hover:bg-gray-50 transition-colors duration-150;
+  }
+
+  /* ── Modal utilities ── */
+  .modal-backdrop {
+    @apply fixed inset-0 z-50 flex items-start justify-center p-4 pt-10;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .modal-panel {
+    @apply bg-white rounded-2xl shadow-2xl w-full relative;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: scaleIn 0.25s ease-out;
+  }
+
+  .modal-label {
+    @apply block text-xs font-bold tracking-wider text-gray-800 uppercase mb-2;
+  }
+
+  .modal-input {
+    @apply w-full px-4 py-3 rounded-lg text-sm text-gray-700
+           outline-none transition-colors duration-150;
+    border: 1.5px solid var(--color-brand-muted);
+  }
+  .modal-input:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  }
+  .modal-input::placeholder {
+    @apply text-gray-400;
+  }
+
+  .modal-select {
+    @apply w-full px-4 py-3 rounded-lg text-sm text-gray-700
+           outline-none appearance-none cursor-pointer transition-colors duration-150;
+    border: 1.5px solid var(--color-brand-muted);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  .modal-select:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  }
+}
+
+/* ── Modal keyframe animations ── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes tableFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-table-fade {
+  animation: tableFadeIn 0.35s ease-out forwards;
+}
+
+
+/* --- Toastify Customization --- */
+
+/* Global Container Styles */
+.Toastify__toast {
+  border-radius: 16px !important; 
+  font-family: 'Inter', sans-serif !important;
+  font-size: 14px !important;
+}
+
+/* Success Toast (Emerald Green) */
+.Toastify__toast--success.Toastify__toast-theme--colored {
+  background: linear-gradient(to right, #10b981, #059669) !important;
+  /*for a single color background*/
+  /*background-color: #10b981 !important;*/
+}
+
+/* Error Toast (Crimson Red) */
+.Toastify__toast--error.Toastify__toast-theme--colored {
+  background: linear-gradient(to right, #ef4444, #dc2626) !important;
+}
+
+/* Progress Bar Customization */
+.Toastify__progress-bar {
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
 }

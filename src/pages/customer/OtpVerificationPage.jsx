@@ -2,6 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import { getQrSessionClaims } from '../../utils/authToken';
+import { verifyCustomerOtp } from '../../apis/customer/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -60,15 +63,13 @@ export default function OtpVerificationPage() {
     setError('');
 
     try {
-      // 1. Grab the Session ID from localStorage (Saved by ScanPage)
-      const qrSessionData = JSON.parse(localStorage.getItem('qr_session') || '{}');
-      const sessionId = qrSessionData.sessionId || null;
+      // Decode the current QR session token on-demand.
+      // We no longer store the decoded session object in localStorage.
+      const qrSessionToken = localStorage.getItem('qr_session_token');
+      const qrClaims = qrSessionToken ? getQrSessionClaims(qrSessionToken) : null;
+      const sessionId = qrClaims?.session_id || null;
       
-      const res = await fetch(`${API_BASE}/api/v1/auth/customer/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code, sessionId}),
-      });
+      const res = await verifyCustomerOtp({ phone, code, sessionId });
 
       const payload = await res.json().catch(() => ({}));
 
@@ -79,7 +80,6 @@ export default function OtpVerificationPage() {
       // Success! Save the JWT token
       const data = payload.data;
       localStorage.setItem('customer_jwt', data.token);
-      localStorage.setItem('customer_user_id', String(data.user_id));
 
       // Redirect directly to checkout to complete their meal!
       navigate(redirectTo, { replace: true });
@@ -92,8 +92,8 @@ export default function OtpVerificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-10">
-      <div className="mx-auto w-full max-w-[360px]">
+    <CustomerPageShell maxWidth="max-w-4xl">
+      <div className="mx-auto w-full max-w-[420px]">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -103,8 +103,8 @@ export default function OtpVerificationPage() {
           Back
         </button>
 
-        <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
+        <div className="overflow-hidden rounded-[2rem] bg-white shadow-[0_18px_42px_rgba(15,23,42,0.10)] border border-slate-200">
+          <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
             <BrandLogo />
             <h1 className="mt-3 text-2xl font-bold">Verify OTP</h1>
             <p className="mt-2 text-sm text-orange-100 px-2 opacity-90">
@@ -155,6 +155,6 @@ export default function OtpVerificationPage() {
           </form>
         </div>
       </div>
-    </div>
+    </CustomerPageShell>
   );
 }

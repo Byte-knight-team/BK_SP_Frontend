@@ -1,175 +1,426 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, MessageSquare, Clock, MapPin, Home, CheckCircle2, ChefHat, Truck, CircleCheckBig,
+  ArrowLeft,
+  BadgeCheck,
+  CheckCircle2,
+  ChefHat,
+  Clock,
+  CreditCard,
+  Home,
+  Mail,
+  Package,
+  Phone,
+  ShoppingBag,
+  Truck,
+  XCircle,
 } from 'lucide-react';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import CustomerStateCard from '../../components/customer/CustomerStateCard';
+import ReviewModal from '../../components/customer/modal/ReviewModal';
+import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
+import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 
-const PROGRESS_STEPS = [
-  { key: 'confirmed', icon: CheckCircle2, title: 'Order Confirmed', desc: 'Your order has been confirmed and sent to the kitchen' },
-  { key: 'preparing', icon: ChefHat, title: 'Preparing Your Food', desc: 'Our chefs are preparing your delicious meal' },
-  { key: 'delivery', icon: Truck, title: 'Out for Delivery', desc: 'Your order is on its way to you' },
-  { key: 'delivered', icon: CircleCheckBig, title: 'Delivered', desc: 'Your order has been delivered' },
+const STATUS_FLOW = [
+  { key: 'PLACED', label: 'Placed', icon: BadgeCheck, description: 'Your order is confirmed.' },
+  { key: 'PREPARING', label: 'Preparing', icon: ChefHat, description: 'The kitchen is preparing your meal.' },
+  { key: 'READY', label: 'Ready', icon: Package, description: 'Your order is ready for the next step.' },
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'Your order is on the way.' },
+  { key: 'SERVED', label: 'Completed', icon: CheckCircle2, description: 'Your order has been completed.' },
 ];
+
+function normalizeOrderType(orderType) {
+  return String(orderType || '').toUpperCase();
+}
 
 export default function OrderConfirmationPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const order = location.state || {};
-  const normalizedOrderType = String(order.orderType || '').toUpperCase();
-  const isDelivery = normalizedOrderType === 'DELIVERY' || normalizedOrderType === 'ONLINE_DELIVERY';
-  const isQr = normalizedOrderType === 'QR';
-  const {
-    orderId = '229714', orderDate = new Date().toLocaleString(), items = [],
-    subtotal = 0, deliveryFee = 0, tax = 0, total = 0,
-    orderType = 'delivery', fullName = '', phone = '', address = '', paymentMethod = 'pay-now',
-    tableId = '',
-  } = order;
+  const { orderId } = location.state || {};
 
-  const currentStep = 0;
-  const estimatedStart = new Date(); estimatedStart.setMinutes(estimatedStart.getMinutes() + 15);
-  const estimatedEnd = new Date(); estimatedEnd.setMinutes(estimatedEnd.getMinutes() + 35);
-  const fmt = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  useEffect(() => {
+    if (!orderId) {
+      setError('No order session found.');
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchOrder = async () => {
+      try {
+        const res = await getCustomerOrder(orderId);
+        const payload = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(payload?.message || 'Failed to load order details.');
+        }
+
+        if (isMounted) {
+          setOrder(payload.data || null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message || 'Failed to load order details.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchOrder();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [orderId]);
+
+  const orderType = normalizeOrderType(order?.orderType);
+  const isDelivery = orderType === 'DELIVERY' || orderType === 'ONLINE_DELIVERY';
+  const isQr = orderType === 'QR';
+  const isPickup = orderType === 'ONLINE_PICKUP';
+  const isCancelled = order?.orderStatus === 'CANCELLED' || order?.orderStatus === 'REJECTED';
+  const isReviewable = order?.orderStatus === 'SERVED' && !order?.isReviewed;
+  const isCancellable = !isCancelled && ['PLACED', 'PENDING', 'ON_HOLD'].includes(order?.orderStatus);
+
+  const statusIndex = useMemo(() => {
+    if (!order?.orderStatus) return 0;
+    const idx = STATUS_FLOW.findIndex((step) => step.key === order.orderStatus);
+    return idx === -1 ? 0 : idx;
+  }, [order?.orderStatus]);
+
+  const estimatedStart = new Date(order?.createdAt || Date.now());
+  estimatedStart.setMinutes(estimatedStart.getMinutes() + 20);
+  const estimatedEnd = new Date(order?.createdAt || Date.now());
+  estimatedEnd.setMinutes(estimatedEnd.getMinutes() + 40);
+  const formatTime = (date) =>
+    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+
+  const handleCancelOrder = async () => {
+    if (!cancelReason.trim()) return;
+
+    setIsCancelling(true);
+    try {
+      const res = await cancelCustomerOrder(order.orderId, cancelReason);
+      if (res.ok) {
+        setCancelModalOpen(false);
+        setCancelReason('');
+        setOrder((prev) => (prev ? { ...prev, orderStatus: 'CANCELLED' } : prev));
+      }
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <CustomerPageShell maxWidth="max-w-5xl">
+        <CustomerStateCard
+          variant="loading"
+          title="Loading order confirmation"
+          description="We’re pulling together your order summary, status, and payment details."
+          className="mx-auto max-w-2xl"
+        />
+      </CustomerPageShell>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <CustomerPageShell maxWidth="max-w-5xl">
+        <CustomerStateCard
+          variant="error"
+          title="Could not load confirmation"
+          description={error || 'We could not find this order.'}
+          primaryAction={{
+            label: 'View Orders',
+            onClick: () => navigate('/orders'),
+          }}
+          secondaryAction={{
+            label: 'Back to Menu',
+            onClick: () => navigate('/menu'),
+          }}
+          className="mx-auto max-w-2xl"
+        />
+      </CustomerPageShell>
+    );
+  }
+
+  const items = Array.isArray(order.items) ? order.items : [];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 h-[72px] bg-white border-b border-gray-200 sticky top-0 z-[100] max-md:px-4">
-        <div className="flex items-center gap-3.5">
-          <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-800 transition-colors duration-300 hover:bg-gray-200" onClick={() => navigate('/menu')}>
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1 className="font-heading text-[1.15rem] font-bold text-navy leading-[1.2]">Order #{orderId}</h1>
-            <span className="text-[0.78rem] text-gray-500">{orderDate}</span>
-          </div>
-        </div>
-        <button className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-transparent text-orange text-[0.88rem] font-semibold transition-colors duration-300 hover:bg-orange-light">
-          <MessageSquare size={16} /> Help
+    <CustomerPageShell maxWidth="max-w-6xl">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <button
+          type="button"
+          onClick={() => navigate('/menu')}
+          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:text-slate-900"
+        >
+          <ArrowLeft size={16} />
+          Back to Menu
         </button>
-      </header>
-
-      <div className="flex-1 py-5 px-6 pb-8 max-w-[720px] w-full mx-auto max-md:px-4 max-md:py-4">
-        {/* Status Banner */}
-        <div className="bg-gradient-to-br from-orange-600 to-[#FF8F40] rounded-[18px] p-7 text-white mb-4 max-md:p-[22px]">
-          <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-bold tracking-[1px] uppercase mb-2">
-            <span className="w-2 h-2 rounded-full bg-[#4ADE80] inline-block animate-ocp-pulse" /> LIVE TRACKING
-          </span>
-          <h2 className="font-heading text-[2rem] font-extrabold leading-[1.15] mb-1.5 max-md:text-[1.6rem]">Order Confirmed</h2>
-          <p className="text-[0.9rem] opacity-90 mb-5">Your order has been confirmed and sent to the kitchen</p>
-          <div className="inline-flex items-center gap-2.5 px-[18px] py-3 bg-black/15 rounded-md">
-            <Clock size={16} />
-            <div>
-              <span className="block text-[0.7rem] opacity-85 mb-0.5">Estimated Time</span>
-              <span className="font-heading text-[0.95rem] font-bold">{fmt(estimatedStart)} - {fmt(estimatedEnd)}</span>
-            </div>
-          </div>
+        <div className="text-right">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Order</p>
+          <p className="text-base font-bold text-slate-900">#{order.orderNumber || order.orderId}</p>
         </div>
+      </div>
 
-        {/* Live Map */}
-        {isDelivery && (
-          <div className="bg-white border border-gray-200 rounded-[16px] p-6 mb-4 max-md:p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <MapPin size={16} className="text-orange" />
-              <h3 className="font-heading text-[1.05rem] font-bold text-navy">Live Delivery Map</h3>
+      <div className={`mb-6 rounded-[2rem] border bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)] ${isCancelled ? 'border-rose-200' : 'border-slate-200'}`}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${isCancelled ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>
+              {isCancelled ? <XCircle size={30} /> : <CheckCircle2 size={30} />}
             </div>
-            <div className="relative w-full h-[220px] rounded-md bg-gradient-to-b from-[#d4e8f7] to-[#f0e6d6] mb-2.5 overflow-hidden max-[480px]:h-[160px]">
-              <div className="absolute top-[35%] left-[30%] w-[42px] h-[42px] rounded-full flex items-center justify-center text-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] bg-orange"><Home size={18} /></div>
-              <div className="absolute top-[55%] left-[60%] w-[42px] h-[42px] rounded-full flex items-center justify-center text-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] bg-orange"><MapPin size={18} /></div>
-            </div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="inline-flex items-center gap-[5px] px-3 py-[5px] rounded-full text-[0.72rem] font-semibold text-white bg-[#22C55E]"><Home size={12} /> Restaurant</span>
-              <span className="inline-flex items-center gap-[5px] px-3 py-[5px] rounded-full text-[0.72rem] font-semibold text-white bg-orange"><MapPin size={12} /> Destination</span>
-              <span className="ml-auto text-[0.75rem] text-gray-400">Interactive Map View</span>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">{isCancelled ? 'Order cancelled' : 'Order confirmed'}</h1>
+              <p className="mt-1 text-sm text-slate-600">
+                {isCancelled ? 'This order has been cancelled.' : 'Your order is in the kitchen and we’ll keep the status updated below.'}
+              </p>
             </div>
           </div>
-        )}
 
-        {/* Order Progress */}
-        <div className="bg-white border border-gray-200 rounded-[16px] p-6 mb-4 max-md:p-5">
-          <h3 className="font-heading text-[1.05rem] font-bold text-navy mb-5">Order Progress</h3>
-          <div className="flex flex-col">
-            {PROGRESS_STEPS.map((step, i) => {
-              const isActive = i === currentStep;
-              const isDone = i < currentStep;
+          {!isCancelled && (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+              <Clock size={16} className="mr-2 inline-block text-orange-500" />
+              {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {!isCancelled && (
+        <div className="mb-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Live status</p>
+              <h2 className="mt-1 text-2xl font-bold text-slate-900">
+                {order.orderStatus === 'ON_HOLD' ? 'On hold' : STATUS_FLOW[statusIndex]?.label || 'Processing'}
+              </h2>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-orange-700">
+              <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+              Updated
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            {STATUS_FLOW.map((step, index) => {
               const StepIcon = step.icon;
+              const isDone = index < statusIndex;
+              const isActive = index === statusIndex;
+
               return (
-                <div className="flex gap-3.5" key={step.key}>
-                  <div className="flex flex-col items-center shrink-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-[1] ${isActive || isDone ? 'bg-orange text-white' : 'bg-gray-100 text-gray-400'}`}>
-                      <StepIcon size={18} />
+                <div key={step.key} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border bg-white shadow-sm transition-all ${
+                        isDone
+                          ? 'border-emerald-200 text-emerald-600'
+                          : isActive
+                            ? 'border-orange-200 text-orange-600 scale-105'
+                            : 'border-slate-200 text-slate-400'
+                      }`}
+                    >
+                      <StepIcon size={22} />
                     </div>
-                    {i < PROGRESS_STEPS.length - 1 && <div className={`w-[3px] flex-1 min-h-[32px] my-1 ${isActive || isDone ? 'bg-orange' : 'bg-gray-200'}`} />}
-                  </div>
-                  <div className={`pb-6 pt-2 ${i === PROGRESS_STEPS.length - 1 ? 'pb-0' : ''}`}>
-                    <span className="block font-heading text-[0.95rem] font-bold text-navy mb-0.5">{step.title}</span>
-                    <span className="block text-[0.8rem] text-gray-500 leading-snug">{step.desc}</span>
-                    {isActive && (
-                      <span className="inline-flex items-center gap-1 mt-1.5 text-[0.78rem] text-gray-500">
-                        In <span className="inline-block px-2 py-0.5 rounded-full bg-orange-light text-orange text-[0.7rem] font-semibold">Progress</span> • {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase()}
-                      </span>
+                    {index < STATUS_FLOW.length - 1 && (
+                      <div className={`mt-2 h-16 w-1 rounded-full ${isDone ? 'bg-emerald-500' : isActive ? 'bg-orange-300' : 'bg-slate-200'}`} />
                     )}
+                  </div>
+                  <div className="pt-1 pb-6">
+                    <p className="text-base font-bold text-slate-900">{step.label}</p>
+                    <p className="mt-1 text-sm text-slate-600">{step.description}</p>
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
+      )}
 
-        {/* Order Details */}
-        <div className="bg-white border border-gray-200 rounded-[16px] p-6 mb-4 max-md:p-5">
-          <h3 className="font-heading text-[1.05rem] font-bold text-navy mb-4">Order Details</h3>
-          <div className="flex flex-col gap-3.5 mb-[18px]">
-            {items.map((item) => (
-              <div className="flex justify-between items-start" key={item.id}>
-                <div className="flex gap-2.5 items-start">
-                  <span className="w-2 h-2 rounded-full bg-orange mt-1.5 shrink-0" />
-                  <div>
-                    <span className="block text-[0.9rem] font-semibold text-navy">{item.name}</span>
-                    <span className="block text-[0.78rem] text-gray-500">Qty: {item.quantity}</span>
-                  </div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
+          <h3 className="mb-5 text-2xl font-bold text-slate-900">Order summary</h3>
+          <div className="space-y-4">
+            {items.map((item, index) => (
+              <div key={index} className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4 last:border-0 last:pb-0">
+                <div>
+                  <p className="font-semibold text-slate-900">{item.itemName}</p>
+                  <p className="text-sm text-slate-500">Qty {item.quantity}</p>
                 </div>
-                <span className="font-heading text-[0.95rem] font-bold text-navy whitespace-nowrap">LKR {(item.price * item.quantity).toLocaleString()}</span>
+                <p className="whitespace-nowrap font-bold text-slate-900">LKR {Number(item.subtotal || 0).toLocaleString()}</p>
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-200 pt-3.5 flex flex-col gap-2">
-            <div className="flex justify-between text-[0.85rem] text-gray-500"><span>Subtotal</span><span>LKR {subtotal.toLocaleString()}</span></div>
-            {orderType === 'delivery' && <div className="flex justify-between text-[0.85rem] text-gray-500"><span>Delivery Fee</span><span>LKR {deliveryFee.toLocaleString()}</span></div>}
-            <div className="flex justify-between text-[0.85rem] text-gray-500"><span>Tax</span><span>LKR {tax.toLocaleString()}</span></div>
-            <div className="flex justify-between mt-1.5 pt-2.5 border-t border-gray-200 font-heading text-base font-bold text-navy"><span>Total</span><span className="text-orange text-[1.05rem]">LKR {total.toLocaleString()}</span></div>
-          </div>
-        </div>
 
-        {/* Address */}
-        <div className="bg-white border border-gray-200 rounded-[16px] p-6 mb-4 max-md:p-5">
-          <h3 className="font-heading text-[1.05rem] font-bold text-navy mb-3.5">
-            {isDelivery ? 'Delivery Address' : isQr ? 'QR Dine-In Details' : 'Pickup Location'}
-          </h3>
-          <div className="flex gap-3 items-start">
-            <div className="w-9 h-9 rounded-full bg-blue-light text-blue flex items-center justify-center shrink-0"><MapPin size={18} /></div>
-            <div>
-              {isDelivery ? (
-                <>
-                  <span className="block text-[0.85rem] font-semibold text-navy leading-relaxed">{fullName || 'Customer'}</span>
-                  <span className="block text-[0.85rem] text-gray-500 leading-relaxed">{address || 'Colombo Western Province'}</span>
-                  <span className="block text-[0.85rem] text-gray-500 leading-relaxed">{phone || '1234567890'}</span>
-                </>
-              ) : isQr ? (
-                <>
-                  <span className="block text-[0.85rem] font-semibold text-navy leading-relaxed">Table {tableId || 'N/A'}</span>
-                  <span className="block text-[0.85rem] text-gray-500 leading-relaxed">QR order confirmed for dine-in</span>
-                  <span className="block text-[0.85rem] text-gray-500 leading-relaxed">{phone || '1234567890'}</span>
-                </>
-              ) : (
-                <>
-                  <span className="block text-[0.85rem] font-semibold text-navy leading-relaxed">Crave House Restaurant - Branch</span>
-                  <span className="block text-[0.85rem] text-gray-500 leading-relaxed">BRANCH-001</span>
-                  <span className="block text-[0.85rem] text-gray-500 leading-relaxed">{phone || '1234567890'}</span>
-                </>
-              )}
+          <div className="mt-6 rounded-[1.5rem] bg-slate-50 p-5">
+            <div className="flex items-center justify-between text-sm text-slate-600">
+              <span>Subtotal</span>
+              <span>LKR {Number(order.subtotal || 0).toLocaleString()}</span>
+            </div>
+            {Number(order.deliveryFee || 0) > 0 && (
+              <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
+                <span>Delivery fee</span>
+                <span>LKR {Number(order.deliveryFee || 0).toLocaleString()}</span>
+              </div>
+            )}
+            {Number(order.taxAmount || 0) > 0 && (
+              <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
+                <span>Tax</span>
+                <span>LKR {Number(order.taxAmount || 0).toLocaleString()}</span>
+              </div>
+            )}
+            <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
+              <span className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Total</span>
+              <span className="text-3xl font-extrabold text-orange-500">LKR {Number(order.finalTotal || 0).toLocaleString()}</span>
             </div>
           </div>
         </div>
+
+        <div className="flex flex-col gap-6">
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
+            <div className="mb-4 flex items-center gap-4">
+              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${order.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}`}>
+                <CreditCard size={24} />
+              </div>
+              <div>
+                <p className="font-bold text-slate-900">Payment</p>
+                <p className="text-sm text-slate-500">{order.paymentStatus || 'UNKNOWN'}</p>
+              </div>
+            </div>
+            <div className={`rounded-2xl px-4 py-3 text-center text-sm font-bold ${order.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-700' : 'bg-orange-50 text-orange-700'}`}>
+              {order.paymentStatus === 'PAID' ? 'Paid successfully' : 'Awaiting payment'}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
+            <h4 className="mb-4 text-lg font-bold text-slate-900">
+              {isDelivery ? 'Delivery details' : isQr ? 'Table details' : 'Pickup details'}
+            </h4>
+            <div className="space-y-4 text-sm text-slate-600">
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Contact</p>
+                <p className="font-semibold text-slate-900">{order.contactName || 'Customer'}</p>
+                <p className="mt-1 flex items-center gap-2"><Phone size={14} /> {order.contactPhone || '-'}</p>
+              </div>
+              {isDelivery && (
+                <div className="border-t border-slate-100 pt-4">
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Address</p>
+                  <p>{order.deliveryAddress || '-'}</p>
+                </div>
+              )}
+              {isQr && (
+                <div className="border-t border-slate-100 pt-4">
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Table</p>
+                  <p className="font-semibold text-orange-500">Table {order.tableId || '-'}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
+            <h4 className="mb-4 text-lg font-bold text-slate-900">Actions</h4>
+            <div className="flex flex-col gap-3">
+              {isReviewable && (
+                <button
+                  type="button"
+                  onClick={() => setReviewModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98]"
+                >
+                  Leave review
+                </button>
+              )}
+              {isCancellable && (
+                <button
+                  type="button"
+                  onClick={() => setCancelModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white px-5 py-3.5 text-sm font-bold text-red-600 transition-all hover:bg-red-50 active:scale-[0.98]"
+                >
+                  Cancel order
+                </button>
+              )}
+              {!isReviewable && !isCancellable && (
+                <p className="text-sm text-slate-500">No additional actions available for this order.</p>
+              )}
+            </div>
+          </div>
+
+          {order.branchDetails && (
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
+              <h4 className="mb-4 text-lg font-bold text-slate-900">Branch</h4>
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
+                  <Home size={22} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-900">{order.branchDetails.name}</p>
+                  <p className="mt-1 text-sm text-slate-600">{order.branchDetails.address}</p>
+                  <div className="mt-3 space-y-2 text-sm text-slate-500">
+                    <p className="flex items-center gap-2"><Phone size={14} /> {order.branchDetails.contactNumber}</p>
+                    <p className="flex items-center gap-2"><Mail size={14} /> {order.branchDetails.email}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      <div className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/96 backdrop-blur-sm shadow-[0_-8px_30px_rgba(15,23,42,0.08)]">
+        <div className="mx-auto flex w-full max-w-6xl gap-3 px-4 py-4 sm:px-6">
+          <button
+            type="button"
+            onClick={() => navigate('/orders')}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-4 text-base font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98]"
+          >
+            <ShoppingBag size={18} />
+            View orders
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/menu')}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-4 text-base font-bold text-slate-900 transition-all hover:bg-slate-200 active:scale-[0.98]"
+          >
+            <ShoppingBag size={18} />
+            Continue shopping
+          </button>
+        </div>
+      </div>
+
+      {reviewModalOpen && !isCancelled && order?.orderStatus === 'SERVED' && (
+        <ReviewModal
+          order={order}
+          onClose={() => setReviewModalOpen(false)}
+          onSuccess={() => {
+            setReviewModalOpen(false);
+            setOrder((prev) => (prev ? { ...prev, isReviewed: true } : prev));
+          }}
+        />
+      )}
+
+      {cancelModalOpen && !isCancelled && (
+        <CancelOrderModal
+          order={order}
+          cancelReason={cancelReason}
+          onCancelReasonChange={setCancelReason}
+          onClose={() => {
+            setCancelModalOpen(false);
+            setCancelReason('');
+          }}
+          onConfirm={handleCancelOrder}
+          isSubmitting={isCancelling}
+        />
+      )}
+    </CustomerPageShell>
   );
 }

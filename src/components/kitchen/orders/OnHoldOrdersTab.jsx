@@ -2,7 +2,7 @@ import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 
-const OnHoldOrdersTab = ({handleOrderClick}) => {
+const OnHoldOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   const [onHoldOrdersDetails, setOnHoldOrdersDetails] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +37,7 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-2 overflow-y-auto">
       {onHoldOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
@@ -46,6 +46,7 @@ const OnHoldOrdersTab = ({handleOrderClick}) => {
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
+          isSelected={order.id === selectedOrderId}
         />
       ))}
     </div>

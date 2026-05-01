@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { RefreshCcw, X } from "lucide-react";
+import { toast } from "react-toastify";
 
 const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQuantity, maxStock }) => {
   const [newQuantity, setNewQuantity] = useState("");
@@ -27,13 +28,13 @@ const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQu
 
     // check if it's greater than max stock
     if (numericQuantity > maxStock) {
-      alert(`Error: Quantity cannot exceed the maximum stock limit of ${maxStock} ${unit}!`);
+      toast.error(`Error: Quantity cannot exceed the maximum stock limit of ${maxStock} ${unit}!`);
       return;
     }
     
     // check for negative numbers
     if (numericQuantity < 0) {
-      alert("Error: Quantity cannot be negative!");
+      toast.error("Error: Quantity cannot be negative!");
       return;
     }
     

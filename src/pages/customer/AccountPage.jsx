@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import { useCart } from '../../context/CartContext';
+import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile } from '../../apis/customer/profile';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -24,19 +27,8 @@ export default function AccountPage() {
   // 1. Fetch Profile on Load
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem('customer_jwt');
-      const isQrCustomer = Boolean(localStorage.getItem('qr_session_token'));
-
-      // If no token, or if they are a QR customer don't let access
-      if (!token || isQrCustomer) {
-        navigate('/menu', { replace: true });
-        return;
-      }
-
       try {
-        const res = await fetch(`${API_BASE}/api/v1/customer/profile`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await getCustomerProfile();
         
         const payload = await res.json().catch(() => ({}));
         
@@ -54,7 +46,7 @@ export default function AccountPage() {
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, []);
 
   const handleEdit = (section) => {
     setError('');
@@ -83,20 +75,12 @@ export default function AccountPage() {
   const handleSaveProfile = async () => {
     setIsSaving(true);
     setError('');
-    const token = localStorage.getItem('customer_jwt');
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/customer/profile`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          phone: formData.phone,
-          address: formData.address
-        })
+      const res = await updateCustomerProfile({
+        username: formData.username,
+        phone: formData.phone,
+        address: formData.address,
       });
 
       const payload = await res.json().catch(() => ({}));
@@ -129,19 +113,11 @@ export default function AccountPage() {
 
     setIsSaving(true);
     setError('');
-    const token = localStorage.getItem('customer_jwt');
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/customer/profile/password`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
+      const res = await updateCustomerPassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
       });
 
       const payload = await res.json().catch(() => ({}));
@@ -170,15 +146,19 @@ export default function AccountPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f3f1ee] flex flex-col items-center justify-center px-4">
-        <Loader2 size={32} className="animate-spin text-orange-500 mb-4" />
-        <p className="text-slate-500 font-medium">Loading your profile...</p>
-      </div>
+      <CustomerPageShell maxWidth="max-w-3xl">
+        <CustomerStateCard
+          variant="loading"
+          title="Loading your profile"
+          description="We’re fetching your account details and loyalty information."
+          className="mx-auto max-w-2xl"
+        />
+      </CustomerPageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-6">
+    <CustomerPageShell maxWidth="max-w-3xl">
       <div className="mx-auto w-full max-w-[600px]">
         {/* Header */}
         <button
@@ -396,6 +376,6 @@ export default function AccountPage() {
           Sign Out
         </button>
       </div>
-    </div>
+    </CustomerPageShell>
   );
 }

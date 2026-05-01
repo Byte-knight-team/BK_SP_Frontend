@@ -44,13 +44,16 @@ export default function CreateStaffPage() {
     const location = useLocation();
 
     /*
-        This page is shared by SUPER_ADMIN and ADMIN routes.
-    
-        SUPER_ADMIN route:
-        ADMIN route:
-    */
-    const staffListPath = location.pathname.startsWith("/admin-panel")
-        ? "/admin-panel/staff"
+    This page is shared by SUPER_ADMIN and ADMIN routes.
+
+    SUPER_ADMIN route:
+    /staff/staff/create
+
+    ADMIN route:
+    /admin/staff/create
+*/
+    const staffListPath = location.pathname.startsWith("/admin")
+        ? "/admin/staff"
         : "/staff/staff";
 
     /*
