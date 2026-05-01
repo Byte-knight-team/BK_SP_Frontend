@@ -1,4 +1,5 @@
 import { ChefHat, Truck } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 function StaffGroup({ icon, label, sublabel, total }) {
   return (
@@ -21,6 +22,8 @@ function StaffGroup({ icon, label, sublabel, total }) {
 }
 
 export default function StaffAvailability({ kitchen, fleet }) {
+  const navigate = useNavigate()
+
   return (
     <div className="card">
       <div className="mb-5 flex items-center justify-between">
@@ -29,7 +32,10 @@ export default function StaffAvailability({ kitchen, fleet }) {
             Branch Staff
           </h2>
         </div>
-        <button className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors">
+        <button 
+          onClick={() => navigate('/manager/staff')}
+          className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors"
+        >
           View Staff Details
         </button>
       </div>
