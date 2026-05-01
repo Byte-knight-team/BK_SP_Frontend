@@ -9,6 +9,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import clsx from 'clsx'
+import LogDetailModal from './LogDetailModal'
 
 /**
  * Configuration for update type badges to match the Status badges in the stock table.
@@ -60,6 +61,7 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState('All Types')
   const [currentPage, setCurrentPage] = useState(0)
+  const [selectedLog, setSelectedLog] = useState(null)
 
   const PAGE_SIZE = 8
 
@@ -153,7 +155,11 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
           className="divide-y divide-gray-50 animate-table-fade"
         >
           {displayedLogs.map((log, idx) => (
-            <tr key={`${log.itemName}-${idx}`} className="hover:bg-gray-50/50 transition-colors">
+            <tr
+              key={`${log.itemName}-${idx}`}
+              className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+              onClick={() => setSelectedLog(log)}
+            >
               {/* Item Name + ID (Matches screenshot style) */}
               <td className="py-4">
                 <p className="text-sm font-semibold text-gray-900">
@@ -239,6 +245,13 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
           </div>
         )}
       </div>
+
+      {/* Log Detail Popup Modal */}
+      <LogDetailModal
+        isOpen={!!selectedLog}
+        onClose={() => setSelectedLog(null)}
+        log={selectedLog}
+      />
     </div>
   )
 }
