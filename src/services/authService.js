@@ -1,8 +1,8 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 export async function loginStaff({ email, password }) {
-  const response = await fetch(`${API_BASE_URL}/auth/staff/login`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/staff/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ export async function loginStaff({ email, password }) {
 export async function changeStaffPassword(payload) {
   const token = localStorage.getItem('token')
 
-  const response = await fetch(`${API_BASE_URL}/auth/staff/change-password`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/staff/change-password`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
