@@ -25,3 +25,8 @@ dist-ssr
 
 #doc files
 docs/
+
+### Local Configuration ###
+../.env
+.env
+.env.*
