@@ -179,7 +179,7 @@ const InventoryTable = () => {
         <table className="w-full border-separate border-spacing-y-4 text-center">
           <thead>
             <tr className="text-sm font-black text-gray-400 uppercase">
-              <th className="px-6 pb-2 text-left">Item Name</th>
+              <th className="px-6 pb-2 text-center">Item Name</th>
               <th className="px-6 pb-2 text-center">Unit</th>
               <th className="px-6 pb-2 text-left">
                 Stock Status (Current Qty)
