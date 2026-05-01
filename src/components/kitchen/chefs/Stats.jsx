@@ -8,20 +8,8 @@ const formatStatCardDetails = (apiData) => {
     {
       title: "Total Chefs",
       value: apiData.totalChefs || 0,
-      icon: <Users color="#E64919" size={40} />,
+      icon: <Users color="#E64919" size={28} />,
       iconBgColor: "bg-orange-50",
-    },
-    {
-      title: "Available Chefs",
-      value: apiData.availableChefs || 0,
-      icon: <Users color="#4F83FF" size={40} />,
-      iconBgColor: "bg-blue-50",
-    },
-    {
-      title: "Off-duty Chefs",
-      value: apiData.offDutyChefs || 0,
-      icon: <Users color="#4CAF50" size={40} />,
-      iconBgColor: "bg-green-50",
     },
     {
       title: "On-duty Chefs",
@@ -30,10 +18,16 @@ const formatStatCardDetails = (apiData) => {
       iconBgColor: "bg-purple-50",
     },
     {
-      title: "Total Meal Served",
-      value: apiData.totalMealServed || 0,
-      icon: <CookingPot color="#A855F7" size={40} />,
-      iconBgColor: "bg-purple-50",
+      title: "Off-duty Chefs",
+      value: apiData.offDutyChefs || 0,
+      icon: <Users color="#4CAF50" size={40} />,
+      iconBgColor: "bg-green-50",
+    },
+    {
+      title: "Available Chefs",
+      value: apiData.availableChefs || 0,
+      icon: <Users color="#4F83FF" size={40} />,
+      iconBgColor: "bg-blue-50",
     },
   ];
 };
