@@ -64,11 +64,12 @@ export default function OrdersPage() {
         setOrderToCancel(null);
         fetchOrders();
       } else {
-        alert('Failed to cancel order.');
+        const payload = await res.json().catch(() => ({}));
+        alert(payload?.message || payload?.error || 'Failed to cancel order.');
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred.');
+      alert(err?.message || 'An error occurred.');
     } finally {
       setIsCancelling(false);
     }

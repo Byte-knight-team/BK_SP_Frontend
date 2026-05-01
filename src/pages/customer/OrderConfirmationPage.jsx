@@ -10,6 +10,7 @@ import {
   Home,
   Mail,
   Package,
+  MapPin,
   Phone,
   ShoppingBag,
   Truck,
@@ -21,16 +22,35 @@ import ReviewModal from '../../components/customer/modal/ReviewModal';
 import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 
-const STATUS_FLOW = [
-  { key: 'PLACED', label: 'Order Placed', icon: BadgeCheck, description: 'Completed' },
-  { key: 'PREPARING', label: 'In the Kitchen', icon: ChefHat, description: 'At the kitchen' },
-  { key: 'READY', label: 'Out for Delivery', icon: Package, description: 'Delivered out' },
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'Uses for delivery' },
-  { key: 'SERVED', label: 'Delivered', icon: CheckCircle2, description: 'View delivery' },
+const BASE_STATUS_FLOW = [
+  { key: 'PLACED', label: 'Order Placed', icon: BadgeCheck, description: 'Order received' },
+  { key: 'PENDING', label: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
+  { key: 'PREPARING', label: 'Preparing', icon: ChefHat, description: 'At the kitchen' },
+  { key: 'COMPLETED', label: 'Order Prepared', icon: Package, description: 'Finished preparing' },
+];
+
+const DELIVERY_STATUS_FLOW = [
+  ...BASE_STATUS_FLOW,
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'On the way' },
+  { key: 'ARRIVED', label: 'Arrived', icon: MapPin, description: 'Reached location' },
+  { key: 'SERVED', label: 'Served', icon: CheckCircle2, description: 'Delivered' },
+];
+
+const PICKUP_STATUS_FLOW = [
+  ...BASE_STATUS_FLOW,
+  { key: 'SERVED', label: 'Served', icon: CheckCircle2, description: 'Ready for pickup' },
 ];
 
 function normalizeOrderType(orderType) {
   return String(orderType || '').toUpperCase();
+}
+
+function getStatusFlow(orderType) {
+  if (orderType === 'DELIVERY' || orderType === 'ONLINE_DELIVERY') {
+    return DELIVERY_STATUS_FLOW;
+  }
+
+  return PICKUP_STATUS_FLOW;
 }
 
 export default function OrderConfirmationPage() {
@@ -93,11 +113,15 @@ export default function OrderConfirmationPage() {
   const isReviewable = order?.orderStatus === 'SERVED' && !order?.isReviewed;
   const isCancellable = !isCancelled && ['PLACED', 'PENDING', 'ON_HOLD'].includes(order?.orderStatus);
 
+  const statusFlow = useMemo(() => getStatusFlow(orderType), [orderType]);
+
   const statusIndex = useMemo(() => {
     if (!order?.orderStatus) return 0;
-    const idx = STATUS_FLOW.findIndex((step) => step.key === order.orderStatus);
+    const normalizedStatus = String(order.orderStatus).toUpperCase();
+    const flowStatus = normalizedStatus === 'READY' ? 'COMPLETED' : normalizedStatus;
+    const idx = statusFlow.findIndex((step) => step.key === flowStatus);
     return idx === -1 ? 0 : idx;
-  }, [order?.orderStatus]);
+  }, [order?.orderStatus, statusFlow]);
 
   const estimatedStart = new Date(order?.createdAt || Date.now());
   estimatedStart.setMinutes(estimatedStart.getMinutes() + 20);
@@ -116,7 +140,12 @@ export default function OrderConfirmationPage() {
         setCancelModalOpen(false);
         setCancelReason('');
         setOrder((prev) => (prev ? { ...prev, orderStatus: 'CANCELLED' } : prev));
+      } else {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.message || payload?.error || 'Failed to cancel order.');
       }
+    } catch (err) {
+      setError(err.message || 'Failed to cancel order.');
     } finally {
       setIsCancelling(false);
     }
@@ -193,7 +222,7 @@ export default function OrderConfirmationPage() {
           <div className="relative">
             <div className="absolute left-6 right-6 top-6 h-1 bg-slate-100" />
             <div className="relative z-10 flex items-start justify-between">
-              {STATUS_FLOW.map((step, index) => {
+              {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
                 const isDone = index < statusIndex;
                 const isActive = index === statusIndex;
@@ -277,12 +306,28 @@ export default function OrderConfirmationPage() {
 
             {/* Delivery/Personal Details */}
             <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-              <h4 className="mb-3 font-bold text-slate-900">{isDelivery ? 'Delivery Address' : isQr ? 'Table and Details' : 'Customer Details'}</h4>
-              <p className="text-sm text-slate-600">
-                {isDelivery ? order.deliveryAddress : isQr ? `Table ${order.tableId}` : 'pick from branch'}
-              </p>
-              <p className="mt-2 text-xs text-slate-500">{order.contactName}</p>
-              <p className="mt-2 text-xs text-slate-500">{order.contactPhone}</p>
+              <h4 className="mb-3 font-bold text-slate-900">{isDelivery ? 'Delivery Details' : isQr ? 'Table Details' : 'Pickup Details'}</h4>
+              <div className="space-y-3 text-sm text-slate-600">
+                {isDelivery && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Address</p>
+                    <p className="mt-1">{order.deliveryAddress || '—'}</p>
+                  </div>
+                )}
+
+                {(isQr || isPickup) && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Table Number</p>
+                    <p className="mt-1 font-semibold text-slate-900">{order.tableNumber || order.tableId || '—'}</p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Customer</p>
+                  <p className="mt-1 text-slate-900">{order.contactName || '—'}</p>
+                  <p className="mt-1 text-slate-500">{order.contactPhone || '—'}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -308,8 +353,9 @@ export default function OrderConfirmationPage() {
             <div className="space-y-2">
               <button
                 type="button"
-                disabled
-                className="w-full rounded-[10px] bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-500 border border-slate-200"
+                disabled={!isReviewable}
+                onClick={() => setReviewModalOpen(true)}
+                className="w-full rounded-[10px] bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-500 border border-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 Review Order
               </button>
