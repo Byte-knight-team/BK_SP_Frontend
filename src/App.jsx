@@ -46,6 +46,8 @@ import SystemConfigPage from "./pages/superadmin/SystemConfigPage";
 import AuditLogsPage from "./pages/superadmin/AuditLogsPage";
 import RolesPage from "./pages/superadmin/RolesPage";
 import ComingSoonPage from "./pages/superadmin/ComingSoonPage";
+import CustomerListPage from "./pages/superadmin/CustomerListPage";
+import CustomerDetailsPage from "./pages/superadmin/CustomerDetailsPage";
 
 // Admin pages from other modules
 import AdminDashboardPage from "./pages/AdminDashboardPage";
@@ -158,6 +160,7 @@ export default function App() {
               Header={SuperAdminHeader}
             />
           </ProtectedRoute>
+
         }
       >
         <Route index element={<SuperAdminDashboardPage />} />
@@ -175,6 +178,9 @@ export default function App() {
         <Route path="branches/create" element={<CreateBranchPage />} />
         <Route path="branches/:id" element={<BranchDetailsPage />} />
         <Route path="branches/:id/edit" element={<EditBranchPage />} />
+
+        <Route path="customers" element={<CustomerListPage />} />
+        <Route path="customers/:id" element={<CustomerDetailsPage />} />
 
         <Route path="config" element={<SystemConfigPage />} />
         <Route path="audit" element={<AuditLogsPage />} />

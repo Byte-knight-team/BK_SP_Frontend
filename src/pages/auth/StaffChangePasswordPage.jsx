@@ -70,12 +70,9 @@ export default function ChangePasswordPage() {
   /*
     useAuth gives access to current logged-in user data and auth actions.
 
-    user:
-    - decoded JWT user data from AuthContext
-
-    setUser:
-    - updates user only in React memory
-
+    user- decoded JWT user data from AuthContext
+    setUser- updates user only in React memory
+    
     logout:
     - clears token and logs user out
   */
