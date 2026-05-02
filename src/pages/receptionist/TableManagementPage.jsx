@@ -117,19 +117,6 @@ const TableManagementPage = () => {
         ))}
       </div>
 
-      {/* Quick Legend */}
-      <div className="mt-12 flex items-center justify-center gap-6 border-t border-gray-200 pt-8">
-        <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-          <div className="h-3 w-3 rounded-full bg-green-500" /> Available
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-          <div className="h-3 w-3 rounded-full bg-red-500" /> Occupied
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-          <div className="h-3 w-3 rounded-full bg-blue-500" /> Reserved
-        </div>
-      </div>
-
       {/* The Action Modal */}
       <TableActionModal
         isOpen={isActionModalOpen}
