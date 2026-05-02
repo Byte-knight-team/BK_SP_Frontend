@@ -2,10 +2,10 @@
 
 // Import shared authenticated fetch helper.
 // authFetch automatically attaches Authorization: Bearer <token>.
-import { authFetch } from "../apiHelper";
+import { authFetch, API_BASE_URL } from "../apiHelper";
 
 // All RBAC endpoints use /api/admin.
-const ADMIN_API_BASE_URL = "http://localhost:8080/api/admin";
+const ADMIN_API_BASE_URL = `${API_BASE_URL}/api/admin`;
 
 /**
  * Handles backend responses safely.

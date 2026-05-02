@@ -16,9 +16,7 @@ export function AuthProvider({ children }) {
   const [hydrated, setHydrated] = useState(false);
 
   /*
-    Restore auth state from JWT only.
-
-    We no longer restore user details from localStorage.authUser.
+    Restore auth state from JWT only.No longer restore user details from localStorage.authUser.
     Only the JWT token is stored.
   */
   useEffect(() => {
@@ -41,9 +39,6 @@ export function AuthProvider({ children }) {
 
   /*
     Login stores only JWT token.
-
-    We can use login response temporarily in memory for passwordChanged,
-    but we do not save full user data to localStorage anymore.
   */
   const login = async (credentials) => {
     const data = await loginStaff(credentials);

@@ -1,6 +1,6 @@
-import { authFetch } from "../apiHelper";
+import { authFetch, API_BASE_URL } from "../apiHelper";
 
-const BASE_URL = "http://localhost:8080/api/admin/staff";
+const BASE_URL = `${API_BASE_URL}/api/admin/staff`;
 
 // Get all staff
 export const getAllStaffAPI = async () => {
