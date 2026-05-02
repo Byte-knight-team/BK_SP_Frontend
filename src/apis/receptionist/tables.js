@@ -39,3 +39,18 @@ export const clearTableAPI = async (tableId) => {
     return { data: null, error: error.message };
   }
 };
+
+// Create a new reservation
+export const createReservationAPI = async (reservationData) => {
+  try {
+    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables/reservations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(reservationData)
+    });
+    const result = await response.json();
+    return { data: result.data, error: result.message || null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
