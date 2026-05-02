@@ -26,3 +26,16 @@ export const occupyTableAPI = async (tableId, guestCount) => {
     return { data: null, error: error.message };
   }
 };
+
+// Clear an occupied table
+export const clearTableAPI = async (tableId) => {
+  try {
+    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables/${tableId}/clear`, {
+      method: "PUT"
+    });
+    const result = await response.json();
+    return { data: result.data, error: result.message || null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
