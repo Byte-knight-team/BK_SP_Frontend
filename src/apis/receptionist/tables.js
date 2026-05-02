@@ -67,3 +67,18 @@ export const checkInGuestAPI = async (tableId) => {
     return { data: null, error: error.message };
   }
 };
+
+// Cancel a reservation
+export const cancelReservationAPI = async (tableId, reason) => {
+  try {
+    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables/${tableId}/cancel-reservation`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason })
+    });
+    const result = await response.json();
+    return { data: result.data, error: result.message || null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
