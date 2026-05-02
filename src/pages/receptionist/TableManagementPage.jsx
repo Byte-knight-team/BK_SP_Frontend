@@ -9,6 +9,15 @@ const TableManagementPage = () => {
   const [isActionModalOpen, setIsActionModalOpen] = useState(false) // For Table Actions
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false) // For New Reservations
 
+  useEffect(() => {
+    setHeaderInfo({
+      title: 'Table Management',
+      description:
+        'Monitor live table status, manage guest seating, and handle reservations.',
+      Icon: LayoutGrid,
+    })
+  }, [])
+
   // --- MOCK DATA ---
   const [tables, setTables] = useState([
     {
@@ -72,14 +81,6 @@ const TableManagementPage = () => {
     <div className="min-h-screen bg-gray-50 p-6 lg:p-10">
       {/* Header Section */}
       <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900">
-            Table Management
-          </h1>
-          <p className="text-sm font-bold tracking-widest text-gray-500 uppercase">
-            Branch 01 • Live Floor Map
-          </p>
-        </div>
 
         {/* BOOK A TABLE BUTTON */}
         <button
@@ -93,17 +94,6 @@ const TableManagementPage = () => {
 
       {/* Search & Filter Bar */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row">
-        <div className="relative flex-1">
-          <Search
-            className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Search by table number..."
-            className="w-full rounded-2xl border-none bg-white py-4 pr-4 pl-12 font-bold text-gray-700 shadow-sm transition-all focus:ring-2 focus:ring-black"
-          />
-        </div>
         <button className="flex items-center gap-2 rounded-2xl bg-white px-6 py-4 font-black text-gray-600 shadow-sm hover:bg-gray-50">
           <Filter size={18} />
           ALL TABLES
