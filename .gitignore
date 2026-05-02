@@ -28,7 +28,8 @@ dist-ssr
 .env.local
 .env.*.local
 
-#doc files
-docs/
-
+# Test/build coverage
 coverage/
+
+# doc files
+docs/

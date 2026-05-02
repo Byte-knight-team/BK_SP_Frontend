@@ -37,10 +37,7 @@ import { getStaffByIdAPI } from "../../apis/staff/staff";
 export default function StaffDetailsPage() {
   /*
     Staff ID comes from the URL.
-
-    Example:
     /staff/staff/21
-    id = 21
   */
   const { id } = useParams();
 
@@ -49,7 +46,6 @@ export default function StaffDetailsPage() {
     Super Admin area or Admin area.
   */
   const location = useLocation();
-
   /*
     setHeaderInfo comes from MainLayout through Outlet context.
     It updates the shared page header.
@@ -58,7 +54,6 @@ export default function StaffDetailsPage() {
 
   /*
     This page is shared by SUPER_ADMIN and ADMIN.
-
     SUPER_ADMIN route:
     /staff/staff/:id
 
@@ -69,7 +64,6 @@ export default function StaffDetailsPage() {
 
   /*
     Back button path.
-
     If Admin opened this page, go back to:
     /admin/staff
 
@@ -107,7 +101,7 @@ export default function StaffDetailsPage() {
   /*
     Set page header when this page opens.
   */
-  useEffect(() => {
+  useEffect(() => { 
     setHeaderInfo({
       title: "Staff Details",
       description: "View staff account information and branch assignment.",

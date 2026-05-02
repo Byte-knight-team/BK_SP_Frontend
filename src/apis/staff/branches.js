@@ -1,6 +1,6 @@
-import { authFetch } from "../apiHelper";
+import { authFetch, API_BASE_URL } from "../apiHelper";
 
-const BASE_URL = "http://localhost:8080/api/admin/branches";
+const BASE_URL = `${API_BASE_URL}/api/admin/branches`;
 
 // helper to safely read JSON response
 const readJson = async (response) => {
