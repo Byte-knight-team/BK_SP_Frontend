@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Calendar, Clock, User, Phone, Users, CheckCircle } from 'lucide-react';
+import { X, Calendar, Clock, User, Phone, Users, CheckCircle, PlusCircle, Armchair } from 'lucide-react';
 
 const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
   const [formData, setFormData] = useState({
@@ -13,136 +13,104 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Saving Reservation:", formData);
-    // We will connect this to the Backend API later
-    onSave(formData);
-    onClose();
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-4xl bg-white p-8 shadow-2xl">
         
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 p-6 bg-gray-50">
-          <div>
-            <h2 className="text-xl font-black text-gray-800">New Table Reservation</h2>
-            <p className="text-xs font-bold text-gray-400 uppercase">Secure a spot for your guests</p>
+        {/* Header Section */}
+        <div className="mb-8 flex items-start justify-between">
+          <div className="rounded-2xl bg-orange-100 p-3 text-orange-600">
+            <PlusCircle size={24} />
           </div>
-          <button onClick={onClose} className="rounded-full bg-white p-2 text-gray-500 hover:bg-gray-100 shadow-sm">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <h3 className="mb-2 text-2xl font-bold text-gray-900">New Reservation</h3>
+        <p className="mb-8 text-sm text-gray-400 font-medium">Please fill in the details below to book a table.</p>
+
+        <form onSubmit={(e) => { e.preventDefault(); onSave(formData); onClose(); }} className="space-y-5">
+          <div className="grid grid-cols-2 gap-4">
             
-            {/* Customer Name */}
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-xs font-black uppercase text-gray-400">Customer Name</label>
-              <div className="relative">
-                <User className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="text" 
-                  required
-                  placeholder="Enter full name"
-                  className="w-full rounded-2xl border-2 border-gray-100 bg-gray-50 py-4 pr-4 pl-12 font-bold focus:border-black focus:bg-white focus:outline-none transition-all"
-                  value={formData.customerName}
-                  onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-                />
-              </div>
+            {/* Name */}
+            <div className="col-span-2">
+              <label className="mb-2 block text-xs font-bold text-gray-400 uppercase tracking-widest">Customer Name</label>
+              <input 
+                type="text" required
+                placeholder="Ex: John Doe"
+                className="w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+                value={formData.customerName}
+                onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+              />
             </div>
 
-            {/* Phone Number */}
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-xs font-black uppercase text-gray-400">Phone Number</label>
-              <div className="relative">
-                <Phone className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="tel" 
-                  required
-                  placeholder="+94 77 123 4567"
-                  className="w-full rounded-2xl border-2 border-gray-100 bg-gray-50 py-4 pr-4 pl-12 font-bold focus:border-black focus:bg-white focus:outline-none transition-all"
-                  value={formData.customerPhone}
-                  onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
-                />
-              </div>
+            {/* Phone */}
+            <div className="col-span-2">
+              <label className="mb-2 block text-xs font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
+              <input 
+                type="tel" required
+                placeholder="+94 77 123 4567"
+                className="w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+                value={formData.customerPhone}
+                onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
+              />
             </div>
 
-            {/* Date */}
-            <div>
-              <label className="mb-2 block text-xs font-black uppercase text-gray-400">Date</label>
-              <div className="relative">
-                <Calendar className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="date" 
-                  required
-                  className="w-full rounded-2xl border-2 border-gray-100 bg-gray-50 py-4 pr-4 pl-12 font-bold focus:border-black focus:bg-white focus:outline-none transition-all"
-                  value={formData.reservationDate}
-                  onChange={(e) => setFormData({...formData, reservationDate: e.target.value})}
-                />
-              </div>
+            {/* Date & Time */}
+            <div className="col-span-1">
+              <label className="mb-2 block text-xs font-bold text-gray-400 uppercase tracking-widest">Date</label>
+              <input 
+                type="date" required
+                className="w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
+                value={formData.reservationDate}
+                onChange={(e) => setFormData({...formData, reservationDate: e.target.value})}
+              />
             </div>
-
-            {/* Time */}
-            <div>
-              <label className="mb-2 block text-xs font-black uppercase text-gray-400">Time</label>
-              <div className="relative">
-                <Clock className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="time" 
-                  required
-                  className="w-full rounded-2xl border-2 border-gray-100 bg-gray-50 py-4 pr-4 pl-12 font-bold focus:border-black focus:bg-white focus:outline-none transition-all"
-                  value={formData.reservationTime}
-                  onChange={(e) => setFormData({...formData, reservationTime: e.target.value})}
-                />
-              </div>
+            <div className="col-span-1">
+              <label className="mb-2 block text-xs font-bold text-gray-400 uppercase tracking-widest">Time</label>
+              <input 
+                type="time" required
+                className="w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
+                value={formData.reservationTime}
+                onChange={(e) => setFormData({...formData, reservationTime: e.target.value})}
+              />
             </div>
 
             {/* Guest Count */}
-            <div>
-              <label className="mb-2 block text-xs font-black uppercase text-gray-400">Guests</label>
-              <div className="relative">
-                <Users className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="number" 
-                  min="1"
-                  required
-                  className="w-full rounded-2xl border-2 border-gray-100 bg-gray-50 py-4 pr-4 pl-12 font-bold focus:border-black focus:bg-white focus:outline-none transition-all"
-                  value={formData.guestCount}
-                  onChange={(e) => setFormData({...formData, guestCount: e.target.value})}
-                />
-              </div>
+            <div className="col-span-1">
+              <label className="mb-2 block text-xs font-bold text-gray-400 uppercase tracking-widest">Guests</label>
+              <input 
+                type="number" min="1" required
+                className="w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
+                value={formData.guestCount}
+                onChange={(e) => setFormData({...formData, guestCount: e.target.value})}
+              />
             </div>
 
             {/* Table Selection */}
-            <div>
-              <label className="mb-2 block text-xs font-black uppercase text-gray-400">Assign Table</label>
+            <div className="col-span-1">
+              <label className="mb-2 block text-xs font-bold text-gray-400 uppercase tracking-widest">Assign Table</label>
               <select 
                 required
-                className="w-full rounded-2xl border-2 border-gray-100 bg-gray-50 py-4 px-4 font-bold focus:border-black focus:bg-white focus:outline-none transition-all appearance-none"
+                className="w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
                 value={formData.tableId}
                 onChange={(e) => setFormData({...formData, tableId: e.target.value})}
               >
-                <option value="">Select a Table</option>
+                <option value="">Select Table</option>
                 {tables.map(t => (
-                  <option key={t.id} value={t.id}>
-                    Table {t.tableNumber} ({t.capacity} Seats)
-                  </option>
+                  <option key={t.id} value={t.id}>Table {t.tableNumber} ({t.capacity} Seats)</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Submit Button */}
           <button 
             type="submit"
-            className="mt-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-black py-5 font-black text-white shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all"
           >
-            <CheckCircle size={20} />
-            CONFIRM RESERVATION
+            <CheckCircle size={18} />
+            CONFIRM BOOKING
           </button>
         </form>
       </div>

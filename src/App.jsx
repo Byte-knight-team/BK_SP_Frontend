@@ -94,6 +94,7 @@ import ApprovalsPage from './pages/kitchen/ApprovalsPage'
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
+import OrderManagementPage from './pages/receptionist/OrderManagementPage'
 
 
 function isTokenExpired(token) {
@@ -372,6 +373,7 @@ export default function App() {
         >
           <Route index element={<ReceptionistDashboardPage />} />
           <Route path="tables" element={<ReceptionistTablePage />} />
+          <Route path="orders" element={<OrderManagementPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/receptionist" replace />} />
