@@ -21,20 +21,20 @@ const TableCard = ({ table, onClick }) => {
   return (
     <div 
       onClick={() => onClick(table)}
-      className={`relative cursor-pointer overflow-hidden rounded-3xl border-2 ${config.borderColor} ${config.bgColor} p-6 transition-all hover:shadow-md active:scale-95`}
+      className={`cursor-pointer rounded-3xl border-2 ${config.borderColor} ${config.bgColor} p-4 transition-all hover:shadow-md`}
     >
       {/* Top Row */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
             Table ID: #{table.id}
           </span>
-          <h3 className={`text-3xl font-black ${config.textColor}`}>
+          <h3 className={`text-2xl font-black ${config.textColor}`}>
             Table {table.tableNumber}
           </h3>
         </div>
         
-        {/* FIXED: Now shows Current / Capacity (e.g. 2 / 4) */}
+        {/* Current Guest Count / Capacity */}
         <div className="flex items-center gap-2 rounded-xl bg-white/80 px-3 py-2 text-sm font-black text-gray-700 shadow-sm">
           <Armchair size={18} />
           <span>{table.currentGuestCount} / {table.capacity}</span>
@@ -51,6 +51,12 @@ const TableCard = ({ table, onClick }) => {
 
       {/* Info Section */}
       <div className="space-y-4">
+        {table.status === 'AVAILABLE' && (
+          <div className="text-sm font-bold text-green-600 italic">
+            Ready to Seat
+          </div>
+        )}
+
         {table.status === 'OCCUPIED' && (
           <>
             <div className="flex items-center gap-3 text-base font-bold text-gray-700">

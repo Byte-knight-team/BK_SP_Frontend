@@ -27,13 +27,13 @@ const TableManagementPage = () => {
   ])
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 p-6 lg:p-10">
+    <div className="flex min-h-screen flex-col bg-gray-50 p-4">
       
       {/* Book a Table Button */}
-      <div className="mb-8 flex justify-end">
+      <div className="mb-4 flex justify-end">
         <button
           onClick={() => setIsReservationModalOpen(true)}
-          className="flex items-center gap-2 rounded-2xl bg-orange-600 px-8 py-4 font-black text-white shadow-xl hover:bg-orange-700"
+          className="flex items-center gap-2 rounded-2xl bg-orange-600 px-8 py-4 font-bold text-white shadow-xl hover:bg-orange-700"
         >
           <PlusCircle size={20} />
           BOOK A TABLE
