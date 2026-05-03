@@ -8,9 +8,12 @@ import FleetTrackerBanner from '../../components/manager/dashboard/FleetTrackerB
 import { Plus, UserCheck, Eye } from 'lucide-react'
 
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 function DashHeader() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const displayName = user?.fullName || user?.username || 'Manager'
   const now = new Date().toLocaleString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -21,7 +24,7 @@ function DashHeader() {
     <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">
-          Good Morning, Manager
+          Welcome! {displayName}
         </h1>
         <p className="mt-1 text-sm text-gray-400">{now}</p>
       </div>
