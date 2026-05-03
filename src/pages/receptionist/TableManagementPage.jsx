@@ -89,7 +89,7 @@ const TableManagementPage = () => {
       <ReservationModal
         isOpen={isReservationModalOpen}
         onClose={() => setIsReservationModalOpen(false)}
-        tables={tables}
+        tables={tables} // passing the tables to the modal to be displayed in the dropdown
         onSave={() => fetchTables(false)} // Background refresh after booking!
       />
     </div>
