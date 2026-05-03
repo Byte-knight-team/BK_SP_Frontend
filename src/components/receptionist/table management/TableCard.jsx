@@ -1,50 +1,77 @@
-import React from 'react';
-import { Users, Armchair, Clock, CookingPot } from 'lucide-react';
+import React from 'react'
+import { Users, Armchair, Clock, CookingPot } from 'lucide-react'
 
 const TableCard = ({ table, onClick }) => {
-  
   const getStatusConfig = (status) => {
     switch (status?.toUpperCase()) {
       case 'AVAILABLE':
-        return { bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-700', badgeColor: 'bg-green-500', label: 'Available' };
+        return {
+          bgColor: 'bg-green-50',
+          borderColor: 'border-green-200',
+          textColor: 'text-green-700',
+          badgeColor: 'bg-green-500',
+          label: 'Available',
+        }
       case 'OCCUPIED':
-        return { bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-700', badgeColor: 'bg-red-500', label: 'Occupied' };
+        return {
+          bgColor: 'bg-red-50',
+          borderColor: 'border-red-200',
+          textColor: 'text-red-700',
+          badgeColor: 'bg-red-500',
+          label: 'Occupied',
+        }
       case 'RESERVED':
-        return { bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-700', badgeColor: 'bg-blue-500', label: 'Reserved' };
+        return {
+          bgColor: 'bg-blue-50',
+          borderColor: 'border-blue-200',
+          textColor: 'text-blue-700',
+          badgeColor: 'bg-blue-500',
+          label: 'Reserved',
+        }
       default:
-        return { bgColor: 'bg-gray-50', borderColor: 'border-gray-200', textColor: 'text-gray-700', badgeColor: 'bg-gray-500', label: 'Unknown' };
+        return {
+          bgColor: 'bg-gray-50',
+          borderColor: 'border-gray-200',
+          textColor: 'text-gray-700',
+          badgeColor: 'bg-gray-500',
+          label: 'Unknown',
+        }
     }
-  };
+  }
 
-  const config = getStatusConfig(table.status);
+  const config = getStatusConfig(table.status)
 
   return (
-    <div 
+    <div
       onClick={() => onClick(table)}
       className={`cursor-pointer rounded-3xl border-2 ${config.borderColor} ${config.bgColor} p-4 transition-all hover:shadow-md`}
     >
       {/* Top Row */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <span className="text-[10px] font-black tracking-widest text-gray-400 uppercase">
             Table ID: #{table.id}
           </span>
           <h3 className={`text-2xl font-black ${config.textColor}`}>
             Table {table.tableNumber}
           </h3>
         </div>
-        
+
         {/* Current Guest Count / Capacity */}
         <div className="flex items-center gap-2 rounded-xl bg-white/80 px-3 py-2 text-sm font-black text-gray-700 shadow-sm">
           <Armchair size={18} />
-          <span>{table.currentGuestCount} / {table.capacity}</span>
+          <span>
+            {table.currentGuestCount} / {table.capacity}
+          </span>
         </div>
       </div>
 
       {/* Status Badge */}
       <div className="my-6 flex items-center gap-2">
         <div className={`h-3 w-3 rounded-full ${config.badgeColor}`} />
-        <span className={`text-base font-black uppercase tracking-tight ${config.textColor}`}>
+        <span
+          className={`text-base font-black tracking-tight uppercase ${config.textColor}`}
+        >
           {config.label}
         </span>
       </div>
@@ -89,7 +116,7 @@ const TableCard = ({ table, onClick }) => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TableCard;
+export default TableCard

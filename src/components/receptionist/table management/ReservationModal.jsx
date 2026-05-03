@@ -1,7 +1,10 @@
 import { useState } from 'react'
-import { X, CheckCircle } from 'lucide-react'
+import { X, CheckCircle, Loader2 } from 'lucide-react'
+import { createReservationAPI } from '../../../apis/receptionist/tables'
+import { toast } from 'react-toastify'
 
 const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
+  // State to hold all form inputs (and initialize the form data)
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
@@ -11,6 +14,43 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
     tableId: '',
   })
 
+  // State to handle the loading animation during the API call
+  const [loading, setLoading] = useState(false)
+
+  // This function runs when the "Confirm Booking" button is clicked
+  const handleSubmit = async (e) => {
+    e.preventDefault() // Prevent the page from refreshing
+    setLoading(true) //show the spinner in the button when api is processing
+
+    /**
+     * 1. Format Date & Time for Backend
+     * Backend expects LocalDateTime: "YYYY-MM-DDTHH:mm:ss"
+     * We combine the date ("2023-10-12") + "T" + time ("14:30") + ":00"
+     */
+    const formattedDateTime = `${formData.reservationDate}T${formData.reservationTime}:00`
+
+    // Prepare the data object to send to the backend
+    const payload = {
+      customerName: formData.customerName,
+      customerPhone: formData.customerPhone,
+      reservationTime: formattedDateTime,
+      guestCount: parseInt(formData.guestCount),
+      tableId: parseInt(formData.tableId),
+    }
+
+    // Call the API and wait for the response
+    const { data, error } = await createReservationAPI(payload)
+
+    if (error) {
+      toast.error(error)
+    } else {
+      toast.success('Reservation created successfully!')
+      onSave() // This tells the parent page to refresh the table list
+      onClose() // Close the modal
+    }
+    setLoading(false) // Stop the loading spinner
+  }
+
   if (!isOpen) return null
 
   return (
@@ -18,7 +58,7 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
       <div className="w-full max-w-lg rounded-4xl bg-white p-8 shadow-2xl">
         {/* Header Section */}
         <div className="mb-8 flex items-start justify-between">
-          {/* Left Side: Title & Description */}
+          {/* Title & Description */}
           <div className="flex-1">
             <h3 className="text-2xl font-bold text-gray-900">
               New Reservation
@@ -28,7 +68,7 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
             </p>
           </div>
 
-          {/* Right Side: Close Button */}
+          {/* Close Button */}
           <button
             onClick={onClose}
             className="ml-4 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
@@ -37,15 +77,10 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
           </button>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            onSave(formData)
-            onClose()
-          }}
-        >
+        {/* The Form */}
+        <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
-            {/* Name */}
+            {/* Customer Name Input */}
             <div className="col-span-2">
               <label className="mb-2 block text-xs font-bold tracking-widest text-gray-400 uppercase">
                 Customer Name
@@ -53,7 +88,7 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
               <input
                 type="text"
                 required
-                placeholder="Ex: John Doe"
+                placeholder="Ex: Kamal Perera"
                 className="w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
                 value={formData.customerName}
                 onChange={(e) =>
@@ -62,7 +97,7 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
               />
             </div>
 
-            {/* Phone */}
+            {/* Phone Number Input */}
             <div className="col-span-2">
               <label className="mb-2 block text-xs font-bold tracking-widest text-gray-400 uppercase">
                 Phone Number
@@ -79,7 +114,7 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
               />
             </div>
 
-            {/* Date & Time */}
+            {/* Date Picker */}
             <div className="col-span-1">
               <label className="mb-2 block text-xs font-bold tracking-widest text-gray-400 uppercase">
                 Date
@@ -94,6 +129,8 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
                 }
               />
             </div>
+
+            {/* Time Picker */}
             <div className="col-span-1">
               <label className="mb-2 block text-xs font-bold tracking-widest text-gray-400 uppercase">
                 Time
@@ -126,7 +163,7 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
               />
             </div>
 
-            {/* Table Selection */}
+            {/* Table Selection Dropdown */}
             <div className="col-span-1">
               <label className="mb-2 block text-xs font-bold tracking-widest text-gray-400 uppercase">
                 Assign Table
@@ -149,12 +186,18 @@ const ReservationModal = ({ isOpen, onClose, tables, onSave }) => {
             </div>
           </div>
 
+          {/* Submit Button with Loading State */}
           <button
             type="submit"
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600"
+            disabled={loading} // Disable button while loading
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 disabled:opacity-70"
           >
-            <CheckCircle size={18} />
-            CONFIRM BOOKING
+            {loading ? (
+              <Loader2 size={18} className="animate-spin" /> // Spinner shows if loading
+            ) : (
+              <CheckCircle size={18} /> // Check icon shows if not loading
+            )}
+            {loading ? 'PROCESSING...' : 'CONFIRM BOOKING'}
           </button>
         </form>
       </div>
