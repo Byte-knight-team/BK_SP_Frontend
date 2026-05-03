@@ -78,7 +78,9 @@ export default function OrdersPage() {
   const getStatusBadge = (status) => {
     const s = status || 'UNKNOWN';
     if (s === 'CANCELLED' || s === 'REJECTED') return { label: 'Cancelled', color: 'text-red-600 bg-red-50 border-red-100', icon: XCircle };
-    if (s === 'SERVED' || s === 'COMPLETED') return { label: 'Completed', color: 'text-green-600 bg-green-50 border-green-100', icon: CheckCircle };
+    if (s === 'COMPLETED') return { label: 'Prepared', color: 'text-green-600 bg-green-50 border-green-100', icon: CheckCircle };
+    if (s === 'SERVED') return { label: 'Served', color: 'text-green-600 bg-green-50 border-green-100', icon: CheckCircle };
+    if (s === 'APPROVED') return { label: 'Confirmed', color: 'text-orange-600 bg-orange-50 border-orange-100', icon: Clock };
     if (s === 'OUT_FOR_DELIVERY') return { label: 'Out for Delivery', color: 'text-orange-600 bg-orange-50 border-orange-100', icon: Truck };
     // Default fallback replacing underscores with spaces (e.g., ON_HOLD -> ON HOLD)
     return { label: s.replace(/_/g, ' '), color: 'text-orange-600 bg-orange-50 border-orange-100', icon: Clock };
@@ -119,7 +121,7 @@ export default function OrdersPage() {
                 <StatusIcon size={12} /> {config.label}
               </span>
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Order #{order.orderNumber || order.orderId}</h3>
+            <h3 className="text-lg font-bold text-slate-900">Order {order.orderNumber || order.orderId}</h3>
             <p className="text-sm text-slate-500 mt-0.5">{new Date(order.createdAt).toLocaleString()}</p>
           </div>
 
