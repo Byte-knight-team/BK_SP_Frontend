@@ -15,6 +15,9 @@ import {
   ShoppingBag,
   Truck,
   XCircle,
+  Soup,
+  HandCoins,
+  Handshake
 } from 'lucide-react';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
@@ -23,22 +26,22 @@ import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 
 const BASE_STATUS_FLOW = [
-  { key: 'PLACED', label: 'Order Placed', icon: BadgeCheck, description: 'Order received' },
+  { key: 'PLACED', label: 'Order Placed', icon: HandCoins, description: 'Order received' },
   { key: 'PENDING', label: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
   { key: 'PREPARING', label: 'Preparing', icon: ChefHat, description: 'At the kitchen' },
-  { key: 'COMPLETED', label: 'Order Prepared', icon: Package, description: 'Finished preparing' },
+  { key: 'COMPLETED', label: 'Order Prepared', icon: Soup, description: 'Finished preparing' },
 ];
 
 const DELIVERY_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
   { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'On the way' },
   { key: 'ARRIVED', label: 'Arrived', icon: MapPin, description: 'Reached location' },
-  { key: 'SERVED', label: 'Served', icon: CheckCircle2, description: 'Delivered' },
+  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Delivered' },
 ];
 
 const PICKUP_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
-  { key: 'SERVED', label: 'Served', icon: CheckCircle2, description: 'Ready for pickup' },
+  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Ready for pickup' },
 ];
 
 function normalizeOrderType(orderType) {
@@ -230,14 +233,14 @@ export default function OrderConfirmationPage() {
                 return (
                   <div key={step.key} className="flex w-1/5 flex-col items-center text-center">
                     <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full transition ${
                         isDone ? 'bg-orange-500 text-white shadow-md' : isActive ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' : 'bg-white border border-slate-200 text-slate-300'
                       }`}
                     >
-                      <StepIcon size={20} strokeWidth={2.5} />
+                      <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                     </div>
-                    <p className="mt-3 text-xs font-bold text-slate-900">{step.label}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{step.description}</p>
+                    <p className="mt-2 text-[10px] sm:mt-3 sm:text-xs font-bold text-slate-900 leading-tight">{step.label}</p>
+                    <p className="mt-0.5 text-xs text-slate-500 hidden sm:block">{step.description}</p>
                   </div>
                 );
               })}
@@ -315,7 +318,7 @@ export default function OrderConfirmationPage() {
                   </div>
                 )}
 
-                {(isQr || isPickup) && (
+                {(isQr) && (
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Table Number</p>
                     <p className="mt-1 font-semibold text-slate-900">{order.tableNumber || order.tableId || '—'}</p>
@@ -324,7 +327,7 @@ export default function OrderConfirmationPage() {
 
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Customer</p>
-                  <p className="mt-1 text-slate-900">{order.contactName || '—'}</p>
+                  <p className="mt-1 text-slate-600">{order.contactName || '—'}</p>
                   <p className="mt-1 text-slate-500">{order.contactPhone || '—'}</p>
                 </div>
               </div>
