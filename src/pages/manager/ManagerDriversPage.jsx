@@ -5,6 +5,7 @@ import DriversHeader from '../../components/manager/drivers/DriversHeader'
 import DriversSummaryCards from '../../components/manager/drivers/DriversSummaryCards'
 import DispatchHub from '../../components/manager/drivers/DispatchHub'
 import DriverStatusBoard from '../../components/manager/drivers/DriverStatusBoard'
+import DeliveryHistoryTable from '../../components/manager/drivers/DeliveryHistoryTable'
 import AssignDriverModal from '../../components/manager/drivers/AssignDriverModal'
 
 function LoadingSkeleton() {
@@ -95,6 +96,7 @@ export default function ManagerDriversPage() {
         />
       </div>
       <DriverStatusBoard drivers={data.drivers} />
+      <DeliveryHistoryTable history={data.deliveryHistory || []} />
 
       {/* Assign Driver Modal */}
       <AssignDriverModal
