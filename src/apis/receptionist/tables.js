@@ -1,84 +1,101 @@
-import { authFetch } from "../apiHelper";
+import { authFetch } from '../apiHelper'
 
 // Fetch all tables for the branch
 export const getBranchTablesAPI = async () => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables`);
-    const result = await response.json();
-    return { data: result.data, error: null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/receptionist/tables`,
+    )
+    const result = await response.json()
+    return { data: result.data, error: null }
   } catch (error) {
-    console.error("Error fetching branch tables:", error);
-    return { data: null, error: error };
+    console.error('Error fetching branch tables:', error)
+    return { data: null, error: error }
   }
-};
+}
 
 // Mark a table as occupied
 export const occupyTableAPI = async (tableId, guestCount) => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables/${tableId}/occupy`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ guestCount })
-    });
-    const result = await response.json();
-    return { data: result.data, error: result.message || null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/receptionist/tables/${tableId}/occupy`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guestCount }),
+      },
+    )
+    const result = await response.json()
+    return { data: result.data, error: result.message || null }
   } catch (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: error.message }
   }
-};
+}
 
 // Clear an occupied table
 export const clearTableAPI = async (tableId) => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables/${tableId}/clear`, {
-      method: "PUT"
-    });
-    const result = await response.json();
-    return { data: result.data, error: result.message || null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/receptionist/tables/${tableId}/clear`,
+      {
+        method: 'PUT',
+      },
+    )
+    const result = await response.json()
+    return { data: result.data, error: result.message || null }
   } catch (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: error.message }
   }
-};
+}
 
 // Create a new reservation
 export const createReservationAPI = async (reservationData) => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables/reservations`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(reservationData)
-    });
-    const result = await response.json();
-    return { data: result.data, error: result.message || null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/receptionist/tables/reservations`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reservationData),
+      },
+    )
+    const result = await response.json()
+    return { data: result.data, error: result.message || null }
   } catch (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: error.message }
   }
-};
+}
 
 // Check-in a reserved guest
 export const checkInGuestAPI = async (tableId) => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables/${tableId}/check-in`, {
-      method: "PUT"
-    });
-    const result = await response.json();
-    return { data: result.data, error: result.message || null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/receptionist/tables/${tableId}/check-in`,
+      {
+        method: 'PUT',
+      },
+    )
+    const result = await response.json()
+    return { data: result.data, error: result.message || null }
   } catch (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: error.message }
   }
-};
+}
 
 // Cancel a reservation
 export const cancelReservationAPI = async (tableId, reason) => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/receptionist/tables/${tableId}/cancel-reservation`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason })
-    });
-    const result = await response.json();
-    return { data: result.data, error: result.message || null };
+    const response = await authFetch(
+      `http://localhost:8080/api/v1/receptionist/tables/${tableId}/cancel-reservation`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      },
+    )
+    const result = await response.json()
+    return { data: result.data, error: result.message || null }
   } catch (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: error.message }
   }
-};
+}
