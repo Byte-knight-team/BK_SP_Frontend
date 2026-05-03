@@ -9,7 +9,7 @@ import {
 import { toast } from 'react-toastify'
 import ChefActionModal from './ChefActionModal'
 
-const ChefDetailsTable = () => {
+const ChefDetailsTable = ({ onActionSuccess }) => {
   const [chefs, setChefs] = useState([])
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -38,7 +38,7 @@ const ChefDetailsTable = () => {
     if (showLoading) setLoading(false)
   }
 
-  // 2. Initial load
+  // Initial load
   useEffect(() => {
     fetchChefs(true)
   }, [])
@@ -73,7 +73,7 @@ const ChefDetailsTable = () => {
           </tr>
         </thead>
 
-        {/* --- Table Body --- */}
+        {/* Table Body */}
         <tbody className="divide-y divide-gray-50">
           {chefs.map((chef, index) => (
             <tr key={index} className="transition-colors hover:bg-gray-200 border-gray-300">
@@ -200,7 +200,7 @@ const ChefDetailsTable = () => {
         chefName={selectedChef?.fullName}
         currentStatus={selectedChef?.workStatus}
         onConfirm={async (data) => {
-          let result
+          let result;
 
           if (modalType === 'CHECK_IN') {
             result = await checkInChefAPI(selectedChef.staffId)
@@ -213,7 +213,10 @@ const ChefDetailsTable = () => {
             toast.error(result.error)
           } else {
             toast.success(result.data.message || 'Success')
-            fetchChefs(false) // Background fetch!
+            fetchChefs(false) // Background fetch! (table will update)
+            if (onActionSuccess) {
+            onActionSuccess();
+          }
           }
           setIsModalOpen(false)
         }}
