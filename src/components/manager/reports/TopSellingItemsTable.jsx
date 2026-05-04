@@ -23,8 +23,12 @@ export default function TopSellingItemsTable({ data }) {
             <Award className="h-5 w-5 text-amber-600" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Top Selling Items</h3>
-            <p className="text-xs font-medium text-gray-400">Highest performing menu items</p>
+            <h3 className="text-lg font-bold text-gray-900">
+              Top Selling Items
+            </h3>
+            <p className="text-xs font-medium text-gray-400">
+              Highest performing menu items
+            </p>
           </div>
         </div>
       </div>
@@ -32,21 +36,26 @@ export default function TopSellingItemsTable({ data }) {
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+            <tr className="border-b border-gray-50 text-[11px] font-bold tracking-wider text-gray-400 uppercase">
               <th className="pb-3 pl-2">Item</th>
               <th className="pb-3 text-center">Qty</th>
-              <th className="pb-3 text-right pr-2">Revenue</th>
+              <th className="pr-2 pb-3 text-right">Revenue</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {data.map((item, idx) => (
-              <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
+              <tr
+                key={idx}
+                className="group transition-colors hover:bg-gray-50/50"
+              >
                 <td className="py-4 pl-2">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-500 group-hover:bg-brand group-hover:text-white transition-colors">
+                    <span className="group-hover:bg-brand flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-500 transition-colors group-hover:text-white">
                       {idx + 1}
                     </span>
-                    <span className="text-sm font-semibold text-gray-700">{item.itemName}</span>
+                    <span className="text-sm font-semibold text-gray-700">
+                      {item.itemName}
+                    </span>
                   </div>
                 </td>
                 <td className="py-4 text-center">
@@ -54,7 +63,7 @@ export default function TopSellingItemsTable({ data }) {
                     {item.quantity}
                   </span>
                 </td>
-                <td className="py-4 text-right pr-2">
+                <td className="py-4 pr-2 text-right">
                   <span className="text-sm font-bold text-gray-900">
                     {formatCurrency(item.revenue)}
                   </span>
@@ -63,12 +72,6 @@ export default function TopSellingItemsTable({ data }) {
             ))}
           </tbody>
         </table>
-      </div>
-
-      <div className="mt-6 flex items-center justify-center border-t border-gray-50 pt-4">
-        <button className="text-xs font-bold text-brand hover:underline">
-          View All Performance
-        </button>
       </div>
     </div>
   )
