@@ -1,7 +1,12 @@
 import { customerAuthFetch } from '../apiHelper';
 
-export const listCustomerOrders = async ({ active, type }) => {
-  const params = new URLSearchParams({ active: String(active) });
+/**
+ * Fetch paginated customer orders from backend
+ * { active, type, page, size }
+ * { data: { orders: [...], page, size, totalElements, totalPages, last } }
+ */
+export const listCustomerOrders = async ({ active, type, page = 0, size = 10 }) => {
+  const params = new URLSearchParams({ active: String(active), page: String(page), size: String(size) });
 
   if (type && type !== 'ALL') {
     params.set('type', type);
