@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, ChevronDown, XCircle, CreditCard, ExternalLink, Loader2, Star, Utensils } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
@@ -12,13 +12,22 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function OrdersPage() {
   const navigate = useNavigate();
-  // FILTER & TAB STATE
-  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'previous'
-  const [orderTypeFilter, setOrderTypeFilter] = useState('ALL'); // 'ALL', 'QR', 'ONLINE_DELIVERY', 'ONLINE_PICKUP'
-  // Tracks which specific order card is currently dropped down/expanded
-  const [expandedOrder, setExpandedOrder] = useState(null);
+  
+  // Pagination state: current page, has more pages, loading flags
+  const PAGE_SIZE = 10;
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [orders, setOrders] = useState([]);
+  
+  // Filter & UI state
+  const [activeTab, setActiveTab] = useState('active');
+  const [orderTypeFilter, setOrderTypeFilter] = useState('ALL');
+  const [expandedOrder, setExpandedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Ref to sentinel element for infinite scroll detection
+  const observerTargetRef = useRef(null);
 
   // Review Modal State
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -29,27 +38,110 @@ export default function OrdersPage() {
   const [orderToCancel, setOrderToCancel] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
-  // API INTEGRATION
-  const fetchOrders = useCallback(async () => {
-    setLoading(true);
+
+  const fetchOrdersPage = useCallback(async (nextPage, mode = 'replace') => {
+    // Fetch single page of orders
+    // mode: 'replace' = new filter/initial load, 'append' = infinite scroll
+    
+    if (mode === 'replace') {
+      setLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
     try {
-      const res = await listCustomerOrders({ active: activeTab === 'active', type: orderTypeFilter });
-      const json = await res.json();
-      if (res.ok && json.data) {
-        setOrders(json.data);
+      const res = await listCustomerOrders({
+        active: activeTab === 'active',
+        type: orderTypeFilter,
+        page: nextPage,
+        size: PAGE_SIZE,
+      });
+      
+      const json = await res.json().catch(() => ({}));
+      const pageData = json?.data || {};
+      const nextOrders = Array.isArray(pageData.orders) ? pageData.orders : Array.isArray(json?.data) ? json.data : [];
+
+      if (res.ok) {
+        setOrders((currentOrders) => {
+          if (mode === 'append') {
+            // Append without duplicates
+            const knownOrderIds = new Set(currentOrders.map((order) => order.orderId));
+            const merged = [...currentOrders];
+            nextOrders.forEach((order) => {
+              if (!knownOrderIds.has(order.orderId)) {
+                merged.push(order);
+              }
+            });
+            return merged;
+          }
+          return nextOrders;
+        });
+
+        // Stop if this is the last page
+        const pageLast = typeof pageData.last === 'boolean' ? pageData.last : nextOrders.length < PAGE_SIZE;
+        setHasMore(nextOrders.length > 0 && !pageLast);
       } else {
-        setOrders([]);
+        if (mode === 'replace') {
+          setOrders([]);
+        }
+        setHasMore(false);
       }
     } catch (err) {
       console.error('Failed to fetch orders:', err);
+      if (mode === 'replace') {
+        setOrders([]);
+      }
+      setHasMore(false);
     } finally {
-      setLoading(false);
+      if (mode === 'replace') {
+        setLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
     }
   }, [activeTab, orderTypeFilter]);
 
+  const refreshOrders = useCallback(() => {
+    // Reset pagination and reload first page (called on filter/tab change)
+    setOrders([]);
+    setExpandedOrder(null);
+    setPage(0);
+    setHasMore(true);
+    fetchOrdersPage(0, 'replace');
+  }, [fetchOrdersPage]);
+
+  // Load first page on mount
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+    refreshOrders();
+  }, [refreshOrders]);
+
+  // When page changes, fetch and append next page
+  useEffect(() => {
+    if (page === 0) return;
+    if (!hasMore) return;
+    fetchOrdersPage(page, 'append');
+  }, [page, hasMore, fetchOrdersPage]);
+
+  // Infinite scroll: IntersectionObserver on sentinel element
+  // When user scrolls near bottom, increment page to fetch next batch
+  useEffect(() => {
+    const target = observerTargetRef.current;
+    if (!target || loading || isLoadingMore || !hasMore) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setPage((currentPage) => currentPage + 1);
+        }
+      },
+      { root: null, rootMargin: '200px 0px', threshold: 0.1 }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [loading, isLoadingMore, hasMore]);
 
   const handleCancelOrder = async () => {
     if (!cancelReason.trim()) return;
@@ -62,7 +154,7 @@ export default function OrdersPage() {
         setCancelModalOpen(false);
         setCancelReason('');
         setOrderToCancel(null);
-        fetchOrders();
+        refreshOrders();
       } else {
         const payload = await res.json().catch(() => ({}));
         alert(payload?.message || payload?.error || 'Failed to cancel order.');
@@ -318,9 +410,39 @@ export default function OrdersPage() {
           onSuccess={() => {
             setReviewModalOpen(false);
             setOrderToReview(null);
-            fetchOrders(); 
+            refreshOrders();
           }}
         />
+      )}
+
+      {/* ========================================
+          INFINITE SCROLL SENTINEL ELEMENT
+          ========================================
+          This invisible element is placed at the bottom of the orders list.
+          The IntersectionObserver watches this element and triggers
+          the next page fetch when it becomes visible in the viewport.
+          
+          Only render if we have orders (no point observing empty list).
+      */}
+      {orders.length > 0 && (
+        <div ref={observerTargetRef} className="h-1 w-full" aria-hidden="true" />
+      )}
+
+      {/* LOADING MORE INDICATOR
+          Shows while fetching the next page.
+          Displays at the bottom with a spinner to indicate more orders are loading.
+      */}
+      {isLoadingMore && (
+        <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500">
+          <Loader2 size={16} className="animate-spin text-orange-500" />
+          Loading more orders...
+        </div>
+      )}
+
+      {orders.length > 0 && !hasMore && (
+        <div className="mt-6 text-center text-xs font-bold tracking-[0.3em] text-slate-400">
+          END OF LIST
+        </div>
       )}
     </CustomerPageShell>
   );
