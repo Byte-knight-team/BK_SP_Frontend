@@ -57,7 +57,7 @@ const ActionConfirmationModal = ({ isOpen, onClose, onConfirm, type, mealName, c
           <button 
             onClick={handleConfirm} 
             disabled={loading}
-            className={`flex-1 rounded-2xl bg-${themeColor}-500 py-4 text-sm font-bold text-white shadow-lg shadow-${themeColor}-200 hover:bg-${themeColor}-600 transition-all disabled:bg-gray-300`}
+            className={`flex-1 rounded-2xl bg-${themeColor}-500 py-4 text-sm font-bold text-white shadow-lg  hover:bg-${themeColor}-600 transition-all disabled:bg-gray-300`}
           >
             {loading ? "Processing..." : (isStart ? "Start Cooking" : "Complete Meal")}
           </button>
