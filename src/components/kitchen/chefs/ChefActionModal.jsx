@@ -3,6 +3,7 @@ import { X, UserCheck, UserMinus, RefreshCw } from 'lucide-react';
 
 const ChefActionModal = ({ isOpen, onClose, onConfirm, chefName, currentStatus, type }) => {
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Define the available statuses for the "Update" mode
   const allStatuses = ['AVAILABLE', 'COOKING', 'ON_BREAK'];
@@ -15,6 +16,12 @@ const ChefActionModal = ({ isOpen, onClose, onConfirm, chefName, currentStatus, 
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    await onConfirm(selectedStatus || true);
+    setLoading(false);
+  };
 
   // --- UI Configuration based on Mode ---
   const config = {
@@ -91,13 +98,13 @@ const ChefActionModal = ({ isOpen, onClose, onConfirm, chefName, currentStatus, 
             Cancel
           </button>
           <button 
-            disabled={type === 'UPDATE_STATUS' && !selectedStatus}
-            onClick={() => onConfirm(selectedStatus || true)}
+            disabled={(type === 'UPDATE_STATUS' && !selectedStatus) || loading}
+            onClick={handleConfirm}
             className={`flex-1 rounded-xl py-3 text-sm font-bold text-white shadow-lg shadow-black/10 hover:brightness-110 active:scale-95 transition-all ${mode.color} ${
-              (type === 'UPDATE_STATUS' && !selectedStatus) ? 'opacity-50 cursor-not-allowed' : ''
+              ((type === 'UPDATE_STATUS' && !selectedStatus) || loading) ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {mode.btnText}
+            {loading ? "Processing..." : mode.btnText}
           </button>
         </div>
       </div>

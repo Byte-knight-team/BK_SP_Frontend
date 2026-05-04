@@ -99,10 +99,10 @@ const InventoryTable = () => {
     const { data, error } = await createInventoryRequestAPI(requestData)
 
     if (error) {
-      alert('Failed to send request: ' + error)
+      toast.error('Failed to send request: ' + error)
     } else {
       // message from the backend
-      alert(data.message)
+      toast.success(data.message)
       setIsModalOpen(false) // close modal on success
     }
   }

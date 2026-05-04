@@ -26,7 +26,11 @@ export const occupyTableAPI = async (tableId, guestCount) => {
       },
     )
     const result = await response.json()
-    return { data: result.data, error: result.message || null }
+
+    if (!response.ok) {
+      return { data: null, error: result.message || "Failed to occupy table" };
+    }
+    return { data: result.data, error: null }
   } catch (error) {
     return { data: null, error: error.message }
   }
@@ -42,65 +46,12 @@ export const clearTableAPI = async (tableId) => {
       },
     )
     const result = await response.json()
-    return { data: result.data, error: result.message || null }
-  } catch (error) {
-    return { data: null, error: error.message }
-  }
-}
-
-// Create a new reservation
-export const createReservationAPI = async (reservationData) => {
-  try {
-    const response = await authFetch(
-      `http://localhost:8080/api/v1/receptionist/tables/reservations`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reservationData),
-      },
-    )
-    const result = await response.json()
 
     if (!response.ok) {
-      // If status is 403, 400, 500.... etc (not 200 or 201) then return it as an error!
-      // If the backend crashes and doesn't send any message at all, it will show "Something went wrong"
-      return { data: null, error: result.message || "Something went wrong" };
+      return { data: null, error: result.message || "Failed to clear table" };
     }
-    return { data: result.data, error: null } // Success! error is null
-  } catch (error) {
-    return { data: null, error: error.message }
-  }
-}
 
-// Check-in a reserved guest
-export const checkInGuestAPI = async (tableId) => {
-  try {
-    const response = await authFetch(
-      `http://localhost:8080/api/v1/receptionist/tables/${tableId}/check-in`,
-      {
-        method: 'PUT',
-      },
-    )
-    const result = await response.json()
-    return { data: result.data, error: result.message || null }
-  } catch (error) {
-    return { data: null, error: error.message }
-  }
-}
-
-// Cancel a reservation
-export const cancelReservationAPI = async (tableId, reason) => {
-  try {
-    const response = await authFetch(
-      `http://localhost:8080/api/v1/receptionist/tables/${tableId}/cancel-reservation`,
-      {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
-      },
-    )
-    const result = await response.json()
-    return { data: result.data, error: result.message || null }
+    return { data: result.data, error: null }
   } catch (error) {
     return { data: null, error: error.message }
   }
