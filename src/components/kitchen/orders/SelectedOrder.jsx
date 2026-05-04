@@ -32,7 +32,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
 
   const [order, setOrder] = useState(null); // Stores the fully formatted order data
   const [loading, setLoading] = useState(false); // Controls the loading state UI
-  const [isModalOpen, setIsModalOpen] = useState(false); // Controls the Chef Modal visibility
+  const [isChefAssignModalOpen, setIsChefAssignModalOpen] = useState(false); // Controls the Chef Modal visibility
   const [targetMeal, setTargetMeal] = useState(null); // Remembers which meal is currently being assigned
   const [isHoldModalOpen, setIsHoldModalOpen] = useState(false); //Controls the Hold Modal visibility
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
@@ -41,15 +41,18 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
   // Fetches the latest data from the Backend API (whenever orderId changes or we can call it manually right after the chef is assigned successfully)
   const fetchOrderDetails = async (showLoading = true) => {
     if (!orderId) return;
-    if (showLoading) setLoading(true); // Only show loading text if requested
+    if (showLoading) setLoading(true);
+
     const { data, error } = await getOrderDetailsAPI(orderId);
+
     if (error) {
       console.error("Error fetching order details:", error);
     } else if (data) {
+
       // Map backend data to local state structure
       setOrder({
         id: `#ORD-${data.id}`,
-        time: new Date(data.statusUpdatedAt || data.createdAt).toLocaleString(),
+        time: new Date(data.statusUpdatedAt).toLocaleString(),
         status: data.status,
         holdReason: data.holdReason || "",
         kitchenNote: data.kitchenNotes || "",
@@ -63,7 +66,6 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
       });
     }
     setLoading(false);
-    return data?.status; // return order status to update the tab
   };
 
   useEffect(() => {
@@ -82,7 +84,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     } else {
       toast.success("Chef assigned successfully!");
       // Close modal on success
-      setIsModalOpen(false);
+      setIsChefAssignModalOpen(false);
       // REFRESH ONLY: Fetches data again to update the UI without reloading the whole page
       fetchOrderDetails(false); // set to false to prevent showing loading screen again (background fetch)
     }
@@ -91,7 +93,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
   // Triggered when "Assign Chef" button inside the MealTable is clicked
   const handleAssignChef = (meal) => {
     setTargetMeal(meal); // store the meal that needs to be assigned
-    setIsModalOpen(true); // open the modal
+    setIsChefAssignModalOpen(true); // open the modal
   };
 
   // calls the Hold API and then calls fetchOrderDetails(false) to update silently.
@@ -182,7 +184,8 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         <div>
           <h1 className="text-xl font-bold text-gray-800">Order {order.id}</h1>
           <p className="mt-1 text-sm font-medium text-gray-400">
-            {statusLabels[order.status] || "Updated at"} {order.time}
+            {/* Dynamic Property Access */}
+            {statusLabels[order.status]} {order.time}
           </p>
         </div>
 
@@ -193,7 +196,8 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
               statusColors[order.status] || "bg-gray-50 text-gray-500"
             }`}
           >
-            {order.status.replace("_", " ")}
+            {/* Remove the underscores (if available) from the status, then uppercase the whole string */}
+            {order.status.replace("_", " ").toUpperCase()} 
           </span>
 
           {/* display hold the order button (when order is pending) */}
@@ -210,6 +214,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
 
       {/* stepper logic */}
       <div className="mt-4">
+        {/* if the order is on hold, display the awaiting action text and the hold reason */}
         {order.status === "ON_HOLD" ? (
           <div className="flex items-start gap-4 rounded-2xl border border-red-100 bg-red-50 p-6">
             <AlertCircle size={24} className="mt-0.5 text-red-500" />
@@ -248,10 +253,12 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         />
       </div>
 
+      {/* Modals */}
+
       {/* assign chef modal */}
       <AssignChefModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isChefAssignModalOpen}
+        onClose={() => setIsChefAssignModalOpen(false)}
         onAssign={handleChefAssignment}
         // Passes the name of the selected meal to the Modal.
         // The '?.' (Optional Chaining) ensures the app doesn't crash if no meal is selected yet.

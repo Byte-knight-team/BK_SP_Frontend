@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
 import { UserPlus, X } from 'lucide-react'
 import { getAvailableChefsAPI } from '../../../apis/kitchen/orders'
+import { toast } from "react-toastify";
 
 const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
   // State to store the ID of the chef currently selected in the dropdown
-  const [selectedChefId, setSelectedChefId] = useState('')
+  const [selectedChefId, setSelectedChefId] = useState('');
 
-  const [isFetchingChefs, setIsFetchingChefs] = useState(false)
-  const [isAssigning, setIsAssigning] = useState(false)
+  const [isFetchingChefs, setIsFetchingChefs] = useState(false);
 
+  const [isAssigning, setIsAssigning] = useState(false);
 
   // State to store the list of chefs fetched from the database
-  const [availableChefs, setAvailableChefs] = useState([])
+  const [availableChefs, setAvailableChefs] = useState([]);
 
   // Triggered whenever the modal opens to ensure we have the latest list of chefs
   useEffect(() => {
@@ -22,7 +23,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
         if (data) {
           setAvailableChefs(data) // Store fetched chefs in state
         } else {
-          console.error('Failed to load chefs', error)
+          toast.error("Failed to load chefs");
         }
         setIsFetchingChefs(false)
       }
@@ -63,6 +64,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           Assign Chef
         </h3>
         <p className="mb-6 text-left text-sm text-gray-400">
+          {/* putting a space between text and the meal name */}
           Select a chef for{' '}
           <span className="font-bold text-gray-900">"{mealName}"</span>
         </p>
@@ -70,7 +72,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
         {/* Chef Selection Dropdown */}
         <select
           className="mb-8 w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
-          value={selectedChefId} // value = chef.staffId in each option tag
+          value={selectedChefId}  
           onChange={(e) => setSelectedChefId(e.target.value)} //that value set as the selectedChefId state
         >
           {/* default option */}
