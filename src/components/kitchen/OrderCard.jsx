@@ -12,15 +12,7 @@ const timeLabels = {
   ON_HOLD: 'Hold at',
 }
 
-const OrderCard = ({
-  status,
-  time,
-  id,
-  numberOfItems,
-  onClick,
-  isClickable = true,
-  isSelected,
-}) => {
+const OrderCard = ({status,time, id, numberOfItems, onClick,isClickable = true, isSelected,}) => {
   return (
     <div
       className={`flex flex-col gap-1.5 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition-all ${isSelected ? 'border-gray-900 shadow-md' : 'border-gray-100'} ${isClickable ? 'cursor-pointer hover:border-orange-100 hover:shadow-md' : 'cursor-default'}`}
@@ -38,7 +30,10 @@ const OrderCard = ({
         </p>
       </div>
       <h2 className="text-base font-bold text-gray-800">{id}</h2>
-      <p className="text-sm font-medium text-gray-400">{numberOfItems} Items</p>
+      <p className="text-sm font-medium text-gray-400">
+        {/* make the meals word singular if number of meals is 1 */}
+        {numberOfItems} {numberOfItems === 1 ? 'Meal' : 'Meals'}
+      </p>
     </div>
   )
 }
