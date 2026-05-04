@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import './index.css';
+import './index.css'
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
@@ -54,8 +54,17 @@ import CustomerDetailsPage from './pages/superadmin/CustomerDetailsPage'
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
+import ManagerSalesSummaryPage from './pages/manager/ManagerSalesSummaryPage'
 import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
 import ManagerDriversPage from './pages/manager/ManagerDriversPage'
+import ManagerStaffPage from './pages/manager/ManagerStaffPage'
+
+import ManagerReportsPage from './pages/manager/ManagerReportsPage'
+
+// Delivery pages
+import DeliveryLayout from './layouts/delivery/DeliveryLayout'
+import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
+import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -97,7 +106,6 @@ import ApprovalsPage from './pages/kitchen/ApprovalsPage'
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
 import OrderManagementPage from './pages/receptionist/OrderManagementPage'
-
 
 function isTokenExpired(token) {
   if (!token) return true
@@ -231,6 +239,25 @@ export default function App() {
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Route>
 
+
+        {/* DELIVERY area */}
+        <Route
+          path="/delivery"
+          element={
+            <ProtectedRoute allowedRoles={['DELIVERY']}>
+              <DeliveryLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeliveryDashboardPage />} />
+          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
+          <Route path="history" element={<ComingSoonPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/delivery" replace />} />
+        </Route>
+
         {/* MANAGER area */}
         <Route
           path="/manager"
@@ -241,32 +268,15 @@ export default function App() {
           }
         >
           <Route index element={<ManagerDashboardPage />} />
+          <Route path="sales" element={<ManagerSalesSummaryPage />} />
           <Route path="orders" element={<ComingSoonPage />} />
-          <Route path="reports" element={<ComingSoonPage />} />
-          <Route path="staff" element={<ComingSoonPage />} />
+          <Route path="reports" element={<ManagerReportsPage />} />
+          <Route path="staff" element={<ManagerStaffPage />} />
           <Route path="inventory" element={<ManagerInventoryPage />} />
           <Route path="drivers" element={<ManagerDriversPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/manager" replace />} />
-        </Route>
-
-        {/* DELIVERY area */}
-        <Route
-          path="/delivery"
-          element={
-            <ProtectedRoute allowedRoles={['DELIVERY']}>
-              <MainLayout Sidebar={DeliverySidebar} Header={DeliveryHeader} />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<ComingSoonPage />} />
-          <Route path="orders" element={<ComingSoonPage />} />
-          <Route path="routes" element={<ComingSoonPage />} />
-          <Route path="status" element={<ComingSoonPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-
-          <Route path="*" element={<Navigate to="/delivery" replace />} />
         </Route>
 
         {/* Customer routes */}
@@ -343,6 +353,24 @@ export default function App() {
           />
         </Route>
 
+        {/* DELIVERY area */}
+        <Route
+          path="/delivery"
+          element={
+            <ProtectedRoute allowedRoles={['DELIVERY']}>
+              <DeliveryLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeliveryDashboardPage />} />
+          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
+          <Route path="history" element={<ComingSoonPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/delivery" replace />} />
+        </Route>
+
         {/* CHEF / KITCHEN area */}
         <Route
           path="/kitchen"
@@ -362,7 +390,6 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/kitchen" replace />} />
         </Route>
-
         {/* RECEPTIONIST area */}
         <Route
           path="/receptionist"
