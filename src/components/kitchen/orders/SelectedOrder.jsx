@@ -193,7 +193,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
               statusColors[order.status] || "bg-gray-50 text-gray-500"
             }`}
           >
-            {order.status}
+            {order.status.replace("_", " ")}
           </span>
 
           {/* display hold the order button (when order is pending) */}

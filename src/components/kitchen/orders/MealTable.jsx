@@ -5,6 +5,7 @@ const statusStyles = {
   PREPARING: "bg-blue-50 text-blue-500",
   COMPLETED: "bg-green-50 text-green-500",
   ON_HOLD: "bg-red-50 text-red-500",
+  READY: "bg-green-50 text-green-500"
 };
 
 const MealTable = ({
@@ -56,7 +57,7 @@ const MealTable = ({
                     statusStyles[meal.status] || "bg-gray-50 text-gray-400"
                   }`}
                 >
-                  {meal.status}
+                  {meal.status.replace("_", " ")}
                 </span>
               </td>
 
