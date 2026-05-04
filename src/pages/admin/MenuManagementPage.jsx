@@ -5,7 +5,6 @@ import {
   Bell,
   HelpCircle,
   Plus,
-  Minus,
   SlidersHorizontal,
   EllipsisVertical,
   Clock3,
@@ -19,7 +18,6 @@ import {
   getMenuItemsAPI,
   getMenuCategoriesAPI,
   getMenuSubcategoriesAPI,
-  deleteMenuCategoryAPI,
   getMenuCategoriesCountAPI,
   getMenuSubcategoriesCountAPI,
   getMenuItemsCountAPI,
@@ -53,8 +51,6 @@ export default function MenuManagementPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState('');
-  const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState(null);
-  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
   const [togglingItemId, setTogglingItemId] = useState(null);
   const [decisionItemId, setDecisionItemId] = useState(null);
   const [totalCategoriesCount, setTotalCategoriesCount] = useState(0);
@@ -290,27 +286,30 @@ export default function MenuManagementPage() {
     }
   };
 
-  const handleDeleteCategory = async (categoryId) => {
-    setIsDeletingCategory(true);
-
-    try {
-      await deleteMenuCategoryAPI(categoryId);
-      setCategoryOptions((prev) => {
-        const newOptions = prev.filter((item) => item.id !== categoryId);
-        // Ensure active category is valid or switch to the first available category
-        if (newOptions.length > 0) {
-          setActiveCategory(newOptions[0].name);
-        } else {
-          setActiveCategory('');
-        }
-        return newOptions;
-      });
-      setDeleteCategoryConfirm(null);
-    } catch (error) {
-      setApiError(error.message || 'Unable to delete category. It might have items attached.');
-    } finally {
-      setIsDeletingCategory(false);
-    }
+  // Compact visual toggle switch (orange when on, gray when off)
+  const ToggleSwitch = ({ checked, onChange, disabled, loading }) => {
+    return (
+      <button
+        type="button"
+        onClick={onChange}
+        disabled={disabled || loading}
+        aria-pressed={checked}
+        className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
+          checked ? 'bg-orange-500' : 'bg-gray-300'
+        } disabled:opacity-60`}
+      >
+        <span
+          className={`absolute left-1 h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+            checked ? 'translate-x-4' : 'translate-x-0'
+          }`}
+        />
+        {loading && (
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-white">
+            ...
+          </span>
+        )}
+      </button>
+    );
   };
 
   const getStatusDisplay = (status) => {
@@ -399,50 +398,11 @@ export default function MenuManagementPage() {
             </div>
           )}
 
-          {/* Delete Category Confirmation Modal */}
-          {deleteCategoryConfirm && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Category</h3>
-                <p className="text-sm text-gray-600 mb-5">
-                  Are you sure you want to delete the category <span className="font-semibold">"{deleteCategoryConfirm.name}"</span>? This action cannot be undone.
-                </p>
-                <div className="flex items-center gap-3 justify-end">
-                  <button
-                    onClick={() => setDeleteCategoryConfirm(null)}
-                    disabled={isDeletingCategory}
-                    className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(deleteCategoryConfirm.id)}
-                    disabled={isDeletingCategory}
-                    className="rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-70"
-                  >
-                    {isDeletingCategory ? 'Deleting...' : 'Delete'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
             {/* Categories Panel */}
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Categories</h2>
-                <button 
-                  onClick={() => {
-                    const selectedCat = categoryOptions.find(c => c.name === activeCategory);
-                    if (selectedCat) setDeleteCategoryConfirm(selectedCat);
-                  }}
-                  disabled={!activeCategory}
-                  className="grid size-8 place-items-center rounded-lg border border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Delete Category"
-                >
-                  <Minus size={16} />
-                </button>
               </div>
 
               <div className="space-y-2">
@@ -467,13 +427,6 @@ export default function MenuManagementPage() {
                   );
                 })}
               </div>
-
-              <button 
-                onClick={() => navigate('/admin/menu/category/add')}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 px-4 py-3 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50">
-                <Plus size={16} />
-                Add Category
-              </button>
             </section>
 
             {/* Sub Categories Panel */}
@@ -608,25 +561,15 @@ export default function MenuManagementPage() {
                               </button>
                             </>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleToggleAvailability(item)}
+                            <ToggleSwitch
+                              checked={normalizeStatus(item.status) === 'ACTIVE'}
+                              onChange={() => handleToggleAvailability(item)}
                               disabled={
                                 togglingItemId === item.id
                                 || (normalizeStatus(item.status) !== 'ACTIVE' && normalizeStatus(item.status) !== 'INACTIVE')
                               }
-                              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-70 ${
-                                normalizeStatus(item.status) === 'ACTIVE'
-                                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                  : 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'
-                              }`}
-                            >
-                              {togglingItemId === item.id
-                                ? 'Updating...'
-                                : normalizeStatus(item.status) === 'ACTIVE'
-                                  ? 'ON'
-                                  : 'OFF'}
-                            </button>
+                              loading={togglingItemId === item.id}
+                            />
                           )}
                           <button
                             type="button"
