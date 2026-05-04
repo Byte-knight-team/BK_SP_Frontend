@@ -239,39 +239,20 @@ export default function App() {
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Route>
 
-        {/* MANAGER area */}
-        <Route
-          path="/manager"
-          element={
-            <ProtectedRoute allowedRoles={['MANAGER']}>
-              <MainLayout Sidebar={ManagerSidebar} Header={ManagerHeader} />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<ManagerDashboardPage />} />
-          <Route path="orders" element={<ComingSoonPage />} />
-          <Route path="reports" element={<ComingSoonPage />} />
-          <Route path="staff" element={<ComingSoonPage />} />
-          <Route path="inventory" element={<ManagerInventoryPage />} />
-          <Route path="drivers" element={<ManagerDriversPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-
-          <Route path="*" element={<Navigate to="/manager" replace />} />
-        </Route>
 
         {/* DELIVERY area */}
         <Route
           path="/delivery"
           element={
             <ProtectedRoute allowedRoles={['DELIVERY']}>
-              <MainLayout Sidebar={DeliverySidebar} Header={DeliveryHeader} />
+              <DeliveryLayout />
             </ProtectedRoute>
           }
         >
-          <Route index element={<ComingSoonPage />} />
-          <Route path="orders" element={<ComingSoonPage />} />
-          <Route path="routes" element={<ComingSoonPage />} />
-          <Route path="status" element={<ComingSoonPage />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeliveryDashboardPage />} />
+          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
+          <Route path="history" element={<ComingSoonPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/delivery" replace />} />
