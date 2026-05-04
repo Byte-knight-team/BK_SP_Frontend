@@ -62,10 +62,10 @@ export default function AppSidebar({
     userName && userName.includes("@") ? userName.split("@")[0] : userName;
 
   return (
-    <aside className="w-[220px] bg-white border-r border-gray-100 flex flex-col justify-between h-screen">
+    <aside className="w-[270px] bg-white border-r border-gray-100 flex flex-col justify-between h-screen">
       <div>
         {/* Logo and branch section */}
-        <div className="px-4 py-4 border-b border-gray-100">
+        <div className="px-6 py-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <img
               src={craveHouseLogo}
@@ -87,7 +87,7 @@ export default function AppSidebar({
         </div>
 
         {/* Sidebar navigation links */}
-        <nav className="px-3 py-4 space-y-1">
+        <nav className="px-4 py-6 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item);
