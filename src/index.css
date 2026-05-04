@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-brand: #f97316;
@@ -25,15 +25,13 @@ section[id] {
 
 @layer components {
   .card {
-    @apply bg-white rounded-2xl border border-gray-100 p-6;
+    @apply rounded-2xl border border-gray-100 bg-white p-6;
   }
   .btn-primary {
-    @apply bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg
-           hover:bg-gray-800 transition-colors duration-150;
+    @apply rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-gray-800;
   }
   .btn-outline {
-    @apply border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2
-           rounded-lg hover:bg-gray-50 transition-colors duration-150;
+    @apply rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-50;
   }
 
   /* ── Modal utilities ── */
@@ -45,7 +43,7 @@ section[id] {
   }
 
   .modal-panel {
-    @apply bg-white rounded-2xl shadow-2xl w-full relative;
+    @apply relative w-full rounded-2xl bg-white shadow-2xl;
     max-width: 520px;
     max-height: 90vh;
     overflow-y: auto;
@@ -53,12 +51,11 @@ section[id] {
   }
 
   .modal-label {
-    @apply block text-xs font-bold tracking-wider text-gray-800 uppercase mb-2;
+    @apply mb-2 block text-xs font-bold tracking-wider text-gray-800 uppercase;
   }
 
   .modal-input {
-    @apply w-full px-4 py-3 rounded-lg text-sm text-gray-700
-           outline-none transition-colors duration-150;
+    @apply w-full rounded-lg px-4 py-3 text-sm text-gray-700 transition-colors duration-150 outline-none;
     border: 1.5px solid var(--color-brand-muted);
   }
   .modal-input:focus {
@@ -70,8 +67,7 @@ section[id] {
   }
 
   .modal-select {
-    @apply w-full px-4 py-3 rounded-lg text-sm text-gray-700
-           outline-none appearance-none cursor-pointer transition-colors duration-150;
+    @apply w-full cursor-pointer appearance-none rounded-lg px-4 py-3 text-sm text-gray-700 transition-colors duration-150 outline-none;
     border: 1.5px solid var(--color-brand-muted);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -118,4 +114,37 @@ section[id] {
 
 .animate-table-fade {
   animation: tableFadeIn 0.35s ease-out forwards;
+}
+
+/* ── Recharts Fixes ── */
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none !important;
+}
+
+/* --- Toastify Customization --- */
+
+/* Global Container Styles */
+.Toastify__toast {
+  border-radius: 16px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 14px !important;
+}
+
+/* Success Toast (Emerald Green) */
+.Toastify__toast--success.Toastify__toast-theme--colored {
+  background: linear-gradient(to right, #10b981, #059669) !important;
+  /*for a single color background*/
+  /*background-color: #10b981 !important;*/
+}
+
+/* Error Toast (Crimson Red) */
+.Toastify__toast--error.Toastify__toast-theme--colored {
+  background: linear-gradient(to right, #ef4444, #dc2626) !important;
+}
+
+/* Progress Bar Customization */
+.Toastify__progress-bar {
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
 }

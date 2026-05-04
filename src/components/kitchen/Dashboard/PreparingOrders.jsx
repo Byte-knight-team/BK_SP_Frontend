@@ -48,8 +48,8 @@ const PreparingOrders = () => {
 
   return (
     <>
-      <h2 className="text-xl font-bold text-gray-800">Preparing Orders</h2>
-      <div className="flex flex-col gap-3 h-[380px] overflow-y-auto pr-2">
+      <h2 className="text-base font-bold text-gray-800">Preparing Orders</h2>
+      <div className="flex flex-col gap-2 h-[300px] overflow-y-auto pr-2">
         {preparingOrdersDetails.map((order) => (
           <OrderCard
             key={order.id}

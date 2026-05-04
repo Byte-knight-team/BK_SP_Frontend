@@ -24,10 +24,10 @@ const KitchenOrdersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="flex flex-row gap-6">
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="flex flex-row gap-4">
         {/* Order List */}
-        <div className="w-[30%] rounded-3xl border border-gray-100 bg-white p-6 shadow-sm h-[82vh] overflow-y-auto">
+        <div className="w-[30%] rounded-3xl border border-gray-100 bg-white p-4 shadow-sm h-[88vh] overflow-y-auto">
           
           {/* Pass the selection handler and the current selected ID down to the tabs for highlighting */}
           <OrderTabs
@@ -40,7 +40,7 @@ const KitchenOrdersPage = () => {
           />
         </div>
         {/* Order Details */}
-        <div className="w-[70%] rounded-3xl border border-gray-100 bg-white p-6 shadow-sm h-[82vh] overflow-y-auto">
+        <div className="w-[70%] rounded-3xl border border-gray-100 bg-white p-4 shadow-sm h-[88vh] overflow-y-auto">
           {selectedOrder ? (
             <SelectedOrder
               orderId={selectedOrder}

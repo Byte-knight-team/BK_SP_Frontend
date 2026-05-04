@@ -45,7 +45,7 @@ const PendingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       {pendingOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}

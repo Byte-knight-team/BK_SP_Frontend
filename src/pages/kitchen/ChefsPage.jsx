@@ -1,32 +1,46 @@
 import Stats from "../../components/kitchen/chefs/Stats";
-import { ChefHat } from "lucide-react";
+import { ChefHat, LogIn, LogOut } from "lucide-react";
 import ChefsDetailsTable from "../../components/kitchen/chefs/ChefsDetailsTable";
 import { useOutletContext } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const ChefsPage = () => {
   const { setHeaderInfo } = useOutletContext();
+  
+  // Initialize state for triggering stats refresh  
+  const [refreshTrigger, setRefreshTrigger] = useState(0); 
 
   useEffect(() => {
     // set the header info for this page
     setHeaderInfo({
       title: "Chefs Management",
-      description: "Manage chef profiles, track assignments, and monitor performance metrics.",
+      description: "Manage chef profiles, track assignemnts, and monitor performance metrics.",
       Icon: ChefHat,
     });
-  }, []);
+  }, [setHeaderInfo]);
+
+  // Function to trigger a refresh of the Stats cards
+  const handleActionSuccess = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 p-4">
-      <div className="mt-6 grid grid-cols-5 gap-4">
-        <Stats />
+    <div className="flex min-h-screen flex-col bg-gray-50 p-3">
+      <div className="mt-4 grid grid-cols-4 gap-3">
+        {/* pass the refreshTrigger value to the Stats component */}
+        <Stats refreshTrigger={refreshTrigger} />
       </div>
+
       <div className="mt-6 flex flex-1 rounded-2xl bg-white p-4">
-        <div className="flex w-full flex-col gap-4">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Chefs Details
-          </h1>
-          <ChefsDetailsTable />
+        <div className="flex w-full flex-col">
+          <div className="flex items-center gap-2">
+            <ChefHat color="orange" size={20}/>
+            <h1 className="text-xl font-bold tracking-tight text-orange-500 p-2">
+              Chefs Details
+            </h1>
+          </div>
+          {/* Pass callback */}
+          <ChefsDetailsTable onActionSuccess={handleActionSuccess}/>
         </div>
       </div>
     </div>

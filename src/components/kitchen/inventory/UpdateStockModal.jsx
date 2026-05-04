@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { RefreshCcw, X } from "lucide-react";
+import { toast } from "react-toastify";
 
 const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQuantity, maxStock }) => {
   const [newQuantity, setNewQuantity] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // synchronize the input field with the current stock value
   // runs when the modal opens or if the backend data changes while the modal is active
@@ -16,9 +18,9 @@ const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQu
   if (!isOpen) return null;
 
   // validate if the input is not empty before submitting
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (newQuantity === "") {
-      alert("Please enter a valid quantity!");
+      toast.warning("Please enter a valid quantity!");
       return;
     }
     
@@ -27,21 +29,23 @@ const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQu
 
     // check if it's greater than max stock
     if (numericQuantity > maxStock) {
-      alert(`Error: Quantity cannot exceed the maximum stock limit of ${maxStock} ${unit}!`);
+      toast.error(`Error: Quantity cannot exceed the maximum stock limit of ${maxStock} ${unit}!`);
       return;
     }
     
     // check for negative numbers
     if (numericQuantity < 0) {
-      alert("Error: Quantity cannot be negative!");
+      toast.error("Error: Quantity cannot be negative!");
       return;
     }
     
     // send the validated and formatted data back to the parent component(InventoryTable) for processing
-    onSubmit({
+    setLoading(true);
+    await onSubmit({
       itemName: itemName,
       newQuantity: numericQuantity,
     });
+    setLoading(false);
   };
 
   return (
@@ -90,9 +94,10 @@ const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQu
           </button>
           <button
             onClick={handleSubmit}
-            className="flex-1 rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:bg-blue-700"
+            disabled={loading}
+            className="flex-1 rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:bg-blue-700 disabled:bg-gray-300"
           >
-            Update Stock
+            {loading ? "Updating..." : "Update Stock"}
           </button>
         </div>
       </div>
