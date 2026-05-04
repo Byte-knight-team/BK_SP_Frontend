@@ -3,17 +3,15 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { 
   Search, Bell, HelpCircle, Settings, 
   Printer, Plus, LayoutGrid, List, Filter,
-  MapPin, Users, Edit2, QrCode, MoreHorizontal, AlertTriangle, UserCheck, ShoppingBag
+  MapPin, Users, Edit2, QrCode, AlertTriangle, UserCheck, ShoppingBag
 } from 'lucide-react';
 
 
 // Admin page for managing table records, status, and QR actions.
 export default function TableManagementPage() {
   const [viewMode, setViewMode] = useState('grid');
-  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [editingTable, setEditingTable] = useState(null);
   const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'warning' });
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, tableId: null, tableName: '' });
   
   const [tables, setTables] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,63 +68,7 @@ export default function TableManagementPage() {
   const occupiedTables = tables.filter(t => t.status === 'OCCUPIED').length;
   const reservedTables = tables.filter(t => t.status === 'RESERVED').length;
 
-  const toggleDropdown = (id) => {
-    if (openDropdownId === id) setOpenDropdownId(null);
-    else setOpenDropdownId(id);
-  };
 
-  const handleDeleteTable = (id) => {
-    const tableToDelete = tables.find(t => t.id === id);
-    if (!tableToDelete) return;
-    setOpenDropdownId(null);
-
-    setConfirmModal({
-      isOpen: true,
-      tableId: id,
-      tableName: tableToDelete.tableNumber
-    });
-  };
-
-  const confirmDelete = async () => {
-    const id = confirmModal.tableId;
-    setConfirmModal({ isOpen: false, tableId: null, tableName: '' });
-    
-    try {
-      const response = await fetch(`http://localhost:8080/api/tables/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setTables(prev => prev.filter(t => t.id !== id));
-      } else {
-        const errorText = await response.text();
-        let errorMessage = "Could not delete the table.";
-        
-        try {
-          const errData = JSON.parse(errorText);
-          errorMessage = errData.message || (errData.error ? `${errData.error}: ${errData.trace || errData.path}` : errorMessage);
-        } catch(e) {
-          // If it's not JSON, it might be a plain string from the backend
-          errorMessage = errorText || errorMessage;
-        }
-
-        setAlertModal({
-          isOpen: true,
-          title: 'Delete Failed',
-          message: errorMessage,
-          type: 'error'
-        });
-      }
-    } catch (error) {
-      console.error("Backend request failed:", error);
-      setAlertModal({
-        isOpen: true,
-        title: 'Network Error',
-        message: 'Could not connect to the backend server. Please check your connection.',
-        type: 'error'
-      });
-    }
-  };
 
   const handleSaveEdit = async () => {
     if (editingTable) {
@@ -292,24 +234,6 @@ export default function TableManagementPage() {
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)}`}>
                       {table.id}
                     </div>
-                    <div className="relative">
-                      <button 
-                        className="text-gray-300 hover:text-gray-500"
-                        onClick={() => toggleDropdown(table.id)}
-                      >
-                        <MoreHorizontal size={20} />
-                      </button>
-                      {openDropdownId === table.id && (
-                        <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10 overflow-hidden">
-                          <button 
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                            onClick={() => handleDeleteTable(table.id)}
-                          >
-                            Delete table
-                          </button>
-                        </div>
-                      )}
-                    </div>
                   </div>
                   
                   <h3 className="text-lg font-bold text-gray-900 mb-3">T-{table.tableNumber?.toString().padStart(2, '0')}</h3>
@@ -446,24 +370,6 @@ export default function TableManagementPage() {
                       >
                         <QrCode size={16} />
                       </Link>
-                      <div className="relative">
-                        <button 
-                          className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-300 hover:text-gray-500 transition-colors"
-                          onClick={() => toggleDropdown(table.id)}
-                        >
-                          <MoreHorizontal size={18} />
-                        </button>
-                        {openDropdownId === table.id && (
-                          <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10 overflow-hidden">
-                            <button 
-                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                              onClick={() => handleDeleteTable(table.id)}
-                            >
-                              Delete table
-                            </button>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -567,34 +473,7 @@ export default function TableManagementPage() {
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
-        {confirmModal.isOpen && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-[1.5rem] w-full max-w-sm p-6 shadow-xl text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-4">
-                <AlertTriangle size={32} />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Table?</h2>
-              <p className="text-gray-500 text-sm mb-8">
-                Are you sure you want to delete <span className="font-bold text-gray-700">T-{confirmModal.tableName?.toString().padStart(2, '0')}</span>? This action cannot be undone.
-              </p>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setConfirmModal({ isOpen: false, tableId: null, tableName: '' })}
-                  className="flex-1 px-5 py-3 rounded-xl text-sm font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={confirmDelete}
-                  className="flex-1 px-5 py-3 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 shadow-md shadow-red-500/20 transition-all"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
     </div>
   );
 }
