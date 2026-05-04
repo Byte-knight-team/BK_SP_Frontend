@@ -31,7 +31,7 @@ import { useAuth } from "../../context/AuthContext";
     /staff/staff
 
     ADMIN:
-    /admin-panel/staff
+    /admin/staff
 
     Important:
     - This page should not read authUser from localStorage.
@@ -48,13 +48,13 @@ export default function StaffListPage() {
     /*
         This page is shared by SUPER_ADMIN and ADMIN.
 
-        If current route starts with /admin-panel,
-        links should stay inside /admin-panel/staff.
+        If current route starts with /admin,
+        links should stay inside /admin/staff.
 
         Otherwise, links should use Super Admin route /staff/staff.
     */
-    const staffBasePath = location.pathname.startsWith("/admin-panel")
-        ? "/admin-panel/staff"
+    const staffBasePath = location.pathname.startsWith("/admin")
+        ? "/admin/staff"
         : "/staff/staff";
 
     /*
@@ -78,10 +78,10 @@ export default function StaffListPage() {
         These filters are frontend-side only.
         No backend change is needed.
     */
-    const [searchText, setSearchText] = useState("");
-    const [roleFilter, setRoleFilter] = useState("ALL");
-    const [branchFilter, setBranchFilter] = useState("ALL");
-    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [searchText, setSearchText] = useState(""); //To Search a staff
+    const [roleFilter, setRoleFilter] = useState("ALL"); //To Filter by role
+    const [branchFilter, setBranchFilter] = useState("ALL"); //To Filter by branch
+    const [statusFilter, setStatusFilter] = useState("ALL"); //To Filter by status
 
     /*
         Read logged-in user from AuthContext.
@@ -89,12 +89,12 @@ export default function StaffListPage() {
         AuthContext gets user data from the decoded JWT token.
         We no longer read authUser from localStorage.
     */
-    const { user: authUser } = useAuth();
+    const { user: authUser } = useAuth(); //Get User Role and permissions
 
     const loggedInRole = authUser?.roleName || authUser?.role || "";
 
-    const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
-    const isAdmin = loggedInRole === "ADMIN";
+    const isSuperAdmin = loggedInRole === "SUPER_ADMIN"; //Check if user is super admin
+    const isAdmin = loggedInRole === "ADMIN"; //Check if user is admin
 
     /*
         ADMIN can manage only lower branch-level roles.
@@ -366,24 +366,24 @@ export default function StaffListPage() {
             setSuccessMessage(
                 `Invite email resent successfully.
 
-Staff: ${staffName}
-Username: @${staffUsername}
-Email: ${staffEmail}
-Role: ${staffRole}
-Branch: ${staffBranch}`
-            );
-        } else {
-            setSuccessMessage(
-                `Invite email failed.
+                Staff: ${staffName}
+                Username: @${staffUsername}
+                Email: ${staffEmail}
+                Role: ${staffRole}
+                Branch: ${staffBranch}`
+                            );
+                        } else {
+                            setSuccessMessage(
+                                `Invite email failed.
 
-Staff: ${staffName}
-Username: @${staffUsername}
-Email: ${staffEmail}
-Role: ${staffRole}
-Branch: ${staffBranch}
-Temporary password: ${data?.temporaryPassword || "Not returned"}
+                Staff: ${staffName}
+                Username: @${staffUsername}
+                Email: ${staffEmail}
+                Role: ${staffRole}
+                Branch: ${staffBranch}
+                Temporary password: ${data?.temporaryPassword || "Not returned"}
 
-Please manually share this temporary password with the staff member.`
+                Please manually share this temporary password with the staff member.`
             );
         }
 
@@ -433,13 +433,15 @@ Please manually share this temporary password with the staff member.`
 
                 {/* Search and filter section */}
                 <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+
+                {/*Search bar*/}
                     <div className="xl:col-span-2">
                         <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
                             Search
                         </label>
 
                         <input
-                            type="text"
+                            type="search"
                             value={searchText}
                             onChange={(event) => setSearchText(event.target.value)}
                             placeholder="Search name, username, email, phone..."
@@ -447,6 +449,7 @@ Please manually share this temporary password with the staff member.`
                         />
                     </div>
 
+                    {/*Role filter*/}
                     <div>
                         <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
                             Role
@@ -466,7 +469,8 @@ Please manually share this temporary password with the staff member.`
                             ))}
                         </select>
                     </div>
-
+                    
+                    {/*Branch filter*/}
                     <div>
                         <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
                             Branch
@@ -486,7 +490,8 @@ Please manually share this temporary password with the staff member.`
                             ))}
                         </select>
                     </div>
-
+                    
+                    {/*Branch Status filter*/}
                     <div>
                         <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
                             Status
@@ -626,11 +631,10 @@ Please manually share this temporary password with the staff member.`
 
                                             <td className="px-6 py-4">
                                                 <span
-                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                                                        isActive
-                                                            ? "bg-green-50 text-green-700"
-                                                            : "bg-gray-100 text-gray-500"
-                                                    }`}
+                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isActive
+                                                        ? "bg-green-50 text-green-700"
+                                                        : "bg-gray-100 text-gray-500"
+                                                        }`}
                                                 >
                                                     {isActive ? "Active" : "Inactive"}
                                                 </span>
@@ -667,11 +671,10 @@ Please manually share this temporary password with the staff member.`
                                                             type="button"
                                                             disabled={isActionLoading}
                                                             onClick={() => handleToggleStatus(staff)}
-                                                            className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${
-                                                                isActive
-                                                                    ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                                                    : "bg-green-50 text-green-700 hover:bg-green-100"
-                                                            }`}
+                                                            className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${isActive
+                                                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                                                : "bg-green-50 text-green-700 hover:bg-green-100"
+                                                                }`}
                                                         >
                                                             {isActive ? "Deactivate" : "Activate"}
                                                         </button>

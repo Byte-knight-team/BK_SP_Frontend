@@ -2,7 +2,7 @@ import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 
-const PendingOrdersTab = ({ handleOrderClick }) => {
+const PendingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   const [pendingOrdersDetails, setPendingOrdersDetails] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -45,7 +45,7 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       {pendingOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
@@ -54,6 +54,7 @@ const PendingOrdersTab = ({ handleOrderClick }) => {
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
+          isSelected={order.id === selectedOrderId}
         />
       ))}
     </div>

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Phone, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import { sendCustomerOtp } from '../../apis/customer/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -34,11 +36,7 @@ export default function MobileVerificationPage() {
     setError('');
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/auth/customer/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim() }),
-      });
+      const res = await sendCustomerOtp(phone.trim());
 
       const payload = await res.json().catch(() => ({}));
 
@@ -60,10 +58,10 @@ export default function MobileVerificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-10">
-      <div className="mx-auto w-full max-w-[360px]">
-        <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
+    <CustomerPageShell maxWidth="max-w-4xl">
+      <div className="mx-auto w-full max-w-[420px]">
+        <div className="overflow-hidden rounded-[2rem] bg-white shadow-[0_18px_42px_rgba(15,23,42,0.10)] border border-slate-200">
+          <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
             <BrandLogo />
             <h1 className="mt-3 text-2xl font-bold">Mobile Verification</h1>
             <p className="mt-2 text-sm text-orange-100 px-2">
@@ -102,6 +100,6 @@ export default function MobileVerificationPage() {
           </form>
         </div>
       </div>
-    </div>
+    </CustomerPageShell>
   );
 }

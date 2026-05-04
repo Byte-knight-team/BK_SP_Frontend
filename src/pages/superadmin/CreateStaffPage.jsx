@@ -44,16 +44,16 @@ export default function CreateStaffPage() {
     const location = useLocation();
 
     /*
-        This page is shared by SUPER_ADMIN and ADMIN routes.
-    
-        SUPER_ADMIN route:
-        /staff/staff
-    
-        ADMIN route:
-        /admin-panel/staff
-    */
-    const staffListPath = location.pathname.startsWith("/admin-panel")
-        ? "/admin-panel/staff"
+    This page is shared by SUPER_ADMIN and ADMIN routes.
+
+    SUPER_ADMIN route:
+    /staff/staff/create
+
+    ADMIN route:
+    /admin/staff/create
+*/
+    const staffListPath = location.pathname.startsWith("/admin")
+        ? "/admin/staff"
         : "/staff/staff";
 
     /*
@@ -64,9 +64,7 @@ export default function CreateStaffPage() {
 
     /*
     Read logged-in user details from AuthContext.
-
     AuthContext now gets user data from the decoded JWT token.
-    We no longer read authUser from localStorage.
 */
     const { user: authUser } = useAuth();
 
@@ -160,9 +158,6 @@ export default function CreateStaffPage() {
 
     /*
         Load branches for SUPER_ADMIN only.
-
-        ADMIN does not need to load all branches because ADMIN is locked
-        to their own branch.
     */
     useEffect(() => {
         const loadBranches = async () => {

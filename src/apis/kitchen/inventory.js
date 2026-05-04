@@ -41,21 +41,25 @@ export const createInventoryRequestAPI = async (requestData) => {
 // send a direct database update for stock quantity
 export const updateInventoryStockAPI = async (updateData) => {
   try {
-    const response = await authFetch(
-      "http://localhost:8080/api/v1/kitchen/inventory/update",
-      {
-        method: "PUT", // we use put because we are updating existing data
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await authFetch("http://localhost:8080/api/v1/kitchen/inventory/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       }
     );
     
     const result = await response.json();
-    return { data: result, error: null };
+
+    if (!response.ok) {
+      // If status is 403, 400, 500.... etc (not 200 or 201) then return it as an error!
+      // If the backend crashes and doesn't send any message at all, it will show "Something went wrong"
+      return { data: null, error: result.message || "Something went wrong" };
+    }
+
+    return { data: result, error: null }; // success case. error is always null
   } catch (error) {
     return { data: null, error: error.message };
   }
 };
+
 

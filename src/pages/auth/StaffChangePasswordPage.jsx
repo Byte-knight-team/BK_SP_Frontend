@@ -12,7 +12,7 @@ function getProfilePathByRole(roleName) {
       return "/staff/profile";
 
     case "ADMIN":
-      return "/admin-panel/profile";
+      return "/admin/profile";
 
     case "MANAGER":
       return "/manager/profile";
@@ -70,12 +70,9 @@ export default function ChangePasswordPage() {
   /*
     useAuth gives access to current logged-in user data and auth actions.
 
-    user:
-    - decoded JWT user data from AuthContext
-
-    setUser:
-    - updates user only in React memory
-
+    user- decoded JWT user data from AuthContext
+    setUser- updates user only in React memory
+    
     logout:
     - clears token and logs user out
   */
@@ -139,7 +136,7 @@ export default function ChangePasswordPage() {
   const submitLabel = isFirstTimeSetup ? "Set Password" : "Update Password";
 
   const roleName = user?.roleName || user?.role || "";
-const profilePath = location.state?.returnTo || getProfilePathByRole(roleName);
+  const profilePath = location.state?.returnTo || getProfilePathByRole(roleName);
 
   /*
     Close/back button logic.

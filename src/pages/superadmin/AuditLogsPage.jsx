@@ -25,42 +25,88 @@ import { useAuth } from "../../context/AuthContext";
 /*
   AuditLogsPage
 
-  Purpose:
-  - Shows backend audit logs inside /staff/audit
-  - SUPER_ADMIN only
-  - ADMIN and other roles see a clean No Access message
-  - Supports simple filters: module, eventType, status
-  - Supports backend pagination
-  - Allows viewing one audit log detail using GET /api/admin/audit-logs/{id}
+  Shows backend audit logs for SUPER_ADMIN.
+  AOP logs stay clean, while manual update logs can still show old/new values.
 */
 
 const EVENT_TYPE_OPTIONS = [
   "LOGIN_SUCCESS",
   "LOGIN_FAILED",
   "PASSWORD_CHANGED",
+
   "STAFF_CREATED",
   "STAFF_UPDATED",
   "STAFF_ACTIVATED",
   "STAFF_DEACTIVATED",
+  "INVITE_RESENT",
+
+  "ROLE_CREATED",
+  "ROLE_UPDATED",
+  "ROLE_DELETED",
+  "ROLE_PERMISSIONS_UPDATED",
+
   "BRANCH_CREATED",
   "BRANCH_UPDATED",
   "BRANCH_ACTIVATED",
   "BRANCH_DEACTIVATED",
+
   "GLOBAL_CONFIG_UPDATED",
   "BRANCH_CONFIG_UPDATED",
+  "BRANCH_OPERATING_HOURS_UPDATED",
+
+  "MENU_CATEGORY_CREATED",
+  "MENU_CATEGORY_UPDATED",
+  "MENU_CATEGORY_DELETED",
+
+  "MENU_ITEM_CREATED",
+  "MENU_ITEM_UPDATED",
+  "MENU_ITEM_APPROVED",
+  "MENU_ITEM_REJECTED",
+  "MENU_ITEM_AVAILABILITY_CHANGED",
+  "MENU_ITEM_DELETED",
+
+  "TABLE_CREATED",
+  "TABLE_UPDATED",
+  "TABLE_STATUS_UPDATED",
+  "TABLE_DELETED",
+
+  "QR_CODE_CREATED",
+  "QR_CODE_REVOKED",
+  "QR_CODE_REGENERATED",
+
+  "ORDER_CREATED",
+  "ORDER_CANCELLED",
+
+  "PAYMENT_STATUS_UPDATED",
+
+  "CHEF_REQUEST_CREATED",
+  "CHEF_REQUEST_RESOLVED",
+  "CHEF_ASSIGNED",
+  "CHEF_CHECKED_IN",
+  "CHEF_CHECKED_OUT",
+  "CHEF_WORK_STATUS_UPDATED",
+  "ORDER_ON_HOLD",
+  "MEAL_STARTED",
+  "MEAL_COMPLETED",
+
+  "INVENTORY_ITEM_CREATED",
+  "INVENTORY_ITEM_RESTOCKED",
+  "INVENTORY_STOCK_REMOVED",
+  "INVENTORY_ITEM_CORRECTED",
+
+  "DRIVER_ASSIGNED",
+  "DELIVERY_ACCEPTED",
+  "DELIVERY_REJECTED",
+  "DELIVERY_STATUS_UPDATED",
+  "DELIVERY_ONLINE_STATUS_UPDATED",
+
+  "REPORT_GENERATED",
 ];
 
 const PAGE_SIZE = 20;
 
 export default function AuditLogsPage() {
   const { setHeaderInfo } = useOutletContext();
-
-  /*
-  Read logged-in user from AuthContext.
-
-  AuthContext now gets user data from the decoded JWT token.
-  We no longer read authUser from localStorage.
-*/
   const { user } = useAuth();
 
   const roleName = user?.roleName || user?.role || "";
@@ -87,25 +133,15 @@ export default function AuditLogsPage() {
   const [error, setError] = useState("");
   const [selectedLog, setSelectedLog] = useState(null);
 
-  /*
-    Set page header inside the existing shared layout.
-
-    This keeps Audit Logs inside the /staff layout.
-    No separate layout is created.
-  */
   useEffect(() => {
     setHeaderInfo({
       title: "Audit Logs",
       subtitle: "Monitor authentication, staff, branch, RBAC, and configuration actions.",
     });
+
+    return () => setHeaderInfo(null);
   }, [setHeaderInfo]);
 
-  /*
-    Format backend LocalDateTime string into readable text.
-
-    Example backend value:
-    2026-04-24T18:53:22.029672
-  */
   const formatDateTime = (value) => {
     if (!value) return "-";
 
@@ -118,9 +154,6 @@ export default function AuditLogsPage() {
     return date.toLocaleString();
   };
 
-  /*
-    Give each status a simple badge style.
-  */
   const getStatusBadgeClass = (status) => {
     if (status === "SUCCESS") {
       return "bg-emerald-50 text-emerald-700 border border-emerald-200";
@@ -133,9 +166,6 @@ export default function AuditLogsPage() {
     return "bg-slate-50 text-slate-700 border border-slate-200";
   };
 
-  /*
-    Give each module a simple badge style.
-  */
   const getModuleBadgeClass = (module) => {
     if (module === "AUTH") {
       return "bg-blue-50 text-blue-700 border border-blue-200";
@@ -160,37 +190,20 @@ export default function AuditLogsPage() {
     return "bg-slate-50 text-slate-700 border border-slate-200";
   };
 
-  /*
-    Pretty print JSON strings from oldValuesJson and newValuesJson.
-
-    Backend returns these fields as strings:
-    "{\"userId\":21,\"email\":\"superadmin01@trial.com\"}"
-
-    This function converts it into readable formatted JSON.
-  */
   const formatJsonText = (jsonText) => {
     if (!jsonText) return "-";
 
     try {
       return JSON.stringify(JSON.parse(jsonText), null, 2);
-    } catch (error) {
+    } catch {
       return jsonText;
     }
   };
 
-  /*
-    Load audit logs from backend.
+  const hasJsonValue = (jsonText) => {
+    return jsonText !== null && jsonText !== undefined && String(jsonText).trim() !== "";
+  };
 
-    Backend response shape:
-    {
-      content: [...],
-      number: 0,
-      totalPages: 9,
-      totalElements: 165,
-      first: true,
-      last: false
-    }
-  */
   const loadAuditLogs = useCallback(async () => {
     if (!isSuperAdmin) return;
 
@@ -227,12 +240,6 @@ export default function AuditLogsPage() {
     loadAuditLogs();
   }, [loadAuditLogs]);
 
-  /*
-    Whenever a filter changes, reset to page 0.
-
-    This avoids asking backend for page 5 of a newly filtered result
-    that might only have 1 page.
-  */
   const handleFilterChange = (name, value) => {
     setFilters((previous) => ({
       ...previous,
@@ -242,9 +249,6 @@ export default function AuditLogsPage() {
     setPage(0);
   };
 
-  /*
-    Clear all filters and return to the first page.
-  */
   const handleClearFilters = () => {
     setFilters({
       module: "",
@@ -255,10 +259,6 @@ export default function AuditLogsPage() {
     setPage(0);
   };
 
-  /*
-    Load one audit log detail using:
-    GET /api/admin/audit-logs/{id}
-  */
   const handleViewDetails = async (id) => {
     setDetailLoading(true);
     setError("");
@@ -273,12 +273,6 @@ export default function AuditLogsPage() {
     }
   };
 
-  /*
-    No Access state for ADMIN and other roles.
-
-    Backend should still protect the endpoint,
-    but this keeps the frontend clean for code review.
-  */
   if (!isSuperAdmin) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -297,6 +291,10 @@ export default function AuditLogsPage() {
       </div>
     );
   }
+
+  const shouldShowChangeDetails =
+    selectedLog &&
+    (hasJsonValue(selectedLog.oldValuesJson) || hasJsonValue(selectedLog.newValuesJson));
 
   return (
     <div className="space-y-6">
@@ -451,7 +449,6 @@ export default function AuditLogsPage() {
         </div>
       </div>
 
-      {/* Error state */}
       {error && (
         <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           <RiErrorWarningLine size={22} className="mt-0.5 shrink-0" />
@@ -462,7 +459,9 @@ export default function AuditLogsPage() {
       {/* Audit logs table */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-5">
-          <h2 className="text-lg font-semibold text-slate-900">Audit Log Records</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Audit Log Records
+          </h2>
           <p className="text-sm text-slate-500">
             Shows recent system actions recorded by the backend.
           </p>
@@ -644,11 +643,14 @@ export default function AuditLogsPage() {
               <DetailItem label="Actor User ID" value={selectedLog.actorUserId} />
               <DetailItem label="Actor Email" value={selectedLog.actorEmail} />
               <DetailItem label="Actor Role" value={selectedLog.actorRoleName} />
-              <DetailItem label="Branch ID" value={selectedLog.branchId ?? "-"} />
+              <DetailItem label="Branch ID" value={selectedLog.branchId} />
               <DetailItem label="HTTP Method" value={selectedLog.httpMethod} />
               <DetailItem label="Endpoint" value={selectedLog.endpoint} />
               <DetailItem label="IP Address" value={selectedLog.ipAddress} />
-              <DetailItem label="Created At" value={formatDateTime(selectedLog.createdAt)} />
+              <DetailItem
+                label="Created At"
+                value={formatDateTime(selectedLog.createdAt)}
+              />
             </div>
 
             <div className="space-y-4 border-t border-slate-200 p-5">
@@ -660,29 +662,43 @@ export default function AuditLogsPage() {
                 </p>
               </div>
 
-              <div>
-                <h3 className="mb-2 font-semibold text-slate-900">Old Values</h3>
+              {shouldShowChangeDetails && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="font-semibold text-slate-900">
+                    Change Details
+                  </h3>
 
-                <pre className="max-h-72 overflow-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100">
-                  {formatJsonText(selectedLog.oldValuesJson)}
-                </pre>
-              </div>
+                  <p className="mt-1 text-sm text-slate-500">
+                    These values are shown only for manual audit logs that store before/after data.
+                  </p>
 
-              <div>
-                <h3 className="mb-2 font-semibold text-slate-900">New Values</h3>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    {hasJsonValue(selectedLog.oldValuesJson) && (
+                      <div>
+                        <h4 className="mb-2 text-sm font-semibold text-slate-800">
+                          Old Values
+                        </h4>
 
-                <pre className="max-h-72 overflow-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100">
-                  {formatJsonText(selectedLog.newValuesJson)}
-                </pre>
-              </div>
+                        <pre className="max-h-72 overflow-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100">
+                          {formatJsonText(selectedLog.oldValuesJson)}
+                        </pre>
+                      </div>
+                    )}
 
-              <div>
-                <h3 className="mb-2 font-semibold text-slate-900">User Agent</h3>
+                    {hasJsonValue(selectedLog.newValuesJson) && (
+                      <div>
+                        <h4 className="mb-2 text-sm font-semibold text-slate-800">
+                          New Values
+                        </h4>
 
-                <p className="break-all rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
-                  {selectedLog.userAgent || "-"}
-                </p>
-              </div>
+                        <pre className="max-h-72 overflow-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100">
+                          {formatJsonText(selectedLog.newValuesJson)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -695,6 +711,9 @@ export default function AuditLogsPage() {
   Small reusable component for the detail modal.
 */
 function DetailItem({ label, value }) {
+  const displayValue =
+    value === null || value === undefined || value === "" ? "-" : String(value);
+
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -702,7 +721,7 @@ function DetailItem({ label, value }) {
       </p>
 
       <p className="mt-1 break-all text-sm font-medium text-slate-900">
-        {value || "-"}
+        {displayValue}
       </p>
     </div>
   );

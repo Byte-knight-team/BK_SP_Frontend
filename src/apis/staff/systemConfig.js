@@ -2,11 +2,11 @@
 
 // Import the shared authenticated fetch helper.
 // This helper should automatically attach the JWT token from localStorage.
-import { authFetch } from "../apiHelper";
+import { authFetch, API_BASE_URL } from "../apiHelper";
 
 // Base URL for all System Configuration backend endpoints.
 // Keep this consistent with your other API files.
-const CONFIG_BASE_URL = "http://localhost:8080/api/admin/config";
+const CONFIG_BASE_URL = `${API_BASE_URL}/api/admin/config`;
 
 /**
  * Safely handle backend responses.
