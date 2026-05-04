@@ -1,18 +1,9 @@
-import { authFetch } from "../apiHelper";
+import { authFetch, API_BASE_URL } from "../apiHelper";
 
 /*
   Audit Logs API helper
-
-  Important:
-  We use the full backend base URL here because the audit page was showing
-  0 records even though Postman returned data.
-
-  Backend:
-  GET http://localhost:8080/api/admin/audit-logs
-  GET http://localhost:8080/api/admin/audit-logs/{id}
 */
 
-const API_BASE_URL = "http://localhost:8080";
 const AUDIT_LOGS_BASE_URL = `${API_BASE_URL}/api/admin/audit-logs`;
 
 /*
