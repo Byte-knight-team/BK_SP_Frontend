@@ -6,6 +6,7 @@ const FILTER_OPTIONS = [
   'All',
   'Available',
   'ASSIGNED',
+  'ACCEPTED',
   'OUT_FOR_DELIVERY',
   'DELIVERED',
   'INACTIVE',
@@ -19,6 +20,10 @@ const STATUS_STYLES = {
   ASSIGNED: {
     dot: 'bg-blue-500',
     badge: 'bg-blue-50 text-blue-600',
+  },
+  ACCEPTED: {
+    dot: 'bg-teal-500',
+    badge: 'bg-teal-50 text-teal-600',
   },
   OUT_FOR_DELIVERY: {
     dot: 'bg-brand',
