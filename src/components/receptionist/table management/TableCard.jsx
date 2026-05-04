@@ -2,6 +2,8 @@ import React from 'react'
 import { Users, Armchair, Clock, CookingPot } from 'lucide-react'
 
 const TableCard = ({ table, onClick }) => {
+
+  // helper to format status colors and labels
   const getStatusConfig = (status) => {
     switch (status?.toUpperCase()) {
       case 'AVAILABLE':
@@ -20,14 +22,7 @@ const TableCard = ({ table, onClick }) => {
           badgeColor: 'bg-red-500',
           label: 'Occupied',
         }
-      case 'RESERVED':
-        return {
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200',
-          textColor: 'text-blue-700',
-          badgeColor: 'bg-blue-500',
-          label: 'Reserved',
-        }
+
       default:
         return {
           bgColor: 'bg-gray-50',
@@ -39,14 +34,21 @@ const TableCard = ({ table, onClick }) => {
     }
   }
 
-  const config = getStatusConfig(table.status)
+  const config = getStatusConfig(table.status);
+
+  // Simple helper to format the backend time string (e.g., '8:30 PM')
+  const formatTime = (dateTimeString) => {
+    if (!dateTimeString) return null;
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
 
   return (
     <div
       onClick={() => onClick(table)}
       className={`cursor-pointer rounded-3xl border-2 ${config.borderColor} ${config.bgColor} p-4 transition-all hover:shadow-md`}
     >
-      {/* Top Row */}
+      {/* Top Row: Table Number & ID */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-[10px] font-black tracking-widest text-gray-400 uppercase">
@@ -66,7 +68,7 @@ const TableCard = ({ table, onClick }) => {
         </div>
       </div>
 
-      {/* Status Badge */}
+      {/* Main Status Badge */}
       <div className="my-6 flex items-center gap-2">
         <div className={`h-3 w-3 rounded-full ${config.badgeColor}`} />
         <span
@@ -76,14 +78,17 @@ const TableCard = ({ table, onClick }) => {
         </span>
       </div>
 
-      {/* Info Section */}
+      {/* Info Section: Shows Seating Details or Upcoming Bookings */}
       <div className="space-y-4">
+
+        {/* Details for AVAILABLE tables */}
         {table.status === 'AVAILABLE' && (
           <div className="text-sm font-bold text-green-600 italic">
             Ready to Seat
           </div>
         )}
 
+        {/* Details for OCCUPIED tables */}
         {table.status === 'OCCUPIED' && (
           <>
             <div className="flex items-center gap-3 text-base font-bold text-gray-700">
@@ -92,19 +97,14 @@ const TableCard = ({ table, onClick }) => {
             </div>
             <div className="flex items-center gap-3 text-sm font-bold text-gray-500">
               <Clock size={18} />
-              <span>Seated 20 mins ago</span>
+              {/* Show when the status was last changed */}
+              <span>Seated Since: {formatTime(table.statusUpdatedAt)}</span>
             </div>
           </>
         )}
-
-        {table.status === 'RESERVED' && (
-          <div className="text-sm font-bold text-blue-600 italic">
-            Reserved for 7:30 PM
-          </div>
-        )}
       </div>
 
-      {/* --- FOOTER: Line and Circle REMOVED --- */}
+      {/* Footer: Order Indicator (if active orders exist) */}
       <div className="mt-6 flex items-center">
         {table.activeOrderCount > 0 && (
           <div className="flex items-center gap-2">

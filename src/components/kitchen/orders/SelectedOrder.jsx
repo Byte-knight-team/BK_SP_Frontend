@@ -12,6 +12,7 @@ import {
   startMealAPI,
   completeMealAPI,
 } from "../../../apis/kitchen/orders";
+import { toast } from "react-toastify";
 
 const statusLabels = {
   PENDING: "Placed on",
@@ -77,8 +78,9 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     const { error } = await assignChefToMealAPI(targetMeal.id, chefStaffId);
 
     if (error) {
-      alert("Failed to assign chef.");
+      toast.error("Failed to assign chef.");
     } else {
+      toast.success("Chef assigned successfully!");
       // Close modal on success
       setIsModalOpen(false);
       // REFRESH ONLY: Fetches data again to update the UI without reloading the whole page
@@ -97,13 +99,13 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     const { error } = await holdOrderAPI(orderId, reason);
 
     if (!error) {
-      alert("Order put on hold successfully.");
+      toast.success("Order put on hold successfully.");
       setIsHoldModalOpen(false); // Close the modal
       fetchOrderDetails(false); // This is the background fetch! (No loading screen)
       // Switch to On Hold tab (Tab ID is 4)
       setActiveTab(4);
     } else {
-      alert("Failed to hold order. Please try again.");
+      toast.error("Failed to hold order. Please try again.");
     }
   };
 
@@ -128,11 +130,12 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     
     // If it works, do the success logic for START
     if (!error) {
+      toast.success("Meal preparation started!");
       setActiveTab(2);             // Switch to Preparing tab
       setIsActionModalOpen(false); // Close modal
       fetchOrderDetails(false);    // Background refresh
     } else {
-      alert("Failed to start meal. Please try again.");
+      toast.error("Failed to start meal. Please try again.");
     }
     
   } else {
@@ -140,6 +143,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     const { data, error } = await completeMealAPI(targetMeal.id);
 
     if (!error) {
+      toast.success("Meal completed!");
       setIsActionModalOpen(false); // Close modal
       fetchOrderDetails(false); // Background refresh
       //if the backend returns the final order status as complete, then switch to the completed tab
@@ -147,7 +151,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         setActiveTab(3); // Switch to Completed tab (Tab ID is 3)
       }
     } else {
-      alert("Failed to complete meal. Please try again.");
+      toast.error("Failed to complete meal. Please try again.");
     }
   }
 };
