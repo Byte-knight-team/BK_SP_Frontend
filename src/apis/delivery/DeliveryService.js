@@ -1,10 +1,10 @@
-import { authFetch } from "../apiHelper";
+import { authFetch } from '../apiHelper'
 
 /**
  * Base URL for all delivery-related API endpoints.
  * Pulled from environment variables for flexibility across environments.
  */
-const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/delivery`;
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/delivery`
 
 /**
  * DeliveryService provides methods to interact with the backend delivery system.
@@ -13,16 +13,16 @@ const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/delivery`;
 export const DeliveryService = {
   /**
    * Fetches all orders currently assigned to the logged-in delivery driver.
-   * Typically used to populate the driver's dispatch queue or task list.
+   * Used to populate the driver's Assigned Orders list.
    * @returns {Promise<Array>} List of assigned orders.
    */
   getAssignedOrders: async () => {
-    const response = await authFetch(`${BASE_URL}/orders/assigned`);
+    const response = await authFetch(`${BASE_URL}/orders/assigned`)
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Failed to fetch assigned orders");
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Failed to fetch assigned orders')
     }
-    return response.json();
+    return response.json()
   },
 
   /**
@@ -31,12 +31,12 @@ export const DeliveryService = {
    * @returns {Promise<Object>} The active order details.
    */
   getActiveOrder: async () => {
-    const response = await authFetch(`${BASE_URL}/orders/active`);
+    const response = await authFetch(`${BASE_URL}/orders/active`)
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Failed to fetch active order");
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Failed to fetch active order')
     }
-    return response.json();
+    return response.json()
   },
 
   /**
@@ -47,13 +47,13 @@ export const DeliveryService = {
    */
   acceptOrder: async (orderId) => {
     const response = await authFetch(`${BASE_URL}/orders/${orderId}/accept`, {
-      method: "POST",
-    });
+      method: 'POST',
+    })
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Failed to accept order");
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Failed to accept order')
     }
-    return response.json();
+    return response.json()
   },
 
   /**
@@ -65,14 +65,14 @@ export const DeliveryService = {
    */
   rejectOrder: async (orderId, reason) => {
     const response = await authFetch(`${BASE_URL}/orders/${orderId}/reject`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ reason }),
-    });
+    })
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Failed to reject order");
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Failed to reject order')
     }
-    return response.json();
+    return response.json()
   },
 
   /**
@@ -84,13 +84,13 @@ export const DeliveryService = {
    */
   updateDeliveryStatus: async (orderId, status) => {
     const response = await authFetch(`${BASE_URL}/orders/${orderId}/status`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ status }),
-    });
+    })
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Failed to update status");
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Failed to update status')
     }
-    return response.json();
+    return response.json()
   },
-};
+}
