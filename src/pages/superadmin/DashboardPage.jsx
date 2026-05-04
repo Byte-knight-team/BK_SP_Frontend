@@ -1,190 +1,258 @@
 // src/pages/superadmin/DashboardPage.jsx
 
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useMemo } from "react";
 import {
-  RiDashboardLine,
   RiTeamLine,
-  RiShieldUserLine,
   RiStore2Line,
-  RiSettings3Line,
-  RiFileList3Line,
-  RiLockPasswordLine,
-  RiArrowRightLine,
   RiCheckboxCircleLine,
-  RiUserSettingsLine,
-  RiAlertLine,
+  RiCloseCircleLine,
+  RiRefreshLine,
+  RiArrowRightLine,
 } from "@remixicon/react";
 
-import { useAuth } from "../../context/AuthContext";
+import { getAllStaffAPI } from "../../apis/staff/staff";
+import { getAllBranchesAPI } from "../../apis/staff/branches";
 
+/*
+  Super Admin Dashboard
+
+  Purpose:
+  - Shows a simple overview using real data from existing pages.
+  - Staff data comes from Staff Management API.
+  - Branch data comes from Branch Management API.
+
+  Kept simple on purpose:
+  - total staff
+  - active staff
+  - inactive staff
+  - total branches
+  - active branches
+  - inactive branches
+*/
 export default function DashboardPage() {
-  const { user } = useAuth();
-
-  // Some login responses may use roleName, while older code may use role.
-  const roleName = user?.roleName || user?.role || "UNKNOWN";
-
-  // SUPER_ADMIN usually has global access. Branch staff usually have a branch.
-  const branchLabel = user?.branchName || "All Branches";
-
-  // Build initials for the logged-in staff profile badge.
-  const userInitials = useMemo(() => {
-    const sourceName = user?.fullName || user?.name || user?.email || "SA";
-
-    return sourceName
-      .split(" ")
-      .map((part) => part.charAt(0))
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-  }, [user]);
+  /*
+    staffList stores all staff loaded from backend.
+    branchList stores all branches loaded from backend.
+    loading controls dashboard loading state.
+    error stores API errors.
+  */
+  const [staffList, setStaffList] = useState([]);
+  const [branchList, setBranchList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   /*
-    Quick links for the staff/admin system.
-    If any route is different in App.jsx, only update the path value.
+    Normalizes backend response into an array.
+
+    This protects the dashboard if backend returns:
+    - direct array
+    - { data: [...] }
+    - { content: [...] }
   */
-  const quickActions = [
+  const normalizeList = (response) => {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response?.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response?.content)) {
+      return response.content;
+    }
+
+    if (Array.isArray(response?.branches)) {
+      return response.branches;
+    }
+
+    if (Array.isArray(response?.staff)) {
+      return response.staff;
+    }
+
+    return [];
+  };
+
+  /*
+    Staff active status helper.
+
+    Backend may return:
+    - active: true / false
+    - isActive: true / false
+  */
+  const isStaffActive = (staff) => {
+    if (typeof staff.active === "boolean") {
+      return staff.active;
+    }
+
+    if (typeof staff.isActive === "boolean") {
+      return staff.isActive;
+    }
+
+    return false;
+  };
+
+  /*
+    Branch active status helper.
+
+    Backend main response usually gives:
+    status: "ACTIVE" or "INACTIVE"
+
+    But this also supports:
+    - active: true / false
+    - isActive: true / false
+  */
+  const isBranchActive = (branch) => {
+    if (branch.status) {
+      return branch.status === "ACTIVE";
+    }
+
+    if (typeof branch.active === "boolean") {
+      return branch.active;
+    }
+
+    if (typeof branch.isActive === "boolean") {
+      return branch.isActive;
+    }
+
+    return false;
+  };
+
+  /*
+    Load dashboard data using already-created APIs.
+  */
+  const loadDashboardData = async () => {
+    setLoading(true);
+    setError("");
+
+    const staffResult = await getAllStaffAPI();
+    const branchResult = await getAllBranchesAPI();
+
+    if (staffResult.error || branchResult.error) {
+      setError(
+        staffResult.error ||
+          branchResult.error ||
+          "Failed to load dashboard data."
+      );
+    }
+
+    setStaffList(normalizeList(staffResult.data));
+    setBranchList(normalizeList(branchResult.data));
+
+    setLoading(false);
+  };
+
+  /*
+    Load data when dashboard opens.
+  */
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  /*
+    Dashboard calculated values.
+  */
+  const totalStaff = staffList.length;
+  const activeStaff = staffList.filter(isStaffActive).length;
+  const inactiveStaff = totalStaff - activeStaff;
+
+  const totalBranches = branchList.length;
+  const activeBranches = branchList.filter(isBranchActive).length;
+  const inactiveBranches = totalBranches - activeBranches;
+
+  /*
+    Summary cards shown at the top.
+  */
+  const summaryCards = [
+    {
+      title: "Total Staff",
+      value: totalStaff,
+      description: "All staff accounts in the system",
+      icon: RiTeamLine,
+    },
+    {
+      title: "Active Staff",
+      value: activeStaff,
+      description: "Staff accounts currently active",
+      icon: RiCheckboxCircleLine,
+    },
+    {
+      title: "Inactive Staff",
+      value: inactiveStaff,
+      description: "Staff accounts currently inactive",
+      icon: RiCloseCircleLine,
+    },
+    {
+      title: "Total Branches",
+      value: totalBranches,
+      description: "All restaurant branches",
+      icon: RiStore2Line,
+    },
+    {
+      title: "Active Branches",
+      value: activeBranches,
+      description: "Branches currently operating",
+      icon: RiCheckboxCircleLine,
+    },
+    {
+      title: "Inactive Branches",
+      value: inactiveBranches,
+      description: "Branches currently disabled",
+      icon: RiCloseCircleLine,
+    },
+  ];
+
+  /*
+    Simple quick links to your own pages.
+  */
+  const quickLinks = [
     {
       title: "Staff Management",
-      description: "Create staff, update staff details, and manage staff account status.",
+      description: "View and manage staff accounts.",
       path: "/staff/staff",
       icon: RiTeamLine,
     },
     {
       title: "Branch Management",
-      description: "Manage restaurant branches, branch details, and active/inactive status.",
+      description: "View and manage branches.",
       path: "/staff/branches",
       icon: RiStore2Line,
     },
-    {
-      title: "Roles & Permissions",
-      description: "Control which staff roles can access each system feature.",
-      path: "/staff/roles",
-      icon: RiShieldUserLine,
-    },
-    {
-      title: "System Configuration",
-      description: "Manage tax, service charge, delivery fee, and branch configuration.",
-      path: "/staff/system-config",
-      icon: RiSettings3Line,
-    },
-  ];
-
-  /*
-    These cards describe the main staff-side admin modules.
-    They are static status cards, so this dashboard does not depend on extra API calls.
-  */
-  const systemCards = [
-    {
-      title: "Staff Accounts",
-      value: "Manage",
-      description: "Admin users can create and maintain staff accounts for restaurant operations.",
-      icon: RiTeamLine,
-    },
-    {
-      title: "Access Control",
-      value: "Protected",
-      description: "Roles and privileges control access to staff-side features.",
-      icon: RiShieldUserLine,
-    },
-    {
-      title: "Branches",
-      value: branchLabel,
-      description: "Branch records define where staff and restaurant operations are managed.",
-      icon: RiStore2Line,
-    },
-    {
-      title: "Configuration",
-      value: "Available",
-      description: "Business rules such as tax, service charge, and delivery fee are configurable.",
-      icon: RiSettings3Line,
-    },
-  ];
-
-  const operationChecklist = [
-    "Check newly created staff accounts",
-    "Review inactive or blocked staff users",
-    "Confirm branch details are up to date",
-    "Review recent audit log activity",
-    "Confirm system configuration values before operations",
   ];
 
   return (
     <div className="space-y-6">
-      {/* Main dashboard header */}
-      <section className="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm">
-        <div className="relative p-6 sm:p-8">
-          <div className="absolute right-0 top-0 h-32 w-32 rounded-bl-full bg-orange-50" />
-          <div className="absolute bottom-0 right-20 h-20 w-20 rounded-t-full bg-gray-50" />
-
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
-                <RiDashboardLine size={16} />
-                Restaurant Staff Control Center
-              </div>
-
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                Staff Administration Dashboard
-              </h1>
-
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
-                Manage staff accounts, restaurant branches, role permissions,
-                system configuration, and audit monitoring from one central
-                staff-side dashboard.
-              </p>
-            </div>
-
-            {/* Logged-in staff summary */}
-            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:min-w-[280px]">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-900 text-sm font-bold text-white">
-                  {userInitials}
-                </div>
-
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-900">
-                    {user?.fullName || user?.name || "Staff User"}
-                  </p>
-                  <p className="truncate text-xs text-gray-500">
-                    {user?.email || "No email found"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                <div className="rounded-xl bg-white p-3">
-                  <p className="text-gray-400">Role</p>
-                  <p className="mt-1 font-semibold text-gray-900">{roleName}</p>
-                </div>
-
-                <div className="rounded-xl bg-white p-3">
-                  <p className="text-gray-400">Branch Access</p>
-                  <p className="mt-1 font-semibold text-gray-900">
-                    {branchLabel}
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-white p-3">
-                  <p className="text-gray-400">Account Status</p>
-                  <p className="mt-1 font-semibold text-gray-900">Active</p>
-                </div>
-
-                <div className="rounded-xl bg-white p-3">
-                  <p className="text-gray-400">Password</p>
-                  <p className="mt-1 font-semibold text-gray-900">
-                    {user?.passwordChanged ? "Updated" : "Change Required"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Small dashboard title */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Simple summary of staff and branch records.
+          </p>
         </div>
-      </section>
 
-      {/* System overview cards */}
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {systemCards.map((card) => {
+        <button
+          type="button"
+          onClick={loadDashboardData}
+          disabled={loading}
+          className="inline-flex w-fit items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+        >
+          <RiRefreshLine size={20} />
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
+      </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          {error}
+        </div>
+      )}
+
+      {/* Summary cards */}
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {summaryCards.map((card) => {
           const Icon = card.icon;
 
           return (
@@ -193,188 +261,68 @@ export default function DashboardPage() {
               className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
-                  <Icon size={22} />
+                <div>
+                  <p className="text-sm font-semibold text-gray-500">
+                    {card.title}
+                  </p>
+
+                  <h2 className="mt-3 text-3xl font-bold text-gray-900">
+                    {loading ? "-" : card.value}
+                  </h2>
+
+                  <p className="mt-2 text-sm text-gray-500">
+                    {card.description}
+                  </p>
                 </div>
 
-                <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
-                  Live
-                </span>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
+                  <Icon size={24} />
+                </div>
               </div>
-
-              <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                {card.title}
-              </p>
-
-              <h2 className="mt-2 text-xl font-bold text-gray-900">
-                {card.value}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-gray-500">
-                {card.description}
-              </p>
             </div>
           );
         })}
       </section>
 
-      {/* Quick actions */}
-      <section>
-        <div className="mb-4">
-          <h2 className="text-lg font-bold text-gray-900">Quick Actions</h2>
-          <p className="text-sm text-gray-500">
-            Common staff administration tasks.
-          </p>
-        </div>
+      {/* Quick links */}
+      <section className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-900">Quick Actions</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Go directly to the main management pages.
+        </p>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          {quickLinks.map((link) => {
+            const Icon = link.icon;
 
             return (
               <Link
-                key={action.title}
-                to={action.path}
-                className="group rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
+                key={link.title}
+                to={link.path}
+                className="group flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4 transition hover:border-orange-200 hover:bg-orange-50"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-50 text-gray-700">
-                    <Icon size={22} />
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-orange-600">
+                    <Icon size={24} />
                   </div>
 
-                  <RiArrowRightLine
-                    size={20}
-                    className="text-gray-300 transition-colors group-hover:text-orange-500"
-                  />
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      {link.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {link.description}
+                    </p>
+                  </div>
                 </div>
 
-                <h3 className="mt-4 text-sm font-bold text-gray-900">
-                  {action.title}
-                </h3>
-
-                <p className="mt-2 text-sm leading-6 text-gray-500">
-                  {action.description}
-                </p>
+                <RiArrowRightLine
+                  size={20}
+                  className="text-gray-300 group-hover:text-orange-500"
+                />
               </Link>
             );
           })}
-        </div>
-      </section>
-
-      {/* Bottom dashboard area */}
-      <section className="grid gap-4 lg:grid-cols-3">
-        {/* Operational checklist */}
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-50 text-green-700">
-              <RiCheckboxCircleLine size={22} />
-            </div>
-
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">
-                Daily Admin Checklist
-              </h2>
-              <p className="text-sm text-gray-500">
-                Recommended checks for restaurant staff system maintenance.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {operationChecklist.map((item) => (
-              <div
-                key={item}
-                className="flex items-start gap-3 rounded-2xl bg-gray-50 p-4"
-              >
-                <RiCheckboxCircleLine
-                  size={18}
-                  className="mt-0.5 shrink-0 text-green-600"
-                />
-                <p className="text-sm font-medium text-gray-700">{item}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Security and audit notice */}
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
-            <RiLockPasswordLine size={22} />
-          </div>
-
-          <h2 className="mt-4 text-lg font-bold text-gray-900">
-            Security Notice
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-gray-500">
-            Staff-side pages should only be used by authorized restaurant
-            employees. Role permissions and backend security rules decide what
-            each staff member can access.
-          </p>
-
-          <Link
-            to="/staff/audit-logs"
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
-          >
-            <RiFileList3Line size={18} />
-            View Audit Logs
-          </Link>
-
-          <div className="mt-4 flex items-start gap-2 rounded-2xl bg-yellow-50 p-3 text-sm text-yellow-800">
-            <RiAlertLine size={18} className="mt-0.5 shrink-0" />
-            <p>
-              Any staff, branch, role, or configuration change should be checked
-              through audit logs when reviewing system activity.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* System areas */}
-      <section className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-50 text-gray-700">
-            <RiUserSettingsLine size={22} />
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              Staff System Areas
-            </h2>
-            <p className="text-sm text-gray-500">
-              Main administration areas connected to restaurant operations.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl bg-gray-50 p-4">
-            <p className="text-sm font-bold text-gray-900">Super Admin</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Full system access across branches and governance settings.
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-gray-50 p-4">
-            <p className="text-sm font-bold text-gray-900">Branch Admin</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Handles staff and operational control inside assigned branch.
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-gray-50 p-4">
-            <p className="text-sm font-bold text-gray-900">Kitchen & Reception</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Uses staff access for order and restaurant service workflows.
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-gray-50 p-4">
-            <p className="text-sm font-bold text-gray-900">Delivery & Manager</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Uses role-based access for delivery, inventory, and branch tasks.
-            </p>
-          </div>
         </div>
       </section>
     </div>

@@ -4,19 +4,6 @@ import { useAuth } from "../context/AuthContext";
 
 /*
     Common Staff Profile Page
-
-    Purpose:
-    - Used by all staff roles:
-      SUPER_ADMIN, ADMIN, MANAGER, CHEF, RECEPTIONIST, DELIVERY
-
-    Important:
-    - We are not changing JWT/backend now.
-    - JWT currently may only have email in user.sub.
-    - So for username/full name display, we create a simple display name
-      from the email prefix.
-
-    Example:
-    8xwn6jefjo@yzcalo.com -> 8xwn6jefjo
 */
 
 function getProfilePathByRole(roleName) {
@@ -25,7 +12,7 @@ function getProfilePathByRole(roleName) {
             return "/staff/profile";
 
         case "ADMIN":
-            return "/admin-panel/profile";
+            return "/admin/profile";
 
         case "MANAGER":
             return "/manager/profile";
@@ -46,9 +33,6 @@ function getProfilePathByRole(roleName) {
 
 /*
     Converts email-like values into display names.
-
-    Example:
-    auif2sju8w@lnovic.com -> auif2sju8w
 */
 function getNameBeforeAt(value) {
     if (!value) {

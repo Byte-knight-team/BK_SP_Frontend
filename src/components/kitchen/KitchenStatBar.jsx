@@ -18,12 +18,12 @@ const KitchenStatBar = ({
   warningLevel
 }) => {
   return (
-    <div className="mb-5 flex flex-col">
+    <div className="mb-3 flex flex-col">
       <div className="mb-1 flex flex-row justify-between">
-        <div className="text-base font-semibold text-gray-700">
+        <div className="text-sm font-semibold text-gray-700">
           {itemName || mealName}
         </div>
-        <div className="text-base font-bold text-gray-900">
+        <div className="text-sm font-bold text-gray-900">
           {maxStock && quantity
             ? `${quantity} / ${maxStock}` //availableCount + " / " + maxStock
             : count}

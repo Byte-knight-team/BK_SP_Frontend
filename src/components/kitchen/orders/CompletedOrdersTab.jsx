@@ -2,7 +2,7 @@ import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 
-const CompletedOrdersTab = ({ handleOrderClick }) => {
+const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   const [completedOrdersDetails, setCompletedOrdersDetails] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +54,7 @@ const CompletedOrdersTab = ({ handleOrderClick }) => {
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
+          isSelected={order.id === selectedOrderId}
         />
       ))}
     </div>

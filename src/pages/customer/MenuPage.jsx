@@ -2,24 +2,31 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/Navbar';
+import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import CustomerStateCard from '../../components/customer/CustomerStateCard';
+import { getQrSessionClaims } from '../../utils/authToken';
+import { getCustomerMenu } from '../../apis/customer/menu';
 import menuCover from '../../assets/menu cover image.avif';
 import {
   ArrowLeft,
   Heart,
   Star,
   Clock,
-  Award,
-  Leaf,
-  ChefHat,
   ShoppingCart,
+  ChefHat,
   Search
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
 function getBranchId() {
-  const savedBranchId = Number(localStorage.getItem('qr_branch_id'));
-  return Number.isFinite(savedBranchId) && savedBranchId > 0 ? savedBranchId : 1;
+  // Decode branchId from QR session token on-the-fly, never store decoded IDs
+  const qrSessionToken = localStorage.getItem('qr_session_token');
+  if (qrSessionToken) {
+    const claims = getQrSessionClaims(qrSessionToken);
+    if (claims?.branch_id && Number.isFinite(claims.branch_id) && claims.branch_id > 0) {
+      return claims.branch_id;
+    }
+  }
+  return 1; // Default branch
 }
 
 export default function MenuPage() {
@@ -41,7 +48,7 @@ export default function MenuPage() {
 
       try {
         const branchId = getBranchId();
-        const res = await fetch(`${API_BASE}/api/v1/menu/customer?branchId=${branchId}`);
+        const res = await getCustomerMenu(branchId);
         const payload = await res.json().catch(() => ({}));
 
         if (!res.ok) {
@@ -113,29 +120,21 @@ export default function MenuPage() {
 
   const renderMenuCard = (item) => (
     <div
-      className="flex border border-gray-200 rounded-[14px] overflow-hidden bg-white transition-all duration-300 hover:shadow-card hover:-translate-y-0.5 max-[480px]:flex-col"
+      className="flex overflow-hidden rounded-[18px] border border-slate-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(15,23,42,0.08)] max-[480px]:flex-col"
       key={item.id}
     >
-      <div className="relative w-[160px] min-h-[190px] shrink-0 max-md:w-[120px] max-md:min-h-[140px] max-[480px]:w-full max-[480px]:min-h-[180px]">
+      <div className="relative w-[180px] min-h-[200px] shrink-0 max-md:w-[140px] max-md:min-h-[150px] max-[480px]:w-full max-[480px]:min-h-[200px]">
         <img
           src={item.image}
           alt={item.name}
           className="w-full h-full object-cover"
         />
-        <button
-          className={`absolute top-2 right-2 w-[30px] h-[30px] rounded-full bg-white/90 backdrop-blur-[4px] flex items-center justify-center border-none transition-all duration-300 ${favorites.includes(item.id) ? 'text-orange-500' : 'text-gray-400'} hover:text-orange-500`}
-          onClick={() => toggleFavorite(item.id)}
-        >
-          <Heart
-            size={16}
-            fill={favorites.includes(item.id) ? '#f97316' : 'none'}
-            className={favorites.includes(item.id) ? 'text-orange-500' : ''}
-          />
-        </button>
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
 
-      <div className="flex-1 p-4 px-[18px] flex flex-col min-w-0">
-        <div className="mb-1 flex flex-wrap gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-gray-500">
+      <div className="flex-1 p-5 flex flex-col min-w-0">
+        <div className="mb-2 flex flex-wrap gap-2 text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-gray-500">
           <span>{item.categoryName || 'Uncategorized'}</span>
           {item.subCategory && item.subCategory !== 'General' && (
             <span className="rounded-full bg-orange-50 px-2 py-0.5 text-orange-600">
@@ -143,32 +142,34 @@ export default function MenuPage() {
             </span>
           )}
         </div>
-        <h3 className="font-heading text-base font-bold text-navy mb-[5px]">
+
+        <h3 className="font-heading text-lg font-bold text-slate-900 mb-1 truncate">
           {item.name}
         </h3>
-        <p className="text-[0.78rem] text-gray-500 leading-relaxed mb-2.5 line-clamp-2">
+        <p className="text-[0.85rem] text-gray-600 leading-relaxed mb-3 line-clamp-2">
           {item.description}
         </p>
 
-        <div className="flex items-center gap-3 text-[0.75rem] text-gray-500 mb-3 flex-wrap">
-          <span className="flex items-center gap-[3px] font-semibold text-gray-800">
-            <Star size={14} fill="#F59E0B" color="#F59E0B" />
-              
+        <div className="flex items-center gap-4 text-[0.85rem] text-gray-500 mb-3 flex-wrap">
+          <span className="flex items-center gap-2 font-medium text-gray-700">
+            <Star size={16} fill="#F59E0B" />
+            {item.rating || '—'}
           </span>
-          <span className="flex items-center gap-[3px]">
-            <Clock size={14} /> ~{item.preparationTime} min
+          <span className="flex items-center gap-2">
+            <Clock size={16} /> {item.preparationTime || '—'} min
           </span>
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-3 max-[420px]:flex-col max-[420px]:items-stretch">
-          <span className="font-heading text-[1.1rem] font-bold text-navy">
+          <span className="font-heading text-[1.05rem] font-bold text-slate-900">
             LKR {Number(item.price || 0).toLocaleString()}
           </span>
           <button
-            className="inline-flex min-w-[118px] items-center justify-center gap-1.5 rounded-lg border border-orange-600 bg-orange-500 px-4 py-2.5 text-[0.82rem] font-semibold text-white shadow-sm transition-colors duration-300 hover:bg-orange-600 max-[420px]:w-full"
+            className="inline-flex min-w-[128px] items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-[0.92rem] font-semibold text-white shadow-md transition-colors duration-200 hover:bg-orange-600 max-[420px]:w-full"
             onClick={() => addToCart(item)}
+            aria-label={`Add ${item.name} to cart`}
           >
-            <ShoppingCart size={15} /> Add to Cart
+            <ShoppingCart size={16} /> Add to Cart
           </button>
         </div>
       </div>
@@ -176,35 +177,35 @@ export default function MenuPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <CustomerPageShell maxWidth="max-w-none" contentClassName="px-0 py-0">
       <Navbar />
 
-      <div className="relative mx-auto mb-5 mt-4 w-full max-w-5xl px-3 sm:px-6">
-        <button
-          className="absolute left-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900 sm:left-6"
-          onClick={() => navigate(-1)}
-          aria-label="Go back"
-        >
-          <ArrowLeft size={18} />
-        </button>
+      <div className="mx-auto mt-4 w-full max-w-5xl px-3 sm:px-6">
+        <div className="flex items-center gap-3 rounded-[2rem] border border-slate-200 bg-white px-4 py-4 shadow-[0_18px_42px_rgba(15,23,42,0.06)] sm:px-6">
+          <button
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-900"
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+          >
+            <ArrowLeft size={18} />
+          </button>
 
-        <div className="mx-auto w-full max-w-2xl pl-14 sm:pl-16">
-          <div className="relative">
+          <div className="relative flex-1">
             <Search
               size={18}
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
             <input
               type="text"
               placeholder="Search menu items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-[14px] border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-4 text-[0.9rem] text-slate-800 outline-none transition-all focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-50"
+              className="w-full rounded-[16px] border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-16 text-[0.92rem] text-slate-800 outline-none transition-all focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-50"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[0.7rem] font-bold tracking-wider text-gray-400 hover:text-orange-500"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[0.7rem] font-bold tracking-wider text-slate-400 hover:text-orange-500"
               >
                 CLEAR
               </button>
@@ -254,36 +255,48 @@ export default function MenuPage() {
         </div>
 
         {isLoading ? (
-          <div className="rounded-[14px] border border-dashed border-gray-300 bg-white px-6 py-14 text-center text-gray-500">
-            Loading menu items...
-          </div>
+          <CustomerStateCard
+            variant="loading"
+            title="Loading the menu"
+            description="We’re fetching fresh menu items for this branch."
+            className="mx-auto max-w-2xl"
+          />
         ) : error ? (
-          <div className="rounded-[14px] border border-red-200 bg-red-50 px-6 py-14 text-center text-red-700">
-            {error}
-          </div>
+          <CustomerStateCard
+            variant="error"
+            title="Menu unavailable"
+            description={error}
+            primaryAction={{
+              label: 'Try Again',
+              onClick: () => window.location.reload(),
+            }}
+            className="mx-auto max-w-2xl"
+          />
         ) : Object.keys(groupedCategories).length === 0 ? (
-          <div className="rounded-[14px] border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-              <Search size={24} className="text-gray-400" />
-            </div>
-            <h3 className="mb-1 font-heading text-lg font-semibold text-slate-800">
-              No matching items found
-            </h3>
-            <p className="text-sm text-gray-500">
-              We couldn't find anything matching "{searchQuery}". Try a
-              different term.
-            </p>
-          </div>
+          <CustomerStateCard
+            variant="empty"
+            icon={Search}
+            title="No matching items found"
+            description={`We couldn't find anything matching "${searchQuery}". Try a different term.`}
+            primaryAction={{
+              label: searchQuery ? 'Clear Search' : 'Browse Menu',
+              onClick: () => (searchQuery ? setSearchQuery('') : navigate('/menu')),
+            }}
+            className="mx-auto max-w-2xl"
+          />
         ) : (
           <div className="space-y-8">
             {Object.entries(groupedCategories).map(
               ([categoryName, subCategories]) => (
                 <div key={categoryName} className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-                    <h3 className="font-heading text-[1.15rem] font-bold text-slate-800">
-                      {categoryName}
-                    </h3>
-                    <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-block h-8 w-1 rounded-full bg-orange-500" />
+                      <h3 className="font-heading text-[1.15rem] font-bold text-slate-800">
+                        {categoryName}
+                      </h3>
+                    </div>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                       {Object.values(subCategories).flat().length} items
                     </span>
                   </div>
@@ -297,10 +310,11 @@ export default function MenuPage() {
                         >
                           {subCategoryName !== "General" && (
                             <div className="flex items-center justify-between">
-                              <h4 className="font-heading text-[1rem] font-semibold text-slate-600">
+                              <h4 className="flex items-center gap-2 font-heading text-[1rem] font-semibold text-slate-600">
+                                <span className="inline-block h-2 w-2 rounded-full bg-orange-400" />
                                 {subCategoryName}
                               </h4>
-                              <span className="text-xs uppercase tracking-wide text-gray-400">
+                              <span className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-600">
                                 {items.length} items
                               </span>
                             </div>
@@ -321,20 +335,9 @@ export default function MenuPage() {
       </section>
 
       {/* ───── Bottom Trust Bar ───── */}
-      <div className="flex justify-center gap-9 px-6 py-6 border-t border-gray-200 flex-wrap max-md:gap-4 max-md:p-4">
-        <span className="flex items-center gap-2 text-[0.85rem] font-medium text-gray-800 max-md:text-[0.75rem]">
-          <Award size={16} color="#FF6B35" /> Michelin Recommended
-        </span>
-        <span className="flex items-center gap-2 text-[0.85rem] font-medium text-gray-800 max-md:text-[0.75rem]">
-          <Star size={16} fill="#F59E0B" color="#F59E0B" /> Higher Ratings
-        </span>
-        <span className="flex items-center gap-2 text-[0.85rem] font-medium text-gray-800 max-md:text-[0.75rem]">
-          <Leaf size={16} color="#22C55E" /> Organic Ingredients
-        </span>
-        <span className="flex items-center gap-2 text-[0.85rem] font-medium text-gray-800 max-md:text-[0.75rem]">
-          <ChefHat size={16} color="#FF6B35" /> Expert Chefs
-        </span>
+      <div className="px-6 py-6 text-center text-sm text-slate-500 max-md:px-4">
+        Fresh ingredients, consistent plating, and a simpler experience.
       </div>
-    </div>
+    </CustomerPageShell>
   );
 }
