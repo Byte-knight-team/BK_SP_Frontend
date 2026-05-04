@@ -515,7 +515,7 @@ export default function MenuManagementPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {filteredMenuItems.map((item) => (
-                    <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+                    <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md cursor-pointer" onClick={() => navigate(`/admin/menu/${item.id}`)}>
                       <div className="relative h-40 overflow-hidden bg-gray-100">
                         <img
                           src={item.imageUrl || PLACEHOLDER_IMAGE}
@@ -541,36 +541,15 @@ export default function MenuManagementPage() {
                         )}
 
                         <div className="mt-auto flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
-                          {normalizeStatus(item.status) === 'PENDING' ? (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => handleApprovePendingItem(item)}
-                                disabled={decisionItemId === item.id}
-                                className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-70"
-                              >
-                                {decisionItemId === item.id ? 'Processing...' : 'Approve'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleRejectPendingItem(item)}
-                                disabled={decisionItemId === item.id}
-                                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-70"
-                              >
-                                Reject
-                              </button>
-                            </>
-                          ) : (
-                            <ToggleSwitch
-                              checked={normalizeStatus(item.status) === 'ACTIVE'}
-                              onChange={() => handleToggleAvailability(item)}
-                              disabled={
-                                togglingItemId === item.id
-                                || (normalizeStatus(item.status) !== 'ACTIVE' && normalizeStatus(item.status) !== 'INACTIVE')
-                              }
-                              loading={togglingItemId === item.id}
-                            />
-                          )}
+                          <ToggleSwitch
+                            checked={normalizeStatus(item.status) === 'ACTIVE'}
+                            onChange={() => handleToggleAvailability(item)}
+                            disabled={
+                              togglingItemId === item.id
+                              || (normalizeStatus(item.status) !== 'ACTIVE' && normalizeStatus(item.status) !== 'INACTIVE')
+                            }
+                            loading={togglingItemId === item.id}
+                          />
                           <button
                             type="button"
                             onClick={() => navigate(`/admin/menu/edit/${item.id}`)}

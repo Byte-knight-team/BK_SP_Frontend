@@ -58,6 +58,7 @@ import MenuManagementPage from './pages/admin/MenuManagementPage'
 import AddCategoryPage from './pages/admin/AddCategoryPage'
 import AddMenuItemPage from './pages/admin/AddMenuItemPage'
 import EditMenuItemPage from './pages/admin/EditMenuItemPage'
+import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
 import AddTablePage from './pages/admin/AddTablePage'
 import TableQrPage from './pages/admin/TableQrPage'
@@ -211,6 +212,7 @@ export default function App() {
         <Route path="menu" element={<MenuManagementPage />} />
         <Route path="menu/category/add" element={<AddCategoryPage />} />
         <Route path="menu/add" element={<AddMenuItemPage />} />
+        <Route path="menu/:id" element={<MenuItemDetailsPage />} />
         <Route path="menu/edit/:id" element={<EditMenuItemPage />} />
         <Route path="coupons" element={<CouponsPage />} />
 
