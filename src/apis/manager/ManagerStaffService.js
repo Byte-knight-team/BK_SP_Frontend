@@ -1,21 +1,23 @@
-import { authFetch } from '../apiHelper';
+import { authFetch } from '../apiHelper'
 
-const API_URL = 'http://localhost:8080/api/v1/manager/staff';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export const ManagerStaffService = {
-  getStaffSummary: async () => {
-    try {
-      const response = await authFetch(`${API_URL}/summary`);
+  /**
+   * Fetches the staff summary for a specific branch.
+   */
+  getStaffSummary: async (branchId) => {
+    const url = branchId 
+      ? `${BASE_URL}/api/v1/manager/staff/summary?branchId=${branchId}&_t=${Date.now()}`
+      : `${BASE_URL}/api/v1/manager/staff/summary?_t=${Date.now()}`
       
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to fetch staff data');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching staff summary:', error);
-      throw error.message || 'Failed to fetch staff data';
+    const response = await authFetch(url)
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Failed to fetch staff data')
     }
+    
+    return await response.json()
   }
-};
+}
