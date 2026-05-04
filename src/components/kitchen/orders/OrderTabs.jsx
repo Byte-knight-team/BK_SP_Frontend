@@ -17,10 +17,12 @@ const OrderTabs = ({ handleOrderClick, selectedOrderId, activeTab, setActiveTab 
     <div className="w-full">
       {/* Tabs Header */}
       <div className="flex flex-wrap justify-center gap-1 border-b border-gray-100 pb-2">
+        {/* this is how 4 types of tab buttons will be shown */}
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
+            //if the tab is active, it will change the background color to orange and text color to white and add a shadow
             className={`rounded-xl px-2 py-1.5 text-[11px] font-bold transition-all ${
               activeTab === tab.id
                 ? "bg-orange-500 text-white shadow-sm"
