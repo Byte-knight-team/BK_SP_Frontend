@@ -1,7 +1,16 @@
 import { X, Play, Check } from "lucide-react";
+import { useState } from "react";
 
 const ActionConfirmationModal = ({ isOpen, onClose, onConfirm, type, mealName, chefName }) => {
+  const [loading, setLoading] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    await onConfirm();
+    setLoading(false);
+  };
 
   // Change colors and icons based on whether it is "Start" or "Complete"
   const isStart = type === "START";
@@ -46,10 +55,11 @@ const ActionConfirmationModal = ({ isOpen, onClose, onConfirm, type, mealName, c
             Cancel
           </button>
           <button 
-            onClick={onConfirm} 
-            className={`flex-1 rounded-2xl bg-${themeColor}-500 py-4 text-sm font-bold text-white shadow-lg shadow-${themeColor}-200 hover:bg-${themeColor}-600 transition-all`}
+            onClick={handleConfirm} 
+            disabled={loading}
+            className={`flex-1 rounded-2xl bg-${themeColor}-500 py-4 text-sm font-bold text-white shadow-lg shadow-${themeColor}-200 hover:bg-${themeColor}-600 transition-all disabled:bg-gray-300`}
           >
-            {isStart ? "Start Cooking" : "Complete Meal"}
+            {loading ? "Processing..." : (isStart ? "Start Cooking" : "Complete Meal")}
           </button>
         </div>
       </div>

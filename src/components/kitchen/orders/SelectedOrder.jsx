@@ -12,6 +12,7 @@ import {
   startMealAPI,
   completeMealAPI,
 } from "../../../apis/kitchen/orders";
+import { toast } from "react-toastify";
 
 const statusLabels = {
   PENDING: "Placed on",
@@ -77,8 +78,9 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     const { error } = await assignChefToMealAPI(targetMeal.id, chefStaffId);
 
     if (error) {
-      alert("Failed to assign chef.");
+      toast.error("Failed to assign chef.");
     } else {
+      toast.success("Chef assigned successfully!");
       // Close modal on success
       setIsModalOpen(false);
       // REFRESH ONLY: Fetches data again to update the UI without reloading the whole page
@@ -97,13 +99,13 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     const { error } = await holdOrderAPI(orderId, reason);
 
     if (!error) {
-      alert("Order put on hold successfully.");
+      toast.success("Order put on hold successfully.");
       setIsHoldModalOpen(false); // Close the modal
       fetchOrderDetails(false); // This is the background fetch! (No loading screen)
       // Switch to On Hold tab (Tab ID is 4)
       setActiveTab(4);
     } else {
-      alert("Failed to hold order. Please try again.");
+      toast.error("Failed to hold order. Please try again.");
     }
   };
 
@@ -128,11 +130,12 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     
     // If it works, do the success logic for START
     if (!error) {
+      toast.success("Meal preparation started!");
       setActiveTab(2);             // Switch to Preparing tab
       setIsActionModalOpen(false); // Close modal
       fetchOrderDetails(false);    // Background refresh
     } else {
-      alert("Failed to start meal. Please try again.");
+      toast.error("Failed to start meal. Please try again.");
     }
     
   } else {
@@ -140,6 +143,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     const { data, error } = await completeMealAPI(targetMeal.id);
 
     if (!error) {
+      toast.success("Meal completed!");
       setIsActionModalOpen(false); // Close modal
       fetchOrderDetails(false); // Background refresh
       //if the backend returns the final order status as complete, then switch to the completed tab
@@ -147,7 +151,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         setActiveTab(3); // Switch to Completed tab (Tab ID is 3)
       }
     } else {
-      alert("Failed to complete meal. Please try again.");
+      toast.error("Failed to complete meal. Please try again.");
     }
   }
 };
@@ -172,11 +176,11 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
     );
 
   return (
-    <div className="rounded-3xl border border-gray-100 bg-white p-8">
+    <div className="rounded-3xl border border-gray-100 bg-white p-5">
       {/* header section */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Order {order.id}</h1>
+          <h1 className="text-xl font-bold text-gray-800">Order {order.id}</h1>
           <p className="mt-1 text-sm font-medium text-gray-400">
             {statusLabels[order.status] || "Updated at"} {order.time}
           </p>
@@ -205,7 +209,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
       </div>
 
       {/* stepper logic */}
-      <div className="mt-6">
+      <div className="mt-4">
         {order.status === "ON_HOLD" ? (
           <div className="flex items-start gap-4 rounded-2xl border border-red-100 bg-red-50 p-6">
             <AlertCircle size={24} className="mt-0.5 text-red-500" />
@@ -234,7 +238,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
       )}
 
       {/* table section */}
-      <div className="mt-8">
+      <div className="mt-5">
         <MealTable
           mealsData={order.meals}
           orderStatus={order.status}

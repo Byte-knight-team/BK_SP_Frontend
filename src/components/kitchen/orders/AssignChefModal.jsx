@@ -1,45 +1,45 @@
-import { useState, useEffect } from "react";
-import { UserPlus, X } from "lucide-react";
-import { getAvailableChefsAPI } from "../../../apis/kitchen/orders";
+import { useState, useEffect } from 'react'
+import { UserPlus, X } from 'lucide-react'
+import { getAvailableChefsAPI } from '../../../apis/kitchen/orders'
 
 const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
-
   // State to store the ID of the chef currently selected in the dropdown
-  const [selectedChefId, setSelectedChefId] = useState("");
+  const [selectedChefId, setSelectedChefId] = useState('')
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
 
   // State to store the list of chefs fetched from the database
-  const [availableChefs, setAvailableChefs] = useState([]);
+  const [availableChefs, setAvailableChefs] = useState([])
 
   // Triggered whenever the modal opens to ensure we have the latest list of chefs
   useEffect(() => {
     if (isOpen) {
       const fetchChefs = async () => {
-        setLoading(true);
-        const { data, error } = await getAvailableChefsAPI();
+        setLoading(true)
+        const { data, error } = await getAvailableChefsAPI()
         if (data) {
-          setAvailableChefs(data); // Store fetched chefs in state
+          setAvailableChefs(data) // Store fetched chefs in state
         } else {
-          console.error("Failed to load chefs", error);
+          console.error('Failed to load chefs', error)
         }
-        setLoading(false);
-      };
-      fetchChefs();
+        setLoading(false)
+      }
+      fetchChefs()
     }
-  }, [isOpen]); // Only runs when 'isOpen' changes (modal opens/closes)
+  }, [isOpen]) // Only runs when 'isOpen' changes (modal opens/closes)
 
   // Function called when the "Assign" button is clicked
-  const handleAssign = () => {
+  const handleAssign = async () => {
     if (selectedChefId) {
+      setLoading(true)
       // Passes the selected ID back to the parent component (SelectedOrder)
-      onAssign(selectedChefId);
-      onClose(); // Close the modal after successful selection
+      await onAssign(selectedChefId)
+      setLoading(false)
     }
-  };
+  }
 
   // If the modal is not active, don't render anything (Performance optimization)
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
@@ -61,7 +61,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           Assign Chef
         </h3>
         <p className="mb-6 text-left text-sm text-gray-400">
-          Select a chef for{" "}
+          Select a chef for{' '}
           <span className="font-bold text-gray-900">"{mealName}"</span>
         </p>
 
@@ -97,14 +97,14 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
             // Trigger the assignment (save to backend) and close the modal simultaneously
             onClick={handleAssign}
             disabled={loading || !selectedChefId} //button disables when loading or no chef is selected
-            className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600"
+            className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 disabled:bg-gray-300"
           >
-            Assign
+            {loading ? 'Assigning...' : 'Assign'}
           </button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AssignChefModal;
+export default AssignChefModal

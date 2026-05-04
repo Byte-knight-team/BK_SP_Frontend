@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { PackagePlus, X } from "lucide-react";
+import { toast } from "react-toastify";
 
 const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initialItemName, initialUnit }) => {
   const [itemName, setItemName] = useState("");
   const [unit, setUnit] = useState("");
   const [requestedQuantity, setRequestedQuantity] = useState("");
   const [chefNote, setChefNote] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // if the requestType is REFILL_STOCK, then it is a refill request
   // otherwise it is a new item request
@@ -24,10 +26,10 @@ const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initial
 
   if (!isOpen) return null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     //basic validation
     if (!itemName || !unit || !requestedQuantity) {
-      alert("Please fill in all required fields!");
+      toast.warning("Please fill in all required fields!");
       return;
     }
 
@@ -36,7 +38,7 @@ const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initial
 
     // check for negative numbers
     if (numericQuantity < 0) {
-      alert("Error: Requested quantity cannot be negative!");
+      toast.error("Error: Requested quantity cannot be negative!");
       return;
     }
 
@@ -50,7 +52,9 @@ const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initial
     };
 
     // send the validated and formatted data back to the parent component for API submission
-    onSubmit(requestData);
+    setLoading(true);
+    await onSubmit(requestData);
+    setLoading(false);
   };
 
   return (
@@ -128,9 +132,10 @@ const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initial
           {/* send the validated and formatted data back to the parent component for processing */}
           <button
             onClick={handleSubmit}
-            className="flex-1 py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all"
+            disabled={loading}
+            className="flex-1 py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all disabled:bg-gray-300"
           >
-            Send Request
+            {loading ? "Sending..." : "Send Request"}
           </button>
         </div>
 

@@ -92,7 +92,7 @@ function formatPermissionName(name) {
 
 /**
  * Groups privileges into simple frontend modules.
- * Your backend currently does not send module/category,
+ * ackend currently does not send module/category,
  * so this derives a display group from the privilege name.
  */
 function getPrivilegeModule(name) {
@@ -147,12 +147,6 @@ const CORE_ROLE_NAMES = [
 
 /**
  * Permission-locked roles are visible for review,
- * but their permissions should not be edited from this page.
- *
- * We keep this separate from CORE_ROLE_NAMES because:
- * - ADMIN / MANAGER / CHEF / RECEPTIONIST / DELIVERY are core roles,
- *   but SUPER_ADMIN may still edit their permissions and base salary.
- * - SUPER_ADMIN and CUSTOMER are special protected roles.
  */
 const PERMISSION_LOCKED_ROLE_NAMES = ["SUPER_ADMIN", "CUSTOMER"];
 
@@ -312,6 +306,25 @@ export default function RolesPage() {
         return roles.find((role) => String(role.id) === String(selectedRoleId));
     }, [roles, selectedRoleId]);
 
+    /*
+    Roles shown in the left-side editable role list.
+
+    SUPER_ADMIN and CUSTOMER are hidden from this page because:
+    - SUPER_ADMIN is protected system owner role
+    - CUSTOMER is not a staff governance role
+    - both should not be edited from the staff RBAC screen
+
+    Backend still keeps these roles.
+    We only hide them from frontend list to keep the UI clean.
+*/
+    const visibleRoles = useMemo(() => {
+        return roles.filter(
+            (role) =>
+                normalizeRoleNameForCheck(role.name) !== "SUPER_ADMIN" &&
+                normalizeRoleNameForCheck(role.name) !== "CUSTOMER"
+        );
+    }, [roles]);
+
     /**
     * When selected role changes, put its baseSalary into the salary input.
     */
@@ -463,12 +476,14 @@ export default function RolesPage() {
                 }
 
                 // Select the first editable role by default.
-                // CUSTOMER and SUPER_ADMIN remain visible, but they are read-only.
-                const firstEditableRole = normalizedRoles.find(
-                    (role) => !isPermissionLockedRoleName(role.name)
+                // CUSTOMER and SUPER_ADMIN not visible.
+                const firstVisibleRole = normalizedRoles.find(
+                    (role) =>
+                        normalizeRoleNameForCheck(role.name) !== "SUPER_ADMIN" &&
+                        normalizeRoleNameForCheck(role.name) !== "CUSTOMER"
                 );
 
-                return firstEditableRole?.id ?? normalizedRoles[0]?.id ?? null;
+                return firstVisibleRole?.id ?? null;
             });
 
         } catch (error) {
@@ -930,7 +945,7 @@ export default function RolesPage() {
                         </div>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            {roles.length} role{roles.length === 1 ? "" : "s"} available
+                            {visibleRoles.length} role{visibleRoles.length === 1 ? "" : "s"} available
                         </p>
                     </div>
 
@@ -943,7 +958,7 @@ export default function RolesPage() {
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                {roles.map((role) => {
+                                {visibleRoles.map((role) => {
                                     // Check whether this role is currently selected in the left-side role list.
                                     const isSelected = String(role.id) === String(selectedRoleId);
 
@@ -1024,39 +1039,6 @@ export default function RolesPage() {
 
                 {/* Permissions panel */}
                 <div className="rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
-                    <div className="border-b border-slate-100 p-5">
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                            <div>
-                                <h3 className="font-semibold text-slate-800">
-                                    {selectedRole
-                                        ? `${selectedRole.name} Permissions`
-                                        : "Role Permissions"}
-                                </h3>
-
-                                {selectedRoleIsLocked && (
-                                    <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
-                                        {getLockedRoleMessage(selectedRole.name)}
-                                    </p>
-                                )}
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={handleSavePermissions}
-                                disabled={
-                                    !selectedRole ||
-                                    selectedRoleIsLocked ||
-                                    saving ||
-                                    permissionsLoading ||
-                                    !hasUnsavedChanges
-                                }
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-                            >
-                                <RiSaveLine size={18} />
-                                {saving ? "Saving..." : "Save Permissions"}
-                            </button>
-                        </div>
-                    </div>
 
                     {!selectedRole ? (
                         <div className="p-6 text-sm text-slate-500">
@@ -1102,92 +1084,137 @@ export default function RolesPage() {
                                 </div>
                             </div>
 
-                            {/* Search and bulk actions */}
-                            <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                <div className="relative w-full lg:max-w-md">
-                                    <RiSearchLine
-                                        size={18}
-                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                                    />
+                            {/* Role permission action bar */}
+                            <div className="mb-5 rounded-xl border border-slate-100 bg-white p-4">
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                    <div>
+                                        <h3 className="font-semibold text-slate-800">
+                                            {selectedRole
+                                                ? `${selectedRole.name} Permissions`
+                                                : "Role Permissions"}
+                                        </h3>
 
-                                    <input
-                                        type="text"
-                                        value={searchText}
-                                        onChange={(event) => setSearchText(event.target.value)}
-                                        placeholder="Search permissions..."
-                                        className="w-full rounded-xl border border-slate-200 py-2 pl-10 pr-3 text-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-                                    />
-                                </div>
+                                        <p className="mt-1 text-xs text-slate-500">
+                                            Select or remove permissions for this role, then save your changes.
+                                        </p>
 
-                                <div className="flex flex-wrap gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={handleSelectVisiblePermissions}
-                                        disabled={
-                                            selectedRoleIsLocked ||
-                                            permissionsLoading ||
-                                            filteredPrivileges.length === 0
-                                        }
-                                        className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                                    >
-                                        Select Visible
-                                    </button>
+                                        {selectedRoleIsLocked && (
+                                            <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+                                                {getLockedRoleMessage(selectedRole.name)}
+                                            </p>
+                                        )}
 
-                                    <button
-                                        type="button"
-                                        onClick={handleClearVisiblePermissions}
-                                        disabled={
-                                            selectedRoleIsLocked ||
-                                            permissionsLoading ||
-                                            filteredPrivileges.length === 0
-                                        }
-                                        className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                                    >
-                                        Clear Visible
-                                    </button>
+                                        {selectedRoleDeleteBlockedReason && (
+                                            <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">
+                                                {selectedRoleDeleteBlockedReason}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleDeleteSelectedRole}
+                                            disabled={
+                                                !selectedRole ||
+                                                deletingRole ||
+                                                Boolean(selectedRoleDeleteBlockedReason)
+                                            }
+                                            title={selectedRoleDeleteBlockedReason || "Delete role"}
+                                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400"
+                                        >
+                                            <RiDeleteBinLine size={18} />
+                                            {deletingRole ? "Deleting..." : "Delete Role"}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleSavePermissions}
+                                            disabled={
+                                                !selectedRole ||
+                                                selectedRoleIsLocked ||
+                                                saving ||
+                                                permissionsLoading ||
+                                                !hasUnsavedChanges
+                                            }
+                                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+                                        >
+                                            <RiSaveLine size={18} />
+                                            {saving ? "Saving..." : "Save Permissions"}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    onClick={handleDeleteSelectedRole}
-                                    disabled={
-                                        !selectedRole ||
-                                        deletingRole ||
-                                        Boolean(selectedRoleDeleteBlockedReason)
-                                    }
-                                    title={selectedRoleDeleteBlockedReason || "Delete role"}
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300 disabled:hover:bg-white"
-                                >
-                                    <RiDeleteBinLine size={18} />
-                                    {deletingRole ? "Deleting..." : "Delete Role"}
-                                </button>
+                            {!selectedRoleIsLocked && (
+                                <>
+                                    {/* Search and bulk actions */}
+                                    <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                        <div className="relative w-full lg:max-w-md">
+                                            <RiSearchLine
+                                                size={18}
+                                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                                            />
 
-                                <button
-                                    type="button"
-                                    onClick={handleSavePermissions}
-                                    disabled={
-                                        !selectedRole ||
-                                        selectedRoleIsLocked ||
-                                        saving ||
-                                        permissionsLoading ||
-                                        !hasUnsavedChanges
-                                    }
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-                                >
-                                    <RiSaveLine size={18} />
-                                    {saving ? "Saving..." : "Save Permissions"}
-                                </button>
-                            </div>
+                                            <input
+                                                type="text"
+                                                value={searchText}
+                                                onChange={(event) => setSearchText(event.target.value)}
+                                                placeholder="Search permissions..."
+                                                className="w-full rounded-xl border border-slate-200 py-2 pl-10 pr-3 text-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                                            />
+                                        </div>
 
-                            {selectedRoleDeleteBlockedReason && (
-                                <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">
-                                    Delete blocked: {selectedRoleDeleteBlockedReason}
-                                </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleSelectVisiblePermissions}
+                                                disabled={
+                                                    selectedRoleIsLocked ||
+                                                    permissionsLoading ||
+                                                    filteredPrivileges.length === 0
+                                                }
+                                                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                Select Visible
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={handleClearVisiblePermissions}
+                                                disabled={
+                                                    selectedRoleIsLocked ||
+                                                    permissionsLoading ||
+                                                    filteredPrivileges.length === 0
+                                                }
+                                                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                Clear Visible
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
-                            {permissionsLoading ? (
+                            {selectedRoleIsLocked ? (
+                                <div className="rounded-xl border border-amber-100 bg-amber-50 p-5 text-sm text-amber-700">
+                                    <p className="font-semibold">
+                                        This role is read-only.
+                                    </p>
+
+                                    <p className="mt-1">
+                                        {getLockedRoleMessage(selectedRole.name)}
+                                    </p>
+
+                                    <p className="mt-3 text-xs">
+                                        Permissions are protected for this role, so they are not shown as editable checkboxes.
+                                    </p>
+                                </div>
+                            ) : permissionsLoading ? (
+                                <div className="rounded-xl border border-slate-100 p-5 text-sm text-slate-500">
+                                    Loading permissions...
+                                </div>
+                            ) : privileges.length === 0 ? (
                                 <div className="rounded-xl border border-slate-100 p-5 text-sm text-slate-500">
                                     Loading permissions...
                                 </div>
@@ -1269,6 +1296,6 @@ export default function RolesPage() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

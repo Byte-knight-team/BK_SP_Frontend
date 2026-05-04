@@ -1,4 +1,4 @@
-import { buildApiUrl } from "../apis/apiHelper";
+import { buildApiUrl } from '../apis/apiHelper'
 
 export async function loginStaff({ email, password }) {
   const response = await fetch(buildApiUrl('/api/auth/staff/login'), {
