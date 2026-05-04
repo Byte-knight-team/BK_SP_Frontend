@@ -1,19 +1,37 @@
+// Import the custom hook responsible for fetching all dashboard metrics from the backend
 import { useDashboardData } from '../../hooks/useDashboardData'
+
+// Import UI components that make up the different sections of the dashboard
 import StatsGrid from '../../components/manager/dashboard/StatsGrid'
 import SalesTargetCard from '../../components/manager/dashboard/SalesTargetCard'
 import OrderDistributionCard from '../../components/manager/dashboard/OrderDistributionCard'
 import RecentOrdersTable from '../../components/manager/dashboard/RecentOrdersTable'
 import StaffAvailability from '../../components/manager/dashboard/StaffAvailability'
 import FleetTrackerBanner from '../../components/manager/dashboard/FleetTrackerBanner'
-import { Plus, UserCheck, Eye } from 'lucide-react'
 
+// Import icons from the lucide-react library used in the header buttons
+import { Plus, UserCheck } from 'lucide-react'
+
+// Import routing hook for navigation and authentication hook for user context
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
+/**
+ * DashHeader Component
+ * Renders the top section of the dashboard with a personalized greeting,
+ * current date, and quick action buttons for common manager tasks.
+ */
 function DashHeader() {
+  // Hook to programmatically navigate to other pages
   const navigate = useNavigate()
+
+  // Retrieve the currently logged-in user details from the authentication context
   const { user } = useAuth()
+
+  // Determine the name to display: prioritize full name, fallback to username, then 'Manager'
   const displayName = user?.fullName || user?.username || 'Manager'
+
+  // Format the current date into a human-readable string (e.g., "Monday, May 4, 2026")
   const now = new Date().toLocaleString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -29,15 +47,21 @@ function DashHeader() {
         <p className="mt-1 text-sm text-gray-400">{now}</p>
       </div>
       <div className="flex items-center gap-3">
-        <button 
-          onClick={() => navigate('/manager/inventory', { state: { openAddModal: true } })}
-          className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors"
+        {/* Button to navigate to the Inventory page and automatically open the 'Add Item' modal via router state */}
+        <button
+          onClick={() =>
+            navigate('/manager/inventory', { state: { openAddModal: true } })
+          }
+          className="bg-brand hover:bg-brand-hover flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors"
         >
           <Plus className="h-5 w-5" /> Add Inventory
         </button>
-        <button 
-          onClick={() => navigate('/manager/drivers', { state: { scrollToDispatch: true } })}
-          className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors"
+        {/* Button to navigate to the Drivers page and scroll down to the dispatch section via router state */}
+        <button
+          onClick={() =>
+            navigate('/manager/drivers', { state: { scrollToDispatch: true } })
+          }
+          className="bg-brand hover:bg-brand-hover flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors"
         >
           <UserCheck className="h-5 w-5" /> Assign Drivers
         </button>
@@ -46,6 +70,11 @@ function DashHeader() {
   )
 }
 
+/**
+ * LoadingSkeleton Component
+ * Provides a visual placeholder (shimmer effect) while the dashboard data is being fetched.
+ * This improves perceived performance by preventing a blank screen during API calls.
+ */
 function LoadingSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
@@ -59,11 +88,20 @@ function LoadingSkeleton() {
   )
 }
 
+/**
+ * ManagerDashboardPage (Main Component)
+ * Acts as the container for the entire dashboard. It fetches the required data
+ * via a custom hook and distributes it to the specialized child components.
+ */
 export default function ManagerDashboardPage() {
+  // Call the custom hook to fetch all dashboard metrics from the backend API
+  // Destructures the data, loading state, error state, and a function to manually refresh
   const { data, loading, error, refetch } = useDashboardData()
 
+  // 1. Loading State: Show the skeleton animation if data is still being fetched
   if (loading) return <LoadingSkeleton />
 
+  // 2. Error State: Show an error message and a retry button if the API request failed or returned no data
   if (error || !data) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
@@ -77,11 +115,16 @@ export default function ManagerDashboardPage() {
     )
   }
 
+  // 3. Success State: Render the actual dashboard using the fetched 'data' object
   return (
     <div className="mx-auto max-w-7xl space-y-6">
+      {/* Renders the top header with the personalized greeting and action buttons */}
       <DashHeader />
+
+      {/* Renders the top row of high-level statistic cards (Revenue, Orders, etc.) */}
       <StatsGrid data={data} />
 
+      {/* Renders the middle section with two side-by-side charts/cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SalesTargetCard
           current={data.salesTarget.current}
@@ -94,11 +137,16 @@ export default function ManagerDashboardPage() {
         />
       </div>
 
+      {/* Renders the table showing the most recent incoming orders */}
       <RecentOrdersTable orders={data.recentOrders} />
+
+      {/* Renders the summary of currently available kitchen and delivery staff */}
       <StaffAvailability
         kitchen={data.staff.kitchen}
         fleet={data.staff.fleet}
       />
+
+      {/* Renders a banner showing how many drivers are currently out delivering orders */}
       <FleetTrackerBanner activeDeliveries={data.fleetActiveDeliveries} />
     </div>
   )
