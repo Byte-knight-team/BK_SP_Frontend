@@ -227,14 +227,14 @@ export default function OrderConfirmationPage() {
             <div className="relative z-10 flex items-start justify-between">
               {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
-                const isDone = index < statusIndex;
-                const isActive = index === statusIndex;
+                const isDone = index <= statusIndex;
+                const isNextStep = index === statusIndex + 1;
 
                 return (
                   <div key={step.key} className="flex w-1/5 flex-col items-center text-center">
                     <div
                       className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full transition ${
-                        isDone ? 'bg-orange-500 text-white shadow-md' : isActive ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' : 'bg-white border border-slate-200 text-slate-300'
+                        isDone ? 'bg-orange-500 text-white shadow-md' : isNextStep ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' : 'bg-white border border-slate-200 text-slate-300'
                       }`}
                     >
                       <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
