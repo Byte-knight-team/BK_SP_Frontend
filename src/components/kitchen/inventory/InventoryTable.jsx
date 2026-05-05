@@ -1,4 +1,4 @@
-import { Plus, RotateCcw, Search } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import ProgressBar from '../ProgressBar'
 import { useState, useEffect } from 'react'
 import {
@@ -11,30 +11,16 @@ import UpdateStockModal from './UpdateStockModal'
 import { toast } from 'react-toastify'
 
 const InventoryTable = () => {
-  // set loading state
+
   const [loading, setLoading] = useState(false)
-
-  // save inventory data
   const [inventoryData, setInventoryData] = useState([])
-
-  // Stores what the user types in the search bar
   const [searchTerm, setSearchTerm] = useState('')
 
   //-------------- Update Stock Modal --------------
-
-  // control modal open and close
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
-
-  // to store the name of the item to be updated
   const [updateItemName, setUpdateItemName] = useState('')
-
-  // to store the unit of the item to be updated
   const [updateUnit, setUpdateUnit] = useState('')
-
-  // to store the current quantity of the item to be updated
   const [updateCurrentQty, setUpdateCurrentQty] = useState('')
-
-  // to store the max stock of the item to be updated
   const [updateMaxStock, setUpdateMaxStock] = useState('')
 
   // function to open the update modal
@@ -53,36 +39,24 @@ const InventoryTable = () => {
     if (error) {
       toast.error('Failed to update stock: ' + error)
     } else {
-      // message from the backend
       toast.success(data.message)
-
       setIsUpdateModalOpen(false)
-      // call the function to refresh the table data
-      // this is a background fetch (false = don't show the loading screen)
       fetchInventory(false)
     }
   }
 
   //-------------- Inventory Request Modal --------------
-
-  // control modal open and close
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
-  // store the type of modal to open (ADD_NEW_ITEM or REFILL_STOCK)
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
   const [modalType, setModalType] = useState('')
-
-  // store selected item details for modal
   const [selectedItemName, setSelectedItemName] = useState('')
-
-  // store selected item details for modal
   const [selectedUnit, setSelectedUnit] = useState('')
 
-  // when clicking the top "Request New Item" button
+  // when clicking the "Request New Item" button
   const handleOpenNewItemModal = () => {
     setModalType('ADD_NEW_ITEM')
     setSelectedItemName('')
     setSelectedUnit('')
-    setIsModalOpen(true)
+    setIsRequestModalOpen(true)
   }
 
   // when clicking the "Request" button on a specific row
@@ -90,28 +64,23 @@ const InventoryTable = () => {
     setModalType('REFILL_STOCK')
     setSelectedItemName(item.name) // from DTO
     setSelectedUnit(item.unit) // from DTO
-    setIsModalOpen(true)
+    setIsRequestModalOpen(true)
   }
 
   // function to Submit the Modal
   const handleModalSubmit = async (requestData) => {
-    // send data to backend
     const { data, error } = await createInventoryRequestAPI(requestData)
 
     if (error) {
       toast.error('Failed to send request: ' + error)
     } else {
-      // message from the backend
       toast.success(data.message)
-      setIsModalOpen(false) // close modal on success
+      setIsRequestModalOpen(false)
     }
   }
 
-  //fetch data from API
-  // move the function outside of useEffect so handleUpdateSubmit can call it
-  // added 'showLoading' parameter, it defaults to true for the first page load
   const fetchInventory = async (showLoading = true) => {
-    if (showLoading) setLoading(true) // Only show loading text if requested
+    if (showLoading) setLoading(true)
     const { data, error } = await getAllInventoryAPI()
     if (data) {
       setInventoryData(data)
@@ -121,8 +90,6 @@ const InventoryTable = () => {
     if (showLoading) setLoading(false)
   }
 
-  // useEffect now just calls the function when the page loads
-  // this happens when the chef first open the page (shows loading screen)
   useEffect(() => {
     fetchInventory(true)
   }, [])
@@ -155,8 +122,8 @@ const InventoryTable = () => {
               type="text"
               placeholder="Search inventory..."
               className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-3 pr-4 pl-11 text-sm font-medium"
-              value={searchTerm} // Connect to state
-              onChange={(e) => setSearchTerm(e.target.value)} // Update state on type
+              value={searchTerm} // save the value as searchTerm
+              onChange={(e) => setSearchTerm(e.target.value)} //update the value of searchterm
             />
           </div>
         </div>
@@ -167,9 +134,6 @@ const InventoryTable = () => {
             className="flex items-center gap-2 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700"
           >
             <Plus size={18} /> Request New Item
-          </button>
-          <button className="flex items-center gap-2 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-2 text-sm font-bold text-orange-600 transition-all hover:bg-orange-100">
-            <RotateCcw size={18} /> Start-of-day Update
           </button>
         </div>
       </div>
@@ -214,8 +178,8 @@ const InventoryTable = () => {
                             item.warningLevel === 'CRITICAL'
                               ? '#EF4444'
                               : item.warningLevel === 'LOW'
-                                ? '#F97316'
-                                : '#EA580C'
+                                ? '#F97316' //orange
+                                : '#22C55E'
                           }
                         />
                       </div>
@@ -282,8 +246,8 @@ const InventoryTable = () => {
 
       {/* the inventory request modal */}
       <InventoryRequestModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
         onSubmit={handleModalSubmit}
         requestType={modalType}
         initialItemName={selectedItemName}

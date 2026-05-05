@@ -142,6 +142,11 @@ section[id] {
   background: linear-gradient(to right, #ef4444, #dc2626) !important;
 }
 
+/* Warning Toast (Amber/Orange) */
+.Toastify__toast--warning.Toastify__toast-theme--colored {
+  background: linear-gradient(to right, #f59e0b, #d97706) !important;
+}
+
 /* Progress Bar Customization */
 .Toastify__progress-bar {
   height: 4px !important;
