@@ -291,7 +291,10 @@ export default function MenuManagementPage() {
     return (
       <button
         type="button"
-        onClick={onChange}
+        onClick={(event) => {
+          event.stopPropagation();
+          onChange?.(event);
+        }}
         disabled={disabled || loading}
         aria-pressed={checked}
         className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
@@ -552,7 +555,10 @@ export default function MenuManagementPage() {
                           />
                           <button
                             type="button"
-                            onClick={() => navigate(`/admin/menu/edit/${item.id}`)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate(`/admin/menu/edit/${item.id}`);
+                            }}
                             className="grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                             aria-label="Edit"
                           >

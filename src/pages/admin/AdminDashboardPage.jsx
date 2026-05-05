@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
     };
 
     loadDashboardData();
-    // Refresh the dashboard periodically to keep the admin view live.
+    // Refresh the dashboard periodically to keep the admin view live.(auto refresh for every 10s)
     const intervalId = window.setInterval(loadDashboardData, 10000);
 
     return () => {
