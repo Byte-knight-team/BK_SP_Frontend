@@ -382,7 +382,7 @@ export default function EditBranchPage() {
                         </p>
                     </div>
 
-                    <button
+                    {/* <button
                         type="button"
                         onClick={handleReloadBranchConfig}
                         disabled={configLoading}
@@ -390,7 +390,7 @@ export default function EditBranchPage() {
                     >
                         <RiRefreshLine size={18} />
                         Reload
-                    </button>
+                    </button> */}
                 </div>
 
                 {configSuccessMessage && (

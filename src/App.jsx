@@ -35,7 +35,7 @@ import ProfilePage from './pages/ProfilePage'
 // Common protected route component
 import ProtectedRoute from './components/common/ProtectedRoute'
 
-// Super Admin / Member 01 pages
+// Super Admin
 import SuperAdminDashboardPage from './pages/superadmin/DashboardPage'
 import StaffListPage from './pages/superadmin/StaffListPage'
 import CreateStaffPage from './pages/superadmin/CreateStaffPage'
@@ -49,8 +49,7 @@ import SystemConfigPage from './pages/superadmin/SystemConfigPage'
 import AuditLogsPage from './pages/superadmin/AuditLogsPage'
 import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
-import CustomerListPage from './pages/superadmin/CustomerListPage'
-import CustomerDetailsPage from './pages/superadmin/CustomerDetailsPage'
+import CustomerManagementPage from './pages/superadmin/CustomerManagement'
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
@@ -186,8 +185,7 @@ export default function App() {
           <Route path="branches/:id" element={<BranchDetailsPage />} />
           <Route path="branches/:id/edit" element={<EditBranchPage />} />
 
-          <Route path="customers" element={<CustomerListPage />} />
-          <Route path="customers/:id" element={<CustomerDetailsPage />} />
+          <Route path="customers" element={<CustomerManagementPage />} />
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />

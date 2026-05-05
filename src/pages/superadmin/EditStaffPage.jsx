@@ -17,13 +17,11 @@ import { getRolesAPI } from "../../apis/staff/roles";
 import { useAuth } from "../../context/AuthContext";
 
 /*
-  Dynamic role rules:
-
-  SUPER_ADMIN can assign all staff-side roles except CUSTOMER.
-  ADMIN can assign only branch-level staff roles.
-
-  This means new roles like LINE_CHEF will appear automatically
-  after they are created in the database.
+  - Dynamic role rules -
+      SUPER_ADMIN can assign all staffside roles except CUSTOMER.
+      ADMIN can assign only branch-level staff roles.
+      This means new roles like LINE_CHEF will appear automatically
+      after they are created in the database.
 */
 const SUPER_ADMIN_BLOCKED_ROLES = ["CUSTOMER"];
 const ADMIN_BLOCKED_ROLES = ["CUSTOMER", "SUPER_ADMIN", "ADMIN"];
@@ -208,10 +206,6 @@ export default function EditStaffPage() {
     If the current staff role is not inside allowedRoles,
     we still show it as a fallback option so the dropdown never appears blank.
 
-    Example:
-    ADMIN viewing/editing an ADMIN account:
-    - role should show ADMIN
-    - dropdown is disabled
   */
   const roleOptions = (() => {
     if (!formData.roleName) {

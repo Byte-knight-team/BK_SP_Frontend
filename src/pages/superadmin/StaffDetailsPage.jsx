@@ -54,11 +54,6 @@ export default function StaffDetailsPage() {
 
   /*
     This page is shared by SUPER_ADMIN and ADMIN.
-    SUPER_ADMIN route:
-    /staff/staff/:id
-
-    ADMIN route:
-    /admin/staff/:id
   */
   const isAdminPanelRoute = location.pathname.startsWith("/admin");
 

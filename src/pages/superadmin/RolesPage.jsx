@@ -7,7 +7,6 @@ import {
     RiSaveLine,
     RiShieldCheckLine,
     RiLockLine,
-    RiSearchLine,
     RiErrorWarningLine,
     RiCheckboxCircleLine,
     RiUserSettingsLine,
@@ -31,10 +30,6 @@ import { useAuth } from "../../context/AuthContext";
 
 /**
  * Extracts role name safely from different possible auth user shapes.
- * Examples:
- * - { role: "SUPER_ADMIN" }
- * - { roleName: "SUPER_ADMIN" }
- * - { role: { name: "SUPER_ADMIN" } }
  */
 function getCurrentRoleName(user) {
     if (!user) return "";
@@ -88,30 +83,6 @@ function formatPermissionName(name) {
         .replace(/([a-z])([A-Z])/g, "$1 $2")
         .toLowerCase()
         .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-/**
- * Groups privileges into simple frontend modules.
- * ackend currently does not send module/category,
- * so this derives a display group from the privilege name.
- */
-function getPrivilegeModule(name) {
-    const value = name.toUpperCase();
-
-    if (value.includes("STAFF") || value.includes("PRIVILEGE")) return "Staff & RBAC";
-    if (value.includes("BRANCH")) return "Branch";
-    if (value.includes("CONFIG") || value.includes("SYSTEM")) return "System Config";
-    if (value.includes("AUDIT")) return "Audit";
-    if (value.includes("ORDER")) return "Orders";
-    if (value.includes("CUSTOMER")) return "Customers";
-    if (value.includes("DELIVERY")) return "Delivery";
-    if (value.includes("REPORT")) return "Reports";
-    if (value.includes("MENU")) return "Menu";
-    if (value.includes("QR") || value.includes("TABLE")) return "QR & Tables";
-    if (value.includes("BACKUP") || value.includes("EXPORT")) return "Backup & Export";
-    if (value.includes("RESERVATION")) return "Reservations";
-
-    return "Other";
 }
 
 /**
@@ -274,7 +245,6 @@ export default function RolesPage() {
     // This stores the editable base salary value for the selected role.
     const [baseSalaryInput, setBaseSalaryInput] = useState("");
 
-    const [searchText, setSearchText] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
@@ -389,59 +359,7 @@ export default function RolesPage() {
         return !areSamePermissions(selectedPermissionNames, originalPermissionNames);
     }, [selectedPermissionNames, originalPermissionNames]);
 
-    /**
-     * Adds simple module grouping to each privilege.
-     */
-    const privilegesWithModules = useMemo(() => {
-        return privileges.map((privilege) => {
-            // If backend does not send a real module, derive one from the privilege name.
-            // This prevents every permission from being grouped under "GENERAL".
-            const derivedModule =
-                !privilege.module || privilege.module === "GENERAL"
-                    ? getPrivilegeModule(privilege.name)
-                    : privilege.module;
-
-            return {
-                ...privilege,
-                module: derivedModule,
-            };
-        });
-    }, [privileges]);
-
-    /**
-     * Filters privileges by search text.
-     */
-    const filteredPrivileges = useMemo(() => {
-        const query = searchText.trim().toLowerCase();
-
-        if (!query) {
-            return privilegesWithModules;
-        }
-
-        return privilegesWithModules.filter((privilege) => {
-            return (
-                privilege.name.toLowerCase().includes(query) ||
-                formatPermissionName(privilege.name).toLowerCase().includes(query) ||
-                privilege.module.toLowerCase().includes(query)
-            );
-        });
-    }, [privilegesWithModules, searchText]);
-
-    /**
-     * Groups filtered privileges by module for cleaner display.
-     */
-    const groupedPrivileges = useMemo(() => {
-        return filteredPrivileges.reduce((groups, privilege) => {
-            const moduleName = privilege.module || "Other";
-
-            if (!groups[moduleName]) {
-                groups[moduleName] = [];
-            }
-
-            groups[moduleName].push(privilege);
-            return groups;
-        }, {});
-    }, [filteredPrivileges]);
+    const visiblePrivileges = privileges;
 
     /**
      * Loads all roles and all privileges.
@@ -578,47 +496,6 @@ export default function RolesPage() {
     }
 
     /**
-     * Selects all currently visible permissions.
-     * This respects the search filter.
-     */
-    function handleSelectVisiblePermissions() {
-        // Bulk select is disabled for locked read-only roles.
-        if (selectedRoleIsLocked) {
-            return;
-        }
-
-        const visiblePermissionNames = filteredPrivileges.map(
-            (privilege) => privilege.name
-        );
-
-        setSelectedPermissionNames((currentPermissions) => {
-            const merged = new Set([...currentPermissions, ...visiblePermissionNames]);
-            return Array.from(merged);
-        });
-    }
-
-    /**
-     * Clears all currently visible permissions.
-     * This respects the search filter.
-     */
-    function handleClearVisiblePermissions() {
-        // Bulk clear is disabled for locked read-only roles.
-        if (selectedRoleIsLocked) {
-            return;
-        }
-
-        const visiblePermissionNames = new Set(
-            filteredPrivileges.map((privilege) => privilege.name)
-        );
-
-        setSelectedPermissionNames((currentPermissions) =>
-            currentPermissions.filter(
-                (permissionName) => !visiblePermissionNames.has(permissionName)
-            )
-        );
-    }
-
-    /**
  * Converts salary input into a safe number.
  */
     function parseSalaryValue(value) {
@@ -675,9 +552,8 @@ export default function RolesPage() {
         }
     }
 
-    /**
+ /*
  * Creates a new custom role.
- *
  * This does not assign permissions.
  * After create, the page reloads the role list and selects the new role.
  */
@@ -867,7 +743,7 @@ export default function RolesPage() {
                         </div>
                     </div>
 
-                    <button
+                    {/* <button
                         type="button"
                         onClick={handleReload}
                         disabled={initialLoading || permissionsLoading || saving}
@@ -875,7 +751,8 @@ export default function RolesPage() {
                     >
                         <RiRefreshLine size={18} />
                         Reload
-                    </button>
+                    </button> */}
+
                 </div>
             </div>
 
@@ -962,8 +839,8 @@ export default function RolesPage() {
                                     // Check whether this role is currently selected in the left-side role list.
                                     const isSelected = String(role.id) === String(selectedRoleId);
 
-                                    // SUPER_ADMIN and CUSTOMER are shown but locked.
-                                    // They are visible for review, but their permissions cannot be edited.
+                                    // SUPER_ADMIN and CUSTOMER are locked.
+                                    // Their permissions cannot be edited.
                                     const roleIsCore = isCoreRoleName(role.name);
                                     const roleIsPermissionLocked = isPermissionLockedRoleName(role.name);
 
@@ -1146,56 +1023,6 @@ export default function RolesPage() {
                                 </div>
                             </div>
 
-                            {!selectedRoleIsLocked && (
-                                <>
-                                    {/* Search and bulk actions */}
-                                    <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                        <div className="relative w-full lg:max-w-md">
-                                            <RiSearchLine
-                                                size={18}
-                                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                                            />
-
-                                            <input
-                                                type="text"
-                                                value={searchText}
-                                                onChange={(event) => setSearchText(event.target.value)}
-                                                placeholder="Search permissions..."
-                                                className="w-full rounded-xl border border-slate-200 py-2 pl-10 pr-3 text-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-                                            />
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={handleSelectVisiblePermissions}
-                                                disabled={
-                                                    selectedRoleIsLocked ||
-                                                    permissionsLoading ||
-                                                    filteredPrivileges.length === 0
-                                                }
-                                                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                                            >
-                                                Select Visible
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={handleClearVisiblePermissions}
-                                                disabled={
-                                                    selectedRoleIsLocked ||
-                                                    permissionsLoading ||
-                                                    filteredPrivileges.length === 0
-                                                }
-                                                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                                            >
-                                                Clear Visible
-                                            </button>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
                             {selectedRoleIsLocked ? (
                                 <div className="rounded-xl border border-amber-100 bg-amber-50 p-5 text-sm text-amber-700">
                                     <p className="font-semibold">
@@ -1216,80 +1043,50 @@ export default function RolesPage() {
                                 </div>
                             ) : privileges.length === 0 ? (
                                 <div className="rounded-xl border border-slate-100 p-5 text-sm text-slate-500">
-                                    Loading permissions...
-                                </div>
-                            ) : privileges.length === 0 ? (
-                                <div className="rounded-xl border border-slate-100 p-5 text-sm text-slate-500">
                                     No privileges found.
                                 </div>
-                            ) : filteredPrivileges.length === 0 ? (
-                                <div className="rounded-xl border border-slate-100 p-5 text-sm text-slate-500">
-                                    No permissions matched your search.
-                                </div>
                             ) : (
-                                <div className="space-y-5">
-                                    {Object.entries(groupedPrivileges).map(
-                                        ([moduleName, modulePrivileges]) => (
-                                            <div
-                                                key={moduleName}
-                                                className="rounded-xl border border-slate-100"
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                    {visiblePrivileges.map((privilege) => {
+                                        const checked = selectedPermissionSet.has(privilege.name);
+
+                                        return (
+                                            <label
+                                                key={privilege.id}
+                                                className={`flex items-start gap-3 rounded-xl border p-3 transition ${checked
+                                                        ? "border-indigo-200 bg-indigo-50"
+                                                        : "border-slate-100 hover:bg-slate-50"
+                                                    }`}
                                             >
-                                                <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
-                                                    <h4 className="text-sm font-semibold text-slate-700">
-                                                        {moduleName}
-                                                    </h4>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    disabled={selectedRoleIsLocked}
+                                                    onChange={() => handleTogglePermission(privilege.name)}
+                                                    className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                                                />
+
+                                                <div>
+                                                    <p
+                                                        className={`text-sm font-medium ${checked ? "text-indigo-700" : "text-slate-700"
+                                                            }`}
+                                                    >
+                                                        {formatPermissionName(privilege.name)}
+                                                    </p>
+
+                                                    <p className="mt-1 text-xs text-slate-400">
+                                                        {privilege.name}
+                                                    </p>
+
+                                                    {privilege.description && (
+                                                        <p className="mt-1 text-xs text-slate-500">
+                                                            {privilege.description}
+                                                        </p>
+                                                    )}
                                                 </div>
-
-                                                <div className="grid grid-cols-1 gap-2 p-4 md:grid-cols-2">
-                                                    {modulePrivileges.map((privilege) => {
-                                                        const checked = selectedPermissionSet.has(
-                                                            privilege.name
-                                                        );
-
-                                                        return (
-                                                            <label
-                                                                key={privilege.id}
-                                                                className={`flex items-start gap-3 rounded-xl border p-3 transition ${selectedRoleIsLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer"
-                                                                    } ${checked
-                                                                        ? "border-indigo-200 bg-indigo-50"
-                                                                        : "border-slate-100 hover:bg-slate-50"
-                                                                    }`}
-                                                            >
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={checked}
-                                                                    disabled={selectedRoleIsLocked}
-                                                                    onChange={() => handleTogglePermission(privilege.name)}
-                                                                    className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
-                                                                />
-
-                                                                <div>
-                                                                    <p
-                                                                        className={`text-sm font-medium ${checked
-                                                                            ? "text-indigo-700"
-                                                                            : "text-slate-700"
-                                                                            }`}
-                                                                    >
-                                                                        {formatPermissionName(privilege.name)}
-                                                                    </p>
-
-                                                                    <p className="mt-1 text-xs text-slate-400">
-                                                                        {privilege.name}
-                                                                    </p>
-
-                                                                    {privilege.description && (
-                                                                        <p className="mt-1 text-xs text-slate-500">
-                                                                            {privilege.description}
-                                                                        </p>
-                                                                    )}
-                                                                </div>
-                                                            </label>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )
-                                    )}
+                                            </label>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

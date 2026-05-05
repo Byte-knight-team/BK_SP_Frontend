@@ -4,14 +4,8 @@ import { RiLogoutBoxRLine } from "@remixicon/react";
 
 /*
   AppSidebar
-
-  Purpose:
   - Common sidebar UI used by all staff role panels.
   - Shows logo, branch name, navigation links, profile card, and logout button.
-
-  Important:
-  - This component does not decide the logged-in user.
-  - Role sidebars pass userName, branchName, roleLabel, and profilePath into this component.
 */
 export default function AppSidebar({
   navItems = [],
@@ -25,13 +19,10 @@ export default function AppSidebar({
 
   /*
     Checks whether a sidebar navigation item is active.
-
     If item.exact is true:
     - route must match exactly.
-
     Otherwise:
     - route can start with item.path.
-    - Example: /staff/staff/create should keep Staff Management active.
   */
   const isActive = (item) => {
     if (item.exact) {
@@ -47,16 +38,7 @@ export default function AppSidebar({
   const isProfileActive = location.pathname === profilePath;
 
   /*
-    Display name cleanup.
-
-    Because JWT currently does not contain real username/fullName for every role,
-    some sidebars may pass email as userName.
-
-    We do not want the sidebar profile card to show full email.
-    So if userName is an email, show only the part before @.
-
-    Example:
-    o1xohxevet@yzcalo.com -> o1xohxevet
+    Display name cleanup
   */
   const displayUserName =
     userName && userName.includes("@") ? userName.split("@")[0] : userName;

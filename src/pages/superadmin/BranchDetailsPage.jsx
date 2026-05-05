@@ -17,9 +17,6 @@ import { useAuth } from "../../context/AuthContext";
 export default function BranchDetailsPage() {
     /*
         Reads branch ID from route.
-
-        Route:
-        /staff/branches/:id
     */
     const { id } = useParams();
 
@@ -60,9 +57,7 @@ export default function BranchDetailsPage() {
 
     /*
         Load selected branch details.
-
-        Calls:
-        GET /api/admin/branches/{id}
+        Calls: GET /api/admin/branches/{id}
     */
     const loadBranch = async () => {
         setLoading(true);
@@ -93,10 +88,7 @@ export default function BranchDetailsPage() {
 
     /*
         Safely read branch status.
-
-        Expected:
         status: "ACTIVE" / "INACTIVE"
-
         Fallbacks:
         active: true / false
         isActive: true / false
