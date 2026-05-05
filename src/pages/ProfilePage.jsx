@@ -32,7 +32,7 @@ function getProfilePathByRole(roleName) {
 }
 
 /*
-    Converts email-like values into display names.
+    Converts emaill ke values into display names.
 */
 function getNameBeforeAt(value) {
     if (!value) {
@@ -51,7 +51,7 @@ export default function ProfilePage() {
     const { user, logout } = useAuth();
 
     /*
-        Role can come as role or roleName depending on AuthContext/JWT mapping.
+        Role can come as role or roleName depending on AuthContext or JWT mapping.
     */
     const roleName = user?.roleName || user?.role || "STAFF";
 

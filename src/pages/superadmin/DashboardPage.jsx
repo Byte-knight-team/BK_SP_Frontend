@@ -16,19 +16,6 @@ import { getAllBranchesAPI } from "../../apis/staff/branches";
 
 /*
   Super Admin Dashboard
-
-  Purpose:
-  - Shows a simple overview using real data from existing pages.
-  - Staff data comes from Staff Management API.
-  - Branch data comes from Branch Management API.
-
-  Kept simple on purpose:
-  - total staff
-  - active staff
-  - inactive staff
-  - total branches
-  - active branches
-  - inactive branches
 */
 export default function DashboardPage() {
   /*
@@ -76,7 +63,6 @@ export default function DashboardPage() {
 
   /*
     Staff active status helper.
-
     Backend may return:
     - active: true / false
     - isActive: true / false
@@ -96,9 +82,7 @@ export default function DashboardPage() {
   /*
     Branch active status helper.
 
-    Backend main response usually gives:
-    status: "ACTIVE" or "INACTIVE"
-
+    Backend main response gives "status: "ACTIVE" or "INACTIVE"".
     But this also supports:
     - active: true / false
     - isActive: true / false
@@ -201,6 +185,7 @@ export default function DashboardPage() {
       description: "Branches currently disabled",
       icon: RiCloseCircleLine,
     },
+    // new cards
   ];
 
   /*

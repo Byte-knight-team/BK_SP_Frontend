@@ -11,12 +11,6 @@ import { useAuth } from "../../context/AuthContext";
 export default function CreateStaffPage() {
     /*
         Roles are loaded from the database.
-
-        SUPER_ADMIN can assign all staff-side roles except CUSTOMER.
-        ADMIN can assign only branch-level roles, so ADMIN cannot assign:
-        - CUSTOMER
-        - SUPER_ADMIN
-        - ADMIN
     */
     const SUPER_ADMIN_BLOCKED_ROLES = ["CUSTOMER"];
     const ADMIN_BLOCKED_ROLES = ["CUSTOMER", "SUPER_ADMIN", "ADMIN"];
@@ -45,12 +39,6 @@ export default function CreateStaffPage() {
 
     /*
     This page is shared by SUPER_ADMIN and ADMIN routes.
-
-    SUPER_ADMIN route:
-    /staff/staff/create
-
-    ADMIN route:
-    /admin/staff/create
 */
     const staffListPath = location.pathname.startsWith("/admin")
         ? "/admin/staff"
@@ -63,9 +51,8 @@ export default function CreateStaffPage() {
     const { setHeaderInfo } = useOutletContext();
 
     /*
-    Read logged-in user details from AuthContext.
-    AuthContext now gets user data from the decoded JWT token.
-*/
+    Read logged in user details from AuthContext.
+    */
     const { user: authUser } = useAuth();
 
     const loggedInRole = authUser?.roleName || authUser?.role || "";

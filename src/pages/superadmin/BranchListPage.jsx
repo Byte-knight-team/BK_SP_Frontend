@@ -274,14 +274,14 @@ export default function BranchListPage() {
 
                     <div className="flex items-center gap-3">
                         {/* Reload branch list manually */}
-                        <button
+                        {/* <button
                             type="button"
                             onClick={loadBranches}
                             className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                         >
                             <RiRefreshLine size={18} />
                             Refresh
-                        </button>
+                        </button> */}
 
                         {/* Go to create branch page */}
                         <Link
@@ -391,7 +391,7 @@ export default function BranchListPage() {
                                                 {formatDate(branch.createdAt || branch.createdDate)}
                                             </td>
 
-                                            {/* Active / inactive badge */}
+                                            {/*Status - Active / inactive badge */}
                                             <td className="px-6 py-4">
                                                 <span
                                                     className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${active
