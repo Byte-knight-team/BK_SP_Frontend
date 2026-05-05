@@ -176,10 +176,10 @@ const InventoryTable = () => {
                           percentage={item.percentage}
                           color={
                             item.warningLevel === 'CRITICAL'
-                              ? '#EF4444'
+                              ? '#EF4444' //red
                               : item.warningLevel === 'LOW'
                                 ? '#F97316' //orange
-                                : '#22C55E'
+                                : '#22C55E' //green
                           }
                         />
                       </div>
