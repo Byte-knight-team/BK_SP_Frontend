@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Star, Loader } from 'lucide-react';
-import { getRecentReviews } from '../../apis/reviews';
+import { getRecentReviews } from '../../apis/customer/reviews';
 
 export default function TestimonialsSection() {
 	const [reviews, setReviews] = useState([]);
