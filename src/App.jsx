@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import './index.css';
+import './index.css'
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
@@ -97,7 +97,6 @@ import ApprovalsPage from './pages/kitchen/ApprovalsPage'
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
 import OrderManagementPage from './pages/receptionist/OrderManagementPage'
-
 
 function isTokenExpired(token) {
   if (!token) return true
