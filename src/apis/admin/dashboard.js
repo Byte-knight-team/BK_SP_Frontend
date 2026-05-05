@@ -14,7 +14,7 @@ const ORDER_FLOW_ENDPOINTS = [
 ];
 
 const REVENUE_TREND_ENDPOINTS = [
-  `${API_BASE}/api/admin/dashboard/revenue-trend?days=7`,
+  `${API_BASE}/api/admin/dashboard/revenue-trend`,
 ];
 
 const toNumber = (value, fallback = 0) => {

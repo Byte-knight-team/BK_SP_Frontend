@@ -58,6 +58,8 @@ export default function MenuItemDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState('');
   const [decisionItemId, setDecisionItemId] = useState(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -110,14 +112,19 @@ export default function MenuItemDetailsPage() {
     }
   };
 
-  const handleRejectPendingItem = async () => {
-    const reason = window.prompt('Enter rejection reason for chef:');
+  const handleRejectPendingItem = () => {
+    setShowRejectModal(true);
+    setRejectionReason('');
+    setApiError('');
+  };
 
-    if (reason === null) {
-      return;
-    }
+  const handleCancelReject = () => {
+    setShowRejectModal(false);
+    setRejectionReason('');
+  };
 
-    if (!reason.trim()) {
+  const handleConfirmReject = async () => {
+    if (!rejectionReason.trim()) {
       setApiError('Rejection reason is required.');
       return;
     }
@@ -126,9 +133,11 @@ export default function MenuItemDetailsPage() {
     setApiError('');
 
     try {
-      const action = await rejectMenuItemAPI(item.id, reason.trim());
+      const action = await rejectMenuItemAPI(item.id, rejectionReason.trim());
       const nextStatus = normalizeStatus(action?.type) || 'REJECTED';
       setItem((prev) => ({ ...prev, status: nextStatus }));
+      setShowRejectModal(false);
+      setRejectionReason('');
       // Optionally navigate back after rejection
       setTimeout(() => navigate('/admin/menu'), 1000);
     } catch (error) {
@@ -165,6 +174,41 @@ export default function MenuItemDetailsPage() {
 
   return (
     <div className="bg-[#FAFAFA] font-sans">
+      {/* Rejection Reason Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Reject Menu Item</h3>
+            <p className="text-sm text-gray-600 mb-4">Please provide a rejection reason for the chef:</p>
+            
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Enter rejection reason..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition-all resize-none"
+              rows={4}
+            />
+            
+            <div className="flex items-center gap-3 justify-end mt-6">
+              <button
+                onClick={handleCancelReject}
+                disabled={decisionItemId === item.id}
+                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-70"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmReject}
+                disabled={decisionItemId === item.id}
+                className="rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-70"
+              >
+                {decisionItemId === item.id ? 'Rejecting...' : 'Reject'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="px-8 pb-10">
         {/* Page Header */}
         <div className="flex items-center justify-between mb-8 mt-8">

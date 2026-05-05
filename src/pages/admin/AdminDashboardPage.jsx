@@ -12,24 +12,28 @@ import {
 
 // Admin landing page that summarizes key business metrics.
 export default function AdminDashboardPage() {
+  // Core dashboard metrics shown in the summary cards.
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalOrders: 0,
     activeUsers: 0,
     activeOrderCount: 0,
   });
+  // Order flow breakdown used by the donut chart and status tiles.
   const [orderFlow, setOrderFlow] = useState({
     preparingCount: 0,
     readyCount: 0,
     inDeliveryCount: 0,
     completedCount: 0,
   });
+  // Revenue trend points rendered in the line chart.
   const [revenueTrend, setRevenueTrend] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
+    // Fetch all dashboard datasets together so the page updates in one pass.
     const loadDashboardData = async () => {
       const [
         { data: statsData, error: statsError },
@@ -73,6 +77,7 @@ export default function AdminDashboardPage() {
     };
 
     loadDashboardData();
+    // Refresh the dashboard periodically to keep the admin view live.
     const intervalId = window.setInterval(loadDashboardData, 10000);
 
     return () => {
@@ -86,9 +91,11 @@ export default function AdminDashboardPage() {
     [stats.totalRevenue],
   );
 
+  // Shared number formatters keep the chart labels and counters consistent.
   const formatCount = (value) => new Intl.NumberFormat('en-US').format(value);
   const formatRevenueTick = (value) => `LKR ${new Intl.NumberFormat('en-LK', { maximumFractionDigits: 0 }).format(value)}`;
 
+  // Build the donut chart segments and CSS gradient from the current order flow.
   const orderDonut = useMemo(() => {
     const preparing = Number(orderFlow.preparingCount) || 0;
     const ready = Number(orderFlow.readyCount) || 0;
@@ -129,6 +136,7 @@ export default function AdminDashboardPage() {
     };
   }, [orderFlow, stats.totalOrders]);
 
+  // Convert the revenue trend into SVG paths and axis labels for the chart.
   const revenueChart = useMemo(() => {
     const points = revenueTrend.length > 0
       ? revenueTrend
@@ -180,7 +188,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
-          {/* Dashboard Header */}
+          {/* Page header with the dashboard title and context text */}
           <div className="flex items-center justify-between mb-8">
              <div>
                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard Overview</h1>
@@ -189,9 +197,9 @@ export default function AdminDashboardPage() {
              <div className="bg-white border border-gray-100 shadow-sm rounded-xl w-32 h-10 border-dashed"></div> 
           </div>
 
-          {/* Metrics Row */}
+          {/* Top-level KPI cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {/* Card 1 */}
+            {/* Revenue KPI */}
             <div className="bg-white rounded-[1.5rem] p-6 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[160px]">
               <div className="flex justify-between items-start mb-6">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
@@ -207,7 +215,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Card 2 */}
+            {/* Total orders KPI */}
             <div className="bg-white rounded-[1.5rem] p-6 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[160px]">
               <div className="flex justify-between items-start mb-6">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
@@ -220,7 +228,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Card 3 */}
+            {/* Active users KPI */}
             <div className="bg-white rounded-[1.5rem] p-6 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[160px]">
               <div className="flex justify-between items-start mb-6">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
@@ -233,7 +241,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Card 4 */}
+            {/* Active orders KPI */}
             <div className="bg-white rounded-[1.5rem] p-6 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[160px]">
               <div className="flex justify-between items-start mb-6">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
@@ -252,7 +260,7 @@ export default function AdminDashboardPage() {
           ) : null}
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 mb-6">
-            {/* Revenue Chart */}
+            {/* Revenue trend chart */}
             <div className="bg-white border border-gray-100 shadow-sm rounded-[1.5rem] p-6 flex flex-col min-h-[360px]">
               <div className="flex justify-between items-center mb-6">
                  <h2 className="text-base font-bold text-gray-900">Revenue Performance</h2>
@@ -264,7 +272,7 @@ export default function AdminDashboardPage() {
               
               <div className="flex-1 w-full flex flex-col mt-4">
                 <div className="flex-1 flex relative">
-                  {/* Y Axis */}
+                  {/* Y-axis revenue labels */}
                   <div className="w-12 flex flex-col justify-between text-[10px] text-gray-400 leading-tight pb-6 pt-2">
                     {revenueChart.yTicks.map((tickValue, index) => (
                       <div key={`${tickValue}-${index}`} className={index === revenueChart.yTicks.length - 1 ? 'mb-[-4px]' : '-mt-3'}>
@@ -273,7 +281,7 @@ export default function AdminDashboardPage() {
                     ))}
                   </div>
                   
-                  {/* Canvas */}
+                  {/* SVG chart canvas */}
                   <div className="flex-1 relative border-l border-b border-gray-50 ml-2 mb-6">
                      <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full h-full text-orange-500 overflow-visible">
                         <defs>
@@ -290,14 +298,14 @@ export default function AdminDashboardPage() {
                            <line x1="0" y1="150" x2="600" y2="150" />
                         </g>
 
-                        {/* Area */}
+                        {/* Filled area under the revenue line */}
                         <path d={revenueChart.areaPath} fill="url(#chartGradient)" />
 
-                        {/* Line */}
+                        {/* Revenue line */}
                         <path d={revenueChart.linePath} fill="none" stroke="#F97316" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                      </svg>
                      
-                     {/* X Axis Labels */}
+                      {/* X-axis day labels */}
                      <div className="absolute -bottom-7 left-0 right-0 flex justify-between text-[11px] text-gray-400 px-2">
                         {revenueChart.xLabels.map((label, index) => (
                           <span key={`${label}-${index}`}>{label}</span>
@@ -308,7 +316,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Order Distribution */}
+            {/* Order distribution donut and legend */}
             <div className="bg-white border border-gray-100 shadow-sm rounded-[1.5rem] p-6 flex flex-col">
               <h2 className="text-base font-bold text-gray-900 mb-6">Order Distribution</h2>
 
@@ -338,7 +346,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Quick Status Summary */}
+          {/* Snapshot of the current order states */}
           <div className="bg-white border border-gray-100 shadow-sm rounded-[1.5rem] p-6 mb-8">
             <h2 className="text-base font-bold text-gray-900 mb-6">Quick Status Summary</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
