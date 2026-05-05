@@ -193,8 +193,7 @@ export default function AdminDashboardPage() {
              <div>
                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard Overview</h1>
                <p className="text-gray-500 text-sm mt-1">Real-time performance metrics for Crave House</p>
-             </div>
-             <div className="bg-white border border-gray-100 shadow-sm rounded-xl w-32 h-10 border-dashed"></div> 
+             </div> 
           </div>
 
           {/* Top-level KPI cards */}
