@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 function getBranchId() {
-  // Decode branchId from QR session token on-the-fly, never store decoded IDs
+  // Decode branchId from QR session token
   const qrSessionToken = localStorage.getItem('qr_session_token');
   if (qrSessionToken) {
     const claims = getQrSessionClaims(qrSessionToken);
@@ -31,7 +31,7 @@ function getBranchId() {
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState([]);
-  const [favorites, setFavorites] = useState([]);
+  //const [favorites, setFavorites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,11 +112,11 @@ export default function MenuPage() {
     }, {});
   }, [menuItems, searchQuery]);
 
-  const toggleFavorite = (id) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]
-    );
-  };
+  // const toggleFavorite = (id) => {
+  //   setFavorites((prev) =>
+  //     prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]
+  //   );
+  // };
 
   const renderMenuCard = (item) => (
     <div
