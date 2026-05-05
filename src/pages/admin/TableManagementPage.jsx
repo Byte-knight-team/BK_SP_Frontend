@@ -5,6 +5,7 @@ import {
   Printer, Plus, LayoutGrid, List, Filter,
   MapPin, Users, Edit2, QrCode, AlertTriangle, UserCheck, ShoppingBag
 } from 'lucide-react';
+import { getTablesAPI, updateTableAPI } from '../../apis/admin/table';
 
 
 // Admin page for managing table records, status, and QR actions.
@@ -31,13 +32,8 @@ export default function TableManagementPage() {
   const fetchTables = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:8080/api/tables');
-      if (response.ok) {
-        const data = await response.json();
-        setTables(data);
-      } else {
-        console.error("Failed to fetch tables");
-      }
+      const data = await getTablesAPI();
+      setTables(data);
     } catch (error) {
       console.error("Error fetching tables:", error);
     } finally {
@@ -73,26 +69,21 @@ export default function TableManagementPage() {
   const handleSaveEdit = async () => {
     if (editingTable) {
       try {
-        const response = await fetch(`http://localhost:8080/api/tables/${editingTable.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tableNumber: editingTable.tableNumber,
-            capacity: editingTable.capacity,
-            status: editingTable.status
-          })
+        const updatedTable = await updateTableAPI(editingTable.id, {
+          tableNumber: editingTable.tableNumber,
+          capacity: editingTable.capacity,
+          status: editingTable.status,
         });
-        
-        if (response.ok) {
-          const updatedTable = await response.json();
-          setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
-          setEditingTable(null);
-        } else {
-          const errData = await response.json();
-          setAlertModal({ isOpen: true, title: 'Error', message: errData.message || 'Failed to update table', type: 'error' });
-        }
+
+        setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
+        setEditingTable(null);
       } catch (error) {
-        setAlertModal({ isOpen: true, title: 'Network Error', message: 'Could not connect to the backend server.', type: 'error' });
+        setAlertModal({
+          isOpen: true,
+          title: 'Error',
+          message: error?.message || 'Failed to update table',
+          type: 'error',
+        });
       }
     }
   };

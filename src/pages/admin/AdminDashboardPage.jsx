@@ -131,14 +131,14 @@ export default function AdminDashboardPage() {
       });
 
     return {
-      gradient: `conic-gradient(${stops.join(', ')})`,
+      gradient: `conic-gradient(${stops.join(', ')})`, //draws donut visually
       segments,
     };
   }, [orderFlow, stats.totalOrders]);
 
   // Convert the revenue trend into SVG paths and axis labels for the chart.
   const revenueChart = useMemo(() => {
-    const points = revenueTrend.length > 0
+    const points = revenueTrend.length > 0  //ensures chart always renders
       ? revenueTrend
       : [
           { dayLabel: 'Mon', revenue: 0 },
@@ -155,13 +155,13 @@ export default function AdminDashboardPage() {
     const chartTopPadding = 10;
     const chartBottomPadding = 12;
     const chartHeight = height - chartTopPadding - chartBottomPadding;
-    const maxRevenue = Math.max(...points.map((p) => Number(p.revenue) || 0), 0);
+    const maxRevenue = Math.max(...points.map((p) => Number(p.revenue) || 0), 0); //find max revenue
     const safeMaxRevenue = maxRevenue > 0 ? maxRevenue : 1;
 
     const mapped = points.map((point, index) => {
-      const x = points.length === 1 ? width / 2 : (index * width) / (points.length - 1);
+      const x = points.length === 1 ? width / 2 : (index * width) / (points.length - 1); //calculate x position
       const normalized = (Number(point.revenue) || 0) / safeMaxRevenue;
-      const y = height - chartBottomPadding - normalized * chartHeight;
+      const y = height - chartBottomPadding - normalized * chartHeight; //calculate y position
 
       return {
         x,
