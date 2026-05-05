@@ -116,8 +116,10 @@ export default function OrderConfirmationPage() {
   const isReviewable = order?.orderStatus === 'SERVED' && !order?.isReviewed;
   const isCancellable = !isCancelled && ['PLACED', 'PENDING', 'ON_HOLD'].includes(order?.orderStatus);
 
+  // Pick the correct timeline for pickup vs delivery orders.
   const statusFlow = useMemo(() => getStatusFlow(orderType), [orderType]);
 
+  // Map the backend status to the current step in the visible timeline.
   const statusIndex = useMemo(() => {
     if (!order?.orderStatus) return 0;
     const normalizedStatus = String(order.orderStatus).toUpperCase();
@@ -223,6 +225,7 @@ export default function OrderConfirmationPage() {
       {!isCancelled && (
         <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
           <div className="relative">
+            {/* Fill each connector segment only after its step is completed. */}
             <div className="absolute left-[10%] right-[10%] top-6 flex h-1 items-center">
               {statusFlow.map((step, index) => {
                 if (index === statusFlow.length - 1) return null;
@@ -310,7 +313,7 @@ export default function OrderConfirmationPage() {
         <div className="flex flex-col gap-6">
           {/* Branch Details + Delivery Details */}
           <div className="flex flex-col gap-4">
-            {/* Branch Details */}
+            {/* Branch details show only when the order has a branch attached. */}
             {order.branchDetails && (
               <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
                 <h4 className="mb-3 font-bold text-slate-900">{isPickup ? 'Pickup Details' : 'Branch Details'}</h4>
@@ -367,7 +370,7 @@ export default function OrderConfirmationPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Review is only available after serving; cancel is only available before processing starts. */}
           <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div className="space-y-2">
               <button
@@ -394,7 +397,7 @@ export default function OrderConfirmationPage() {
         </div>
       </div>
 
-      {/* STICKY BOTTOM BAR */}
+      {/* Sticky shortcuts keep the main navigation available */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/96 backdrop-blur-sm shadow-[0_-8px_30px_rgba(15,23,42,0.08)]">
         <div className="mx-auto flex w-full max-w-6xl gap-3 px-4 py-4 sm:px-6">
           <button
