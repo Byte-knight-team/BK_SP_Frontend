@@ -297,7 +297,7 @@ export default function OrderConfirmationPage() {
             {/* Branch Details */}
             {order.branchDetails && (
               <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-                <h4 className="mb-3 font-bold text-slate-900">Branch Details</h4>
+                <h4 className="mb-3 font-bold text-slate-900">{isPickup ? 'Pickup Details' : 'Branch Details'}</h4>
                 <p className="text-sm font-semibold text-slate-900">{order.branchDetails.name}</p>
                 <p className="mt-1 text-xs text-slate-600">{order.branchDetails.address}</p>
                 <div className="mt-3 space-y-1 text-xs text-slate-500">
@@ -309,7 +309,7 @@ export default function OrderConfirmationPage() {
 
             {/* Delivery/Personal Details */}
             <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-              <h4 className="mb-3 font-bold text-slate-900">{isDelivery ? 'Delivery Details' : isQr ? 'Table Details' : 'Pickup Details'}</h4>
+              <h4 className="mb-3 font-bold text-slate-900">{isDelivery ? 'Delivery Details' : isQr ? 'Table Details' : 'Customer Details'}</h4>
               <div className="space-y-3 text-sm text-slate-600">
                 {isDelivery && (
                   <div>
