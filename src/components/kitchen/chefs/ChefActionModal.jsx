@@ -8,7 +8,8 @@ const ChefActionModal = ({ isOpen, onClose, onConfirm, chefName, currentStatus, 
   // Define the available statuses for the "Update" mode
   const allStatuses = ['AVAILABLE', 'COOKING', 'ON_BREAK'];
   
-  // Filter out the current status (don't show the one they already have)
+  // Filter out the current status (when update the statue of a chef, modal should not show the one they already have)
+  // Also cannot manually select UNAVAILABLE. It happenn when the chef is clocked out.
   const otherStatuses = allStatuses.filter(s => s !== currentStatus);
 
   useEffect(() => {
@@ -19,11 +20,11 @@ const ChefActionModal = ({ isOpen, onClose, onConfirm, chefName, currentStatus, 
 
   const handleConfirm = async () => {
     setLoading(true);
-    await onConfirm(selectedStatus || true);
+    await onConfirm(selectedStatus);
     setLoading(false);
   };
 
-  // --- UI Configuration based on Mode ---
+  // UI Configuration based on Mode
   const config = {
     CHECK_IN: {
       title: "Chef Check-In",
