@@ -228,7 +228,7 @@ export default function OrderConfirmationPage() {
             {/* Fill each connector segment only after its step is completed. */}
             <div className="absolute left-[10%] right-[10%] top-6 flex h-1 items-center">
               {statusFlow.map((step, index) => {
-                if (index === statusFlow.length - 1) return null;
+                if (index === statusFlow.length - 1) return null; // Don't draw a line after the last dot
 
                 const isFilled = index < statusIndex;
 
@@ -243,6 +243,7 @@ export default function OrderConfirmationPage() {
                 );
               })}
             </div>
+            {/*drawing timeline icons */}
             <div className="relative z-10 flex items-start justify-between">
               {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
