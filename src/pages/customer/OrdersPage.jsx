@@ -415,14 +415,13 @@ export default function OrdersPage() {
         />
       )}
 
-      {/* ========================================
+      {/*
           INFINITE SCROLL SENTINEL ELEMENT
-          ========================================
           This invisible element is placed at the bottom of the orders list.
           The IntersectionObserver watches this element and triggers
           the next page fetch when it becomes visible in the viewport.
           
-          Only render if we have orders (no point observing empty list).
+          Only render if we have orders.
       */}
       {orders.length > 0 && (
         <div ref={observerTargetRef} className="h-1 w-full" aria-hidden="true" />
