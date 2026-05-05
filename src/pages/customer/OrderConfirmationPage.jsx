@@ -223,7 +223,23 @@ export default function OrderConfirmationPage() {
       {!isCancelled && (
         <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
           <div className="relative">
-            <div className="absolute left-6 right-6 top-6 h-1 bg-slate-100" />
+            <div className="absolute left-[10%] right-[10%] top-6 flex h-1 items-center">
+              {statusFlow.map((step, index) => {
+                if (index === statusFlow.length - 1) return null;
+
+                const isFilled = index < statusIndex;
+
+                return (
+                  <div key={`${step.key}-connector`} className="flex-1">
+                    <div className="h-1 rounded-full bg-slate-100">
+                      <div
+                        className={`h-1 rounded-full transition-all duration-300 ${isFilled ? 'w-full bg-orange-500' : 'w-0 bg-orange-500'}`}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
             <div className="relative z-10 flex items-start justify-between">
               {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
