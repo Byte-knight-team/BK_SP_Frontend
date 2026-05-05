@@ -13,7 +13,7 @@ export default function AssignDriverModal({
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!selectedDriverId) return
-    onConfirm(order?.id, Number(selectedDriverId))
+    onConfirm(order?.orderId, Number(selectedDriverId))
     setSelectedDriverId('')
   }
 
@@ -40,8 +40,7 @@ export default function AssignDriverModal({
               </p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-500">Zone: {order?.zone}</p>
-              <p className="text-xs text-gray-400">{order?.distance}</p>
+              <p className="text-xs text-gray-500">{order?.zone}</p>
             </div>
           </div>
         </div>
@@ -63,7 +62,7 @@ export default function AssignDriverModal({
             </option>
             {availableDrivers.map((driver) => (
               <option key={driver.id} value={driver.id}>
-                {driver.name} — ★ {driver.rating}
+                {driver.name}
               </option>
             ))}
           </select>

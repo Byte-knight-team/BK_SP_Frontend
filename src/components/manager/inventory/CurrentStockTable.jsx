@@ -29,11 +29,11 @@ function StatusBadge({ status }) {
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full',
+        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
         config.className,
       )}
     >
-      <Icon className="w-3.5 h-3.5" />
+      <Icon className="h-3.5 w-3.5" />
       {config.label}
     </span>
   )
@@ -41,7 +41,7 @@ function StatusBadge({ status }) {
 
 function CategoryBadge({ category }) {
   return (
-    <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md">
+    <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
       {category}
     </span>
   )
@@ -100,35 +100,35 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
   return (
     <div className="card" ref={tableRef}>
       {/* Header row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+      <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900">Current Stock</h2>
-          <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
+          <span className="bg-brand rounded-full px-2.5 py-1 text-xs font-bold text-white">
             {items.length}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 w-56">
-            <Search className="w-4 h-4 text-gray-400" />
+          <div className="flex w-56 items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
+            <Search className="h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search item..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-sm text-gray-600 outline-none w-full placeholder-gray-400"
+              className="w-full bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
             />
           </div>
 
           {/* Category filter */}
           <div className="relative">
-            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer">
-              <SlidersHorizontal className="w-4 h-4 text-gray-500" />
+            <div className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2">
+              <SlidersHorizontal className="h-4 w-4 text-gray-500" />
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="bg-transparent text-sm font-medium text-gray-700 outline-none appearance-none cursor-pointer pr-4"
+                className="cursor-pointer appearance-none bg-transparent pr-4 text-sm font-medium text-gray-700 outline-none"
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -144,27 +144,27 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
       {/* Table */}
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
-            <th className="text-left pb-3 font-semibold w-[25%]">Item Name</th>
-            <th className="text-center pb-3 font-semibold w-[15%]">Category</th>
-            <th className="text-left pb-3 font-semibold w-[20%] pl-8">
-              Unit Price
+          <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase">
+            <th className="w-[25%] pb-3 text-left font-semibold">Item Name</th>
+            <th className="w-[15%] pb-3 text-center font-semibold">Category</th>
+            <th className="w-[20%] pb-3 pl-8 text-left font-semibold">
+              Avg. Unit Price
             </th>
-            <th className="text-center pb-3 font-semibold w-[15%]">
+            <th className="w-[15%] pb-3 text-center font-semibold">
               Stock Level
             </th>
-            <th className="text-center pb-3 font-semibold w-[15%]">Status</th>
-            <th className="text-center pb-3 font-semibold w-[10%] min-w-[120px]">
+            <th className="w-[15%] pb-3 text-center font-semibold">Status</th>
+            <th className="w-[10%] min-w-[120px] pb-3 text-center font-semibold">
               Actions
             </th>
           </tr>
         </thead>
         <tbody
           key={currentPage}
-          className="divide-y divide-gray-50 animate-table-fade"
+          className="animate-table-fade divide-y divide-gray-50"
         >
           {displayedItems.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+            <tr key={item.id} className="transition-colors hover:bg-gray-50/50">
               {/* Item name + ID */}
               <td className="py-4">
                 <p className="text-sm font-semibold text-gray-900">
@@ -179,7 +179,7 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
               </td>
 
               {/* Unit Price */}
-              <td className="py-4 text-sm text-gray-700 pl-8">
+              <td className="py-4 pl-8 text-sm text-gray-700">
                 Rs. {(item.unitPrice || 0).toFixed(2)} / {item.unit || 'Unit'}
               </td>
 
@@ -188,7 +188,7 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
                 <span className="text-sm font-bold text-gray-900">
                   {item.stockLevel}
                 </span>
-                <span className="text-xs text-gray-400 ml-1">{item.unit}</span>
+                <span className="ml-1 text-xs text-gray-400">{item.unit}</span>
               </td>
 
               {/* Status */}
@@ -200,9 +200,9 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
               <td className="py-4 text-center">
                 <button
                   onClick={() => onUpdateItem?.(item)}
-                  className="inline-flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-brand-hover transition-colors"
+                  className="bg-brand hover:bg-brand-hover inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors"
                 >
-                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <ArrowUpRight className="h-3.5 w-3.5" />
                   Update Stock
                 </button>
               </td>
@@ -236,7 +236,7 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
           filteredItems.length > 5 && (
             <button
               onClick={handleViewMore}
-              className="text-sm text-brand font-bold hover:underline inline-flex items-center gap-1 transition-all"
+              className="text-brand inline-flex items-center gap-1 text-sm font-bold transition-all hover:underline"
             >
               View more
             </button>
@@ -246,23 +246,23 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => prev - 1)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="h-4 w-4" />
               Previous
             </button>
 
-            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-md">
+            <span className="rounded-md bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500">
               Page {currentPage}
             </span>
 
             <button
               disabled={currentPage * PAGE_SIZE >= filteredItems.length}
               onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         )}

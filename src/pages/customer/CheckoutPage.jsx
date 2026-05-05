@@ -442,7 +442,7 @@ export default function CheckoutPage() {
       : 'No loyalty points available for this account.';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f8f7f4] to-[#f2efe9]">
+    <div className="min-h-screen bg-white">
     {/* HEADER SECTION */}
       <header className="sticky top-0 z-[100] border-b border-black/5 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-[74px] w-full max-w-[1120px] items-center px-6 max-md:px-4">

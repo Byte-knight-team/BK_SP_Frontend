@@ -10,10 +10,14 @@ import {
   Home,
   Mail,
   Package,
+  MapPin,
   Phone,
   ShoppingBag,
   Truck,
   XCircle,
+  Soup,
+  HandCoins,
+  Handshake
 } from 'lucide-react';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
@@ -21,16 +25,35 @@ import ReviewModal from '../../components/customer/modal/ReviewModal';
 import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 
-const STATUS_FLOW = [
-  { key: 'PLACED', label: 'Placed', icon: BadgeCheck, description: 'Your order is confirmed.' },
-  { key: 'PREPARING', label: 'Preparing', icon: ChefHat, description: 'The kitchen is preparing your meal.' },
-  { key: 'READY', label: 'Ready', icon: Package, description: 'Your order is ready for the next step.' },
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'Your order is on the way.' },
-  { key: 'SERVED', label: 'Completed', icon: CheckCircle2, description: 'Your order has been completed.' },
+const BASE_STATUS_FLOW = [
+  { key: 'PLACED', label: 'Order Placed', icon: HandCoins, description: 'Order received' },
+  { key: 'PENDING', label: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
+  { key: 'PREPARING', label: 'Preparing', icon: ChefHat, description: 'At the kitchen' },
+  { key: 'COMPLETED', label: 'Order Prepared', icon: Soup, description: 'Finished preparing' },
+];
+
+const DELIVERY_STATUS_FLOW = [
+  ...BASE_STATUS_FLOW,
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'On the way' },
+  { key: 'ARRIVED', label: 'Arrived', icon: MapPin, description: 'Reached location' },
+  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Delivered' },
+];
+
+const PICKUP_STATUS_FLOW = [
+  ...BASE_STATUS_FLOW,
+  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Ready for pickup' },
 ];
 
 function normalizeOrderType(orderType) {
   return String(orderType || '').toUpperCase();
+}
+
+function getStatusFlow(orderType) {
+  if (orderType === 'DELIVERY' || orderType === 'ONLINE_DELIVERY') {
+    return DELIVERY_STATUS_FLOW;
+  }
+
+  return PICKUP_STATUS_FLOW;
 }
 
 export default function OrderConfirmationPage() {
@@ -93,11 +116,15 @@ export default function OrderConfirmationPage() {
   const isReviewable = order?.orderStatus === 'SERVED' && !order?.isReviewed;
   const isCancellable = !isCancelled && ['PLACED', 'PENDING', 'ON_HOLD'].includes(order?.orderStatus);
 
+  const statusFlow = useMemo(() => getStatusFlow(orderType), [orderType]);
+
   const statusIndex = useMemo(() => {
     if (!order?.orderStatus) return 0;
-    const idx = STATUS_FLOW.findIndex((step) => step.key === order.orderStatus);
+    const normalizedStatus = String(order.orderStatus).toUpperCase();
+    const flowStatus = normalizedStatus === 'READY' ? 'COMPLETED' : normalizedStatus;
+    const idx = statusFlow.findIndex((step) => step.key === flowStatus);
     return idx === -1 ? 0 : idx;
-  }, [order?.orderStatus]);
+  }, [order?.orderStatus, statusFlow]);
 
   const estimatedStart = new Date(order?.createdAt || Date.now());
   estimatedStart.setMinutes(estimatedStart.getMinutes() + 20);
@@ -116,7 +143,12 @@ export default function OrderConfirmationPage() {
         setCancelModalOpen(false);
         setCancelReason('');
         setOrder((prev) => (prev ? { ...prev, orderStatus: 'CANCELLED' } : prev));
+      } else {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.message || payload?.error || 'Failed to cancel order.');
       }
+    } catch (err) {
+      setError(err.message || 'Failed to cancel order.');
     } finally {
       setIsCancelling(false);
     }
@@ -124,11 +156,11 @@ export default function OrderConfirmationPage() {
 
   if (loading) {
     return (
-      <CustomerPageShell maxWidth="max-w-5xl">
+      <CustomerPageShell maxWidth="max-w-6xl">
         <CustomerStateCard
           variant="loading"
           title="Loading order confirmation"
-          description="We’re pulling together your order summary, status, and payment details."
+          description="We're pulling together your order summary, status, and payment details."
           className="mx-auto max-w-2xl"
         />
       </CustomerPageShell>
@@ -137,7 +169,7 @@ export default function OrderConfirmationPage() {
 
   if (error || !order) {
     return (
-      <CustomerPageShell maxWidth="max-w-5xl">
+      <CustomerPageShell maxWidth="max-w-6xl">
         <CustomerStateCard
           variant="error"
           title="Could not load confirmation"
@@ -159,98 +191,69 @@ export default function OrderConfirmationPage() {
   const items = Array.isArray(order.items) ? order.items : [];
 
   return (
-    <CustomerPageShell maxWidth="max-w-6xl">
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <button
-          type="button"
-          onClick={() => navigate('/menu')}
-          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:text-slate-900"
-        >
-          <ArrowLeft size={16} />
-          Back to Menu
-        </button>
+    <CustomerPageShell maxWidth="max-w-6xl" className="pb-32">
+      {/* TOP HEADER - Back button and Order # on LEFT, Title on RIGHT */}
+      <div className="mb-8 flex items-start justify-between gap-8">
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/menu')}
+            className="w-fit inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300"
+          >
+            <ArrowLeft size={14} />
+            Back to Menu
+          </button>
+          <div>
+            <p className="text-sm font-bold text-slate-900">Order #{order.orderNumber || order.orderId}</p>
+            {!isCancelled && <p className="text-xs text-slate-500">Est. delivery: {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}</p>}
+          </div>
+        </div>
         <div className="text-right">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Order</p>
-          <p className="text-base font-bold text-slate-900">#{order.orderNumber || order.orderId}</p>
-        </div>
-      </div>
-
-      <div className={`mb-6 rounded-[2rem] border bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)] ${isCancelled ? 'border-rose-200' : 'border-slate-200'}`}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${isCancelled ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>
-              {isCancelled ? <XCircle size={30} /> : <CheckCircle2 size={30} />}
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">{isCancelled ? 'Order cancelled' : 'Order confirmed'}</h1>
-              <p className="mt-1 text-sm text-slate-600">
-                {isCancelled ? 'This order has been cancelled.' : 'Your order is in the kitchen and we’ll keep the status updated below.'}
-              </p>
+          <div className="mb-2 flex justify-end">
+            <div className={`flex h-14 w-14 items-center justify-center rounded-full ${isCancelled ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
+              {isCancelled ? <XCircle size={32} /> : <CheckCircle2 size={32} />}
             </div>
           </div>
-
-          {!isCancelled && (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-              <Clock size={16} className="mr-2 inline-block text-orange-500" />
-              {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}
-            </div>
-          )}
+          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Confirmed'}</h1>
+          <p className="mt-1 text-xs text-slate-600">{isCancelled ? 'Cancelled order' : 'You will be notified of each step'}</p>
         </div>
       </div>
 
+      {/* HORIZONTAL TIMELINE - Full Width */}
       {!isCancelled && (
-        <div className="mb-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Live status</p>
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                {order.orderStatus === 'ON_HOLD' ? 'On hold' : STATUS_FLOW[statusIndex]?.label || 'Processing'}
-              </h2>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-orange-700">
-              <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-              Updated
-            </div>
-          </div>
+        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="relative">
+            <div className="absolute left-6 right-6 top-6 h-1 bg-slate-100" />
+            <div className="relative z-10 flex items-start justify-between">
+              {statusFlow.map((step, index) => {
+                const StepIcon = step.icon;
+                const isDone = index < statusIndex;
+                const isActive = index === statusIndex;
 
-          <div className="space-y-5">
-            {STATUS_FLOW.map((step, index) => {
-              const StepIcon = step.icon;
-              const isDone = index < statusIndex;
-              const isActive = index === statusIndex;
-
-              return (
-                <div key={step.key} className="flex gap-4">
-                  <div className="flex flex-col items-center">
+                return (
+                  <div key={step.key} className="flex w-1/5 flex-col items-center text-center">
                     <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border bg-white shadow-sm transition-all ${
-                        isDone
-                          ? 'border-emerald-200 text-emerald-600'
-                          : isActive
-                            ? 'border-orange-200 text-orange-600 scale-105'
-                            : 'border-slate-200 text-slate-400'
+                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full transition ${
+                        isDone ? 'bg-orange-500 text-white shadow-md' : isActive ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' : 'bg-white border border-slate-200 text-slate-300'
                       }`}
                     >
-                      <StepIcon size={22} />
+                      <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                     </div>
-                    {index < STATUS_FLOW.length - 1 && (
-                      <div className={`mt-2 h-16 w-1 rounded-full ${isDone ? 'bg-emerald-500' : isActive ? 'bg-orange-300' : 'bg-slate-200'}`} />
-                    )}
+                    <p className="mt-2 text-[10px] sm:mt-3 sm:text-xs font-bold text-slate-900 leading-tight">{step.label}</p>
+                    <p className="mt-0.5 text-xs text-slate-500 hidden sm:block">{step.description}</p>
                   </div>
-                  <div className="pt-1 pb-6">
-                    <p className="text-base font-bold text-slate-900">{step.label}</p>
-                    <p className="mt-1 text-sm text-slate-600">{step.description}</p>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
-          <h3 className="mb-5 text-2xl font-bold text-slate-900">Order summary</h3>
+      {/* MAIN CONTENT GRID - Order Summary (LEFT) + Right Column (Branch/Payment/Actions) */}
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        {/* LEFT: Order Summary */}
+        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 className="mb-5 text-xl font-bold text-slate-900">Order Summary</h3>
           <div className="space-y-4">
             {items.map((item, index) => (
               <div key={index} className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4 last:border-0 last:pb-0">
@@ -263,136 +266,134 @@ export default function OrderConfirmationPage() {
             ))}
           </div>
 
-          <div className="mt-6 rounded-[1.5rem] bg-slate-50 p-5">
+          <div className="mt-6 rounded-[1rem] bg-slate-50 p-4">
             <div className="flex items-center justify-between text-sm text-slate-600">
               <span>Subtotal</span>
               <span>LKR {Number(order.subtotal || 0).toLocaleString()}</span>
             </div>
             {Number(order.deliveryFee || 0) > 0 && (
-              <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
+              <div className="mt-2 flex items-center justify-between text-sm text-slate-600">
                 <span>Delivery fee</span>
                 <span>LKR {Number(order.deliveryFee || 0).toLocaleString()}</span>
               </div>
             )}
             {Number(order.taxAmount || 0) > 0 && (
-              <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
+              <div className="mt-2 flex items-center justify-between text-sm text-slate-600">
                 <span>Tax</span>
                 <span>LKR {Number(order.taxAmount || 0).toLocaleString()}</span>
               </div>
             )}
-            <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
-              <span className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Total</span>
-              <span className="text-3xl font-extrabold text-orange-500">LKR {Number(order.finalTotal || 0).toLocaleString()}</span>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
+              <span className="text-sm font-bold text-slate-900">Total</span>
+              <span className="text-2xl font-extrabold text-orange-500">LKR {Number(order.finalTotal || 0).toLocaleString()}</span>
             </div>
           </div>
         </div>
 
+        {/* RIGHT COLUMN: Branch Details (TOP) + Payment (MIDDLE) + Actions (BOTTOM) */}
         <div className="flex flex-col gap-6">
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
-            <div className="mb-4 flex items-center gap-4">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${order.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}`}>
-                <CreditCard size={24} />
+          {/* Branch Details + Delivery Details */}
+          <div className="flex flex-col gap-4">
+            {/* Branch Details */}
+            {order.branchDetails && (
+              <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <h4 className="mb-3 font-bold text-slate-900">Branch Details</h4>
+                <p className="text-sm font-semibold text-slate-900">{order.branchDetails.name}</p>
+                <p className="mt-1 text-xs text-slate-600">{order.branchDetails.address}</p>
+                <div className="mt-3 space-y-1 text-xs text-slate-500">
+                  <p className="flex items-center gap-2"><Phone size={12} /> {order.branchDetails.contactNumber}</p>
+                  <p className="flex items-center gap-2"><Mail size={12} /> {order.branchDetails.email}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-slate-900">Payment</p>
-                <p className="text-sm text-slate-500">{order.paymentStatus || 'UNKNOWN'}</p>
+            )}
+
+            {/* Delivery/Personal Details */}
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+              <h4 className="mb-3 font-bold text-slate-900">{isDelivery ? 'Delivery Details' : isQr ? 'Table Details' : 'Pickup Details'}</h4>
+              <div className="space-y-3 text-sm text-slate-600">
+                {isDelivery && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Address</p>
+                    <p className="mt-1">{order.deliveryAddress || '—'}</p>
+                  </div>
+                )}
+
+                {(isQr) && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Table Number</p>
+                    <p className="mt-1 font-semibold text-slate-900">{order.tableNumber || order.tableId || '—'}</p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Customer</p>
+                  <p className="mt-1 text-slate-600">{order.contactName || '—'}</p>
+                  <p className="mt-1 text-slate-500">{order.contactPhone || '—'}</p>
+                </div>
               </div>
-            </div>
-            <div className={`rounded-2xl px-4 py-3 text-center text-sm font-bold ${order.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-700' : 'bg-orange-50 text-orange-700'}`}>
-              {order.paymentStatus === 'PAID' ? 'Paid successfully' : 'Awaiting payment'}
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
-            <h4 className="mb-4 text-lg font-bold text-slate-900">
-              {isDelivery ? 'Delivery details' : isQr ? 'Table details' : 'Pickup details'}
-            </h4>
-            <div className="space-y-4 text-sm text-slate-600">
-              <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Contact</p>
-                <p className="font-semibold text-slate-900">{order.contactName || 'Customer'}</p>
-                <p className="mt-1 flex items-center gap-2"><Phone size={14} /> {order.contactPhone || '-'}</p>
+          {/* Payment Info */}
+          <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+            <h4 className="mb-3 font-bold text-slate-900">Payment Info</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-600">Status:</span>
+                <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${order.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-700' : 'bg-orange-50 text-orange-700'}`}>
+                  {order.paymentStatus || 'UNKNOWN'}
+                </span>
               </div>
-              {isDelivery && (
-                <div className="border-t border-slate-100 pt-4">
-                  <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Address</p>
-                  <p>{order.deliveryAddress || '-'}</p>
-                </div>
-              )}
-              {isQr && (
-                <div className="border-t border-slate-100 pt-4">
-                  <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Table</p>
-                  <p className="font-semibold text-orange-500">Table {order.tableId || '-'}</p>
-                </div>
-              )}
+              <div className="flex items-center justify-between">
+                <span className="text-slate-600">Method:</span>
+                <span className="font-semibold text-slate-900">{order.paymentMethod || '—'}</span>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
-            <h4 className="mb-4 text-lg font-bold text-slate-900">Actions</h4>
-            <div className="flex flex-col gap-3">
-              {isReviewable && (
-                <button
-                  type="button"
-                  onClick={() => setReviewModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98]"
-                >
-                  Leave review
-                </button>
-              )}
-              {isCancellable && (
+          {/* Action Buttons */}
+          <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="space-y-2">
+              <button
+                type="button"
+                disabled={!isReviewable}
+                onClick={() => setReviewModalOpen(true)}
+                className="w-full rounded-[10px] bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-500 border border-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                Review Order
+              </button>
+              {isCancellable ? (
                 <button
                   type="button"
                   onClick={() => setCancelModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white px-5 py-3.5 text-sm font-bold text-red-600 transition-all hover:bg-red-50 active:scale-[0.98]"
+                  className="w-full rounded-[10px] border border-amber-300 bg-white px-4 py-2.5 text-xs font-bold text-amber-700 transition-all hover:bg-amber-50"
                 >
-                  Cancel order
+                  Cancel Order
                 </button>
-              )}
-              {!isReviewable && !isCancellable && (
-                <p className="text-sm text-slate-500">No additional actions available for this order.</p>
+              ) : (
+                <p className="text-xs text-slate-500 text-center">No actions available</p>
               )}
             </div>
           </div>
-
-          {order.branchDetails && (
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
-              <h4 className="mb-4 text-lg font-bold text-slate-900">Branch</h4>
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
-                  <Home size={22} />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-slate-900">{order.branchDetails.name}</p>
-                  <p className="mt-1 text-sm text-slate-600">{order.branchDetails.address}</p>
-                  <div className="mt-3 space-y-2 text-sm text-slate-500">
-                    <p className="flex items-center gap-2"><Phone size={14} /> {order.branchDetails.contactNumber}</p>
-                    <p className="flex items-center gap-2"><Mail size={14} /> {order.branchDetails.email}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
+      {/* STICKY BOTTOM BAR */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/96 backdrop-blur-sm shadow-[0_-8px_30px_rgba(15,23,42,0.08)]">
         <div className="mx-auto flex w-full max-w-6xl gap-3 px-4 py-4 sm:px-6">
           <button
             type="button"
-            onClick={() => navigate('/orders')}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-4 text-base font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98]"
+            onClick={() => navigate('/menu')}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-[14px] bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98]"
           >
-            <ShoppingBag size={18} />
-            View orders
+            Continue Shopping
           </button>
           <button
             type="button"
-            onClick={() => navigate('/menu')}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-4 text-base font-bold text-slate-900 transition-all hover:bg-slate-200 active:scale-[0.98]"
+            onClick={() => navigate('/orders')}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-[14px] bg-slate-100 px-5 py-3 text-sm font-bold text-slate-900 transition-all hover:bg-slate-200 active:scale-[0.98]"
           >
-            <ShoppingBag size={18} />
-            Continue shopping
+            View Order History
           </button>
         </div>
       </div>
