@@ -205,7 +205,7 @@ export default function OrderConfirmationPage() {
           </button>
           <div>
             <p className="text-sm font-bold text-slate-900">Order #{order.orderNumber || order.orderId}</p>
-            {!isCancelled && <p className="text-xs text-slate-500">Est. delivery: {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}</p>}
+            {/*!isCancelled && <p className="text-xs text-slate-500">Est. delivery: {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}</p>*/}
           </div>
         </div>
         <div className="text-right">
