@@ -36,10 +36,6 @@ const TableManagementPage = () => {
   // Initial load
   useEffect(() => {
     fetchTables(true);
-
-    // Polling for live updates (silent background fetch)
-    const interval = setInterval(() => fetchTables(false), 30000);
-    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -55,16 +51,18 @@ const TableManagementPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 p-4">
-      
-
 
       {/* Table Grid */}
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {tables.map((table) => (
-          <TableCard key={table.id} table={table} onClick={(t) => {
-            setSelectedTable(t);
-            setIsActionModalOpen(true);
-          }} />
+          <TableCard
+            key={table.id}
+            table={table}
+            onClick={(t) => {
+              setSelectedTable(t);
+              setIsActionModalOpen(true);
+            }}
+          />
         ))}
       </div>
 

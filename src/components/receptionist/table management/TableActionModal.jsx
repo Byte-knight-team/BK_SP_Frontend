@@ -44,12 +44,9 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
     setLoading(false);
   };
 
-
-
   const getModalTitle = () => {
     if (table.status === 'AVAILABLE') return `Seating Table ${table.tableNumber}`;
     if (table.status === 'OCCUPIED') return `Manage Table ${table.tableNumber}`;
-    return `Table ${table.tableNumber}`;
   };
 
   return (
@@ -70,7 +67,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
         <h3 className="text-xl font-bold text-gray-900">{getModalTitle()}</h3>
         <div className="mb-6 mt-4 h-px w-full bg-gray-100" />
 
-        {/* --- CASE 1: AVAILABLE or OCCUPIED (Manage Guests) --- */}
+        {/* CASE 1: AVAILABLE or OCCUPIED (Manage Guests)*/}
         {(table.status === 'AVAILABLE' || table.status === 'OCCUPIED') && (
           <div className="mb-6">
             <label className="mb-3 block text-[10px] font-black uppercase tracking-widest text-gray-400">Number of Guests</label>
@@ -92,7 +89,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
           </div>
         )}
 
-        {/* --- CASE: OCCUPIED (Order List) --- */}
+        {/* CASE: OCCUPIED (Order List)*/}
         {table.status === 'OCCUPIED' && table.activeOrderCount > 0 && (
           <div className="mb-6 rounded-2xl bg-orange-50 p-4">
             <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-orange-600">
@@ -115,7 +112,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
 
 
 
-        {/* --- ACTION BUTTONS --- */}
+        {/* ACTION BUTTONS */}
         <div className="space-y-3">
           
           {/* AVAILABLE: Confirm seating */}
