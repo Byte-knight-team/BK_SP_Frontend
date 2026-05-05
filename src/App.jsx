@@ -1,5 +1,6 @@
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -107,16 +108,7 @@ import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboar
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
 import OrderManagementPage from './pages/receptionist/OrderManagementPage'
 
-function isTokenExpired(token) {
-  if (!token) return true
 
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
 
 // Customer / QR token cleanup only.
 function AuthGuard() {
