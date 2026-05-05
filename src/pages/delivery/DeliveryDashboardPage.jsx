@@ -5,10 +5,21 @@ import OrderActionCard from "../../components/delivery/OrderActionCard";
 import { useDeliveryOrders } from "../../hooks/useDeliveryOrders";
 import { DeliveryService } from "../../apis/delivery/DeliveryService";
 
+/**
+ * DeliveryDashboardPage Component
+ * 
+ * Main landing page for delivery staff.
+ * Displays a list of newly assigned delivery tasks and allows the driver
+ * to either accept or reject them. Uses the useDeliveryOrders hook to
+ * fetch and manage the real-time list of assigned tasks.
+ */
 export default function DeliveryDashboardPage() {
   const { user } = useAuth();
   const { orders, loading, error, refetch } = useDeliveryOrders();
 
+  /**
+   * Accepts an assigned order and refreshes the task list.
+   */
   const handleAccept = async (orderId) => {
     try {
       await DeliveryService.acceptOrder(orderId);
@@ -18,6 +29,9 @@ export default function DeliveryDashboardPage() {
     }
   };
 
+  /**
+   * Rejects an assigned order with a specific reason and refreshes the task list.
+   */
   const handleReject = async (orderId, reason) => {
     try {
       await DeliveryService.rejectOrder(orderId, reason);

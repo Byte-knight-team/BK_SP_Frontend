@@ -21,6 +21,17 @@ const INITIAL_FORM = {
   lowStockThreshold: '',
 }
 
+/**
+ * AddInventoryItemModal Component
+ * 
+ * Provides a UI for managers to add new items to the branch's inventory.
+ * Contains a controlled form to capture item details (name, category, price, threshold)
+ * and handles the API submission state, showing a success screen upon completion.
+ * 
+ * @param {boolean} isOpen - Controls whether the modal is visible.
+ * @param {function} onClose - Callback function to close the modal.
+ * @param {function} onSave - Async callback to process the form submission.
+ */
 export default function AddInventoryItemModal({ isOpen, onClose, onSave }) {
   const [form, setForm] = useState(INITIAL_FORM)
   const [isSuccess, setIsSuccess] = useState(false)
