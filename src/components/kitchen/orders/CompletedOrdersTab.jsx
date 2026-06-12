@@ -1,6 +1,7 @@
 import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
+import { toast } from "react-toastify";
 
 const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   const [completedOrdersDetails, setCompletedOrdersDetails] = useState([]);
@@ -14,7 +15,7 @@ const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
       const { data, error } = await getOrderCardsAPI("COMPLETED");
       //handle error
       if (error) {
-        console.error("Error fetching stats details:", error);
+        toast.error("Error fetching completed orders");
         return;
       }
       //handle success
@@ -31,7 +32,7 @@ const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   if (loading) {
     return (
       <p className="animate-pulse py-8 text-center text-sm font-bold text-orange-400">
-        Loading...
+        Loading Completed Orders...
       </p>
     );
   }
@@ -54,6 +55,7 @@ const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
+          //if the order is already selected, highlight it
           isSelected={order.id === selectedOrderId}
         />
       ))}
