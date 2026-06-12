@@ -54,7 +54,7 @@ const Stats = ({ refreshTrigger }) => {
     fetchStatsDetails(true)
   }, [fetchStatsDetails])
 
-  // Silent Refresh when actions happen(change the refreshTrigger) in the table. refreshTrigger > 0 means there is new data.
+  // Silent Refresh when actions happen(if changed the refreshTrigger) in the table. refreshTrigger > 0 means there is new data.
   useEffect(() => {
     if (refreshTrigger > 0) {
       fetchStatsDetails(false) // Pass false so no skeleton shows
