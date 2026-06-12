@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -275,27 +276,32 @@ export default function OrderConfirmationPage() {
 
       {/* HORIZONTAL TIMELINE - Full Width */}
       {!isCancelled && (
-        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm overflow-hidden">
           <div className="relative">
-            {/* Fill each connector segment only after its step is completed. */}
+            
+            {/* 1. The Animated Progress Bar Lines */}
             <div className="absolute left-[10%] right-[10%] top-6 flex h-1 items-center">
               {statusFlow.map((step, index) => {
-                if (index === statusFlow.length - 1) return null; // Don't draw a line after the last dot
+                if (index === statusFlow.length - 1) return null; 
 
                 const isFilled = index < statusIndex;
 
                 return (
                   <div key={`${step.key}-connector`} className="flex-1">
-                    <div className="h-1 rounded-full bg-slate-100">
-                      <div
-                        className={`h-1 rounded-full transition-all duration-300 ${isFilled ? 'w-full bg-orange-500' : 'w-0 bg-orange-500'}`}
+                    <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
+                      <motion.div
+                        initial={{ width: "0%" }}
+                        animate={{ width: isFilled ? "100%" : "0%" }}
+                        transition={{ duration: 0.6, ease: "easeInOut" }}
+                        className="h-full bg-orange-500 rounded-full"
                       />
                     </div>
                   </div>
                 );
               })}
             </div>
-            {/*drawing timeline icons */}
+
+            {/* 2. The Animated Timeline Icons */}
             <div className="relative z-10 flex items-start justify-between">
               {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
@@ -304,19 +310,50 @@ export default function OrderConfirmationPage() {
 
                 return (
                   <div key={step.key} className="flex w-1/5 flex-col items-center text-center">
-                    <div
-                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full transition ${
-                        isDone ? 'bg-orange-500 text-white shadow-md' : isNextStep ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' : 'bg-white border border-slate-200 text-slate-300'
+                    
+                    {/* The "Popping" Icon */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{
+                        scale: isDone ? 1 : isNextStep ? 1.15 : 0.9,
+                        opacity: 1
+                      }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 300, 
+                        damping: 20,
+                        delay: index * 0.1 // Cascading load effect
+                      }}
+                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full transition-colors duration-500 ${
+                        isDone 
+                          ? 'bg-orange-500 text-white shadow-md' 
+                          : isNextStep 
+                          ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' 
+                          : 'bg-white border border-slate-200 text-slate-300'
                       }`}
                     >
                       <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
-                    </div>
-                    <p className="mt-2 text-[10px] sm:mt-3 sm:text-xs font-bold text-slate-900 leading-tight">{step.label}</p>
-                    <p className="mt-0.5 text-xs text-slate-500 hidden sm:block">{step.description}</p>
+                    </motion.div>
+
+                    {/* Fading in the text smoothly */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + (index * 0.1) }}
+                    >
+                      <p className="mt-2 text-[10px] sm:mt-3 sm:text-xs font-bold text-slate-900 leading-tight">
+                        {step.label}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500 hidden sm:block">
+                        {step.description}
+                      </p>
+                    </motion.div>
+
                   </div>
                 );
               })}
             </div>
+            
           </div>
         </div>
       )}
