@@ -44,6 +44,9 @@ const PICKUP_STATUS_FLOW = [
   { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Ready for pickup' },
 ];
 
+// Poll interval (milliseconds) to check order status while it's active
+const ORDER_STATUS_POLL_INTERVAL_MS = 5000;
+
 function normalizeOrderType(orderType) {
   return String(orderType || '').toUpperCase();
 }
@@ -54,6 +57,11 @@ function getStatusFlow(orderType) {
   }
 
   return PICKUP_STATUS_FLOW;
+}
+
+function isTerminalOrderStatus(status) {
+  const normalized = String(status || '').toUpperCase();
+  return ['SERVED', 'CANCELLED', 'REJECTED'].includes(normalized);
 }
 
 export default function OrderConfirmationPage() {
@@ -76,8 +84,12 @@ export default function OrderConfirmationPage() {
       return;
     }
 
+    // Track mounted state to avoid setting state after component unmount
     let isMounted = true;
+    // Interval reference so we can clear it when done/unmounted
+    let pollTimer = null;
 
+    // Fetch latest order from backend and update local state
     const fetchOrder = async () => {
       try {
         const res = await getCustomerOrder(orderId);
@@ -89,11 +101,15 @@ export default function OrderConfirmationPage() {
 
         if (isMounted) {
           setOrder(payload.data || null);
+          setError('');
         }
+
+        return payload.data || null;
       } catch (err) {
         if (isMounted) {
           setError(err.message || 'Failed to load order details.');
         }
+        return null;
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -101,10 +117,45 @@ export default function OrderConfirmationPage() {
       }
     };
 
-    fetchOrder();
+    // Start repeating poll to refresh order status periodically
+    // Poll stops automatically when order reaches a terminal state
+    const startPolling = () => {
+      if (pollTimer) {
+        clearInterval(pollTimer); // If there's an old timer, kill it first
+      }
+
+      pollTimer = setInterval(async () => { // Start a NEW timer that fires every 5000ms
+        const latestOrder = await fetchOrder();
+        if (latestOrder && isTerminalOrderStatus(latestOrder.orderStatus)) {
+          clearInterval(pollTimer);  // AUTO-STOP polling when order is done
+          pollTimer = null;
+        }
+      }, ORDER_STATUS_POLL_INTERVAL_MS); // Repeat every 5 seconds
+    };
+
+    // When user focuses the tab or the page becomes visible, refresh once
+    const handleFocusRefresh = () => {
+      if (!document.hidden) {
+        fetchOrder();
+      }
+    };
+
+    fetchOrder().then((latestOrder) => {
+      if (isMounted && !isTerminalOrderStatus(latestOrder?.orderStatus)) {
+        startPolling();
+      }
+    });
+
+    window.addEventListener('focus', handleFocusRefresh);
+    document.addEventListener('visibilitychange', handleFocusRefresh);
 
     return () => {
       isMounted = false;
+      if (pollTimer) {
+        clearInterval(pollTimer);
+      }
+      window.removeEventListener('focus', handleFocusRefresh);
+      document.removeEventListener('visibilitychange', handleFocusRefresh);
     };
   }, [orderId]);
 
@@ -128,6 +179,7 @@ export default function OrderConfirmationPage() {
     return idx === -1 ? 0 : idx;
   }, [order?.orderStatus, statusFlow]);
 
+  // Simple estimated window based on order creation time: +20 and +40 minutes
   const estimatedStart = new Date(order?.createdAt || Date.now());
   estimatedStart.setMinutes(estimatedStart.getMinutes() + 20);
   const estimatedEnd = new Date(order?.createdAt || Date.now());
