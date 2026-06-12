@@ -235,9 +235,6 @@ export default function AccountPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="ml-3 flex-shrink-0 rounded-lg bg-slate-50 px-3 py-1.5 text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider border border-slate-200">
-                    Read Only
-                  </span>
                 </div>
               </div>
 
