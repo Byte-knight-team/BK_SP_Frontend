@@ -131,8 +131,8 @@ export default function Navbar() {
         <Link to="/" className="flex items-center gap-2.5">
           <BrandLogo />
           <div className="leading-tight min-w-0">
-            <p className="text-sm font-bold text-slate-900 sm:text-base truncate">
-              Crave House
+            <p className="text-base font-bold text-slate-900 truncate">
+              <span className="text-orange-500">Crave</span>House
             </p>
             <p className="hidden text-[11px] text-slate-500 sm:block">
               Premium Dining Experience
