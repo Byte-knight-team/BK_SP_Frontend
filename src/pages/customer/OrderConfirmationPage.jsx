@@ -280,7 +280,7 @@ export default function OrderConfirmationPage() {
           <div className="relative">
             
             {/* 1. The Animated Progress Bar Lines */}
-            <div className="absolute left-[10%] right-[10%] top-6 flex h-1 items-center">
+            <div className="absolute left-[8%] right-[8%] top-1/4 flex h-1 items-center">
               {statusFlow.map((step, index) => {
                 if (index === statusFlow.length - 1) return null; 
 
