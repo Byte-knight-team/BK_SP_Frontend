@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/Navbar';
@@ -123,7 +124,6 @@ export default function MenuPage() {
   const renderMenuCard = (item) => (
     <div
       className="flex overflow-hidden rounded-[18px] border border-slate-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(15,23,42,0.08)] max-[480px]:flex-col"
-      key={item.id}
     >
       <div className="relative w-[180px] min-h-[200px] shrink-0 max-md:w-[140px] max-md:min-h-[150px] max-[480px]:w-full max-[480px]:min-h-[200px]">
         <img
@@ -326,7 +326,20 @@ export default function MenuPage() {
                           )}
 
                           <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
-                            {items.map(renderMenuCard)}
+                            <AnimatePresence>
+                              {items.map((item, idx) => (
+                                <motion.div
+                                  key={item.id}
+                                  initial={{ opacity: 0, y: 8 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -8 }}
+                                  transition={{ duration: 0.35, delay: Math.min(0.25, idx * 0.08) }}
+                                  layout
+                                >
+                                  {renderMenuCard(item)}
+                                </motion.div>
+                              ))}
+                            </AnimatePresence>
                           </div>
                         </div>
                       ),

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, ChevronDown, XCircle, CreditCard, ExternalLink, Loader2, Star, Utensils } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
@@ -362,9 +363,20 @@ export default function OrdersPage() {
           />
         ) : orders.length > 0 ? (
           <div className="space-y-4">
-            {orders.map(order => (
-              <OrderCard key={order.orderId} order={order} />
-            ))}
+            <AnimatePresence>
+              {orders.map((order, idx) => (
+                <motion.div
+                  key={order.orderId}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, delay: Math.min(0.25, idx * 0.10) }}
+                  layout
+                >
+                  <OrderCard order={order} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         ) : (
           <div className="bg-white rounded-3xl p-16 text-center shadow-[0_14px_30px_rgba(15,23,42,0.06)] flex flex-col items-center">
