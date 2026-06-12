@@ -133,7 +133,7 @@ const InventoryRequestModal = ({ isOpen, onClose, onSubmit, requestType, initial
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all disabled:bg-gray-300"
+            className={`flex-1 py-4 ${loading ? "cursor-not-allowed" : "cursor-pointer"} bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg hover:bg-orange-600 transition-all disabled:bg-gray-300`}
           >
             {loading ? "Sending..." : "Send Request"}
           </button>

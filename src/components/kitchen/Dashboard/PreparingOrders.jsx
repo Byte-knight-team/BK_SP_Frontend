@@ -1,6 +1,7 @@
 import OrderCard from '../OrderCard'
 import { getOrderCardsAPI } from '../../../apis/kitchen/dashboard';
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const PreparingOrders = () => {
       const [preparingOrdersDetails, setPreparingOrdersDetails] = useState([]);
@@ -14,7 +15,7 @@ const PreparingOrders = () => {
           const { data, error } = await getOrderCardsAPI("PREPARING");
           //handle error
           if (error) {
-            console.error("Error fetching stats details:", error);
+            toast.error("Error fetching preparing orders details");
             return;
           }
           //handle success
@@ -57,6 +58,7 @@ const PreparingOrders = () => {
             time={order.time}
             id={`#ORD-${order.id}`} // Hardcoded prefix
             numberOfItems={order.itemCount}
+            //by default order card is clickable, but here we are making it unclickable
             isClickable={false}
           />
         ))}
