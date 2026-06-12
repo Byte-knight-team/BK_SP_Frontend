@@ -63,6 +63,8 @@ export default function MenuPage() {
               ...item,
               image: item.imageUrl,
               price: Number(item.price),
+              averageRating: item.averageRating ?? null,
+              ratingCount: item.ratingCount ?? 0,
             }))
           );
         }
@@ -152,8 +154,11 @@ export default function MenuPage() {
 
         <div className="flex items-center gap-4 text-[0.85rem] text-gray-500 mb-3 flex-wrap">
           <span className="flex items-center gap-2 font-medium text-gray-700">
-            <Star size={16} fill="#F59E0B" />
-            {item.rating || '—'}
+            <Star size={16} fill={item.averageRating ? "#F59E0B" : "none"} />
+            {item.averageRating != null
+              ? <span className="flex items-center gap-2"><span>{Number(item.averageRating).toFixed(1)}</span><small className="text-xs text-gray-400">({item.ratingCount || 0})</small></span>
+              : '—'
+            }
           </span>
           <span className="flex items-center gap-2">
             <Clock size={16} /> {item.preparationTime || '—'} min
