@@ -5,6 +5,7 @@ import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/Navbar';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
+import MenuItemReviewsModal from '../../components/customer/modal/MenuItemReviewsModal';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { getCustomerMenu } from '../../apis/customer/menu';
 import menuCover from '../../assets/menu cover image.avif';
@@ -36,6 +37,7 @@ export default function MenuPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItemForReviews, setSelectedItemForReviews] = useState(null);
   
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -156,7 +158,7 @@ export default function MenuPage() {
           <span className="flex items-center gap-2 font-medium text-gray-700">
             <Star size={16} fill={item.averageRating ? "#F59E0B" : "none"} />
             {item.averageRating != null
-              ? <span className="flex items-center gap-2"><span>{Number(item.averageRating).toFixed(1)}</span><small className="text-xs text-gray-400">({item.ratingCount || 0})</small></span>
+              ? <span className="flex items-center gap-2"><span>{Number(item.averageRating).toFixed(1)}</span><button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedItemForReviews(item); }} className="text-xs text-orange-500 underline underline-offset-2 hover:text-orange-600">({item.ratingCount || 0} reviews)</button></span>
               : '—'
             }
           </span>
@@ -352,10 +354,17 @@ export default function MenuPage() {
         )}
       </section>
 
-      {/* ───── Bottom Trust Bar ───── */}
+      {/* Bottom Trust Bar */}
       <div className="px-6 py-6 text-center text-sm text-slate-500 max-md:px-4">
         Fresh ingredients, consistent plating, and a simpler experience.
       </div>
+
+      {selectedItemForReviews && (
+        <MenuItemReviewsModal
+          item={selectedItemForReviews}
+          onClose={() => setSelectedItemForReviews(null)}
+        />
+      )}
     </CustomerPageShell>
   );
 }
