@@ -27,22 +27,22 @@ import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 
 const BASE_STATUS_FLOW = [
-  { key: 'PLACED', label: 'Order Placed', icon: HandCoins, description: 'Order received' },
-  { key: 'PENDING', label: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
-  { key: 'PREPARING', label: 'Preparing', icon: ChefHat, description: 'At the kitchen' },
-  { key: 'COMPLETED', label: 'Order Prepared', icon: Soup, description: 'Finished preparing' },
+  { key: 'PLACED',     label: 'Order Placed',   shortLabel: 'Placed',    icon: HandCoins,  description: 'Order received' },
+  { key: 'PENDING',   label: 'Confirmed',       shortLabel: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
+  { key: 'PREPARING', label: 'Preparing',       shortLabel: 'Preparing', icon: ChefHat,    description: 'At the kitchen' },
+  { key: 'COMPLETED', label: 'Order Prepared',  shortLabel: 'Prepared',  icon: Soup,       description: 'Finished preparing' },
 ];
 
 const DELIVERY_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'On the way' },
-  { key: 'ARRIVED', label: 'Arrived', icon: MapPin, description: 'Reached location' },
-  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Delivered' },
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', shortLabel: 'Delivery', icon: Truck,      description: 'On the way' },
+  { key: 'ARRIVED',         label: 'Arrived',           shortLabel: 'Arrived',  icon: MapPin,     description: 'Reached location' },
+  { key: 'SERVED',          label: 'Served',            shortLabel: 'Served',   icon: Handshake,  description: 'Delivered' },
 ];
 
 const PICKUP_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
-  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Ready for pickup' },
+  { key: 'SERVED', label: 'Served', shortLabel: 'Served', icon: Handshake, description: 'Ready for pickup' },
 ];
 
 // Poll interval (milliseconds) to check order status while it's active
@@ -276,8 +276,8 @@ export default function OrderConfirmationPage() {
 
       {/* HORIZONTAL TIMELINE - Full Width */}
       {!isCancelled && (
-        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm overflow-hidden">
-          <div className="relative">
+        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:p-6 shadow-sm overflow-x-auto">
+          <div className="relative min-w-0">
             
             {/* 1. The Animated Progress Bar Lines */}
             <div className="absolute left-[8%] right-[8%] top-1/4 flex h-1 items-center">
@@ -302,14 +302,14 @@ export default function OrderConfirmationPage() {
             </div>
 
             {/* 2. The Animated Timeline Icons */}
-            <div className="relative z-10 flex items-start justify-between">
+            <div className="relative z-10 flex items-start">
               {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
                 const isDone = index <= statusIndex;
                 const isNextStep = index === statusIndex + 1;
 
                 return (
-                  <div key={step.key} className="flex w-1/5 flex-col items-center text-center">
+                  <div key={step.key} className="flex flex-1 min-w-0 flex-col items-center text-center px-0.5">
                     
                     {/* The "Popping" Icon */}
                     <motion.div
@@ -335,13 +335,19 @@ export default function OrderConfirmationPage() {
                       <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                     </motion.div>
 
-                    {/* Fading in the text smoothly */}
+                    {/* Label text: short version on mobile, full version on sm+ */}
                     <motion.div
+                      className="w-full"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 + (index * 0.1) }}
                     >
-                      <p className="mt-2 text-[10px] sm:mt-3 sm:text-xs font-bold text-slate-900 leading-tight">
+                      {/* Mobile: 8px short label, strictly clamped to column width */}
+                      <p className="mt-1.5 block sm:hidden w-full text-center text-[8px] font-bold text-slate-900 leading-tight break-words hyphens-auto">
+                        {step.shortLabel || step.label}
+                      </p>
+                      {/* Desktop: full label, description */}
+                      <p className="mt-3 hidden sm:block text-xs font-bold text-slate-900 leading-tight">
                         {step.label}
                       </p>
                       <p className="mt-0.5 text-xs text-slate-500 hidden sm:block">
