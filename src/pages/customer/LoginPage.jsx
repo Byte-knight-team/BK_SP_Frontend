@@ -38,6 +38,8 @@ export default function LoginPage() {
       const data = payload.data;
 
       localStorage.setItem('customer_jwt', data.token);
+      if (data.username) localStorage.setItem('customer_name', data.username);
+      if (data.profilePictureUrl) localStorage.setItem('customer_profile_pic', data.profilePictureUrl);
 
       localStorage.removeItem('qr_session');
       localStorage.removeItem('qr_session_token');

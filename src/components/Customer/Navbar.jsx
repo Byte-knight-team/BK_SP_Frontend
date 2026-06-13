@@ -34,16 +34,29 @@ export default function Navbar() {
   const [auth, setAuth] = useState({
     isLoggedIn: false,
     isQrCustomer: false,
-    userName: ''
+    userName: '',
+    profilePic: ''
   });
 
   useEffect(() => {
+    const handleProfileUpdate = () => {
+      setAuth(prev => ({
+        ...prev,
+        profilePic: localStorage.getItem('customer_profile_pic') || ''
+      }));
+    };
+    
+    window.addEventListener('profile_picture_updated', handleProfileUpdate);
+
     setAuth({
       isLoggedIn: Boolean(localStorage.getItem('customer_jwt')),
       isQrCustomer: Boolean(localStorage.getItem('qr_session_token')),
-      userName: localStorage.getItem('customer_name') || ''
+      userName: localStorage.getItem('customer_name') || '',
+      profilePic: localStorage.getItem('customer_profile_pic') || ''
     });
     setIsMenuOpen(false);
+
+    return () => window.removeEventListener('profile_picture_updated', handleProfileUpdate);
   }, [location.pathname]);
 
   // 2. Add clearCart() to the logout sequence
@@ -52,6 +65,7 @@ export default function Navbar() {
     localStorage.removeItem('customer_role');
     localStorage.removeItem('customer_user_id');
     localStorage.removeItem('customer_name');
+    localStorage.removeItem('customer_profile_pic');
 
     //log outs qr session for more security
     localStorage.removeItem('qr_session');
@@ -62,7 +76,7 @@ export default function Navbar() {
     // Wipe the cart memory!
     clearCart();
 
-    setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '' });
+    setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '', profilePic: '' });
     navigate('/');
   };
 
@@ -88,9 +102,10 @@ export default function Navbar() {
     localStorage.removeItem('customer_role');
     localStorage.removeItem('customer_user_id');
     localStorage.removeItem('customer_name');
+    localStorage.removeItem('customer_profile_pic');
 
     clearCart();
-    setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '' });
+    setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '', profilePic: '' });
     navigate('/');
   };
 
@@ -183,10 +198,19 @@ export default function Navbar() {
                   <LinkButton
                     to="/account"
                     variant="secondary"
-                    icon={UserCircle2}
+                    icon={auth.profilePic ? null : UserCircle2}
                   >
-                    <span className="max-w-[100px] truncate">
-                      {auth.userName || "Account"}
+                    <span className="flex items-center">
+                      {auth.profilePic && (
+                        <img 
+                          src={auth.profilePic} 
+                          alt="Profile" 
+                          className="w-5 h-5 rounded-full object-cover -ml-1 mr-1.5" 
+                        />
+                      )}
+                      <span className="max-w-[100px] truncate leading-none pt-0.5">
+                        {auth.userName || "Account"}
+                      </span>
                     </span>
                   </LinkButton>
                 )}
@@ -328,10 +352,21 @@ export default function Navbar() {
                   to="/account"
                   onClick={toggleMenu}
                   variant="secondary"
-                  icon={UserCircle2}
+                  icon={auth.profilePic ? null : UserCircle2}
                   className="w-full justify-start"
                 >
-                  {auth.userName || "Account"}
+                  <span className="flex items-center">
+                    {auth.profilePic && (
+                      <img 
+                        src={auth.profilePic} 
+                        alt="Profile" 
+                        className="w-5 h-5 rounded-full object-cover mr-1.5" 
+                      />
+                    )}
+                    <span className="truncate leading-none pt-0.5">
+                      {auth.userName || "Account"}
+                    </span>
+                  </span>
                 </LinkButton>
                 {auth.isQrCustomer ? (
                   <Button

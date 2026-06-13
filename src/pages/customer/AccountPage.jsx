@@ -39,6 +39,13 @@ export default function AccountPage() {
 
       setProfile(payload.data);
       setFormData(payload.data);
+      
+      if (payload.data.profilePictureUrl) {
+        localStorage.setItem('customer_profile_pic', payload.data.profilePictureUrl);
+      } else {
+        localStorage.removeItem('customer_profile_pic');
+      }
+      window.dispatchEvent(new Event('profile_picture_updated'));
     } catch (err) {
       setError(err.message);
     } finally {
