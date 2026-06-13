@@ -80,6 +80,8 @@ export default function OtpVerificationPage() {
       // Success! Save the JWT token
       const data = payload.data;
       localStorage.setItem('customer_jwt', data.token);
+      if (data.username) localStorage.setItem('customer_name', data.username);
+      if (data.profilePictureUrl) localStorage.setItem('customer_profile_pic', data.profilePictureUrl);
 
       // Redirect directly to checkout to complete their meal!
       navigate(redirectTo, { replace: true });
