@@ -125,9 +125,9 @@ export default function MenuPage() {
 
   const renderMenuCard = (item) => (
     <div
-      className="flex overflow-hidden rounded-[18px] border border-slate-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(15,23,42,0.08)] max-[480px]:flex-col"
+      className="flex flex-col sm:flex-row h-auto sm:h-[230px] overflow-hidden rounded-[18px] border border-slate-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(15,23,42,0.08)]"
     >
-      <div className="relative w-[180px] min-h-[200px] shrink-0 max-md:w-[140px] max-md:min-h-[150px] max-[480px]:w-full max-[480px]:min-h-[200px]">
+      <div className="relative w-full sm:w-[140px] md:w-[180px] h-[200px] sm:h-full shrink-0">
         <img
           src={item.image}
           alt={item.name}
