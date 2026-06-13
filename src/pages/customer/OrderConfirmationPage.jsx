@@ -276,41 +276,32 @@ export default function OrderConfirmationPage() {
 
       {/* HORIZONTAL TIMELINE - Full Width */}
       {!isCancelled && (
-        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:p-6 shadow-sm overflow-x-auto">
-          <div className="relative min-w-0">
+        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:p-6 shadow-sm overflow-x-auto custom-scrollbar">
+          <div className="relative min-w-max sm:min-w-0 w-full">
             
-            {/* 1. The Animated Progress Bar Lines */}
-            <div className="absolute left-[8%] right-[8%] top-1/4 flex h-1 items-center">
-              {statusFlow.map((step, index) => {
-                if (index === statusFlow.length - 1) return null; 
-
-                const isFilled = index < statusIndex;
-
-                return (
-                  <div key={`${step.key}-connector`} className="flex-1">
-                    <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
-                      <motion.div
-                        initial={{ width: "0%" }}
-                        animate={{ width: isFilled ? "100%" : "0%" }}
-                        transition={{ duration: 0.6, ease: "easeInOut" }}
-                        className="h-full bg-orange-500 rounded-full"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* 2. The Animated Timeline Icons */}
-            <div className="relative z-10 flex items-start">
+            {/* The Animated Timeline Icons & Connectors */}
+            <div className="relative z-10 flex items-start w-full">
               {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
                 const isDone = index <= statusIndex;
                 const isNextStep = index === statusIndex + 1;
+                const isLast = index === statusFlow.length - 1;
 
                 return (
-                  <div key={step.key} className="flex flex-1 min-w-0 flex-col items-center text-center px-0.5">
+                  <div key={step.key} className="flex flex-1 flex-col items-center text-center relative min-w-[60px] sm:min-w-0 px-1">
                     
+                    {/* Connector line to the next step */}
+                    {!isLast && (
+                      <div className="absolute left-1/2 top-[18px] sm:top-[24px] w-full h-1 bg-slate-100 rounded-full z-[-1] overflow-hidden">
+                        <motion.div
+                          initial={{ width: "0%" }}
+                          animate={{ width: isDone ? "100%" : "0%" }}
+                          transition={{ duration: 0.6, ease: "easeInOut" }}
+                          className="h-full bg-orange-500 rounded-full origin-left"
+                        />
+                      </div>
+                    )}
+
                     {/* The "Popping" Icon */}
                     <motion.div
                       initial={{ scale: 0.5, opacity: 0 }}
@@ -322,9 +313,9 @@ export default function OrderConfirmationPage() {
                         type: "spring", 
                         stiffness: 300, 
                         damping: 20,
-                        delay: index * 0.1 // Cascading load effect
+                        delay: index * 0.1 
                       }}
-                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full transition-colors duration-500 ${
+                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center shrink-0 rounded-full transition-colors duration-500 ${
                         isDone 
                           ? 'bg-orange-500 text-white shadow-md' 
                           : isNextStep 
@@ -335,22 +326,22 @@ export default function OrderConfirmationPage() {
                       <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                     </motion.div>
 
-                    {/* Label text: short version on mobile, full version on sm+ */}
+                    {/* Label text */}
                     <motion.div
                       className="w-full"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 + (index * 0.1) }}
                     >
-                      {/* Mobile: 8px short label, strictly clamped to column width */}
-                      <p className="mt-1.5 block sm:hidden w-full text-center text-[8px] font-bold text-slate-900 leading-tight break-words hyphens-auto">
+                      {/* Mobile: slightly larger text, allowed to wrap */}
+                      <p className="mt-2 block sm:hidden w-full text-center text-[10px] font-bold text-slate-900 leading-tight break-words">
                         {step.shortLabel || step.label}
                       </p>
                       {/* Desktop: full label, description */}
                       <p className="mt-3 hidden sm:block text-xs font-bold text-slate-900 leading-tight">
                         {step.label}
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-500 hidden sm:block">
+                      <p className="mt-1 text-[10px] text-slate-500 hidden sm:block">
                         {step.description}
                       </p>
                     </motion.div>
