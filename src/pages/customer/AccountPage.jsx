@@ -309,7 +309,7 @@ export default function AccountPage() {
                   {profile.profilePictureUrl && !isUploadingImage && (
                     <button 
                       onClick={handleRemovePicture}
-                      className="flex items-center gap-1 mt-2 text-[10px] font-medium text-slate-400 hover:text-red-500 transition-colors"
+                      className="flex items-center gap-1 mt-1 mr-2 text-[10px] font-medium text-slate-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={10} /> Remove
                     </button>
