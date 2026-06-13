@@ -51,8 +51,9 @@ export const createCustomerReviewImagePresignUrls = async (files) => {
 
 /**
  * Upload a single file directly to S3 using a presigned PUT URL.
- * Does NOT go through the backend — credentials are embedded in the URL by the backend.
- * No Authorization header is added here;
+ * Does NOT go through the backend - credentials are embedded in the URL by the backend.
+ * No Authorization header is added; using customerAuthFetch here would break the S3 request.
+ */
 export const uploadFileToPresignedUrl = async (uploadUrl, file) => {
   return fetch(uploadUrl, {
     method: 'PUT',
