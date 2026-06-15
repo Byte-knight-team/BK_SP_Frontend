@@ -94,7 +94,7 @@ export default function OtpVerificationPage() {
   };
 
   return (
-    <CustomerPageShell maxWidth="max-w-4xl">
+    <CustomerPageShell maxWidth="max-w-4xl" hasGlassBackground>
       <div className="mx-auto w-full max-w-[420px]">
         <button
           type="button"

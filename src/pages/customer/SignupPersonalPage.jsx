@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, Lock } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+import GlassBackground from '../../components/customer/GlassBackground';
 
 export default function SignupPersonalPage() {
   const navigate = useNavigate();
@@ -59,8 +60,9 @@ export default function SignupPersonalPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-10">
-      <div className="mx-auto w-full max-w-[380px]">
+    <div className="relative min-h-screen bg-[#f3f1ee] px-4 py-10 overflow-hidden">
+      <GlassBackground />
+      <div className="relative z-10 mx-auto w-full max-w-[380px]">
         <button
           type="button"
           onClick={() => navigate(-1)}
