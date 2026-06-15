@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen } from 'lucide-react';
+import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen, BarChart3 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { endQrSession } from '../../apis/customer/qrSessions';
@@ -212,7 +212,7 @@ export default function Navbar() {
                         {auth.userName || "Account"}
                       </span>
                     </span>
-                  </LinkButton>
+                    </LinkButton>
                 )}
 
                 {/* LEAVE TABLE for QR + logged-in users */}
@@ -348,13 +348,14 @@ export default function Navbar() {
                 >
                   Orders
                 </LinkButton>
-                <LinkButton
-                  to="/account"
-                  onClick={toggleMenu}
-                  variant="secondary"
-                  icon={auth.profilePic ? null : UserCircle2}
-                  className="w-full justify-start"
-                >
+                {!auth.isQrCustomer && (
+                  <LinkButton
+                    to="/account"
+                    onClick={toggleMenu}
+                    variant="secondary"
+                    icon={auth.profilePic ? null : UserCircle2}
+                    className="w-full justify-start"
+                  >
                   <span className="flex items-center">
                     {auth.profilePic && (
                       <img 
@@ -366,8 +367,9 @@ export default function Navbar() {
                     <span className="truncate leading-none pt-0.5">
                       {auth.userName || "Account"}
                     </span>
-                  </span>
-                </LinkButton>
+                    </span>
+                  </LinkButton>
+                )}
                 {auth.isQrCustomer ? (
                   <Button
                     onClick={() => { handleLeaveTable(); toggleMenu(); }}
