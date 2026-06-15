@@ -58,7 +58,7 @@ export default function MobileVerificationPage() {
   };
 
   return (
-    <CustomerPageShell maxWidth="max-w-4xl">
+    <CustomerPageShell maxWidth="max-w-4xl" hasGlassBackground>
       <div className="mx-auto w-full max-w-[420px]">
         <div className="overflow-hidden rounded-[2rem] bg-white shadow-[0_18px_42px_rgba(15,23,42,0.10)] border border-slate-200">
           <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">

@@ -1,16 +1,24 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation} from 'react-router-dom';
-import { ArrowLeft, Mail, Lock} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Mail, Lock } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import { loginCustomer } from '../../apis/customer/auth';
+import GlassBackground from '../../components/customer/GlassBackground';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Pick up the ?error= param from URL (e.g. deactivated account redirect)
+  useEffect(() => {
+    const urlError = searchParams.get('error');
+    if (urlError) setError(urlError);
+  }, [searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -46,8 +54,8 @@ export default function LoginPage() {
       localStorage.removeItem('qr_branch_id');
       localStorage.removeItem('qr_table_id');
 
-      const searchParams = new URLSearchParams(location.search);
-      const redirectTo = searchParams.get('redirect') || '/menu';
+      const redirectSearchParams = new URLSearchParams(location.search);
+      const redirectTo = redirectSearchParams.get('redirect') || '/menu';
 
       navigate(redirectTo, { replace: true });
     } catch (err) {
@@ -58,8 +66,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-10">
-      <div className="mx-auto w-full max-w-[360px]">
+    <div className="relative min-h-screen bg-[#f3f1ee] px-4 py-10 overflow-hidden">
+      {/* Interactive glassmorphism background */}
+      <GlassBackground />
+
+      {/* Login card — completely original design, untouched */}
+      <div className="relative z-10 mx-auto w-full max-w-[360px]">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -71,7 +83,7 @@ export default function LoginPage() {
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
           <div className="bg-orange-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
-              <BrandLogo />
+            <BrandLogo />
             <h1 className="text-3xl font-bold">Welcome Back!</h1>
             <p className="mt-2 text-sm text-orange-100">Sign in to continue ordering</p>
           </div>
@@ -110,7 +122,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-          {/*<div className="flex items-center justify-between text-sm">
+            {/*<div className="flex items-center justify-between text-sm">
               <button type="button" className="font-medium text-orange-500 hover:text-orange-600">
                 Forgot password?
               </button>
@@ -133,6 +145,7 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+
     </div>
   );
 }
