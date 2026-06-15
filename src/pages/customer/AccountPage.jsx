@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2, Camera, Trash2 } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2, Camera, Trash2, BarChart3 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
@@ -341,6 +341,14 @@ export default function AccountPage() {
                   Active
                 </span>
               </div>
+              
+              <button 
+                onClick={() => navigate('/statistics')}
+                className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              >
+                <BarChart3 size={18} className="text-slate-500" />
+                View Advanced Statistics
+              </button>
             </div>
 
             {/* Static Email Section*/}
