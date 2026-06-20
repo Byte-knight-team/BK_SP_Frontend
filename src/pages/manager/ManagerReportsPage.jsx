@@ -15,11 +15,14 @@ import { AlertCircle, RefreshCw } from 'lucide-react'
  * Orchestrates data fetching and renders analytical components.
  */
 export default function ManagerReportsPage() {
-  const { data, loading, error, dateRange, setDateRange, refetch } = useAnalyticsData()
+  const { data, loading, error, dateRange, setDateRange, refetch } =
+    useAnalyticsData()
 
   const handleExport = () => {
     if (!data) return
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json',
+    })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -38,11 +41,13 @@ export default function ManagerReportsPage() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
           <AlertCircle className="h-8 w-8 text-red-500" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">Failed to load analytics</h2>
+        <h2 className="text-xl font-semibold text-gray-900">
+          Failed to load analytics
+        </h2>
         <p className="mt-2 text-gray-500">{error}</p>
         <button
           onClick={refetch}
-          className="mt-6 flex items-center gap-2 rounded-xl bg-gray-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-all"
+          className="mt-6 flex items-center gap-2 rounded-xl bg-gray-900 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-gray-800"
         >
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -53,9 +58,9 @@ export default function ManagerReportsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 pb-12">
-      <ReportsHeader 
-        dateRange={dateRange} 
-        setDateRange={setDateRange} 
+      <ReportsHeader
+        dateRange={dateRange}
+        setDateRange={setDateRange}
         onExport={handleExport}
       />
 
@@ -72,7 +77,7 @@ export default function ManagerReportsPage() {
 
         {/* 3. Peak Hours - Spans 2 columns */}
         <div className="lg:col-span-2">
-            <PeakHoursChart data={data.peakHours} />
+          <PeakHoursChart data={data.peakHours} />
         </div>
 
         {/* 4. Top Selling Items - Spans 1 column */}
