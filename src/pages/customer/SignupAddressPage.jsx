@@ -1,49 +1,45 @@
-import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Building2, MapPin, Hash, Home } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import { registerCustomer } from '../../apis/customer/auth';
 import GlassBackground from '../../components/customer/GlassBackground';
+import { signupAddressSchema } from '../../lib/validations/auth';
 
 export default function SignupAddressPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [address, setAddress] = useState({
-    line1: '',
-    city: '',
-    postalCode: '',
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(signupAddressSchema),
+    defaultValues: {
+      line1: '',
+      city: '',
+      postalCode: '',
+    },
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [error, setError] = useState('');
 
   const redirectTo = location.state?.redirect || '/menu';
-
   const personal = location.state?.personal;
 
-  const handleChange = (field) => (e) => {
-    setAddress((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleConfirm = async (e) => {
-    e.preventDefault();
-
+  const onSubmit = async (data) => {
     if (!personal?.fullName || !personal?.email || !personal?.phone || !personal?.password) {
       setError('Please complete the personal details step first.');
       return;
     }
 
-    const fullAddress = [address.line1, address.city, address.postalCode]
+    const fullAddress = [data.line1, data.city, data.postalCode]
       .map((part) => part.trim())
       .filter(Boolean)
       .join(', ');
 
-    if (!fullAddress) {
-      setError('Please enter a valid address.');
-      return;
-    }
-
     setError('');
-    setIsSubmitting(true);
 
     try {
       const res = await registerCustomer({
@@ -73,8 +69,6 @@ export default function SignupAddressPage() {
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to register.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -98,7 +92,7 @@ export default function SignupAddressPage() {
             <p className="mt-2 text-sm text-orange-100">Step 2 of 2 - Complete Registration</p>
           </div>
 
-          <form className="space-y-4 px-6 pb-8 pt-6" onSubmit={handleConfirm}>
+          <form className="space-y-4 px-6 pb-8 pt-6" onSubmit={handleSubmit(onSubmit)}>
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {error}
@@ -116,13 +110,12 @@ export default function SignupAddressPage() {
                 <Home size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  value={address.line1}
-                  onChange={handleChange('line1')}
+                  {...register('line1')}
                   placeholder="House no, street name"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
-                  required
                 />
               </div>
+              {errors.line1 && <p className="mt-1 text-xs text-red-600">{errors.line1.message}</p>}
             </div>
 
             <div>
@@ -131,13 +124,12 @@ export default function SignupAddressPage() {
                 <Building2 size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  value={address.city}
-                  onChange={handleChange('city')}
+                  {...register('city')}
                   placeholder="Enter your city"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
-                  required
                 />
               </div>
+              {errors.city && <p className="mt-1 text-xs text-red-600">{errors.city.message}</p>}
             </div>
 
             <div>
@@ -146,13 +138,12 @@ export default function SignupAddressPage() {
                 <Hash size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  value={address.postalCode}
-                  onChange={handleChange('postalCode')}
+                  {...register('postalCode')}
                   placeholder="e.g. 10100"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
-                  required
                 />
               </div>
+              {errors.postalCode && <p className="mt-1 text-xs text-red-600">{errors.postalCode.message}</p>}
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 flex items-center gap-2">
