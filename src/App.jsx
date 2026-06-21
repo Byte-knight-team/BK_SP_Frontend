@@ -1,5 +1,6 @@
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
 import { ToastContainer } from 'react-toastify'
@@ -137,12 +138,23 @@ function AuthGuard() {
   return null
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+})
+
 function CustomerLayout() {
   return (
-    <CartProvider>
-      <AuthGuard />
-      <Outlet />
-    </CartProvider>
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <AuthGuard />
+        <Outlet />
+      </CartProvider>
+    </QueryClientProvider>
   )
 }
 

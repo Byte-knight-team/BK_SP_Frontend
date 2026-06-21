@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2, Camera, Trash2, BarChart3 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
@@ -16,11 +17,9 @@ export default function AccountPage() {
   const [editingSection, setEditingSection] = useState(null);
   const { clearCart } = useCart();
   
-  const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({});
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -28,35 +27,30 @@ export default function AccountPage() {
   const fileInputRef = useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const fetchProfile = async () => {
-    try {
+  const { data: profile, isLoading, error: queryError, refetch } = useQuery({
+    queryKey: ['customerProfile'],
+    queryFn: async () => {
       const res = await getCustomerProfile();
       const payload = await res.json().catch(() => ({}));
-      
-      if (!res.ok) {
-        throw new Error(payload?.message || 'Failed to load profile.');
-      }
+      if (!res.ok) throw new Error(payload?.message || 'Failed to load profile.');
+      return payload.data;
+    }
+  });
 
-      setProfile(payload.data);
-      setFormData(payload.data);
-      
-      if (payload.data.profilePictureUrl) {
-        localStorage.setItem('customer_profile_pic', payload.data.profilePictureUrl);
+  useEffect(() => {
+    if (queryError) {
+      setError(queryError.message);
+    }
+    if (profile) {
+      setFormData(profile);
+      if (profile.profilePictureUrl) {
+        localStorage.setItem('customer_profile_pic', profile.profilePictureUrl);
       } else {
         localStorage.removeItem('customer_profile_pic');
       }
       window.dispatchEvent(new Event('profile_picture_updated'));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  // 1. Fetch Profile on Load
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  }, [profile, queryError]);
 
   const handleAvatarClick = () => {
     if (fileInputRef.current) {
@@ -101,7 +95,7 @@ export default function AccountPage() {
       if (!updateRes.ok) throw new Error(updatePayload?.message || 'Failed to update profile picture');
 
       // 4. Reload profile to get the new GET URL
-      await fetchProfile();
+      await refetch();
       setSuccessMsg('Profile picture updated successfully!');
     } catch (err) {
       setError(err.message || 'Failed to upload profile picture');
@@ -124,7 +118,7 @@ export default function AccountPage() {
         throw new Error(payload?.message || 'Failed to remove picture');
       }
       
-      await fetchProfile();
+      await refetch();
       setSuccessMsg('Profile picture removed');
     } catch (err) {
       setError(err.message || 'Failed to remove picture');
@@ -174,7 +168,7 @@ export default function AccountPage() {
         throw new Error(payload?.message || 'Failed to update profile.');
       }
 
-      setProfile(payload.data);
+      await refetch();
       setEditingSection(null);
       setSuccessMsg('Profile updated successfully!');
       
