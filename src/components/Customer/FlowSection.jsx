@@ -1,4 +1,5 @@
 import { BellRing, ClipboardList, CreditCard, ScanLine, ShoppingCart, Store, Truck, Wallet } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const FLOW_SECTIONS = {
   restaurant: {
@@ -27,36 +28,74 @@ const FLOW_SECTIONS = {
   },
 };
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: 'easeOut',
+    },
+  },
+};
+
 export default function FlowSection({ flowKey }) {
   const section = FLOW_SECTIONS[flowKey] ?? FLOW_SECTIONS.restaurant;
 
   return (
-    <section id={section.id} className="bg-slate-100 px-4 py-20 sm:px-6 lg:px-8">
+    <section id={section.id} className="bg-slate-100 px-4 py-20 sm:px-6 lg:px-8 overflow-hidden">
       <div className="mx-auto max-w-6xl">
-        <div className="mx-auto mb-12 max-w-3xl text-center">
- <p className="inline-flex rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
-                     {section.eyebrow}
+        <motion.div 
+          className="mx-auto mb-12 max-w-3xl text-center"
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5 }}
+        >
+          <p className="inline-flex rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+            {section.eyebrow}
           </p>
           <h2 className="mt-4 text-3xl font-bold text-slate-900 sm:text-4xl">{section.title}</h2>
           <p className="mt-4 text-slate-600">{section.description}</p>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <motion.div 
+          className="grid gap-5 md:grid-cols-2 xl:grid-cols-4"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {section.items.map((item, index) => {
             return (
-              <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <motion.article 
+                key={item.title} 
+                variants={itemVariants}
+                className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-slate-300"
+              >
                 <div className="mb-5 flex items-center justify-between">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white transition-transform duration-300 group-hover:scale-110">
                     <item.icon size={18} />
                   </div>
                   <span className="text-xs font-semibold tracking-wider text-slate-400">STEP {index + 1}</span>
                 </div>
                 <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
                 <p className="mt-2 leading-relaxed text-slate-600">{item.description}</p>
-              </article>
+              </motion.article>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
