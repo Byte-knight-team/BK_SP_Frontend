@@ -58,8 +58,8 @@ export default function TestimonialsSection() {
 				) : reviews.length > 0 ? (
 					<div className="grid gap-6 md:grid-cols-3">
 						{reviews.map((review) => (
-							<article key={review.reviewId} className="rounded-2xl border border-slate-700 bg-slate-800/70 p-7 backdrop-blur-sm">
-								<div className="mb-4">
+							<article key={review.reviewId} className="group rounded-2xl border border-slate-700 bg-slate-800/70 p-7 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.7)] hover:border-slate-500 hover:bg-slate-800/90">
+								<div className="mb-4 transition-transform duration-300 group-hover:scale-105 origin-left">
 									{renderStars(review.rating)}
 								</div>
 								<p className="leading-relaxed text-slate-200 min-h-16">"{review.comment}"</p>
