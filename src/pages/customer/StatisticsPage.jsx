@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -29,29 +30,17 @@ const PIE_COLORS = ['#f97316', '#3b82f6', '#8b5cf6']; // Orange, Blue, Purple
 
 export default function StatisticsPage() {
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['customerStatistics'],
+    queryFn: async () => {
+      const res = await getCustomerStatistics();
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.message || 'Failed to load statistics');
+      return payload.data;
+    }
+  });
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await getCustomerStatistics();
-        const payload = await res.json().catch(() => ({}));
-        
-        if (!res.ok) {
-          throw new Error(payload.message || 'Failed to load statistics');
-        }
-        setData(payload.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchStats();
-  }, []);
+  const error = queryError?.message || '';
 
   if (loading) {
     return (

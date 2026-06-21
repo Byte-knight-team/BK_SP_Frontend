@@ -1,7 +1,7 @@
 import { BellRing, ClipboardList, CreditCard, ScanLine, ShoppingCart, Store, Truck, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const FLOW_SECTIONS = {
+const FLOW_SECTIONS = Object.freeze({
   restaurant: {
     id: 'restuarent',
     eyebrow: 'In-Restaurant Flow',
@@ -26,7 +26,7 @@ const FLOW_SECTIONS = {
       { title: 'Track Delivery', description: 'Customer tracks preparation and rider status until the order arrives.', icon: Truck },
     ],
   },
-};
+});
 
 const containerVariants = {
   hidden: { opacity: 0 },
