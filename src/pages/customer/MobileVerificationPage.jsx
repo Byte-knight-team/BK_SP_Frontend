@@ -1,42 +1,37 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Phone, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import { sendCustomerOtp } from '../../apis/customer/auth';
+import { mobileVerificationSchema } from '../../lib/validations/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function MobileVerificationPage() {
-  const navigate = useNavigate();
-  const [phone, setPhone] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(mobileVerificationSchema),
+    defaultValues: {
+      phone: '',
+    },
+  });
+  
   const [error, setError] = useState('');
 
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const redirectTo = searchParams.get('redirect') || '/checkout'; // Default QR to checkout
 
-  const handleSendOTP = async (e) => {
-    e.preventDefault();
-    
-    if (!phone) {
-      setError('Please enter a phone number.');
-      return;
-    }
-
-    // --- STRICT FRONTEND VALIDATION ---
-    const phoneRegex = /^07\d{8}$/;
-    if (!phoneRegex.test(phone.trim())) {
-      setError('Phone number must be exactly 10 digits and start with 07 (e.g., 0712345678).');
-      return;
-    }
-
-    setIsLoading(true);
+  const onSubmit = async (data) => {
     setError('');
 
     try {
-      const res = await sendCustomerOtp(phone.trim());
+      const res = await sendCustomerOtp(data.phone.trim());
 
       const payload = await res.json().catch(() => ({}));
 
@@ -46,14 +41,12 @@ export default function MobileVerificationPage() {
 
       navigate("/verify-otp", {
         state: {
-          phone: phone.trim(),
+          phone: data.phone.trim(),
           redirect: redirectTo, // Pass the baton!
         },
       });
     } catch (err) {
       setError(err.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -69,7 +62,7 @@ export default function MobileVerificationPage() {
             </p>
           </div>
 
-          <form className="space-y-6 px-6 pb-10 pt-8" onSubmit={handleSendOTP}>
+          <form className="space-y-6 px-6 pb-10 pt-8" onSubmit={handleSubmit(onSubmit)}>
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[0.85rem] text-red-700 text-center leading-snug">
                 {error}
@@ -82,20 +75,20 @@ export default function MobileVerificationPage() {
                 <Phone size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  {...register('phone')}
                   placeholder="07XXXXXXXX"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
                 />
               </div>
+              {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>}
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-600 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Send OTP Code'}
+              {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : 'Send OTP Code'}
             </button>
           </form>
         </div>

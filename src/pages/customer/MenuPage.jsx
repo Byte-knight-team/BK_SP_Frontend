@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useDeferredValue } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
@@ -89,11 +89,13 @@ export default function MenuPage() {
     };
   }, []);
 
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
   const groupedCategories = useMemo(() => {
     const filteredItems = menuItems.filter((item) => {
-      if (!searchQuery.trim()) return true;
+      if (!deferredSearchQuery.trim()) return true;
       
-      const query = searchQuery.toLowerCase();
+      const query = deferredSearchQuery.toLowerCase();
       return (
         item.name.toLowerCase().includes(query) ||
         (item.description && item.description.toLowerCase().includes(query))
