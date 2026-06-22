@@ -51,11 +51,8 @@ export default function TableManagementPage() {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.trim().toLowerCase();
     return (
-      table.id?.toString() === query ||
-      table.tableNumber?.toString() === query ||
-      `t-${table.tableNumber?.toString().padStart(2, '0')}`.toLowerCase().includes(query) ||
-      table.branchName?.toLowerCase().includes(query) ||
-      table.status?.toLowerCase().includes(query)
+      table.tableNumber?.toString().toLowerCase().includes(query) ||
+      `t-${table.tableNumber?.toString().padStart(2, '0')}`.toLowerCase().includes(query)
     );
   });
 
