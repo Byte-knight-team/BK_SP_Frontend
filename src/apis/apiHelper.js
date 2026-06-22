@@ -111,7 +111,7 @@ export const customerApiFetch = async (path, options = {}) => {
 export const customerAuthFetch = async (path, options = {}) => {
   const token = localStorage.getItem("customer_jwt");
 
-  return fetch(buildApiUrl(path), {
+  const response = await fetch(buildApiUrl(path), {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -119,4 +119,32 @@ export const customerAuthFetch = async (path, options = {}) => {
       ...options.headers,
     },
   });
+
+  if (response.status === 401) {
+    localStorage.removeItem("customer_jwt");
+    localStorage.removeItem("customer_user");
+    window.location.href = "/login";
+    throw new Error("Session expired");
+  }
+
+  if (response.status === 403) {
+    const errorData = await response
+      .clone()
+      .json()
+      .catch(() => null);
+
+    if (errorData?.code === "USER_INACTIVE" || errorData?.code === "USER_NOT_FOUND") {
+      localStorage.removeItem("customer_jwt");
+      localStorage.removeItem("customer_user");
+
+      const message =
+        errorData?.message ||
+        "Your account is no longer available. Please contact support.";
+
+      window.location.href = `/login?error=${encodeURIComponent(message)}`;
+      throw new Error(message);
+    }
+  }
+
+  return response;
 };

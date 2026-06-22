@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -26,23 +27,26 @@ import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 
 const BASE_STATUS_FLOW = [
-  { key: 'PLACED', label: 'Order Placed', icon: HandCoins, description: 'Order received' },
-  { key: 'PENDING', label: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
-  { key: 'PREPARING', label: 'Preparing', icon: ChefHat, description: 'At the kitchen' },
-  { key: 'COMPLETED', label: 'Order Prepared', icon: Soup, description: 'Finished preparing' },
+  { key: 'PLACED',     label: 'Order Placed',   shortLabel: 'Placed',    icon: HandCoins,  description: 'Order received' },
+  { key: 'PENDING',   label: 'Confirmed',       shortLabel: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
+  { key: 'PREPARING', label: 'Preparing',       shortLabel: 'Preparing', icon: ChefHat,    description: 'At the kitchen' },
+  { key: 'COMPLETED', label: 'Order Prepared',  shortLabel: 'Prepared',  icon: Soup,       description: 'Finished preparing' },
 ];
 
 const DELIVERY_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'On the way' },
-  { key: 'ARRIVED', label: 'Arrived', icon: MapPin, description: 'Reached location' },
-  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Delivered' },
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', shortLabel: 'Delivery', icon: Truck,      description: 'On the way' },
+  { key: 'ARRIVED',         label: 'Arrived',           shortLabel: 'Arrived',  icon: MapPin,     description: 'Reached location' },
+  { key: 'SERVED',          label: 'Served',            shortLabel: 'Served',   icon: Handshake,  description: 'Delivered' },
 ];
 
 const PICKUP_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
-  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Ready for pickup' },
+  { key: 'SERVED', label: 'Served', shortLabel: 'Served', icon: Handshake, description: 'Ready for pickup' },
 ];
+
+// Poll interval (milliseconds) to check order status while it's active
+const ORDER_STATUS_POLL_INTERVAL_MS = 5000;
 
 function normalizeOrderType(orderType) {
   return String(orderType || '').toUpperCase();
@@ -54,6 +58,11 @@ function getStatusFlow(orderType) {
   }
 
   return PICKUP_STATUS_FLOW;
+}
+
+function isTerminalOrderStatus(status) {
+  const normalized = String(status || '').toUpperCase();
+  return ['SERVED', 'CANCELLED', 'REJECTED'].includes(normalized);
 }
 
 export default function OrderConfirmationPage() {
@@ -76,8 +85,12 @@ export default function OrderConfirmationPage() {
       return;
     }
 
+    // Track mounted state to avoid setting state after component unmount
     let isMounted = true;
+    // Interval reference so we can clear it when done/unmounted
+    let pollTimer = null;
 
+    // Fetch latest order from backend and update local state
     const fetchOrder = async () => {
       try {
         const res = await getCustomerOrder(orderId);
@@ -89,11 +102,15 @@ export default function OrderConfirmationPage() {
 
         if (isMounted) {
           setOrder(payload.data || null);
+          setError('');
         }
+
+        return payload.data || null;
       } catch (err) {
         if (isMounted) {
           setError(err.message || 'Failed to load order details.');
         }
+        return null;
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -101,10 +118,45 @@ export default function OrderConfirmationPage() {
       }
     };
 
-    fetchOrder();
+    // Start repeating poll to refresh order status periodically
+    // Poll stops automatically when order reaches a terminal state
+    const startPolling = () => {
+      if (pollTimer) {
+        clearInterval(pollTimer); // If there's an old timer, kill it first
+      }
+
+      pollTimer = setInterval(async () => { // Start a NEW timer that fires every 5000ms
+        const latestOrder = await fetchOrder();
+        if (latestOrder && isTerminalOrderStatus(latestOrder.orderStatus)) {
+          clearInterval(pollTimer);  // AUTO-STOP polling when order is done
+          pollTimer = null;
+        }
+      }, ORDER_STATUS_POLL_INTERVAL_MS); // Repeat every 5 seconds
+    };
+
+    // When user focuses the tab or the page becomes visible, refresh once
+    const handleFocusRefresh = () => {
+      if (!document.hidden) {
+        fetchOrder();
+      }
+    };
+
+    fetchOrder().then((latestOrder) => {
+      if (isMounted && !isTerminalOrderStatus(latestOrder?.orderStatus)) {
+        startPolling();
+      }
+    });
+
+    window.addEventListener('focus', handleFocusRefresh);
+    document.addEventListener('visibilitychange', handleFocusRefresh);
 
     return () => {
       isMounted = false;
+      if (pollTimer) {
+        clearInterval(pollTimer);
+      }
+      window.removeEventListener('focus', handleFocusRefresh);
+      document.removeEventListener('visibilitychange', handleFocusRefresh);
     };
   }, [orderId]);
 
@@ -128,6 +180,7 @@ export default function OrderConfirmationPage() {
     return idx === -1 ? 0 : idx;
   }, [order?.orderStatus, statusFlow]);
 
+  // Simple estimated window based on order creation time: +20 and +40 minutes
   const estimatedStart = new Date(order?.createdAt || Date.now());
   estimatedStart.setMinutes(estimatedStart.getMinutes() + 20);
   const estimatedEnd = new Date(order?.createdAt || Date.now());
@@ -223,48 +276,81 @@ export default function OrderConfirmationPage() {
 
       {/* HORIZONTAL TIMELINE - Full Width */}
       {!isCancelled && (
-        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="relative">
-            {/* Fill each connector segment only after its step is completed. */}
-            <div className="absolute left-[10%] right-[10%] top-6 flex h-1 items-center">
-              {statusFlow.map((step, index) => {
-                if (index === statusFlow.length - 1) return null; // Don't draw a line after the last dot
-
-                const isFilled = index < statusIndex;
-
-                return (
-                  <div key={`${step.key}-connector`} className="flex-1">
-                    <div className="h-1 rounded-full bg-slate-100">
-                      <div
-                        className={`h-1 rounded-full transition-all duration-300 ${isFilled ? 'w-full bg-orange-500' : 'w-0 bg-orange-500'}`}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {/*drawing timeline icons */}
-            <div className="relative z-10 flex items-start justify-between">
+        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:p-6 shadow-sm overflow-x-auto custom-scrollbar">
+          <div className="relative min-w-max sm:min-w-0 w-full">
+            
+            {/* The Animated Timeline Icons & Connectors */}
+            <div className="relative z-10 flex items-start w-full">
               {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
                 const isDone = index <= statusIndex;
                 const isNextStep = index === statusIndex + 1;
+                const isLast = index === statusFlow.length - 1;
 
                 return (
-                  <div key={step.key} className="flex w-1/5 flex-col items-center text-center">
-                    <div
-                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full transition ${
-                        isDone ? 'bg-orange-500 text-white shadow-md' : isNextStep ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' : 'bg-white border border-slate-200 text-slate-300'
+                  <div key={step.key} className="flex flex-1 flex-col items-center text-center relative min-w-[60px] sm:min-w-0 px-1">
+                    
+                    {/* Connector line to the next step */}
+                    {!isLast && (
+                      <div className="absolute left-1/2 top-[18px] sm:top-[24px] w-full h-1 bg-slate-100 rounded-full z-[-1] overflow-hidden">
+                        <motion.div
+                          initial={{ width: "0%" }}
+                          animate={{ width: isDone ? "100%" : "0%" }}
+                          transition={{ duration: 0.6, ease: "easeInOut" }}
+                          className="h-full bg-orange-500 rounded-full origin-left"
+                        />
+                      </div>
+                    )}
+
+                    {/* The "Popping" Icon */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{
+                        scale: isDone ? 1 : isNextStep ? 1.15 : 0.9,
+                        opacity: 1
+                      }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 300, 
+                        damping: 20,
+                        delay: index * 0.1 
+                      }}
+                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center shrink-0 rounded-full transition-colors duration-500 ${
+                        isDone 
+                          ? 'bg-orange-500 text-white shadow-md' 
+                          : isNextStep 
+                          ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' 
+                          : 'bg-white border border-slate-200 text-slate-300'
                       }`}
                     >
                       <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
-                    </div>
-                    <p className="mt-2 text-[10px] sm:mt-3 sm:text-xs font-bold text-slate-900 leading-tight">{step.label}</p>
-                    <p className="mt-0.5 text-xs text-slate-500 hidden sm:block">{step.description}</p>
+                    </motion.div>
+
+                    {/* Label text */}
+                    <motion.div
+                      className="w-full"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + (index * 0.1) }}
+                    >
+                      {/* Mobile: slightly larger text, allowed to wrap */}
+                      <p className="mt-2 block sm:hidden w-full text-center text-[10px] font-bold text-slate-900 leading-tight break-words">
+                        {step.shortLabel || step.label}
+                      </p>
+                      {/* Desktop: full label, description */}
+                      <p className="mt-3 hidden sm:block text-xs font-bold text-slate-900 leading-tight">
+                        {step.label}
+                      </p>
+                      <p className="mt-1 text-[10px] text-slate-500 hidden sm:block">
+                        {step.description}
+                      </p>
+                    </motion.div>
+
                   </div>
                 );
               })}
             </div>
+            
           </div>
         </div>
       )}
