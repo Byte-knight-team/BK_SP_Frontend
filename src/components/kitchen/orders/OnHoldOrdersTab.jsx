@@ -1,56 +1,66 @@
-import OrderCard from "../OrderCard";
-import { useState, useEffect } from "react";
-import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
+import OrderCard from '../OrderCard'
+import { useState, useEffect } from 'react'
+import { getOrderCardsAPI } from '../../../apis/kitchen/orders'
+import { toast } from 'react-toastify'
 
 const OnHoldOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
-  const [onHoldOrdersDetails, setOnHoldOrdersDetails] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [onHoldOrdersDetails, setOnHoldOrdersDetails] = useState([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchOnHoldOrdersDetails = async () => {
       //enable loading
-      setLoading(true);
+      setLoading(true)
       //api call
-      const { data, error } = await getOrderCardsAPI("ON_HOLD");
+      const { data, error } = await getOrderCardsAPI('ON_HOLD')
       //handle error
       if (error) {
-        console.error("Error fetching stats details:", error);
-        return;
+        toast.error("Error fetching on hold orders");
+        return
       }
       //handle success
       if (data) {
-        setOnHoldOrdersDetails(data);
+        setOnHoldOrdersDetails(data)
       }
       //disable loading
-      setLoading(false);
-    };
+      setLoading(false)
+    }
 
-    fetchOnHoldOrdersDetails();
-  }, []);
+    fetchOnHoldOrdersDetails()
+  }, [])
 
   if (loading) {
-    return <p className="py-8 text-center text-sm font-bold text-orange-400 animate-pulse">Loading...</p>;
+    return (
+      <p className="animate-pulse py-8 text-center text-sm font-bold text-orange-400">
+        Loading On Hold Orders...
+      </p>
+    )
   }
 
   if (onHoldOrdersDetails.length === 0) {
-    return <p className="py-8 text-center text-sm text-gray-300">No on hold orders right now</p>;
+    return (
+      <p className="py-8 text-center text-sm text-gray-300">
+        No on hold orders right now
+      </p>
+    )
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-2">
       {onHoldOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
-          status="ON HOLD" //cannot use status={order.status} because backend sends it as "ON_HOLD" not "ON HOLD". 
+          status={order.status}
           time={order.time}
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
+          //if the order is already selected, highlight it
           isSelected={order.id === selectedOrderId}
         />
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default OnHoldOrdersTab;
+export default OnHoldOrdersTab

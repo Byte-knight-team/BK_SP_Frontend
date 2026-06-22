@@ -1,6 +1,7 @@
 import OrderCard from "../OrderCard";
 import { getOrderCardsAPI } from "../../../apis/kitchen/dashboard";
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const PendingOrders = () => {
       const [pendingOrdersDetails, setPendingOrdersDetails] = useState([]);
@@ -14,7 +15,7 @@ const PendingOrders = () => {
           const { data, error } = await getOrderCardsAPI("PENDING");
           //handle error
           if (error) {
-            console.error("Error fetching stats details:", error);
+            toast.error("Error fetching pending orders details");
             return;
           }
           //handle success
@@ -48,8 +49,8 @@ const PendingOrders = () => {
 
   return (
     <>
-      <h2 className="text-xl font-bold text-gray-800">Pending Orders</h2>
-      <div className="flex flex-col gap-3 h-[380px] overflow-y-auto pr-2">
+      <h2 className="text-base font-bold text-gray-800">Pending Orders</h2>
+      <div className="flex flex-col gap-2 h-[300px] overflow-y-auto pr-2">
         {pendingOrdersDetails.map((order) => (
           <OrderCard
             key={order.id}
@@ -57,6 +58,7 @@ const PendingOrders = () => {
             time={order.time}
             id={`#ORD-${order.id}`} // Hardcoded prefix
             numberOfItems={order.itemCount}
+            //by default order card is clickable, but here we are making it unclickable
             isClickable={false}
           />
         ))}

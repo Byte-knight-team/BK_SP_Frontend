@@ -3,12 +3,21 @@ import { X, AlertCircle } from "lucide-react";
 
 const HoldOrderModal = ({ isOpen, onClose, onConfirm }) => {
   const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    await onConfirm(reason);
+    setLoading(false);
+    setReason("");
+  };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+        {/* header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-red-50 p-2 text-red-500">
@@ -22,7 +31,7 @@ const HoldOrderModal = ({ isOpen, onClose, onConfirm }) => {
         </div>
 
         <p className="mt-4 text-sm text-gray-500 leading-relaxed">
-          Please provide a reason for putting this order on hold. This will be visible to the kitchen staff.
+          Please provide a reason for putting this order on hold. This will be visible to the kitchen and receptionist.
         </p>
 
         <div className="mt-6">
@@ -44,12 +53,11 @@ const HoldOrderModal = ({ isOpen, onClose, onConfirm }) => {
             Cancel
           </button>
           <button
-            //Executes the confirmation logic with the reason, then clears the input for the next use.
-            onClick={() => { onConfirm(reason); setReason(""); }}
-            disabled={!reason.trim()}
+            onClick={handleConfirm}
+            disabled={!reason.trim() || loading}
             className="flex-1 rounded-2xl bg-red-500 py-4 text-sm font-bold text-white shadow-lg shadow-red-200 transition-all hover:bg-red-600 disabled:bg-gray-200 disabled:shadow-none"
           >
-            Confirm Hold
+            {loading ? "Processing..." : "Confirm Hold"}
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen } from 'lucide-react';
+import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen, BarChart3 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { endQrSession } from '../../apis/customer/qrSessions';
@@ -34,16 +34,29 @@ export default function Navbar() {
   const [auth, setAuth] = useState({
     isLoggedIn: false,
     isQrCustomer: false,
-    userName: ''
+    userName: '',
+    profilePic: ''
   });
 
   useEffect(() => {
+    const handleProfileUpdate = () => {
+      setAuth(prev => ({
+        ...prev,
+        profilePic: localStorage.getItem('customer_profile_pic') || ''
+      }));
+    };
+    
+    window.addEventListener('profile_picture_updated', handleProfileUpdate);
+
     setAuth({
       isLoggedIn: Boolean(localStorage.getItem('customer_jwt')),
       isQrCustomer: Boolean(localStorage.getItem('qr_session_token')),
-      userName: localStorage.getItem('customer_name') || ''
+      userName: localStorage.getItem('customer_name') || '',
+      profilePic: localStorage.getItem('customer_profile_pic') || ''
     });
     setIsMenuOpen(false);
+
+    return () => window.removeEventListener('profile_picture_updated', handleProfileUpdate);
   }, [location.pathname]);
 
   // 2. Add clearCart() to the logout sequence
@@ -52,6 +65,7 @@ export default function Navbar() {
     localStorage.removeItem('customer_role');
     localStorage.removeItem('customer_user_id');
     localStorage.removeItem('customer_name');
+    localStorage.removeItem('customer_profile_pic');
 
     //log outs qr session for more security
     localStorage.removeItem('qr_session');
@@ -62,7 +76,7 @@ export default function Navbar() {
     // Wipe the cart memory!
     clearCart();
 
-    setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '' });
+    setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '', profilePic: '' });
     navigate('/');
   };
 
@@ -88,9 +102,10 @@ export default function Navbar() {
     localStorage.removeItem('customer_role');
     localStorage.removeItem('customer_user_id');
     localStorage.removeItem('customer_name');
+    localStorage.removeItem('customer_profile_pic');
 
     clearCart();
-    setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '' });
+    setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '', profilePic: '' });
     navigate('/');
   };
 
@@ -131,8 +146,8 @@ export default function Navbar() {
         <Link to="/" className="flex items-center gap-2.5">
           <BrandLogo />
           <div className="leading-tight min-w-0">
-            <p className="text-sm font-bold text-slate-900 sm:text-base truncate">
-              Crave House
+            <p className="text-base font-bold text-slate-900 truncate">
+              <span className="text-orange-500">Crave</span>House
             </p>
             <p className="hidden text-[11px] text-slate-500 sm:block">
               Premium Dining Experience
@@ -183,12 +198,21 @@ export default function Navbar() {
                   <LinkButton
                     to="/account"
                     variant="secondary"
-                    icon={UserCircle2}
+                    icon={auth.profilePic ? null : UserCircle2}
                   >
-                    <span className="max-w-[100px] truncate">
-                      {auth.userName || "Account"}
+                    <span className="flex items-center">
+                      {auth.profilePic && (
+                        <img 
+                          src={auth.profilePic} 
+                          alt="Profile" 
+                          className="w-5 h-5 rounded-full object-cover -ml-1 mr-1.5" 
+                        />
+                      )}
+                      <span className="max-w-[100px] truncate leading-none pt-0.5">
+                        {auth.userName || "Account"}
+                      </span>
                     </span>
-                  </LinkButton>
+                    </LinkButton>
                 )}
 
                 {/* LEAVE TABLE for QR + logged-in users */}
@@ -324,15 +348,28 @@ export default function Navbar() {
                 >
                   Orders
                 </LinkButton>
-                <LinkButton
-                  to="/account"
-                  onClick={toggleMenu}
-                  variant="secondary"
-                  icon={UserCircle2}
-                  className="w-full justify-start"
-                >
-                  {auth.userName || "Account"}
-                </LinkButton>
+                {!auth.isQrCustomer && (
+                  <LinkButton
+                    to="/account"
+                    onClick={toggleMenu}
+                    variant="secondary"
+                    icon={auth.profilePic ? null : UserCircle2}
+                    className="w-full justify-start"
+                  >
+                  <span className="flex items-center">
+                    {auth.profilePic && (
+                      <img 
+                        src={auth.profilePic} 
+                        alt="Profile" 
+                        className="w-5 h-5 rounded-full object-cover mr-1.5" 
+                      />
+                    )}
+                    <span className="truncate leading-none pt-0.5">
+                      {auth.userName || "Account"}
+                    </span>
+                    </span>
+                  </LinkButton>
+                )}
                 {auth.isQrCustomer ? (
                   <Button
                     onClick={() => { handleLeaveTable(); toggleMenu(); }}

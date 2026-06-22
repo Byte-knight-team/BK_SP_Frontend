@@ -1,6 +1,7 @@
 import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
+import { toast } from "react-toastify";
 
 const PendingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   const [pendingOrdersDetails, setPendingOrdersDetails] = useState([]);
@@ -13,7 +14,8 @@ const PendingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
       const { data, error } = await getOrderCardsAPI("PENDING");
       //handle error
       if (error) {
-        console.error("Error fetching pending orders:", error);
+        //show the error message (toast)
+        toast.error("Error fetching pending orders");
         return;
       }
       //handle success
@@ -30,7 +32,7 @@ const PendingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   if (loading) {
     return (
       <p className="animate-pulse py-8 text-center text-sm font-bold text-orange-400">
-        Loading...
+        Loading Pending Orders...
       </p>
     );
   }
@@ -45,7 +47,7 @@ const PendingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       {pendingOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}

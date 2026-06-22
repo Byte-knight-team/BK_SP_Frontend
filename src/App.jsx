@@ -1,6 +1,11 @@
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import './index.css'
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
@@ -46,11 +51,22 @@ import SystemConfigPage from './pages/superadmin/SystemConfigPage'
 import AuditLogsPage from './pages/superadmin/AuditLogsPage'
 import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
+import CustomerListPage from './pages/superadmin/CustomerListPage'
+import CustomerDetailsPage from './pages/superadmin/CustomerDetailsPage'
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
+import ManagerSalesSummaryPage from './pages/manager/ManagerSalesSummaryPage'
 import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
 import ManagerDriversPage from './pages/manager/ManagerDriversPage'
+import ManagerStaffPage from './pages/manager/ManagerStaffPage'
+
+import ManagerReportsPage from './pages/manager/ManagerReportsPage'
+
+// Delivery pages
+import DeliveryLayout from './layouts/delivery/DeliveryLayout'
+import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
+import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -78,6 +94,7 @@ import MobileVerificationPage from './pages/customer/MobileVerificationPage'
 import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
+import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
 
@@ -91,17 +108,10 @@ import ApprovalsPage from './pages/kitchen/ApprovalsPage'
 
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
+import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
+import OrderManagementPage from './pages/receptionist/OrderManagementPage'
 
-function isTokenExpired(token) {
-  if (!token) return true
 
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
 
 // Customer / QR token cleanup only.
 function AuthGuard() {
@@ -129,82 +139,99 @@ function AuthGuard() {
   return null
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+})
+
 function CustomerLayout() {
   return (
-    <CartProvider>
-      <AuthGuard />
-      <Outlet />
-    </CartProvider>
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <AuthGuard />
+        <Outlet />
+      </CartProvider>
+    </QueryClientProvider>
   )
 }
 
 export default function App() {
   return (
-    <Routes>
-      {/* Public common staff login */}
-      <Route path="/staff/login" element={<StaffLoginPage />} />
+    <>
+      <Routes>
+        {/* Public common staff login */}
+        <Route path="/staff/login" element={<StaffLoginPage />} />
 
-      {/* Common password change page for all logged-in staff roles */}
-      <Route
-        path="/staff/change-password"
-        element={
-          <ProtectedRoute>
-            <StaffChangePasswordPage />
-          </ProtectedRoute>
-        }
-      />
+        {/* Common password change page for all logged-in staff roles */}
+        <Route
+          path="/staff/change-password"
+          element={
+            <ProtectedRoute>
+              <StaffChangePasswordPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* SUPER_ADMIN area */}
-      <Route
-        path="/staff"
-        element={
-          <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
-            <MainLayout Sidebar={SuperAdminSidebar} Header={SuperAdminHeader} />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<SuperAdminDashboardPage />} />
+        {/* SUPER_ADMIN area */}
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+              <MainLayout
+                Sidebar={SuperAdminSidebar}
+                Header={SuperAdminHeader}
+              />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<SuperAdminDashboardPage />} />
 
-        <Route path="profile" element={<ProfilePage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="roles" element={<RolesPage />} />
 
-        <Route path="roles" element={<RolesPage />} />
+          <Route path="staff" element={<StaffListPage />} />
+          <Route path="staff/create" element={<CreateStaffPage />} />
+          <Route path="staff/:id" element={<StaffDetailsPage />} />
+          <Route path="staff/:id/edit" element={<EditStaffPage />} />
 
-        <Route path="staff" element={<StaffListPage />} />
-        <Route path="staff/create" element={<CreateStaffPage />} />
-        <Route path="staff/:id" element={<StaffDetailsPage />} />
-        <Route path="staff/:id/edit" element={<EditStaffPage />} />
+          <Route path="branches" element={<BranchListPage />} />
+          <Route path="branches/create" element={<CreateBranchPage />} />
+          <Route path="branches/:id" element={<BranchDetailsPage />} />
+          <Route path="branches/:id/edit" element={<EditBranchPage />} />
 
-        <Route path="branches" element={<BranchListPage />} />
-        <Route path="branches/create" element={<CreateBranchPage />} />
-        <Route path="branches/:id" element={<BranchDetailsPage />} />
-        <Route path="branches/:id/edit" element={<EditBranchPage />} />
+          <Route path="customers" element={<CustomerListPage />} />
+          <Route path="customers/:id" element={<CustomerDetailsPage />} />
 
-        <Route path="config" element={<SystemConfigPage />} />
-        <Route path="audit" element={<AuditLogsPage />} />
+          <Route path="config" element={<SystemConfigPage />} />
+          <Route path="audit" element={<AuditLogsPage />} />
 
-        <Route path="*" element={<Navigate to="/staff" replace />} />
-      </Route>
+          <Route path="*" element={<Navigate to="/staff" replace />} />
+        </Route>
 
-      {/* ADMIN area */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowedRoles={['ADMIN']}>
-            <MainLayout Sidebar={AdminSidebar} Header={AdminHeader} />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboardPage />} />
+        {/* ADMIN area */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <MainLayout Sidebar={AdminSidebar} Header={AdminHeader} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboardPage />} />
 
-        <Route path="profile" element={<ProfilePage />} />
+          <Route path="profile" element={<ProfilePage />} />
 
-        {/* Shared staff management pages.
+          {/* Shared staff management pages.
             Files are still inside pages/superadmin for now,
             but the routes are shared by SUPER_ADMIN and ADMIN. */}
-        <Route path="staff" element={<StaffListPage />} />
-        <Route path="staff/create" element={<CreateStaffPage />} />
-        <Route path="staff/:id" element={<StaffDetailsPage />} />
-        <Route path="staff/:id/edit" element={<EditStaffPage />} />
+          <Route path="staff" element={<StaffListPage />} />
+          <Route path="staff/create" element={<CreateStaffPage />} />
+          <Route path="staff/:id" element={<StaffDetailsPage />} />
+          <Route path="staff/:id/edit" element={<EditStaffPage />} />
 
         <Route path="tables" element={<TableManagementPage />} />
         <Route path="tables/add" element={<AddTablePage />} />
@@ -216,165 +243,202 @@ export default function App() {
         <Route path="menu/edit/:id" element={<EditMenuItemPage />} />
         <Route path="coupons" element={<CouponsPage />} />
 
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Route>
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Route>
 
-      {/* MANAGER area */}
-      <Route
-        path="/manager"
-        element={
-          <ProtectedRoute allowedRoles={['MANAGER']}>
-            <MainLayout Sidebar={ManagerSidebar} Header={ManagerHeader} />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<ManagerDashboardPage />} />
-        <Route path="orders" element={<ComingSoonPage />} />
-        <Route path="reports" element={<ComingSoonPage />} />
-        <Route path="staff" element={<ComingSoonPage />} />
-        <Route path="inventory" element={<ManagerInventoryPage />} />
-        <Route path="drivers" element={<ManagerDriversPage />} />
-        <Route path="profile" element={<ProfilePage />} />
 
-        <Route path="*" element={<Navigate to="/manager" replace />} />
-      </Route>
-
-      {/* DELIVERY area */}
-      <Route
-        path="/delivery"
-        element={
-          <ProtectedRoute allowedRoles={['DELIVERY']}>
-            <MainLayout Sidebar={DeliverySidebar} Header={DeliveryHeader} />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<ComingSoonPage />} />
-        <Route path="orders" element={<ComingSoonPage />} />
-        <Route path="routes" element={<ComingSoonPage />} />
-        <Route path="status" element={<ComingSoonPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-
-        <Route path="*" element={<Navigate to="/delivery" replace />} />
-      </Route>
-
-      {/* Customer routes */}
-      <Route element={<CustomerLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/menu" element={<MenuPage />} />
-        <Route path="/cart" element={<CartPage />} />
+        {/* DELIVERY area */}
         <Route
-          path="/checkout"
+          path="/delivery"
           element={
-            <CustomerProtectedRoute
-              requireCustomerJwt
-              qrOnlyRedirect="/signup/qr?redirect=/checkout"
-              unauthenticatedRedirect="/login?redirect=/checkout"
-            >
-              <CheckoutPage />
-            </CustomerProtectedRoute>
+            <ProtectedRoute allowedRoles={['DELIVERY']}>
+              <DeliveryLayout />
+            </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeliveryDashboardPage />} />
+          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
+          <Route path="history" element={<ComingSoonPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/delivery" replace />} />
+        </Route>
+
+        {/* MANAGER area */}
         <Route
-          path="/payment"
+          path="/manager"
           element={
-            <CustomerProtectedRoute
-              requireCustomerJwt
-              qrOnlyRedirect="/signup/qr?redirect=/payment"
-              unauthenticatedRedirect="/login?redirect=/payment"
-            >
-              <CardPaymentPage />
-            </CustomerProtectedRoute>
+            <ProtectedRoute allowedRoles={['MANAGER']}>
+              <MainLayout Sidebar={ManagerSidebar} Header={ManagerHeader} />
+            </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<ManagerDashboardPage />} />
+          <Route path="sales" element={<ManagerSalesSummaryPage />} />
+          <Route path="orders" element={<ComingSoonPage />} />
+          <Route path="reports" element={<ManagerReportsPage />} />
+          <Route path="staff" element={<ManagerStaffPage />} />
+          <Route path="inventory" element={<ManagerInventoryPage />} />
+          <Route path="drivers" element={<ManagerDriversPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/manager" replace />} />
+        </Route>
+
+        {/* Customer routes */}
+        <Route element={<CustomerLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/menu" element={<MenuPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route
+            path="/checkout"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/checkout"
+                unauthenticatedRedirect="/login?redirect=/checkout"
+              >
+                <CheckoutPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/payment"
+                unauthenticatedRedirect="/login?redirect=/payment"
+              >
+                <CardPaymentPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/order-confirmation"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/order-confirmation"
+                unauthenticatedRedirect="/login?redirect=/order-confirmation"
+              >
+                <OrderConfirmationPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route path="/login" element={<CustomerLoginPage />} />
+          <Route path="/signup" element={<SignupPersonalPage />} />
+          <Route path="/signup/address" element={<SignupAddressPage />} />
+          <Route path="/signup/qr" element={<MobileVerificationPage />} />
+          <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />
+          <Route path="/verify-otp" element={<OtpVerificationPage />} />
+          <Route path="/scan/:qrToken?" element={<ScanPage />} />
+          <Route
+            path="/account"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/account"
+                unauthenticatedRedirect="/login?redirect=/account"
+              >
+                <AccountPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/statistics"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/statistics"
+                unauthenticatedRedirect="/login?redirect=/statistics"
+              >
+                <StatisticsPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/orders"
+                unauthenticatedRedirect="/login?redirect=/orders"
+              >
+                <OrdersPage />
+              </CustomerProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* DELIVERY area */}
         <Route
-          path="/order-confirmation"
+          path="/delivery"
           element={
-            <CustomerProtectedRoute
-              requireCustomerJwt
-              qrOnlyRedirect="/signup/qr?redirect=/order-confirmation"
-              unauthenticatedRedirect="/login?redirect=/order-confirmation"
-            >
-              <OrderConfirmationPage />
-            </CustomerProtectedRoute>
+            <ProtectedRoute allowedRoles={['DELIVERY']}>
+              <DeliveryLayout />
+            </ProtectedRoute>
           }
-        />
-        <Route path="/login" element={<CustomerLoginPage />} />
-        <Route path="/signup" element={<SignupPersonalPage />} />
-        <Route path="/signup/address" element={<SignupAddressPage />} />
-        <Route path="/signup/qr" element={<MobileVerificationPage />} />
-        <Route path="/signup/qr/opt" element={<OtpVerificationPage />} />
-        <Route path="/verify-otp" element={<OtpVerificationPage />} />
-        <Route path="/scan/:qrToken?" element={<ScanPage />} />
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeliveryDashboardPage />} />
+          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
+          <Route path="history" element={<ComingSoonPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/delivery" replace />} />
+        </Route>
+
+        {/* CHEF / KITCHEN area */}
         <Route
-          path="/account"
+          path="/kitchen"
           element={
-            <CustomerProtectedRoute
-              requireCustomerJwt
-              qrOnlyRedirect="/signup/qr?redirect=/account"
-              unauthenticatedRedirect="/login?redirect=/account"
-            >
-              <AccountPage />
-            </CustomerProtectedRoute>
+            <ProtectedRoute allowedRoles={['CHEF']}>
+              <MainLayout Sidebar={KitchenSidebar} Header={KitchenHeader} />
+            </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<KitchenDashboardPage />} />
+          <Route path="orders" element={<KitchenOrdersPage />} />
+          <Route path="chefs" element={<ChefsPage />} />
+          <Route path="inventory" element={<InventoryPage />} />
+          <Route path="menu" element={<MenuAndRecipesPage />} />
+          <Route path="approvals" element={<ApprovalsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/kitchen" replace />} />
+        </Route>
+        {/* RECEPTIONIST area */}
         <Route
-          path="/orders"
+          path="/receptionist"
           element={
-            <CustomerProtectedRoute
-              requireCustomerJwt
-              qrOnlyRedirect="/signup/qr?redirect=/orders"
-              unauthenticatedRedirect="/login?redirect=/orders"
-            >
-              <OrdersPage />
-            </CustomerProtectedRoute>
+            <ProtectedRoute allowedRoles={['RECEPTIONIST']}>
+              <MainLayout
+                Sidebar={ReceptionistSidebar}
+                Header={ReceptionistHeader}
+              />
+            </ProtectedRoute>
           }
-        />
-      </Route>
+        >
+          <Route index element={<ReceptionistDashboardPage />} />
+          <Route path="tables" element={<ReceptionistTablePage />} />
+          <Route path="orders" element={<OrderManagementPage />} />
+          <Route path="profile" element={<ProfilePage />} />
 
-      {/* CHEF / KITCHEN area */}
-      <Route
-        path="/kitchen"
-        element={
-          <ProtectedRoute allowedRoles={['CHEF']}>
-            <MainLayout Sidebar={KitchenSidebar} Header={KitchenHeader} />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<KitchenDashboardPage />} />
-        <Route path="orders" element={<KitchenOrdersPage />} />
-        <Route path="chefs" element={<ChefsPage />} />
-        <Route path="inventory" element={<InventoryPage />} />
-        <Route path="menu" element={<MenuAndRecipesPage />} />
-        <Route path="approvals" element={<ApprovalsPage />} />
-        <Route path="profile" element={<ProfilePage />} />
+          <Route path="*" element={<Navigate to="/receptionist" replace />} />
+        </Route>
 
-        <Route path="*" element={<Navigate to="/kitchen" replace />} />
-      </Route>
-
-      {/* RECEPTIONIST area */}
-      <Route
-        path="/receptionist"
-        element={
-          <ProtectedRoute allowedRoles={['RECEPTIONIST']}>
-            <MainLayout
-              Sidebar={ReceptionistSidebar}
-              Header={ReceptionistHeader}
-            />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<ReceptionistDashboardPage />} />
-
-        <Route path="orders" element={<ComingSoonPage />} />
-        <Route path="tables" element={<ComingSoonPage />} />
-        <Route path="settings" element={<ComingSoonPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-
-        <Route path="*" element={<Navigate to="/receptionist" replace />} />
-      </Route>
-
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={4000}
+        hideProgressBar={false} // Show the timer bar
+        theme="colored" // Keep this for vibrant colors
+        pauseOnHover={true} // Stop the timer if the mouse is over it
+      />
+    </>
   )
 }

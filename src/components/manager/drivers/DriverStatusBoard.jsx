@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react'
-import { Star, Clock, Search, SlidersHorizontal } from 'lucide-react'
+import { Clock, Search, SlidersHorizontal } from 'lucide-react'
 import clsx from 'clsx'
 
 const FILTER_OPTIONS = [
   'All',
   'Available',
-  'Delivering',
-  'Returning',
-  'Offline',
+  'ASSIGNED',
+  'ACCEPTED',
+  'OUT_FOR_DELIVERY',
+  'DELIVERED',
+  'INACTIVE',
 ]
 
 const STATUS_STYLES = {
@@ -15,31 +17,43 @@ const STATUS_STYLES = {
     dot: 'bg-green-500',
     badge: 'bg-green-50 text-green-600',
   },
-  Delivering: {
+  ASSIGNED: {
+    dot: 'bg-blue-500',
+    badge: 'bg-blue-50 text-blue-600',
+  },
+  ACCEPTED: {
+    dot: 'bg-teal-500',
+    badge: 'bg-teal-50 text-teal-600',
+  },
+  OUT_FOR_DELIVERY: {
     dot: 'bg-brand',
     badge: 'bg-brand-light text-brand',
   },
-  Returning: {
-    dot: 'bg-amber-500',
-    badge: 'bg-amber-50 text-amber-600',
+  DELIVERED: {
+    dot: 'bg-purple-500',
+    badge: 'bg-purple-50 text-purple-600',
   },
-  Offline: {
+  INACTIVE: {
     dot: 'bg-gray-400',
     badge: 'bg-gray-100 text-gray-500',
   },
 }
 
 function StatusBadge({ status }) {
-  const style = STATUS_STYLES[status] || STATUS_STYLES.Offline
+  const style = STATUS_STYLES[status] || STATUS_STYLES.INACTIVE
+
+  // Format the status string (e.g., OUT_FOR_DELIVERY -> OUT FOR DELIVERY)
+  const displayStatus = status.replace(/_/g, ' ')
+
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full',
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
         style.badge,
       )}
     >
-      <span className={clsx('w-1.5 h-1.5 rounded-full', style.dot)} />
-      {status}
+      <span className={clsx('h-1.5 w-1.5 rounded-full', style.dot)} />
+      {displayStatus}
     </span>
   )
 }
@@ -61,37 +75,37 @@ export default function DriverStatusBoard({ drivers }) {
   return (
     <div className="card">
       {/* Header row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+      <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900">
             Driver Status Board
           </h2>
-          <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
+          <span className="bg-brand rounded-full px-2.5 py-1 text-xs font-bold text-white">
             {drivers.length}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 w-56">
-            <Search className="w-4 h-4 text-gray-400" />
+          <div className="flex w-56 items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
+            <Search className="h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search driver..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-sm text-gray-600 outline-none w-full placeholder-gray-400"
+              className="w-full bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
             />
           </div>
 
           {/* Status filter */}
           <div className="relative">
-            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer">
-              <SlidersHorizontal className="w-4 h-4 text-gray-500" />
+            <div className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2">
+              <SlidersHorizontal className="h-4 w-4 text-gray-500" />
               <select
                 value={activeFilter}
                 onChange={(e) => setActiveFilter(e.target.value)}
-                className="bg-transparent text-sm font-medium text-gray-700 outline-none appearance-none cursor-pointer pr-4"
+                className="cursor-pointer appearance-none bg-transparent pr-4 text-sm font-medium text-gray-700 outline-none"
               >
                 {FILTER_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
@@ -105,37 +119,31 @@ export default function DriverStatusBoard({ drivers }) {
       </div>
 
       {/* Table */}
-      <table className="w-full text-sm">
+      <table className="w-full table-fixed text-sm">
         <thead>
-          <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
-            <th className="text-left pb-3 font-semibold">Driver</th>
-            <th className="text-left pb-3 font-semibold">Status</th>
-            <th className="text-right pb-3 font-semibold">Current Task</th>
+          <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase">
+            <th className="w-1/4 pb-3 text-left font-semibold">Driver</th>
+            <th className="w-1/4 pb-3 text-left font-semibold">Status</th>
+            <th className="w-1/4 pb-3 text-center font-semibold">
+              Assigned Time
+            </th>
+            <th className="w-1/4 pb-3 text-right font-semibold">
+              Current Task
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
           {filteredDrivers.map((driver) => (
             <tr
               key={driver.id}
-              className="hover:bg-gray-50/50 transition-colors"
+              className="transition-colors hover:bg-gray-50/50"
             >
               {/* Driver info */}
               <td className="py-4">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={driver.avatar}
-                    alt={driver.name}
-                    className="w-9 h-9 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {driver.name}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
-                      <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                      {driver.rating}
-                    </div>
-                  </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {driver.name}
+                  </p>
                 </div>
               </td>
 
@@ -144,21 +152,29 @@ export default function DriverStatusBoard({ drivers }) {
                 <StatusBadge status={driver.status} />
               </td>
 
+              {/* Assigned Time */}
+              <td className="py-4 text-center">
+                {driver.currentTask ? (
+                  <div className="flex items-center justify-center gap-1.5 text-sm font-medium text-gray-600">
+                    <Clock className="h-3.5 w-3.5 text-gray-400" />
+                    {driver.currentTask.assignedTime}
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-300 italic">
+                    No active assignments
+                  </span>
+                )}
+              </td>
+
               {/* Current task */}
               <td className="py-4 text-right">
                 {driver.currentTask ? (
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {driver.currentTask.orderId}
-                    </p>
-                    <div className="flex items-center gap-1 justify-end text-xs text-gray-400">
-                      <Clock className="w-3 h-3" />
-                      {driver.currentTask.eta}
-                    </div>
-                  </div>
+                  <p className="text-grey-900 text-sm font-bold">
+                    {driver.currentTask.orderId}
+                  </p>
                 ) : (
-                  <span className="text-xs text-gray-400 italic">
-                    No active order
+                  <span className="text-xs text-gray-300 italic">
+                    No active assignments
                   </span>
                 )}
               </td>
@@ -180,8 +196,8 @@ export default function DriverStatusBoard({ drivers }) {
 
       {/* View more */}
       <div className="mt-4 text-center">
-        <button className="text-sm text-brand font-medium hover:underline inline-flex items-center gap-1">
-          View more <span>→</span>
+        <button className="text-brand inline-flex items-center gap-1 text-sm font-medium hover:underline">
+          View more
         </button>
       </div>
     </div>

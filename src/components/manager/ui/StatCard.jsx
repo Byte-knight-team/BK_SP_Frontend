@@ -9,12 +9,12 @@ export default function StatCard({
   iconBg = 'bg-brand-light',
 }) {
   return (
-    <div className="card flex items-start gap-5">
-      <div className={clsx('p-4 rounded-2xl shrink-0', iconBg)}>{icon}</div>
+    <div className="card flex items-center gap-4">
+      <div className={clsx('p-3 rounded-2xl shrink-0', iconBg)}>{icon}</div>
       <div className="flex-1 min-w-0">
         <p className="text-base text-gray-500 font-medium">{label}</p>
         <div className="flex items-center gap-3 mt-1.5">
-          <span className="text-4xl font-extrabold text-gray-900">{value}</span>
+          <span className="text-2xl font-extrabold text-gray-900 whitespace-nowrap">{value}</span>
           {badge && (
             <span
               className={clsx(
