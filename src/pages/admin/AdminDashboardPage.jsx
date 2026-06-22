@@ -3,6 +3,7 @@ import {
   Users, DollarSign, ShoppingBag, 
   TrendingUp, Clock, CheckCircle
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import {
   getAdminDashboardOrderFlowAPI,
@@ -29,62 +30,59 @@ export default function AdminDashboardPage() {
   // Revenue trend points rendered in the line chart.
   const [revenueTrend, setRevenueTrend] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [revenueDays, setRevenueDays] = useState(7);
 
   useEffect(() => {
     let isMounted = true;
 
-    // Fetch all dashboard datasets together so the page updates in one pass.
-    const loadDashboardData = async () => {
+    const loadStatsAndFlow = async () => {
       const [
         { data: statsData, error: statsError },
         { data: flowData, error: flowError },
-        { data: trendData, error: trendError },
       ] = await Promise.all([
         getAdminDashboardStatsAPI(),
         getAdminDashboardOrderFlowAPI(),
-        getAdminDashboardRevenueTrendAPI(),
       ]);
 
-      if (statsError) {
-        console.error('Error fetching admin dashboard stats:', statsError);
-      }
+      if (statsError) console.error('Error fetching admin dashboard stats:', statsError);
+      if (flowError) console.error('Error fetching admin dashboard order flow:', flowError);
 
-      if (flowError) {
-        console.error('Error fetching admin dashboard order flow:', flowError);
-      }
+      if (!isMounted) return;
 
-      if (trendError) {
-        console.error('Error fetching admin dashboard revenue trend:', trendError);
-      }
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (statsData) {
-        setStats(statsData);
-      }
-
-      if (flowData) {
-        setOrderFlow(flowData);
-      }
-
-      if (trendData) {
-        setRevenueTrend(trendData);
-      }
-
+      if (statsData) setStats(statsData);
+      if (flowData) setOrderFlow(flowData);
       setStatsLoading(false);
     };
 
-    loadDashboardData();
-    // Refresh the dashboard periodically to keep the admin view live.(auto refresh for every 10s)
-    const intervalId = window.setInterval(loadDashboardData, 10000);
+    loadStatsAndFlow();
+    const intervalId = window.setInterval(loadStatsAndFlow, 10000);
 
     return () => {
       isMounted = false;
       window.clearInterval(intervalId);
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRevenueData = async () => {
+      const { data, error } = await getAdminDashboardRevenueTrendAPI(revenueDays);
+      
+      if (error) console.error('Error fetching admin dashboard revenue trend:', error);
+      
+      if (!isMounted) return;
+      if (data) setRevenueTrend(data);
+    };
+
+    loadRevenueData();
+    const intervalId = window.setInterval(loadRevenueData, 10000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, [revenueDays]);
 
   const formattedRevenue = useMemo(
     () => new Intl.NumberFormat('en-LK', { maximumFractionDigits: 0 }).format(stats.totalRevenue),
@@ -138,7 +136,7 @@ export default function AdminDashboardPage() {
 
   // Convert the revenue trend into SVG paths and axis labels for the chart.
   const revenueChart = useMemo(() => {
-    const points = revenueTrend.length > 0  //ensures chart always renders
+    let points = revenueTrend.length > 0  //ensures chart always renders
       ? revenueTrend
       : [
           { dayLabel: 'Mon', revenue: 0 },
@@ -149,6 +147,38 @@ export default function AdminDashboardPage() {
           { dayLabel: 'Sat', revenue: 0 },
           { dayLabel: 'Sun', revenue: 0 },
         ];
+
+    if (points.length > 7) {
+      const weeks = [];
+      let currentWeek = [];
+      
+      points.forEach((point, index) => {
+        currentWeek.push(point);
+        if (currentWeek.length === 7 || index === points.length - 1) {
+          weeks.push(currentWeek);
+          currentWeek = [];
+        }
+      });
+
+      points = weeks.map((week, index) => {
+        const totalRevenue = week.reduce((sum, p) => sum + (Number(p.revenue) || 0), 0);
+        
+        const formatShortDate = (dateStr) => {
+          if (!dateStr) return '';
+          const d = new Date(dateStr);
+          return `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`;
+        };
+        
+        const startDay = week[0].date;
+        const endDay = week[week.length - 1].date;
+        
+        return {
+          dayLabel: `Week ${index + 1}`,
+          subLabel: `(${formatShortDate(startDay)} - ${formatShortDate(endDay)})`,
+          revenue: totalRevenue
+        };
+      });
+    }
 
     const width = 600;
     const height = 200;
@@ -167,6 +197,7 @@ export default function AdminDashboardPage() {
         x,
         y,
         dayLabel: point.dayLabel,
+        subLabel: point.subLabel,
       };
     });
 
@@ -182,7 +213,10 @@ export default function AdminDashboardPage() {
       linePath,
       areaPath,
       yTicks,
-      xLabels: mapped.map((point) => point.dayLabel),
+      xLabels: mapped.map((point) => ({
+        main: point.dayLabel,
+        sub: point.subLabel,
+      })),
     };
   }, [revenueTrend]);
 
@@ -263,9 +297,20 @@ export default function AdminDashboardPage() {
             <div className="bg-white border border-gray-100 shadow-sm rounded-[1.5rem] p-6 flex flex-col min-h-[360px]">
               <div className="flex justify-between items-center mb-6">
                  <h2 className="text-base font-bold text-gray-900">Revenue Performance</h2>
-                 <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                    <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
-                    Revenue
+                 <div className="flex items-center gap-4">
+                   <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                      <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
+                      Revenue
+                   </div>
+                   <select
+                     value={revenueDays}
+                     onChange={(e) => setRevenueDays(Number(e.target.value))}
+                     className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-orange-500 focus:border-orange-500 block p-1.5 outline-none cursor-pointer"
+                   >
+                     <option value={3}>Last 3 Days</option>
+                     <option value={7}>Last 7 Days</option>
+                     <option value={31}>Last 31 Days</option>
+                   </select>
                  </div>
               </div>
               
@@ -273,15 +318,24 @@ export default function AdminDashboardPage() {
                 <div className="flex-1 flex relative">
                   {/* Y-axis revenue labels */}
                   <div className="w-12 flex flex-col justify-between text-[10px] text-gray-400 leading-tight pb-6 pt-2">
+                    <AnimatePresence mode="popLayout">
                     {revenueChart.yTicks.map((tickValue, index) => (
-                      <div key={`${tickValue}-${index}`} className={index === revenueChart.yTicks.length - 1 ? 'mb-[-4px]' : '-mt-3'}>
+                      <motion.div 
+                        key={`y-${tickValue}-${index}`}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                        className={index === revenueChart.yTicks.length - 1 ? 'mb-[-4px]' : '-mt-3'}
+                      >
                         {formatRevenueTick(tickValue)}
-                      </div>
+                      </motion.div>
                     ))}
+                    </AnimatePresence>
                   </div>
                   
                   {/* SVG chart canvas */}
-                  <div className="flex-1 relative border-l border-b border-gray-50 ml-2 mb-6">
+                  <div className="flex-1 relative border-l border-b border-gray-50 ml-2 mb-10">
                      <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full h-full text-orange-500 overflow-visible">
                         <defs>
                            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
@@ -298,17 +352,43 @@ export default function AdminDashboardPage() {
                         </g>
 
                         {/* Filled area under the revenue line */}
-                        <path d={revenueChart.areaPath} fill="url(#chartGradient)" />
+                        <motion.path 
+                           initial={false}
+                           animate={{ d: revenueChart.areaPath }}
+                           transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                           fill="url(#chartGradient)" 
+                        />
 
                         {/* Revenue line */}
-                        <path d={revenueChart.linePath} fill="none" stroke="#F97316" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                        <motion.path 
+                           initial={false}
+                           animate={{ d: revenueChart.linePath }}
+                           transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                           fill="none" 
+                           stroke="#F97316" 
+                           strokeWidth="3" 
+                           strokeLinecap="round" 
+                           strokeLinejoin="round" 
+                        />
                      </svg>
                      
                       {/* X-axis day labels */}
-                     <div className="absolute -bottom-7 left-0 right-0 flex justify-between text-[11px] text-gray-400 px-2">
-                        {revenueChart.xLabels.map((label, index) => (
-                          <span key={`${label}-${index}`}>{label}</span>
+                     <div className="absolute -bottom-10 left-0 right-0 flex justify-between text-[11px] text-gray-400 px-2">
+                        <AnimatePresence mode="popLayout">
+                        {revenueChart.xLabels.map((labelObj, index) => (
+                          <motion.div 
+                             key={`x-${labelObj.main}-${index}`}
+                             initial={{ opacity: 0, y: 10 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             exit={{ opacity: 0, y: -10 }}
+                             transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                             className="flex flex-col items-center"
+                          >
+                             <span className={labelObj.sub ? "font-semibold text-gray-700" : ""}>{labelObj.main}</span>
+                             {labelObj.sub && <span className="text-[10px] mt-0.5">{labelObj.sub}</span>}
+                          </motion.div>
                         ))}
+                        </AnimatePresence>
                      </div>
                   </div>
                 </div>
@@ -351,25 +431,57 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-[#FAFAFA] rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-50">
                  <Clock size={24} className="text-blue-500 mb-3" />
-                  <div className="text-3xl font-extrabold text-gray-900 mb-1">{formatCount(orderFlow.preparingCount)}</div>
+                  <motion.div 
+                    key={orderFlow.preparingCount}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                    className="text-3xl font-extrabold text-gray-900 mb-1"
+                  >
+                    {formatCount(orderFlow.preparingCount)}
+                  </motion.div>
                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">PREPARING</div>
               </div>
 
               <div className="bg-[#FAFAFA] rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-50">
                  <ShoppingBag size={24} className="text-orange-500 mb-3" />
-                  <div className="text-3xl font-extrabold text-gray-900 mb-1">{formatCount(orderFlow.readyCount)}</div>
+                  <motion.div 
+                    key={orderFlow.readyCount}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                    className="text-3xl font-extrabold text-gray-900 mb-1"
+                  >
+                    {formatCount(orderFlow.readyCount)}
+                  </motion.div>
                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">READY FOR PICKUP</div>
               </div>
 
               <div className="bg-[#FAFAFA] rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-50">
                  <TrendingUp size={24} className="text-purple-500 mb-3" />
-                  <div className="text-3xl font-extrabold text-gray-900 mb-1">{formatCount(orderFlow.inDeliveryCount)}</div>
+                  <motion.div 
+                    key={orderFlow.inDeliveryCount}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                    className="text-3xl font-extrabold text-gray-900 mb-1"
+                  >
+                    {formatCount(orderFlow.inDeliveryCount)}
+                  </motion.div>
                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">IN DELIVERY</div>
               </div>
 
               <div className="bg-[#FAFAFA] rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-50">
                  <CheckCircle size={24} className="text-green-500 mb-3" />
-                  <div className="text-3xl font-extrabold text-gray-900 mb-1">{formatCount(orderFlow.completedCount)}</div>
+                  <motion.div 
+                    key={orderFlow.completedCount}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                    className="text-3xl font-extrabold text-gray-900 mb-1"
+                  >
+                    {formatCount(orderFlow.completedCount)}
+                  </motion.div>
                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">COMPLETED</div>
               </div>
             </div>
