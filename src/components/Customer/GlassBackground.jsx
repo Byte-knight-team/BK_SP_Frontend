@@ -9,22 +9,22 @@ export default function GlassBackground() {
   const rafRef = useRef(null);
 
   // Subtle background blobs (reduced parallax)
-  const blobs = [
+  const blobs = Object.freeze([
     { size: 300, baseX: 5, baseY: 10, speed: 0.5, parallax: 15, color: 'rgba(249,115,22,0.08)', blur: 60 },
     { size: 250, baseX: 70, baseY: 15, speed: 0.7, parallax: 12, color: 'rgba(251,146,60,0.06)', blur: 50 },
     { size: 200, baseX: 80, baseY: 65, speed: 0.4, parallax: 18, color: 'rgba(253,186,116,0.08)', blur: 45 },
     { size: 280, baseX: 5, baseY: 70, speed: 0.6, parallax: 10, color: 'rgba(249,115,22,0.05)', blur: 55 },
     { size: 180, baseX: 45, baseY: 50, speed: 0.8, parallax: 8, color: 'rgba(234,88,12,0.04)', blur: 40 },
-  ];
+  ]);
 
   // Subtle, bare food icons floating in the background (no squares/borders)
-  const foodIcons = [
+  const foodIcons = Object.freeze([
     { Icon: ChefHat, size: 48, baseX: 12, baseY: 18, speed: 0.5, parallax: -10, rotation: -12, opacity: 0.25 },
     { Icon: Pizza, size: 40, baseX: 82, baseY: 22, speed: 0.6, parallax: -8, rotation: 15, opacity: 0.2 },
     { Icon: Utensils, size: 52, baseX: 80, baseY: 68, speed: 0.55, parallax: -12, rotation: -20, opacity: 0.25 },
     { Icon: Flame, size: 36, baseX: 15, baseY: 72, speed: 0.7, parallax: -9, rotation: 10, opacity: 0.2 },
     { Icon: Coffee, size: 44, baseX: 45, baseY: 80, speed: 0.65, parallax: -6, rotation: -5, opacity: 0.25 },
-  ];
+  ]);
 
   useEffect(() => {
     const startTime = Date.now();
