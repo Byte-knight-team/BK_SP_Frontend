@@ -1,5 +1,7 @@
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -91,6 +93,7 @@ import MobileVerificationPage from './pages/customer/MobileVerificationPage'
 import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
+import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
 
@@ -107,16 +110,7 @@ import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboar
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
 import OrderManagementPage from './pages/receptionist/OrderManagementPage'
 
-function isTokenExpired(token) {
-  if (!token) return true
 
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
 
 // Customer / QR token cleanup only.
 function AuthGuard() {
@@ -144,12 +138,23 @@ function AuthGuard() {
   return null
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+})
+
 function CustomerLayout() {
   return (
-    <CartProvider>
-      <AuthGuard />
-      <Outlet />
-    </CartProvider>
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <AuthGuard />
+        <Outlet />
+      </CartProvider>
+    </QueryClientProvider>
   )
 }
 
@@ -336,6 +341,18 @@ export default function App() {
                 unauthenticatedRedirect="/login?redirect=/account"
               >
                 <AccountPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/statistics"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/statistics"
+                unauthenticatedRedirect="/login?redirect=/statistics"
+              >
+                <StatisticsPage />
               </CustomerProtectedRoute>
             }
           />
