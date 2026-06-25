@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Pencil, X } from 'lucide-react'
+import { UtensilsCrossed, X } from 'lucide-react'
 import { toast } from 'react-toastify'
+import IngredientPicker from './IngredientPicker'
 
-// EditMenuItemModal — lets a chef edit their own PENDING or REJECTED menu items
-// Pre-fills all fields from the selected item so the chef only changes what they need
-const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] }) => {
+// AddMenuItemModal — lets a chef submit a new menu item (lands in PENDING status)
+// After the item is created, the parent saves the ingredient list using the returned item ID
+const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventoryItems = [] }) => {
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -14,22 +15,24 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
     preparationTime: '',
     imageUrl: '',
   })
+  const [ingredients, setIngredients] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Pre-fill form whenever the modal opens or the selected item changes
+  // Reset form and ingredients every time the modal opens
   useEffect(() => {
-    if (isOpen && item) {
+    if (isOpen) {
       setForm({
-        name: item.name || '',
-        description: item.description || '',
-        categoryId: item.categoryId ? String(item.categoryId) : '',
-        subCategory: item.subCategory || '',
-        price: item.price ? String(item.price) : '',
-        preparationTime: item.preparationTime ? String(item.preparationTime) : '',
-        imageUrl: item.imageUrl || '',
+        name: '',
+        description: '',
+        categoryId: '',
+        subCategory: '',
+        price: '',
+        preparationTime: '',
+        imageUrl: '',
       })
+      setIngredients([])
     }
-  }, [isOpen, item])
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -51,7 +54,7 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
       return
     }
 
-    // Build the payload that matches UpdateMenuItemRequest on the backend
+    // Build payload matching CreateMenuItemRequest on the backend
     const payload = {
       name: form.name.trim(),
       description: form.description.trim() || null,
@@ -63,42 +66,32 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
     }
 
     setLoading(true)
-    // Pass the item id alongside the payload so the parent calls updateMenuItemAPI(id, payload)
-    await onSubmit(item.id, payload)
+    // Pass both the item payload and the ingredient list to the parent
+    // Parent will create the item first, then save ingredients using the returned ID
+    await onSubmit(payload, ingredients)
     setLoading(false)
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-white rounded-4xl shadow-2xl p-6 border border-gray-100">
+      <div className="w-full max-w-md bg-white rounded-4xl shadow-2xl p-6 border border-gray-100 max-h-[90vh] overflow-y-auto">
 
-        {/* Header: icon + close button */}
+        {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div className="p-2.5 bg-orange-100 text-orange-600 rounded-2xl">
-            <Pencil size={20} />
+            <UtensilsCrossed size={20} />
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
         </div>
 
-        <h3 className="text-lg font-bold text-gray-900 mb-0.5">Edit Menu Item</h3>
-
-        {/* Show a warning banner if the item was previously rejected by admin */}
-        {item?.status === 'REJECTED' && (
-          <div className="my-2 rounded-2xl bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-500 font-semibold">
-            This item was rejected — update and resubmit for approval.
-          </div>
-        )}
-
+        <h3 className="text-lg font-bold text-gray-900 mb-0.5">Add Menu Item</h3>
         <p className="text-gray-400 text-xs mb-4">
-          Changes will be resubmitted to admin for approval.
+          Your item will be submitted for admin approval before going live.
         </p>
 
-        {/* Form fields — same structure as AddMenuItemModal */}
         <div className="flex flex-col gap-2 mb-4">
-
-          {/* Item name — required */}
           <input
             type="text"
             name="name"
@@ -107,8 +100,6 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
-
-          {/* Description — optional */}
           <textarea
             name="description"
             placeholder="Description (optional)"
@@ -117,8 +108,6 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
             rows={2}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
           />
-
-          {/* Category dropdown */}
           <select
             name="categoryId"
             value={form.categoryId}
@@ -127,13 +116,9 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
           >
             <option value="">Select Category *</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
-
-          {/* Sub-category — optional free text */}
           <input
             type="text"
             name="subCategory"
@@ -142,8 +127,6 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
-
-          {/* Price and prep time side by side */}
           <div className="flex gap-2">
             <input
               type="number"
@@ -164,8 +147,6 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
               className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
-
-          {/* Image URL — optional */}
           <input
             type="text"
             name="imageUrl"
@@ -174,9 +155,18 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
+
+          {/* Divider */}
+          <div className="border-t border-gray-100 my-1" />
+
+          {/* Ingredient picker — optional, chef can add recipe ingredients */}
+          <IngredientPicker
+            ingredients={ingredients}
+            inventoryItems={inventoryItems}
+            onChange={setIngredients}
+          />
         </div>
 
-        {/* Action buttons */}
         <div className="flex gap-3">
           <button
             onClick={onClose}
@@ -191,7 +181,7 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
               loading ? 'bg-gray-300 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 cursor-pointer'
             }`}
           >
-            {loading ? 'Saving...' : 'Save & Resubmit'}
+            {loading ? 'Submitting...' : 'Submit for Approval'}
           </button>
         </div>
 
@@ -200,4 +190,4 @@ const EditMenuItemModal = ({ isOpen, onClose, onSubmit, item, categories = [] })
   )
 }
 
-export default EditMenuItemModal
+export default AddMenuItemModal
