@@ -79,19 +79,27 @@ export const holdOrderAPI = async (orderId, holdReason) => {
 };
 
 // start preparing a specific meal item
+// Returns INSUFFICIENT_STOCK error message if stock is too low for any ingredient
 export const startMealAPI = async (itemId) => {
   try {
     const response = await authFetch(
       `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/start`,
-      { method: "PUT" }
-    );
-    const result = await response.json();
-    return { data: result.data, error: null };
+      { method: 'PUT' }
+    )
+    const result = await response.json()
+
+    // Backend returns 400 with ApiResponse { success, message } when stock check fails
+    if (!response.ok) {
+      return { data: null, error: result.message || 'Failed to start meal' }
+    }
+
+    return { data: result.data, error: null }
   } catch (error) {
-    console.error(`Error starting meal #${itemId}:`, error);
-    return { data: null, error: error };
+    console.error(`Error starting meal #${itemId}:`, error)
+    return { data: null, error: error.message }
   }
-};
+}
+
 
 // complete a specific meal item
 export const completeMealAPI = async (itemId) => {
