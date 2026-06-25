@@ -11,8 +11,13 @@ const STATUS_STYLES = {
 const MenuItemCard = ({ item, onEdit }) => {
   const statusStyle = STATUS_STYLES[item.status] || STATUS_STYLES.INACTIVE
 
+  // If onEdit is provided (PENDING/REJECTED tabs), make the whole card clickable
+  const cardProps = onEdit
+    ? { onClick: onEdit, className: 'flex flex-col rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-orange-200 transition-all' }
+    : { className: 'flex flex-col rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden' }
+
   return (
-    <div className="flex flex-col rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+    <div {...cardProps}>
 
       {/* Item image — shows placeholder if no imageUrl */}
       <div className="relative h-40 bg-gray-100">
@@ -34,6 +39,13 @@ const MenuItemCard = ({ item, onEdit }) => {
         >
           {item.status}
         </span>
+
+        {/* Edit icon overlay — visible on PENDING/REJECTED cards */}
+        {onEdit && (
+          <div className="absolute bottom-2 right-2 rounded-xl bg-white/90 p-1.5 text-orange-500 shadow">
+            <Pencil size={13} />
+          </div>
+        )}
       </div>
 
       {/* Card body */}
@@ -60,16 +72,6 @@ const MenuItemCard = ({ item, onEdit }) => {
           </div>
         </div>
 
-        {/* Edit button — only shown for PENDING and REJECTED items */}
-        {onEdit && (
-          <button
-            onClick={onEdit}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-50 py-2 text-xs font-bold text-orange-600 hover:bg-orange-100 transition-all"
-          >
-            <Pencil size={13} />
-            Edit Item
-          </button>
-        )}
       </div>
     </div>
   )

@@ -31,7 +31,6 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
     }
   }, [isOpen])
 
-  // Don't render anything if modal is closed
   if (!isOpen) return null
 
   const handleChange = (e) => {
@@ -39,17 +38,14 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
   }
 
   const handleSubmit = async () => {
-    // Basic required field validation
     if (!form.name || !form.categoryId || !form.price || !form.preparationTime) {
       toast.warning('Please fill in all required fields!')
       return
     }
-
     if (parseFloat(form.price) <= 0) {
       toast.error('Price must be greater than zero.')
       return
     }
-
     if (parseInt(form.preparationTime) <= 0) {
       toast.error('Preparation time must be greater than zero.')
       return
@@ -73,25 +69,25 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-white rounded-4xl shadow-2xl p-8 border border-gray-100 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-md bg-white rounded-4xl shadow-2xl p-6 border border-gray-100">
 
         {/* Header: icon + close button */}
-        <div className="flex justify-between items-start mb-6">
-          <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
-            <UtensilsCrossed size={24} />
+        <div className="flex justify-between items-start mb-4">
+          <div className="p-2.5 bg-orange-100 text-orange-600 rounded-2xl">
+            <UtensilsCrossed size={20} />
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        <h3 className="text-xl font-bold text-gray-900 mb-1">Add Menu Item</h3>
-        <p className="text-gray-400 text-sm mb-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-0.5">Add Menu Item</h3>
+        <p className="text-gray-400 text-xs mb-4">
           Your item will be submitted for admin approval before going live.
         </p>
 
         {/* Form fields */}
-        <div className="flex flex-col gap-3 mb-8">
+        <div className="flex flex-col gap-2 mb-4">
 
           {/* Item name — required */}
           <input
@@ -100,17 +96,17 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
             placeholder="Item Name *"
             value={form.name}
             onChange={handleChange}
-            className="w-full p-4 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
 
-          {/* Description — optional */}
+          {/* Description — optional, smaller textarea */}
           <textarea
             name="description"
             placeholder="Description (optional)"
             value={form.description}
             onChange={handleChange}
-            rows={3}
-            className="w-full p-4 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
+            rows={2}
+            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
           />
 
           {/* Category dropdown — derived from existing menu items */}
@@ -118,7 +114,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
             name="categoryId"
             value={form.categoryId}
             onChange={handleChange}
-            className="w-full p-4 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           >
             <option value="">Select Category *</option>
             {categories.map((cat) => (
@@ -135,11 +131,11 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
             placeholder="Sub-category (optional, e.g. Starters)"
             value={form.subCategory}
             onChange={handleChange}
-            className="w-full p-4 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
 
           {/* Price and prep time side by side */}
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <input
               type="number"
               name="price"
@@ -147,7 +143,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
               value={form.price}
               onChange={handleChange}
               min="0"
-              className="w-full p-4 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+              className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
             />
             <input
               type="number"
@@ -156,7 +152,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
               value={form.preparationTime}
               onChange={handleChange}
               min="1"
-              className="w-full p-4 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+              className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
 
@@ -167,22 +163,22 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
             placeholder="Image URL (optional)"
             value={form.imageUrl}
             onChange={handleChange}
-            className="w-full p-4 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
         </div>
 
         {/* Action buttons */}
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-4 text-sm font-bold text-gray-400 hover:bg-gray-50 rounded-2xl transition-all"
+            className="flex-1 py-3 text-sm font-bold text-gray-400 hover:bg-gray-50 rounded-2xl transition-all"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`flex-1 py-4 text-sm font-bold text-white rounded-2xl transition-all shadow-lg ${
+            className={`flex-1 py-3 text-sm font-bold text-white rounded-2xl transition-all shadow-lg ${
               loading ? 'bg-gray-300 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 cursor-pointer'
             }`}
           >
