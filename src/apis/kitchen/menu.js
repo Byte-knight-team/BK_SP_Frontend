@@ -40,3 +40,32 @@ export const updateMenuItemAPI = async (id, itemData) => {
     return { data: null, error: error.message }
   }
 }
+
+// Get the ingredient list (recipe) for a specific menu item
+export const getMenuItemIngredientsAPI = async (menuItemId) => {
+  try {
+    const response = await authFetch(buildApiUrl(`/api/v1/menu/${menuItemId}/ingredients`))
+    const result = await response.json()
+    if (!response.ok) return { data: null, error: result.message || 'Failed to load ingredients' }
+    return { data: result, error: null }
+  } catch (error) {
+    return { data: null, error: error.message }
+  }
+}
+
+// Save (replace) the full ingredient list for a menu item
+// ingredients = [{ inventoryItemId, quantityRequired }, ...]
+export const saveMenuItemIngredientsAPI = async (menuItemId, ingredients) => {
+  try {
+    const response = await authFetch(buildApiUrl(`/api/v1/menu/${menuItemId}/ingredients`), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ingredients }),
+    })
+    const result = await response.json()
+    if (!response.ok) return { data: null, error: result.message || 'Failed to save ingredients' }
+    return { data: result, error: null }
+  } catch (error) {
+    return { data: null, error: error.message }
+  }
+}
