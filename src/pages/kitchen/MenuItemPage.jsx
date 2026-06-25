@@ -3,26 +3,34 @@ import { useOutletContext } from 'react-router-dom'
 import { UtensilsCrossed } from 'lucide-react'
 import { toast } from 'react-toastify'
 
-import { getAllMenuItemsAPI, createMenuItemAPI, updateMenuItemAPI } from '../../apis/kitchen/menu'
+import {
+  getAllMenuItemsAPI,
+  createMenuItemAPI,
+  updateMenuItemAPI,
+  getMenuItemIngredientsAPI,
+  saveMenuItemIngredientsAPI,
+} from '../../apis/kitchen/menu'
+import { getAllInventoryAPI } from '../../apis/kitchen/inventory'
 import MenuItemsGrid from '../../components/kitchen/menu/MenuItemsGrid'
 import AddMenuItemModal from '../../components/kitchen/menu/AddMenuItemModal'
 import EditMenuItemModal from '../../components/kitchen/menu/EditMenuItemModal'
 
-const MenuAndRecipesPage = () => {
+const MenuItemPage = () => {
   const { setHeaderInfo } = useOutletContext()
 
-  // All menu items loaded from the backend
   const [items, setItems] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // Modal visibility state
+  // Inventory items needed by IngredientPicker inside the modals
+  const [inventoryItems, setInventoryItems] = useState([])
+
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
-
-  // The item selected for editing
   const [selectedItem, setSelectedItem] = useState(null)
 
-  // Set the page header (title, subtitle, icon shown by MainLayout)
+  // Pre-loaded ingredients for the item being edited
+  const [existingIngredients, setExistingIngredients] = useState([])
+
   useEffect(() => {
     setHeaderInfo({
       title: 'Menu Items',
@@ -31,23 +39,26 @@ const MenuAndRecipesPage = () => {
     })
   }, [setHeaderInfo])
 
-  // Load all menu items on mount
   useEffect(() => {
     fetchItems()
+    fetchInventory()
   }, [])
 
   const fetchItems = async () => {
     setIsLoading(true)
     const { data, error } = await getAllMenuItemsAPI()
-    if (error) {
-      toast.error('Failed to load menu items.')
-    } else {
-      setItems(data || [])
-    }
+    if (error) toast.error('Failed to load menu items.')
+    else setItems(data || [])
     setIsLoading(false)
   }
 
-  // Derive unique categories from the loaded items
+  // Fetch all inventory items so the IngredientPicker has a list to choose from
+  const fetchInventory = async () => {
+    const { data, error } = await getAllInventoryAPI()
+    if (!error && data) setInventoryItems(data)
+  }
+
+  // Derive unique categories from loaded items
   // (CHEF role cannot access the /api/v1/categories endpoint directly)
   const categories = Array.from(
     new Map(
@@ -57,41 +68,63 @@ const MenuAndRecipesPage = () => {
     ).values()
   )
 
-  // Handle new menu item submission — reload list on success
-  const handleAdd = async (payload) => {
-    const { error } = await createMenuItemAPI(payload)
+  // Create new item, then save its ingredient list if the chef added any
+  const handleAdd = async (payload, ingredients) => {
+    const { data, error } = await createMenuItemAPI(payload)
     if (error) {
       toast.error(error)
-    } else {
-      toast.success('Menu item submitted for approval!')
-      setIsAddOpen(false)
-      fetchItems()
+      return
     }
+
+    // Save ingredients only if the chef added at least one
+    if (ingredients.length > 0) {
+      const { error: ingError } = await saveMenuItemIngredientsAPI(data.id, ingredients)
+      if (ingError) toast.warning('Item created but failed to save ingredients.')
+    }
+
+    toast.success('Menu item submitted for approval!')
+    setIsAddOpen(false)
+    fetchItems()
   }
 
-  // Handle edit submission — reload list on success
-  const handleEdit = async (id, payload) => {
+  // Update item, then save its updated ingredient list
+  const handleEdit = async (id, payload, ingredients) => {
     const { error } = await updateMenuItemAPI(id, payload)
     if (error) {
       toast.error(error)
-    } else {
-      toast.success('Menu item updated and resubmitted!')
-      setIsEditOpen(false)
-      setSelectedItem(null)
-      fetchItems()
+      return
     }
+
+    // Always save ingredient list (even if empty — clears previous recipe)
+    const { error: ingError } = await saveMenuItemIngredientsAPI(id, ingredients)
+    if (ingError) toast.warning('Item updated but failed to save ingredients.')
+
+    toast.success('Menu item updated and resubmitted!')
+    setIsEditOpen(false)
+    setSelectedItem(null)
+    setExistingIngredients([])
+    fetchItems()
   }
 
-  // Open the edit modal with the clicked item pre-loaded
-  const openEdit = (item) => {
+  // When chef clicks a card, load that item's existing ingredients before opening modal
+  const openEdit = async (item) => {
     setSelectedItem(item)
+    const { data } = await getMenuItemIngredientsAPI(item.id)
+    // Map response to the shape IngredientPicker expects
+    setExistingIngredients(
+      (data || []).map((ing) => ({
+        inventoryItemId: ing.inventoryItemId,
+        inventoryItemName: ing.inventoryItemName,
+        unit: ing.unit,
+        quantityRequired: ing.quantityRequired,
+      }))
+    )
     setIsEditOpen(true)
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
 
-      {/* Main grid — tabs, search, and cards */}
       <MenuItemsGrid
         items={items}
         isLoading={isLoading}
@@ -99,28 +132,30 @@ const MenuAndRecipesPage = () => {
         onEdit={openEdit}
       />
 
-      {/* Add menu item modal */}
       <AddMenuItemModal
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         onSubmit={handleAdd}
         categories={categories}
+        inventoryItems={inventoryItems}
       />
 
-      {/* Edit menu item modal — only mounted when an item is selected */}
       <EditMenuItemModal
         isOpen={isEditOpen}
         onClose={() => {
           setIsEditOpen(false)
           setSelectedItem(null)
+          setExistingIngredients([])
         }}
         onSubmit={handleEdit}
         item={selectedItem}
         categories={categories}
+        inventoryItems={inventoryItems}
+        existingIngredients={existingIngredients}
       />
 
     </div>
   )
 }
 
-export default MenuAndRecipesPage
+export default MenuItemPage
