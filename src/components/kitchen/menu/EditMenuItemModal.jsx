@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react'
-import { UtensilsCrossed, X } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import IngredientPicker from './IngredientPicker'
 
-// AddMenuItemModal — lets a chef submit a new menu item (lands in PENDING status)
-// After the item is created, the parent saves the ingredient list using the returned item ID
-const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventoryItems = [] }) => {
+// EditMenuItemModal — lets a chef edit their PENDING or REJECTED menu items
+// existingIngredients are pre-loaded by the parent when the chef clicks a card
+const EditMenuItemModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  item,
+  categories = [],
+  inventoryItems = [],
+  existingIngredients = [],
+}) => {
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -18,21 +26,22 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
   const [ingredients, setIngredients] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Reset form and ingredients every time the modal opens
+  // Pre-fill form and ingredients whenever the modal opens or selected item changes
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && item) {
       setForm({
-        name: '',
-        description: '',
-        categoryId: '',
-        subCategory: '',
-        price: '',
-        preparationTime: '',
-        imageUrl: '',
+        name: item.name || '',
+        description: item.description || '',
+        categoryId: item.categoryId ? String(item.categoryId) : '',
+        subCategory: item.subCategory || '',
+        price: item.price ? String(item.price) : '',
+        preparationTime: item.preparationTime ? String(item.preparationTime) : '',
+        imageUrl: item.imageUrl || '',
       })
-      setIngredients([])
+      // Pre-fill ingredient list from what was saved previously
+      setIngredients(existingIngredients)
     }
-  }, [isOpen])
+  }, [isOpen, item, existingIngredients])
 
   if (!isOpen) return null
 
@@ -54,7 +63,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
       return
     }
 
-    // Build payload matching CreateMenuItemRequest on the backend
+    // Build payload matching UpdateMenuItemRequest on the backend
     const payload = {
       name: form.name.trim(),
       description: form.description.trim() || null,
@@ -66,9 +75,8 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
     }
 
     setLoading(true)
-    // Pass both the item payload and the ingredient list to the parent
-    // Parent will create the item first, then save ingredients using the returned ID
-    await onSubmit(payload, ingredients)
+    // Pass item ID, updated payload, and updated ingredient list to the parent
+    await onSubmit(item.id, payload, ingredients)
     setLoading(false)
   }
 
@@ -79,16 +87,24 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div className="p-2.5 bg-orange-100 text-orange-600 rounded-2xl">
-            <UtensilsCrossed size={20} />
+            <Pencil size={20} />
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
         </div>
 
-        <h3 className="text-lg font-bold text-gray-900 mb-0.5">Add Menu Item</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-0.5">Edit Menu Item</h3>
+
+        {/* Rejection warning banner */}
+        {item?.status === 'REJECTED' && (
+          <div className="my-2 rounded-2xl bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-500 font-semibold">
+            This item was rejected — update and resubmit for approval.
+          </div>
+        )}
+
         <p className="text-gray-400 text-xs mb-4">
-          Your item will be submitted for admin approval before going live.
+          Changes will be resubmitted to admin for approval.
         </p>
 
         <div className="flex flex-col gap-2 mb-4">
@@ -159,7 +175,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
           {/* Divider */}
           <div className="border-t border-gray-100 my-1" />
 
-          {/* Ingredient picker — optional, chef can add recipe ingredients */}
+          {/* Ingredient picker — pre-filled with existing recipe */}
           <IngredientPicker
             ingredients={ingredients}
             inventoryItems={inventoryItems}
@@ -181,7 +197,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
               loading ? 'bg-gray-300 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 cursor-pointer'
             }`}
           >
-            {loading ? 'Submitting...' : 'Submit for Approval'}
+            {loading ? 'Saving...' : 'Save & Resubmit'}
           </button>
         </div>
 
@@ -190,4 +206,4 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
   )
 }
 
-export default AddMenuItemModal
+export default EditMenuItemModal

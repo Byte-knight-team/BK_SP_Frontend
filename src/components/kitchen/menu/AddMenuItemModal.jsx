@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { UtensilsCrossed, X } from 'lucide-react'
 import { toast } from 'react-toastify'
+import IngredientPicker from './IngredientPicker'
 
 // AddMenuItemModal — lets a chef submit a new menu item (lands in PENDING status)
-// categories prop is derived from existing items in the parent (since CHEF can't hit /api/v1/categories)
-const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
+// After the item is created, the parent saves the ingredient list using the returned item ID
+const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventoryItems = [] }) => {
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -14,9 +15,10 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
     preparationTime: '',
     imageUrl: '',
   })
+  const [ingredients, setIngredients] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Reset form fields every time the modal opens
+  // Reset form and ingredients every time the modal opens
   useEffect(() => {
     if (isOpen) {
       setForm({
@@ -28,6 +30,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
         preparationTime: '',
         imageUrl: '',
       })
+      setIngredients([])
     }
   }, [isOpen])
 
@@ -51,7 +54,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
       return
     }
 
-    // Build the payload that matches CreateMenuItemRequest on the backend
+    // Build payload matching CreateMenuItemRequest on the backend
     const payload = {
       name: form.name.trim(),
       description: form.description.trim() || null,
@@ -63,15 +66,17 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
     }
 
     setLoading(true)
-    await onSubmit(payload)
+    // Pass both the item payload and the ingredient list to the parent
+    // Parent will create the item first, then save ingredients using the returned ID
+    await onSubmit(payload, ingredients)
     setLoading(false)
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-white rounded-4xl shadow-2xl p-6 border border-gray-100">
+      <div className="w-full max-w-md bg-white rounded-4xl shadow-2xl p-6 border border-gray-100 max-h-[90vh] overflow-y-auto">
 
-        {/* Header: icon + close button */}
+        {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div className="p-2.5 bg-orange-100 text-orange-600 rounded-2xl">
             <UtensilsCrossed size={20} />
@@ -86,10 +91,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
           Your item will be submitted for admin approval before going live.
         </p>
 
-        {/* Form fields */}
         <div className="flex flex-col gap-2 mb-4">
-
-          {/* Item name — required */}
           <input
             type="text"
             name="name"
@@ -98,8 +100,6 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
-
-          {/* Description — optional, smaller textarea */}
           <textarea
             name="description"
             placeholder="Description (optional)"
@@ -108,8 +108,6 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
             rows={2}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
           />
-
-          {/* Category dropdown — derived from existing menu items */}
           <select
             name="categoryId"
             value={form.categoryId}
@@ -118,13 +116,9 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
           >
             <option value="">Select Category *</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
-
-          {/* Sub-category — optional free text */}
           <input
             type="text"
             name="subCategory"
@@ -133,8 +127,6 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
-
-          {/* Price and prep time side by side */}
           <div className="flex gap-2">
             <input
               type="number"
@@ -155,8 +147,6 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
               className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
-
-          {/* Image URL — optional, Cloudinary/S3 upload to be added later */}
           <input
             type="text"
             name="imageUrl"
@@ -165,9 +155,18 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [] }) => {
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
           />
+
+          {/* Divider */}
+          <div className="border-t border-gray-100 my-1" />
+
+          {/* Ingredient picker — optional, chef can add recipe ingredients */}
+          <IngredientPicker
+            ingredients={ingredients}
+            inventoryItems={inventoryItems}
+            onChange={setIngredients}
+          />
         </div>
 
-        {/* Action buttons */}
         <div className="flex gap-3">
           <button
             onClick={onClose}
