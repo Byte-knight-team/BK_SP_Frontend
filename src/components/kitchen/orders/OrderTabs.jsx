@@ -1,46 +1,54 @@
-import { useState } from "react";
 import PendingOrdersTab from "./PendingOrdersTab";
 import PreparingOrdersTab from "./PreparingOrdersTab";
 import CompletedOrdersTab from "./CompletedOrdersTab";
 import OnHoldOrdersTab from "./OnHoldOrdersTab";
 
+// Each tab maps to a numeric ID so child components (like SelectedOrder) can switch tabs programmatically
+const TABS = [
+  { id: 1, label: "Pending" },
+  { id: 2, label: "Preparing" },
+  { id: 3, label: "Completed" },
+  { id: 4, label: "On Hold" },
+];
+
 const OrderTabs = ({ handleOrderClick, selectedOrderId, activeTab, setActiveTab }) => {
-
-  const tabs = [
-    { id: 1, label: "Pending", color: "orange" },
-    { id: 2, label: "Preparing", color: "blue" },
-    { id: 3, label: "Completed", color: "green" },
-    { id: 4, label: "On Hold", color: "red" },
-  ];
-
   return (
-    <div className="w-full">
-      {/* Tabs Header */}
-      <div className="flex flex-wrap justify-center gap-1 border-b border-gray-100 pb-2">
-        {/* this is how 4 types of tab buttons will be shown */}
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            //if the tab is active, it will change the background color to orange and text color to white and add a shadow
-            className={`rounded-xl px-2 py-1.5 text-[11px] font-bold transition-all ${
-              activeTab === tab.id
-                ? "bg-orange-500 text-white shadow-sm"
-                : "text-gray-400 hover:bg-gray-50"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+    // Fill the full height of the left panel and prevent its own overflow — inner content scrolls separately
+    <div className="flex h-full flex-col overflow-hidden">
+
+      {/* Panel header and underline-style tab bar */}
+      <div className="px-5 pt-5">
+        <h3 className="mb-4 text-base font-bold text-gray-800">Orders</h3>
+
+        {/* Tab buttons — negative horizontal margin makes the bottom border span the full panel width */}
+        <div className="-mx-5 flex border-b border-gray-100 px-5">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              // flex-1 makes all tabs share equal width so they never overflow or create a scrollbar
+              // Active tab gets an orange underline border; inactive tabs are muted gray
+              className={`flex-1 pb-3 pt-1 text-xs font-bold transition-all ${
+                activeTab === tab.id
+                  ? "border-b-2 border-orange-500 text-orange-500"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Content Area */}
-      <div className="mt-4">
-        {activeTab === 1 && <PendingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId}/>}
-        {activeTab === 2 && <PreparingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId}/>}
-        {activeTab === 3 && <CompletedOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId}/>}
-        {activeTab === 4 && <OnHoldOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId}/>}
+      {/* Scrollable order card list — only this area scrolls, not the tab bar above */}
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 pb-4 pt-3">
+        {/* Conditionally render the correct tab content based on the active tab ID */}
+        {activeTab === 1 && <PendingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} />}
+        {activeTab === 2 && <PreparingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} />}
+        {activeTab === 3 && <CompletedOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} />}
+        {activeTab === 4 && <OnHoldOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} />}
       </div>
+
     </div>
   );
 };
