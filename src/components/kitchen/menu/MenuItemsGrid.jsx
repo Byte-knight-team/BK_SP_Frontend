@@ -95,13 +95,13 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit }) => {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((item) => (
-            <MenuItemCard
-              key={item.id}
-              item={item}
-              {/* Only pass onEdit for PENDING and REJECTED — ACTIVE items can't be edited by chef */}
-              onEdit={activeTab !== 'ACTIVE' ? () => onEdit(item) : undefined}
-            />
-          ))}
+  <MenuItemCard
+    key={item.id}
+    item={item}
+    onEdit={activeTab !== 'ACTIVE' ? () => onEdit(item) : undefined}
+  />
+))}
+
         </div>
       )}
 

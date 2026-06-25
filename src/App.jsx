@@ -102,7 +102,7 @@ import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
 import ChefsPage from './pages/kitchen/ChefsPage'
 import InventoryPage from './pages/kitchen/InventoryPage'
-import MenuAndRecipesPage from './pages/kitchen/MenuAndRecipesPage'
+import MenuItemPage from './pages/kitchen/MenuItemPage'
 import ApprovalsPage from './pages/kitchen/ApprovalsPage'
 
 // Receptionist pages
@@ -401,7 +401,7 @@ export default function App() {
           <Route path="orders" element={<KitchenOrdersPage />} />
           <Route path="chefs" element={<ChefsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
-          <Route path="menu" element={<MenuAndRecipesPage />} />
+          <Route path="menu" element={<MenuItemPage />} />
           <Route path="approvals" element={<ApprovalsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
