@@ -25,3 +25,18 @@ export const createMenuItemAPI = async (itemData) => {
     return { data: null, error: error.message }
   }
 }
+
+export const updateMenuItemAPI = async (id, itemData) => {
+  try {
+    const response = await authFetch(buildApiUrl(`/api/v1/menu/${id}`), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(itemData),
+    })
+    const result = await response.json()
+    if (!response.ok) return { data: null, error: result.message || 'Failed to update menu item' }
+    return { data: result, error: null }
+  } catch (error) {
+    return { data: null, error: error.message }
+  }
+}
