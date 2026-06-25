@@ -5,7 +5,6 @@ import { AlertCircle } from 'lucide-react'
 import AssignChefModal from './AssignChefModal'
 import HoldOrderModal from './HoldOrderModal'
 import ActionConfirmationModal from './ActionConfirmationModal'
-import InsufficientStockModal from './InsufficientStockModal'
 
 import {
   getOrderDetailsAPI,
@@ -38,10 +37,6 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
   const [isHoldModalOpen, setIsHoldModalOpen] = useState(false) //Controls the Hold Modal visibility
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
   const [actionType, setActionType] = useState('') // Stores "START" or "COMPLETE"
-
-  // State for the insufficient stock modal
-  const [isStockModalOpen, setIsStockModalOpen] = useState(false)
-  const [stockShortages, setStockShortages] = useState([])
 
   // Fetches the latest data from the Backend API (whenever orderId changes or we can call it manually right after the chef is assigned successfully)
   const fetchOrderDetails = async (showLoading = true) => {
@@ -138,13 +133,6 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         setActiveTab(2)
         setIsActionModalOpen(false)
         fetchOrderDetails(false)
-      } else if (error.startsWith('INSUFFICIENT_STOCK:')) {
-        // Parse the shortage details from the error string
-        // Format: "INSUFFICIENT_STOCK:item1 detail|item2 detail|..."
-        const shortageList = error.replace('INSUFFICIENT_STOCK:', '').split('|')
-        setStockShortages(shortageList)
-        setIsActionModalOpen(false)
-        setIsStockModalOpen(true)
       } else {
         toast.error('Failed to start meal. Please try again.')
       }
@@ -289,16 +277,6 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         chefName={targetMeal?.chefName}
       />
 
-      {/* Insufficient Stock Modal — shown when stock check fails on meal start */}
-      <InsufficientStockModal
-        isOpen={isStockModalOpen}
-        onClose={() => setIsStockModalOpen(false)}
-        shortages={stockShortages}
-        onHold={() => {
-          setIsStockModalOpen(false)
-          setIsHoldModalOpen(true)
-        }}
-      />
     </div>
   )
 }
