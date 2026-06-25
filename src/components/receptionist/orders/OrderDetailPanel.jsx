@@ -1,0 +1,397 @@
+import { useState, useEffect } from 'react'
+import { Monitor, ShoppingBag, FlaskConical } from 'lucide-react'
+import { toast } from 'react-toastify'
+import {
+  getReceptionistOrderDetailAPI,
+  sendToKitchenAPI,
+  holdReceptionistOrderAPI,
+  cancelReceptionistOrderAPI,
+  collectPaymentAPI,
+  serveOrderAPI,
+  serveOrderItemAPI,
+  checkOrderStockAPI,
+} from '../../../apis/receptionist/orders'
+import SendToKitchenModal from './SendToKitchenModal'
+import HoldOrderModal from './HoldOrderModal'
+import CancelOrderModal from './CancelOrderModal'
+import CollectPaymentModal from './CollectPaymentModal'
+
+const ITEM_STATUS_STYLES = {
+  PENDING:   'bg-orange-50 text-orange-500 border border-orange-100',
+  PREPARING: 'bg-blue-50 text-blue-500 border border-blue-100',
+  READY:     'bg-green-50 text-green-600 border border-green-100',
+  SERVED:    'bg-gray-100 text-gray-400 border border-gray-200',
+  ON_HOLD:   'bg-red-50 text-red-500 border border-red-100',
+}
+
+const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
+  const [order, setOrder]   = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [isActing, setIsActing] = useState(false)
+
+  const [isKitchenOpen, setIsKitchenOpen] = useState(false)
+  const [isHoldOpen, setIsHoldOpen]       = useState(false)
+  const [isCancelOpen, setIsCancelOpen]   = useState(false)
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+
+  const [stockResult, setStockResult]         = useState(null)
+  const [isCheckingStock, setIsCheckingStock] = useState(false)
+
+  useEffect(() => {
+    if (orderId) {
+      fetchDetail()
+      setStockResult(null)
+    }
+  }, [orderId])
+
+  const fetchDetail = async () => {
+    setLoading(true)
+    const { data, error } = await getReceptionistOrderDetailAPI(orderId)
+    if (error) toast.error('Failed to load order details.')
+    else setOrder(data)
+    setLoading(false)
+  }
+
+  const handleStockCheck = async () => {
+    setIsCheckingStock(true)
+    const { data, error } = await checkOrderStockAPI(orderId)
+    if (error) toast.error('Stock check failed.')
+    else setStockResult(data)
+    setIsCheckingStock(false)
+  }
+
+  const handleSendToKitchen = async () => {
+    setIsActing(true)
+    const { error } = await sendToKitchenAPI(orderId)
+    if (error) toast.error(error)
+    else { toast.success('Order sent to kitchen!'); setIsKitchenOpen(false); onActionDone() }
+    setIsActing(false)
+  }
+
+  const handleHold = async (reason) => {
+    setIsActing(true)
+    const { error } = await holdReceptionistOrderAPI(orderId, reason)
+    if (error) toast.error(error)
+    else { toast.success('Order put on hold.'); setIsHoldOpen(false); onActionDone() }
+    setIsActing(false)
+  }
+
+  const handleCancel = async (reason) => {
+    setIsActing(true)
+    const { error } = await cancelReceptionistOrderAPI(orderId, reason)
+    if (error) toast.error(error)
+    else { toast.success('Order cancelled.'); setIsCancelOpen(false); onActionDone() }
+    setIsActing(false)
+  }
+
+  const handleCollectPayment = async () => {
+    setIsActing(true)
+    const { error } = await collectPaymentAPI(orderId)
+    if (error) toast.error(error)
+    else { toast.success('Payment collected!'); setIsPaymentOpen(false); fetchDetail() }
+    setIsActing(false)
+  }
+
+  const handleServeOrder = async () => {
+    setIsActing(true)
+    const { error } = await serveOrderAPI(orderId)
+    if (error) toast.error(error)
+    else { toast.success('Order handed over!'); onActionDone() }
+    setIsActing(false)
+  }
+
+  const handleServeItem = async (itemId) => {
+    const { error } = await serveOrderItemAPI(itemId)
+    if (error) toast.error(error)
+    else { toast.success('Item served!'); fetchDetail() }
+  }
+
+  if (loading) return (
+    <div className="flex h-full items-center justify-center rounded-3xl border border-gray-100 bg-white">
+      <p className="animate-pulse text-sm font-bold text-orange-400">Loading order details...</p>
+    </div>
+  )
+
+  if (!order) return null
+
+  const isQR     = order.orderType === 'QR'
+  const isCashDue = order.paymentStatus === 'PENDING'
+
+  return (
+    <div className="rounded-3xl border border-gray-100 bg-white p-6 space-y-5">
+
+      {/* HEADER */}
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="text-xl font-bold text-gray-900">{order.orderNumber}</h2>
+            <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${
+              isQR
+                ? 'bg-purple-50 text-purple-600 border border-purple-100'
+                : 'bg-blue-50 text-blue-600 border border-blue-100'
+            }`}>
+              {isQR ? <Monitor size={10} /> : <ShoppingBag size={10} />}
+              {isQR ? 'QR Dine-in' : 'Online Pickup'}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-gray-400">{order.placedAt}</p>
+        </div>
+
+        {isCashDue && (
+          <button
+            onClick={() => setIsPaymentOpen(true)}
+            className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
+          >
+            Collect Cash — Rs. {order.finalAmount.toFixed(2)}
+          </button>
+        )}
+      </div>
+
+      {/* CUSTOMER + LOCATION */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl bg-gray-50 p-4 space-y-1.5">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Customer</p>
+          <p className="text-sm font-bold text-gray-800">
+            {order.contactName || order.customerName || 'Guest'}
+          </p>
+          <p className="text-xs text-gray-500">{order.contactPhone || order.customerPhone}</p>
+          <p className="text-xs text-gray-500 truncate">{order.contactEmail || order.customerEmail}</p>
+        </div>
+        <div className="rounded-2xl bg-gray-50 p-4 space-y-1.5">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">
+            {isQR ? 'Table' : 'Pickup Info'}
+          </p>
+          {isQR ? (
+            <>
+              <p className="text-3xl font-black text-orange-500">#{order.tableNumber}</p>
+              <p className="text-xs text-gray-400">Dine-in table</p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-bold text-gray-800">{order.contactName || order.customerName}</p>
+              <p className="text-xs text-gray-400">Customer will collect in person</p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ITEMS */}
+      <div>
+        <p className="mb-3 text-sm font-bold text-gray-800">Items Ordered</p>
+        <div className="rounded-2xl border border-gray-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-xs text-gray-400">
+              <tr>
+                <th className="px-4 py-2.5 text-left font-semibold">Item</th>
+                <th className="px-4 py-2.5 text-center font-semibold">Qty</th>
+                <th className="px-4 py-2.5 text-right font-semibold">Subtotal</th>
+                <th className="px-4 py-2.5 text-right font-semibold">Status</th>
+                {activeTab === 'COMPLETED' && isQR && (
+                  <th className="px-4 py-2.5 text-center font-semibold">Serve</th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {order.items.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50/60">
+                  <td className="px-4 py-3 font-medium text-gray-800">{item.itemName}</td>
+                  <td className="px-4 py-3 text-center text-gray-600">{item.quantity}</td>
+                  <td className="px-4 py-3 text-right font-bold text-gray-700">
+                    Rs. {item.subtotal.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                      ITEM_STATUS_STYLES[item.status] || 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </td>
+                  {activeTab === 'COMPLETED' && isQR && (
+                    <td className="px-4 py-3 text-center">
+                      {item.status === 'READY' ? (
+                        <button onClick={() => handleServeItem(item.id)}
+                          className="rounded-xl bg-green-500 px-3 py-1 text-xs font-bold text-white hover:bg-green-600">
+                          Serve
+                        </button>
+                      ) : item.status === 'SERVED' ? (
+                        <span className="text-xs text-gray-400">Done</span>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* PAYMENT SUMMARY */}
+      <div className="rounded-2xl bg-gray-50 p-4 space-y-2">
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-3">Payment Summary</p>
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Subtotal</span><span>Rs. {order.totalAmount.toFixed(2)}</span>
+        </div>
+        {order.taxAmount > 0 && (
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Tax</span><span>Rs. {order.taxAmount.toFixed(2)}</span>
+          </div>
+        )}
+        {order.serviceCharge > 0 && (
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Service Charge</span><span>Rs. {order.serviceCharge.toFixed(2)}</span>
+          </div>
+        )}
+        {order.discountAmount > 0 && (
+          <div className="flex justify-between text-sm text-green-600">
+            <span>Discount {order.appliedCouponCode && `(${order.appliedCouponCode})`}</span>
+            <span>− Rs. {order.discountAmount.toFixed(2)}</span>
+          </div>
+        )}
+        <div className="border-t border-gray-200 pt-2 flex justify-between text-base font-black text-gray-900">
+          <span>Total Due</span>
+          <span className="text-orange-600">Rs. {order.finalAmount.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-xs pt-1">
+          <span className="text-gray-400">Payment Status</span>
+          <span className={`font-bold ${isCashDue ? 'text-red-500' : 'text-green-600'}`}>
+            {isCashDue ? 'CASH — Not Yet Collected' : '✓ PAID'}
+          </span>
+        </div>
+      </div>
+
+      {/* KITCHEN NOTES */}
+      {order.kitchenNotes && (
+        <div className="rounded-2xl border border-orange-100 bg-orange-50 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-orange-500 mb-1">Kitchen Note</p>
+          <p className="text-sm text-orange-800">{order.kitchenNotes}</p>
+        </div>
+      )}
+
+      {/* HOLD REASON */}
+      {order.holdReason && (
+        <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-red-500 mb-1">Hold Reason</p>
+          <p className="text-sm text-red-800">{order.holdReason}</p>
+        </div>
+      )}
+
+      {/* STOCK CHECK */}
+      {activeTab === 'PLACED' && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="rounded-xl bg-orange-100 p-1.5 text-orange-600">
+                <FlaskConical size={13} />
+              </div>
+              <p className="text-sm font-bold text-gray-800">Stock Check</p>
+            </div>
+            <button onClick={handleStockCheck} disabled={isCheckingStock}
+              className="rounded-2xl bg-orange-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-orange-600 disabled:bg-gray-300">
+              {isCheckingStock ? 'Checking...' : 'Run Check'}
+            </button>
+          </div>
+          {stockResult && (
+            <div className="rounded-2xl border border-gray-100 overflow-hidden">
+              {stockResult.results.length === 0 ? (
+                <p className="p-4 text-sm text-gray-400 italic">No ingredient data linked to these items.</p>
+              ) : (
+                stockResult.results.map((r, i) => (
+                  <div key={i} className={`flex items-start gap-3 p-3 border-b border-gray-50 last:border-0 ${
+                    r.sufficient ? 'bg-green-50/50' : 'bg-red-50/50'
+                  }`}>
+                    <span className={`text-base font-black mt-0.5 ${r.sufficient ? 'text-green-500' : 'text-red-500'}`}>
+                      {r.sufficient ? '✓' : '✗'}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{r.menuItemName}</p>
+                      {!r.sufficient && <p className="text-xs text-red-500 mt-0.5">{r.shortage}</p>}
+                    </div>
+                  </div>
+                ))
+              )}
+              <div className={`px-4 py-2 text-xs font-bold ${
+                stockResult.allSufficient ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+              }`}>
+                {stockResult.allSufficient ? '✓ All items have sufficient stock' : '⚠ Some items have stock shortages'}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ACTION BUTTONS */}
+      <div className="flex gap-3 flex-wrap pt-2">
+        {activeTab === 'PLACED' && (
+          <>
+            <button onClick={() => setIsHoldOpen(true)}
+              className="rounded-2xl border border-orange-200 px-4 py-2.5 text-sm font-bold text-orange-500 hover:bg-orange-50">
+              Hold
+            </button>
+            <button onClick={() => setIsCancelOpen(true)}
+              className="rounded-2xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">
+              Cancel
+            </button>
+            <button onClick={() => setIsKitchenOpen(true)}
+              className="ml-auto rounded-2xl bg-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-200 hover:bg-orange-600">
+              Send to Kitchen →
+            </button>
+          </>
+        )}
+
+        {activeTab === 'ON_HOLD' && (
+          <>
+            <button onClick={() => setIsCancelOpen(true)}
+              className="rounded-2xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">
+              Cancel Order
+            </button>
+            <button onClick={() => setIsKitchenOpen(true)}
+              className="ml-auto rounded-2xl bg-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-200 hover:bg-orange-600">
+              Send Back to Kitchen →
+            </button>
+          </>
+        )}
+
+        {activeTab === 'COMPLETED' && !isQR && (
+          <button onClick={handleServeOrder} disabled={isActing || isCashDue}
+            className="w-full rounded-2xl bg-green-500 py-3 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600 disabled:bg-gray-300">
+            {isCashDue ? 'Collect Payment First' : 'Hand Over & Complete ✓'}
+          </button>
+        )}
+      </div>
+
+      {/* MODALS */}
+      <SendToKitchenModal
+        isOpen={isKitchenOpen}
+        onClose={() => setIsKitchenOpen(false)}
+        onConfirm={handleSendToKitchen}
+        orderNumber={order.orderNumber}
+        isOnHold={activeTab === 'ON_HOLD'}
+        isLoading={isActing}
+      />
+      <HoldOrderModal
+        isOpen={isHoldOpen}
+        onClose={() => setIsHoldOpen(false)}
+        onConfirm={handleHold}
+        isLoading={isActing}
+      />
+      <CancelOrderModal
+        isOpen={isCancelOpen}
+        onClose={() => setIsCancelOpen(false)}
+        onConfirm={handleCancel}
+        isLoading={isActing}
+      />
+      <CollectPaymentModal
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        onConfirm={handleCollectPayment}
+        orderNumber={order.orderNumber}
+        finalAmount={order.finalAmount}
+        isLoading={isActing}
+      />
+    </div>
+  )
+}
+
+export default OrderDetailPanel
