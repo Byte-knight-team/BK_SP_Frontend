@@ -87,7 +87,7 @@ const OrderManagementPage = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 pb-3 pt-1 text-[11px] font-bold transition-all ${
+                className={`flex-1 pb-3 pt-1 text-xs font-bold transition-all ${
                   activeTab === tab.key
                     ? 'border-b-2 border-orange-500 text-orange-500'
                     : 'text-gray-400 hover:text-gray-600'
@@ -105,7 +105,7 @@ const OrderManagementPage = () => {
             <button
               key={f.key}
               onClick={() => setTypeFilter(f.key)}
-              className={`rounded-xl px-3 py-1.5 text-[11px] font-bold transition-all ${
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
                 typeFilter === f.key
                   ? 'bg-orange-100 text-orange-600'
                   : 'bg-gray-50 text-gray-400 hover:text-gray-600'

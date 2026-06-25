@@ -55,7 +55,7 @@ const PreparingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
           key={order.id}
           status={order.status}
           time={order.time}
-          id={`#ORD-${order.id}`}
+          id={order.orderNumber}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
           //if the order is already selected, highlight it

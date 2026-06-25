@@ -32,10 +32,10 @@ const OrderCard = ({ order, isSelected, onClick }) => {
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span className="truncate text-sm font-bold text-gray-900">{order.orderNumber}</span>
-            <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-tight ${
+            <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-tight ${
               isQR ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
             }`}>
-              {isQR ? <Monitor size={8} /> : <ShoppingBag size={8} />}
+              {isQR ? <Monitor size={10} /> : <ShoppingBag size={10} />}
               {isQR ? 'QR' : 'Pickup'}
             </span>
           </div>
@@ -50,13 +50,13 @@ const OrderCard = ({ order, isSelected, onClick }) => {
 
       {/* Bottom row: time + cash badge + amount */}
       <div className="mt-3 flex items-center justify-between">
-        <span className="flex items-center gap-1 text-[10px] text-gray-400">
-          <Clock size={9} />
+        <span className="flex items-center gap-1 text-xs text-gray-400">
+          <Clock size={10} />
           {order.placedAt}
         </span>
         <div className="flex items-center gap-2">
           {isCashDue && (
-            <span className="rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-[9px] font-black text-red-500">
+            <span className="rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-xs font-black text-red-500">
               CASH DUE
             </span>
           )}
