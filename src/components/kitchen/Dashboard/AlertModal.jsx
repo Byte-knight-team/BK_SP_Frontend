@@ -11,6 +11,8 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
   if (!isOpen) return null
 
   const handleSend = async () => {
+    // Check if the message is empty or contains only whitespace.
+    // If so, show a warning toast and stop the function execution.
     if (!message.trim()) return toast.warning('Please type a message');
 
     setLoading(true);
@@ -23,7 +25,7 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
       toast.success('Broadcast alert sent to Receptionist!');
       onAlertSent(false); // Background refresh
       onClose();
-      setMessage('');
+      setMessage(''); // Reset the message after sending
     }
   }
 

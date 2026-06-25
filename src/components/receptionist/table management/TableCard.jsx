@@ -3,7 +3,7 @@ import { Users, Armchair, Clock, CookingPot } from 'lucide-react'
 
 const TableCard = ({ table, onClick }) => {
 
-  // helper to format status colors and labels
+  // helper function to format status colors and labels
   const getStatusConfig = (status) => {
     switch (status?.toUpperCase()) {
       case 'AVAILABLE':
