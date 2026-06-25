@@ -30,3 +30,16 @@ export const mobileVerificationSchema = z.object({
     .string()
     .regex(/^07\d{8}$/, 'Phone number must be exactly 10 digits and start with 07 (e.g., 0712345678).'),
 });
+
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/,
+      'Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
+    ),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
