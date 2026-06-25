@@ -11,7 +11,7 @@ const TABS = [
 
 // MenuItemsGrid — renders the tab switcher, search bar, and the card grid
 // All data fetching and modal state lives in the parent page (MenuAndRecipesPage)
-const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit }) => {
+const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
   const [activeTab, setActiveTab] = useState('ACTIVE')
   const [search, setSearch] = useState('')
 
@@ -98,6 +98,7 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit }) => {
   <MenuItemCard
     key={item.id}
     item={item}
+    onView={() => onView(item)}
     onEdit={activeTab !== 'ACTIVE' ? () => onEdit(item) : undefined}
   />
 ))}

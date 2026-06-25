@@ -14,6 +14,8 @@ import { getAllInventoryAPI } from '../../apis/kitchen/inventory'
 import MenuItemsGrid from '../../components/kitchen/menu/MenuItemsGrid'
 import AddMenuItemModal from '../../components/kitchen/menu/AddMenuItemModal'
 import EditMenuItemModal from '../../components/kitchen/menu/EditMenuItemModal'
+import MenuItemDetailModal from '../../components/kitchen/menu/MenuItemDetailModal'
+
 
 const MenuItemPage = () => {
   const { setHeaderInfo } = useOutletContext()
@@ -30,6 +32,10 @@ const MenuItemPage = () => {
 
   // Pre-loaded ingredients for the item being edited
   const [existingIngredients, setExistingIngredients] = useState([])
+
+  const [isViewOpen, setIsViewOpen] = useState(false)
+  const [viewItem, setViewItem] = useState(null)
+  const [viewIngredients, setViewIngredients] = useState([])
 
   useEffect(() => {
     setHeaderInfo({
@@ -106,6 +112,13 @@ const MenuItemPage = () => {
     fetchItems()
   }
 
+  const openView = async (item) => {
+    setViewItem(item)
+    const { data } = await getMenuItemIngredientsAPI(item.id)
+    setViewIngredients(data || [])
+    setIsViewOpen(true)
+  }
+
   // When chef clicks a card, load that item's existing ingredients before opening modal
   const openEdit = async (item) => {
     setSelectedItem(item)
@@ -130,6 +143,7 @@ const MenuItemPage = () => {
         isLoading={isLoading}
         onAdd={() => setIsAddOpen(true)}
         onEdit={openEdit}
+        onView={openView}
       />
 
       <AddMenuItemModal
@@ -138,6 +152,13 @@ const MenuItemPage = () => {
         onSubmit={handleAdd}
         categories={categories}
         inventoryItems={inventoryItems}
+      />
+
+      <MenuItemDetailModal
+        isOpen={isViewOpen}
+        onClose={() => { setIsViewOpen(false); setViewItem(null); setViewIngredients([]) }}
+        item={viewItem}
+        ingredients={viewIngredients}
       />
 
       <EditMenuItemModal
