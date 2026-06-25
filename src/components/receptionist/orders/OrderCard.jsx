@@ -1,71 +1,71 @@
-import { Clock, Monitor, ShoppingBag } from 'lucide-react'
+import { Monitor, ShoppingBag, Clock } from 'lucide-react'
 
-const STATUS_STYLES = {
-  PLACED:    'bg-blue-50 text-blue-500 border border-blue-100',
-  PENDING:   'bg-orange-50 text-orange-500 border border-orange-100',
-  PREPARING: 'bg-yellow-50 text-yellow-600 border border-yellow-100',
-  COMPLETED: 'bg-green-50 text-green-600 border border-green-100',
-  ON_HOLD:   'bg-red-50 text-red-500 border border-red-100',
-  SERVED:    'bg-gray-100 text-gray-500 border border-gray-200',
+const STATUS_BORDER = {
+  PLACED:    'border-l-orange-400',
+  PENDING:   'border-l-blue-400',
+  PREPARING: 'border-l-blue-500',
+  COMPLETED: 'border-l-green-400',
+  ON_HOLD:   'border-l-red-400',
+  SERVED:    'border-l-gray-300',
 }
 
 const OrderCard = ({ order, isSelected, onClick }) => {
-  const isQR = order.orderType === 'QR'
+  const isQR      = order.orderType === 'QR'
   const isCashDue = order.paymentStatus === 'PENDING'
+  const initial   = (order.customerName || 'G').charAt(0).toUpperCase()
+  const border    = STATUS_BORDER[order.status] || 'border-l-gray-300'
 
   return (
-    <div
+    <button
       onClick={onClick}
-      className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+      className={`w-full text-left rounded-2xl border-l-4 bg-white p-4 shadow-sm transition-all hover:shadow-md ${border} ${
         isSelected
-          ? 'border-orange-300 bg-orange-50 shadow-md'
-          : 'border-gray-100 bg-white hover:border-orange-200 hover:shadow-sm'
+          ? 'ring-2 ring-orange-400 ring-offset-1 shadow-md'
+          : 'border border-gray-100'
       }`}
     >
-      {/* Top row: order number + type badge */}
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-bold text-gray-900">{order.orderNumber}</span>
-        <div className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-tight ${
-          isQR
-            ? 'bg-purple-50 text-purple-600 border border-purple-100'
-            : 'bg-blue-50 text-blue-600 border border-blue-100'
-        }`}>
-          {isQR ? <Monitor size={10} /> : <ShoppingBag size={10} />}
-          {isQR ? 'QR' : 'Pickup'}
+      {/* Top row: avatar + order number + type badge */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-sm font-black text-orange-600">
+          {initial}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <span className="truncate text-sm font-bold text-gray-900">{order.orderNumber}</span>
+            <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-tight ${
+              isQR ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
+            }`}>
+              {isQR ? <Monitor size={8} /> : <ShoppingBag size={8} />}
+              {isQR ? 'QR' : 'Pickup'}
+            </span>
+          </div>
+          <p className="mt-0.5 truncate text-xs text-gray-500">
+            {order.customerName || 'Guest'}
+            {isQR && order.tableNumber
+              ? ` · Table #${order.tableNumber}`
+              : ' · Pickup'}
+          </p>
         </div>
       </div>
 
-      {/* Customer + table/pickup */}
-      <p className="text-xs font-semibold text-gray-700 truncate">{order.customerName}</p>
-      <p className="text-xs text-gray-400">
-        {isQR ? `Table ${order.tableNumber}` : 'Online Pickup'}
-      </p>
-
-      {/* Bottom row: time + payment + item count */}
+      {/* Bottom row: time + cash badge + amount */}
       <div className="mt-3 flex items-center justify-between">
-        <div className="flex items-center gap-1 text-[11px] text-gray-400">
-          <Clock size={11} />
-          <span>{order.placedAt}</span>
-        </div>
+        <span className="flex items-center gap-1 text-[10px] text-gray-400">
+          <Clock size={9} />
+          {order.placedAt}
+        </span>
         <div className="flex items-center gap-2">
           {isCashDue && (
-            <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-black text-red-500 border border-red-100">
+            <span className="rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-[9px] font-black text-red-500">
               CASH DUE
             </span>
           )}
-          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-tight ${
-            STATUS_STYLES[order.status] || 'bg-gray-100 text-gray-400'
-          }`}>
-            {order.status.replace('_', ' ')}
+          <span className="text-sm font-black text-orange-500">
+            Rs. {order.finalAmount.toFixed(2)}
           </span>
         </div>
       </div>
-
-      {/* Total */}
-      <div className="mt-2 text-right text-sm font-black text-orange-600">
-        Rs. {order.finalAmount.toFixed(2)}
-      </div>
-    </div>
+    </button>
   )
 }
 
