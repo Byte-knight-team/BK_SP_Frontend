@@ -81,11 +81,6 @@ export default function DashboardPage() {
 
   /*
     Branch active status helper.
-
-    Backend main response gives "status: "ACTIVE" or "INACTIVE"".
-    But this also supports:
-    - active: true / false
-    - isActive: true / false
   */
   const isBranchActive = (branch) => {
     if (branch.status) {

@@ -17,9 +17,6 @@ import { useAuth } from "../../context/AuthContext";
   AuditLogsPage
   Shows latest logs with pagination.
 */
-
-
-//
 const PAGE_SIZE = 20;
 
 export default function AuditLogsPage() {

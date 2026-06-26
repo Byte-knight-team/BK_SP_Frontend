@@ -57,7 +57,6 @@ export default function ProfilePage() {
 
     /*
         Email should only be shown in the Email field.
-        JWT usually stores email as sub.
     */
     const email = user?.email || user?.sub || "-";
 
@@ -69,16 +68,11 @@ export default function ProfilePage() {
     /*
         Username should not show full email.
 
-        If user.username is already email, clean it.
-        Otherwise use cleaned email.
     */
     const username = getNameBeforeAt(user?.username || email);
 
     /*
-        Full Name should not show full email either.
-
-        If backend/JWT later gives real fullName, this will show it.
-        If not, we show cleaned username.
+        Full Name should not show full email.
     */
     const fullName = getNameBeforeAt(user?.fullName || user?.name || username);
 
