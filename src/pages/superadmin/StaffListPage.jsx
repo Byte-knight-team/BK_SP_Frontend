@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
 import {
   RiTeamLine,
@@ -7,6 +7,7 @@ import {
   RiCheckboxCircleLine,
   RiErrorWarningLine,
   RiFileCopyLine,
+  RiSearchLine,
 } from "@remixicon/react";
 
 import {
@@ -29,6 +30,7 @@ import {
   - Shows all staff accounts.
   - Keeps View, Edit, Invite, Activate/Deactivate actions.
   - Uses toast notifications for action feedback.
+  - Adds frontend-only search and filters using loaded staff data.
   - Keeps actions aligned horizontally.
 */
 export default function StaffListPage() {
@@ -45,14 +47,12 @@ export default function StaffListPage() {
   const [loadError, setLoadError] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
 
-  const { user: authUser } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const normalizeRole = (role) => {
-    return String(role || "")
-      .trim()
-      .replace(/\s+/g, "_")
-      .toUpperCase();
-  };
+  const { user: authUser } = useAuth();
 
   const loggedInRole = normalizeRole(authUser?.roleName || authUser?.role);
   const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
@@ -61,7 +61,7 @@ export default function StaffListPage() {
   const LOWER_ROLES_FOR_ADMIN = ["MANAGER", "CHEF", "RECEPTIONIST", "DELIVERY"];
 
   const canManageStaffStatus = (staff) => {
-    const targetRole = normalizeRole(staff.roleName || staff.role);
+    const targetRole = normalizeRole(getStaffRole(staff));
 
     if (isSuperAdmin) {
       return true;
@@ -73,6 +73,57 @@ export default function StaffListPage() {
 
     return false;
   };
+
+  const availableRoles = useMemo(() => {
+    return getUniqueSortedValues(staffList.map((staff) => getStaffRole(staff)));
+  }, [staffList]);
+
+  const availableBranches = useMemo(() => {
+    return getUniqueSortedValues(
+      staffList.map((staff) => getStaffBranchName(staff))
+    );
+  }, [staffList]);
+
+  const filteredStaffList = useMemo(() => {
+    const cleanSearch = normalizeForSearch(searchTerm);
+
+    return staffList.filter((staff) => {
+      const staffId = getStaffId(staff);
+      const roleName = getStaffRole(staff);
+      const branchName = getStaffBranchName(staff);
+      const active = isStaffActive(staff);
+
+      const searchableText = normalizeForSearch(
+        [
+          staffId,
+          staff.fullName,
+          staff.name,
+          staff.username,
+          staff.email,
+          staff.phone,
+          roleName,
+          branchName,
+        ].join(" ")
+      );
+
+      const matchesSearch =
+        !cleanSearch || searchableText.includes(cleanSearch);
+
+      const matchesRole = !roleFilter || roleName === roleFilter;
+
+      const matchesBranch = !branchFilter || branchName === branchFilter;
+
+      const matchesStatus =
+        !statusFilter ||
+        (statusFilter === "ACTIVE" && active) ||
+        (statusFilter === "INACTIVE" && !active);
+
+      return matchesSearch && matchesRole && matchesBranch && matchesStatus;
+    });
+  }, [staffList, searchTerm, roleFilter, branchFilter, statusFilter]);
+
+  const hasActiveFilters =
+    searchTerm.trim() !== "" || roleFilter || branchFilter || statusFilter;
 
   useEffect(() => {
     if (location.state?.successMessage) {
@@ -111,27 +162,16 @@ export default function StaffListPage() {
     loadStaff();
   }, []);
 
-  const getStaffId = (staff) => {
-    return staff.id || staff.userId || staff.staffId;
-  };
-
-  const getActiveStatus = (staff) => {
-    if (typeof staff.active === "boolean") return staff.active;
-    if (typeof staff.isActive === "boolean") return staff.isActive;
-    return false;
-  };
-
-  const getRoleName = (staff) => {
-    return staff.roleName || staff.role || "N/A";
-  };
-
-  const getBranchName = (staff) => {
-    return staff.branchName || staff.branch?.name || "Global";
+  const clearFilters = () => {
+    setSearchTerm("");
+    setRoleFilter("");
+    setBranchFilter("");
+    setStatusFilter("");
   };
 
   const handleToggleStatus = async (staff) => {
     const staffId = getStaffId(staff);
-    const isActive = getActiveStatus(staff);
+    const isActive = isStaffActive(staff);
 
     if (!staffId) {
       showErrorToast("Staff ID not found in response.");
@@ -182,8 +222,8 @@ export default function StaffListPage() {
     const staffName = staff.fullName || staff.name || "Selected staff";
     const staffUsername = staff.username || "no-username";
     const staffEmail = staff.email || "No email";
-    const staffRole = getRoleName(staff);
-    const staffBranch = getBranchName(staff);
+    const staffRole = getStaffRole(staff);
+    const staffBranch = getStaffBranchName(staff);
 
     if (data?.emailSent === true) {
       setNoticeMessage(
@@ -247,6 +287,90 @@ Please manually share this temporary password with the staff member.`
           </Link>
         </div>
 
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
+          <div className="grid gap-3 xl:grid-cols-[1.4fr_0.8fr_0.9fr_0.7fr_auto]">
+            <div className="relative">
+              <RiSearchLine
+                size={18}
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search name, username, email, phone, role, branch, or ID..."
+                className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 pl-11 pr-4 text-sm text-gray-800 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+              />
+            </div>
+
+            <select
+              value={roleFilter}
+              onChange={(event) => setRoleFilter(event.target.value)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+            >
+              <option value="">All Roles</option>
+              {availableRoles.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={branchFilter}
+              onChange={(event) => setBranchFilter(event.target.value)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+            >
+              <option value="">All Branches</option>
+              {availableBranches.map((branch) => (
+                <option key={branch} value={branch}>
+                  {branch}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+            >
+              <option value="">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-200 disabled:hover:bg-white disabled:hover:text-gray-700"
+            >
+              Clear filters
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              Showing{" "}
+              <span className="font-bold text-gray-800">
+                {filteredStaffList.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-bold text-gray-800">
+                {staffList.length}
+              </span>{" "}
+              staff
+            </p>
+
+            {hasActiveFilters && (
+              <p className="text-xs font-medium text-orange-600">
+                Filters are applied to the loaded staff list.
+              </p>
+            )}
+          </div>
+        </div>
+
         {loadError && (
           <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
             {loadError}
@@ -267,6 +391,10 @@ Please manually share this temporary password with the staff member.`
         ) : staffList.length === 0 ? (
           <div className="p-8 text-sm text-gray-500">
             No staff members found.
+          </div>
+        ) : filteredStaffList.length === 0 ? (
+          <div className="p-8 text-sm text-gray-500">
+            No matching staff found. Try changing the search text or filters.
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl">
@@ -300,9 +428,9 @@ Please manually share this temporary password with the staff member.`
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {staffList.map((staff) => {
+                {filteredStaffList.map((staff) => {
                   const staffId = getStaffId(staff);
-                  const isActive = getActiveStatus(staff);
+                  const isActive = isStaffActive(staff);
                   const isActionLoading = actionLoadingId === staffId;
                   const canToggleStatus = canManageStaffStatus(staff);
 
@@ -333,20 +461,21 @@ Please manually share this temporary password with the staff member.`
 
                       <td className="px-5 py-4 align-middle">
                         <span className="inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
-                          {getRoleName(staff)}
+                          {getStaffRole(staff)}
                         </span>
                       </td>
 
                       <td className="px-5 py-4 align-middle text-sm text-gray-700">
-                        {getBranchName(staff)}
+                        {getStaffBranchName(staff)}
                       </td>
 
                       <td className="px-5 py-4 align-middle">
                         <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isActive
-                            ? "bg-green-50 text-green-700"
-                            : "bg-gray-100 text-gray-500"
-                            }`}
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                            isActive
+                              ? "bg-green-50 text-green-700"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
                         >
                           {isActive ? "Active" : "Inactive"}
                         </span>
@@ -383,10 +512,11 @@ Please manually share this temporary password with the staff member.`
                               type="button"
                               disabled={isActionLoading}
                               onClick={() => handleToggleStatus(staff)}
-                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isActive
-                                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                : "bg-green-50 text-green-700 hover:bg-green-100"
-                                }`}
+                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                                isActive
+                                  ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                  : "bg-green-50 text-green-700 hover:bg-green-100"
+                              }`}
                             >
                               {isActionLoading
                                 ? "Updating..."
@@ -413,6 +543,66 @@ Please manually share this temporary password with the staff member.`
   );
 }
 
+function normalizeRole(role) {
+  return String(role || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .toUpperCase();
+}
+
+function normalizeForSearch(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getStaffId(staff) {
+  return staff?.id || staff?.userId || staff?.staffId;
+}
+
+function getStaffRole(staff) {
+  return staff?.roleName || staff?.role || "N/A";
+}
+
+function getStaffBranchName(staff) {
+  const branchName = staff?.branchName || staff?.branch?.name;
+
+  if (branchName) {
+    return branchName;
+  }
+
+  if (staff?.branchId) {
+    return `Branch #${staff.branchId}`;
+  }
+
+  return "Global Access";
+}
+
+function isStaffActive(staff) {
+  if (typeof staff?.active === "boolean") return staff.active;
+  if (typeof staff?.isActive === "boolean") return staff.isActive;
+  if (typeof staff?.enabled === "boolean") return staff.enabled;
+
+  const status = String(staff?.status || staff?.accountStatus || "")
+    .trim()
+    .toUpperCase();
+
+  if (status === "ACTIVE") return true;
+  if (status === "INACTIVE") return false;
+
+  return false;
+}
+
+function getUniqueSortedValues(values) {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    )
+  ).sort((firstValue, secondValue) =>
+    firstValue.localeCompare(secondValue, undefined, { sensitivity: "base" })
+  );
+}
+
 function StaffNoticeCard({ message, onClose }) {
   const isWarning =
     message.toLowerCase().includes("failed") ||
@@ -436,17 +626,19 @@ function StaffNoticeCard({ message, onClose }) {
 
   return (
     <div
-      className={`mt-5 rounded-2xl border px-4 py-4 ${isWarning
-        ? "border-amber-100 bg-amber-50 text-amber-800"
-        : "border-emerald-100 bg-emerald-50 text-emerald-800"
-        }`}
+      className={`mt-5 rounded-2xl border px-4 py-4 ${
+        isWarning
+          ? "border-amber-100 bg-amber-50 text-amber-800"
+          : "border-emerald-100 bg-emerald-50 text-emerald-800"
+      }`}
     >
       <div className="flex items-start gap-3">
         <div
-          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isWarning
-            ? "bg-amber-100 text-amber-700"
-            : "bg-emerald-100 text-emerald-700"
-            }`}
+          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+            isWarning
+              ? "bg-amber-100 text-amber-700"
+              : "bg-emerald-100 text-emerald-700"
+          }`}
         >
           {isWarning ? (
             <RiErrorWarningLine size={19} />
@@ -482,10 +674,11 @@ function StaffNoticeCard({ message, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className={`rounded-xl px-3 py-2 text-xs font-bold ${isWarning
-                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                  : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                  }`}
+                className={`rounded-xl px-3 py-2 text-xs font-bold ${
+                  isWarning
+                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                    : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                }`}
               >
                 Dismiss
               </button>

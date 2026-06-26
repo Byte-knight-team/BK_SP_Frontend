@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
-import { RiBuilding2Line, RiAddLine } from "@remixicon/react";
+import {
+  RiBuilding2Line,
+  RiAddLine,
+  RiSearchLine,
+} from "@remixicon/react";
 
 import {
   getAllBranchesAPI,
@@ -15,15 +19,51 @@ export default function BranchListPage() {
   const location = useLocation();
   const { setHeaderInfo } = useOutletContext();
 
+  const branchBasePath = location.pathname.startsWith("/admin")
+    ? "/admin/branches"
+    : "/staff/branches";
+
   const [branchList, setBranchList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [loadError, setLoadError] = useState("");
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
   const { user } = useAuth();
 
-  const loggedInRole = user?.roleName || user?.role || "";
+  const loggedInRole = normalizeRole(user?.roleName || user?.role);
   const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
+
+  const filteredBranchList = useMemo(() => {
+    const cleanSearch = normalizeForSearch(searchTerm);
+
+    return branchList.filter((branch) => {
+      const branchId = getBranchId(branch);
+      const branchStatus = getBranchStatus(branch);
+
+      const searchableText = normalizeForSearch(
+        [
+          branchId,
+          branch.name,
+          branch.email,
+          branch.contactNumber,
+          branch.phone,
+          branch.address,
+        ].join(" ")
+      );
+
+      const matchesSearch =
+        !cleanSearch || searchableText.includes(cleanSearch);
+
+      const matchesStatus = !statusFilter || branchStatus === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [branchList, searchTerm, statusFilter]);
+
+  const hasActiveFilters = searchTerm.trim() !== "" || statusFilter;
 
   /*
     If another page redirects here with a success message,
@@ -80,38 +120,9 @@ export default function BranchListPage() {
     }
   }, [isSuperAdmin]);
 
-  const getBranchId = (branch) => {
-    return branch.id || branch.branchId;
-  };
-
-  const getBranchStatus = (branch) => {
-    if (branch.status) return branch.status;
-
-    if (typeof branch.active === "boolean") {
-      return branch.active ? "ACTIVE" : "INACTIVE";
-    }
-
-    if (typeof branch.isActive === "boolean") {
-      return branch.isActive ? "ACTIVE" : "INACTIVE";
-    }
-
-    return "UNKNOWN";
-  };
-
-  const isBranchActive = (branch) => {
-    return getBranchStatus(branch) === "ACTIVE";
-  };
-
-  const formatDate = (dateValue) => {
-    if (!dateValue) return "N/A";
-
-    const date = new Date(dateValue);
-
-    if (Number.isNaN(date.getTime())) {
-      return "N/A";
-    }
-
-    return date.toLocaleDateString();
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("");
   };
 
   /*
@@ -183,12 +194,70 @@ export default function BranchListPage() {
           </div>
 
           <Link
-            to="/staff/branches/create"
+            to={`${branchBasePath}/create`}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
           >
             <RiAddLine size={18} />
             Create Branch
           </Link>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
+          <div className="grid gap-3 lg:grid-cols-[1fr_220px_auto]">
+            <div className="relative">
+              <RiSearchLine
+                size={18}
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search branch name, email, contact number, address, or ID..."
+                className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 pl-11 pr-4 text-sm text-gray-800 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+              />
+            </div>
+
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+            >
+              <option value="">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-200 disabled:hover:bg-white disabled:hover:text-gray-700"
+            >
+              Clear filters
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              Showing{" "}
+              <span className="font-bold text-gray-800">
+                {filteredBranchList.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-bold text-gray-800">
+                {branchList.length}
+              </span>{" "}
+              branches
+            </p>
+
+            {hasActiveFilters && (
+              <p className="text-xs font-medium text-orange-600">
+                Filters are applied to the loaded branch list.
+              </p>
+            )}
+          </div>
         </div>
 
         {loadError && (
@@ -204,6 +273,10 @@ export default function BranchListPage() {
           <div className="p-8 text-sm text-gray-500">Loading branches...</div>
         ) : branchList.length === 0 ? (
           <div className="p-8 text-sm text-gray-500">No branches found.</div>
+        ) : filteredBranchList.length === 0 ? (
+          <div className="p-8 text-sm text-gray-500">
+            No matching branches found. Try changing the search text or filters.
+          </div>
         ) : (
           <div className="overflow-x-auto rounded-xl">
             <table className="w-full min-w-[1180px] text-left">
@@ -236,7 +309,7 @@ export default function BranchListPage() {
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {branchList.map((branch) => {
+                {filteredBranchList.map((branch) => {
                   const branchId = getBranchId(branch);
                   const active = isBranchActive(branch);
                   const isActionLoading = actionLoadingId === branchId;
@@ -293,14 +366,14 @@ export default function BranchListPage() {
                       <td className="px-5 py-4 pr-6 align-middle text-right">
                         <div className="inline-flex items-center justify-end gap-2 whitespace-nowrap">
                           <Link
-                            to={`/staff/branches/${branchId}`}
+                            to={`${branchBasePath}/${branchId}`}
                             className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                           >
                             View
                           </Link>
 
                           <Link
-                            to={`/staff/branches/${branchId}/edit`}
+                            to={`${branchBasePath}/${branchId}/edit`}
                             className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                           >
                             Edit
@@ -334,4 +407,51 @@ export default function BranchListPage() {
       </div>
     </div>
   );
+}
+
+function normalizeRole(role) {
+  return String(role || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .toUpperCase();
+}
+
+function normalizeForSearch(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getBranchId(branch) {
+  return branch?.id || branch?.branchId;
+}
+
+function getBranchStatus(branch) {
+  if (branch?.status) {
+    return String(branch.status).trim().toUpperCase();
+  }
+
+  if (typeof branch?.active === "boolean") {
+    return branch.active ? "ACTIVE" : "INACTIVE";
+  }
+
+  if (typeof branch?.isActive === "boolean") {
+    return branch.isActive ? "ACTIVE" : "INACTIVE";
+  }
+
+  return "UNKNOWN";
+}
+
+function isBranchActive(branch) {
+  return getBranchStatus(branch) === "ACTIVE";
+}
+
+function formatDate(dateValue) {
+  if (!dateValue) return "N/A";
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "N/A";
+  }
+
+  return date.toLocaleDateString();
 }
