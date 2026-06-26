@@ -507,7 +507,7 @@ function BranchStatusConfirmModal({ branch, isLoading, onClose, onConfirm }) {
 
         <div className="mt-5 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm leading-6 text-orange-800">
           {active
-            ? "Deactivating this branch will mark it as inactive. Staff and branch-related operations may be affected depending on backend rules."
+            ? "Deactivating this branch will mark it as inactive. Staff and branch-related operations may be affected."
             : "Activating this branch will make it available again for branch-level operations."}
         </div>
 
