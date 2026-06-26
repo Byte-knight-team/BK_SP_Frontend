@@ -6,6 +6,8 @@ import {
   RiSearchLine,
   RiErrorWarningLine,
   RiCloseLine,
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
 } from "@remixicon/react";
 
 import {
@@ -16,6 +18,8 @@ import {
 
 import { useAuth } from "../../context/AuthContext";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 export default function BranchListPage() {
   const location = useLocation();
@@ -32,6 +36,9 @@ export default function BranchListPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [branchToConfirm, setBranchToConfirm] = useState(null);
 
@@ -67,7 +74,49 @@ export default function BranchListPage() {
     });
   }, [branchList, searchTerm, statusFilter]);
 
+  const totalPages =
+    filteredBranchList.length === 0
+      ? 0
+      : Math.ceil(filteredBranchList.length / pageSize);
+
+  const safeCurrentPage =
+    totalPages === 0 ? 1 : Math.min(currentPage, totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+
+  const paginatedBranchList = useMemo(() => {
+    return filteredBranchList.slice(startIndex, endIndex);
+  }, [filteredBranchList, startIndex, endIndex]);
+
+  const firstVisibleBranchNumber =
+    filteredBranchList.length === 0 ? 0 : startIndex + 1;
+
+  const lastVisibleBranchNumber = Math.min(
+    endIndex,
+    filteredBranchList.length
+  );
+
+  const visiblePageNumbers = getVisiblePageNumbers(
+    safeCurrentPage,
+    totalPages
+  );
+
   const hasActiveFilters = searchTerm.trim() !== "" || statusFilter;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, pageSize]);
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+
+    if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
 
   /*
     If another page redirects here with a success message,
@@ -136,6 +185,14 @@ export default function BranchListPage() {
   const closeStatusConfirmModal = () => {
     if (actionLoadingId) return;
     setBranchToConfirm(null);
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(page - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((page) => Math.min(page + 1, totalPages));
   };
 
   /*
@@ -255,7 +312,7 @@ export default function BranchListPage() {
 
           <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
             <p>
-              Showing{" "}
+              Matching{" "}
               <span className="font-bold text-gray-800">
                 {filteredBranchList.length}
               </span>{" "}
@@ -323,7 +380,7 @@ export default function BranchListPage() {
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {filteredBranchList.map((branch) => {
+                {paginatedBranchList.map((branch) => {
                   const branchId = getBranchId(branch);
                   const active = isBranchActive(branch);
                   const isActionLoading = actionLoadingId === branchId;
@@ -416,6 +473,88 @@ export default function BranchListPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {!loading && filteredBranchList.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <p className="text-sm text-gray-500">
+                Page{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalPages === 0 ? 0 : safeCurrentPage}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalPages}
+                </span>{" "}
+                • Showing{" "}
+                <span className="font-semibold text-gray-800">
+                  {firstVisibleBranchNumber}
+                </span>
+                -
+                <span className="font-semibold text-gray-800">
+                  {lastVisibleBranchNumber}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-800">
+                  {filteredBranchList.length}
+                </span>{" "}
+                branches
+              </p>
+
+              <label className="flex items-center gap-2 text-sm text-gray-500">
+                Rows:
+                <select
+                  value={pageSize}
+                  onChange={(event) => setPageSize(Number(event.target.value))}
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={goToPreviousPage}
+                disabled={safeCurrentPage <= 1}
+                className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <RiArrowLeftSLine size={18} />
+                Previous
+              </button>
+
+              {visiblePageNumbers.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`h-9 min-w-9 rounded-xl px-3 text-sm font-bold transition-colors ${
+                    pageNumber === safeCurrentPage
+                      ? "bg-orange-500 text-white shadow-sm shadow-orange-100"
+                      : "border border-gray-200 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={goToNextPage}
+                disabled={safeCurrentPage >= totalPages}
+                className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+                <RiArrowRightSLine size={18} />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -584,4 +723,26 @@ function formatDate(dateValue) {
   }
 
   return date.toLocaleDateString();
+}
+
+function getVisiblePageNumbers(currentPage, totalPages) {
+  if (totalPages <= 0) {
+    return [];
+  }
+
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  let startPage = Math.max(currentPage - 2, 1);
+  let endPage = Math.min(startPage + 4, totalPages);
+
+  if (endPage - startPage < 4) {
+    startPage = Math.max(endPage - 4, 1);
+  }
+
+  return Array.from(
+    { length: endPage - startPage + 1 },
+    (_, index) => startPage + index
+  );
 }
