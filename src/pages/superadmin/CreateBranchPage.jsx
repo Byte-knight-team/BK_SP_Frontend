@@ -13,25 +13,16 @@ import { createBranchAPI } from "../../apis/staff/branches";
 export default function CreateBranchPage() {
     /*
         useNavigate is used to redirect the user after successful branch creation.
-        After creating a branch, we will send the user back to /staff/branches.
     */
     const navigate = useNavigate();
 
     /*
         useOutletContext comes from MainLayout.
-        It lets this page update the shared page header.
     */
     const { setHeaderInfo } = useOutletContext();
 
     /*
         formData stores the values typed into the form.
-        These field names must match the backend request body:
-        {
-            name,
-            address,
-            contactNumber,
-            email
-        }
     */
     const [formData, setFormData] = useState({
         name: "",
@@ -48,10 +39,7 @@ export default function CreateBranchPage() {
     const [error, setError] = useState("");
 
     /*
-    Read logged-in user from AuthContext.
-
-    AuthContext now gets user data from the decoded JWT token.
-    We no longer read authUser from localStorage.
+    Read logged in user from AuthContext
     */
     const { user } = useAuth();
 
@@ -60,7 +48,6 @@ export default function CreateBranchPage() {
 
     /*
         Set the header details for this page.
-        This appears in the shared top header area.
     */
     useEffect(() => {
         setHeaderInfo({
@@ -73,24 +60,7 @@ export default function CreateBranchPage() {
     }, [setHeaderInfo]);
 
     /*
-        This function updates formData when the user types in an input.
-
-        Example:
-        If user types inside the name field,
-        this updates formData.name.
-    */
-        /*
         Update formData when user types or selects something.
-    
-        Example:
-        If input has name="email",
-        this function updates formData.email.
-    
-        Special handling:
-        - phone field allows only digits
-        - phone field is limited to 10 digits
-        - role change auto-fills salary
-        - SUPER_ADMIN role clears branchId because SUPER_ADMIN is global
     */
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -98,15 +68,6 @@ export default function CreateBranchPage() {
         setFormData((previous) => {
             /*
                 Phone number cleanup.
-    
-                value.replace(/\D/g, "")
-                - removes anything that is not a digit
-    
-                .slice(0, 10)
-                - limits phone number to maximum 10 digits
-    
-                This keeps the input simple and avoids users typing letters,
-                spaces, or more than 10 digits.
             */
             const cleanedValue =
                 name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value;
@@ -121,9 +82,6 @@ export default function CreateBranchPage() {
     
             /*
                 SUPER_ADMIN does not belong to a branch.
-    
-                So if role is changed to SUPER_ADMIN,
-                branchId must be cleared.
             */
             if (name === "roleName" && cleanedValue === "SUPER_ADMIN") {
                 updatedData.branchId = "";
@@ -131,12 +89,6 @@ export default function CreateBranchPage() {
     
             /*
                 When role changes, auto-fill salary from the selected role's base salary.
-    
-                Example:
-                If RECEPTIONIST baseSalary is 50000,
-                selecting RECEPTIONIST auto-fills salary as 50000.
-    
-                User can still manually edit the salary after this.
             */
             if (name === "roleName") {
                 updatedData.salary =
@@ -152,8 +104,6 @@ export default function CreateBranchPage() {
     /*
         Basic frontend validation before calling backend.
 
-        Backend should also validate,
-        but frontend validation gives faster feedback to the user.
     */
     const validateForm = () => {
         if (!formData.name.trim()) {
@@ -178,8 +128,6 @@ export default function CreateBranchPage() {
     /*
         Submit the create branch form.
 
-        This calls:
-        POST /api/admin/branches
     */
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -197,7 +145,6 @@ export default function CreateBranchPage() {
 
         /*
             Trim text values before sending to backend.
-            This avoids accidentally saving spaces.
         */
         const payload = {
             name: formData.name.trim(),
@@ -217,7 +164,6 @@ export default function CreateBranchPage() {
 
         /*
             After successful creation, go back to the branch list page.
-            The success message will be shown in BranchListPage.
         */
         navigate("/staff/branches", {
             state: {
@@ -227,9 +173,7 @@ export default function CreateBranchPage() {
     };
 
     /*
-        Frontend protection.
-        Backend also protects this endpoint,
-        but this gives a cleaner no-access message.
+        Frontend protection for super admin
     */
     if (!isSuperAdmin) {
         return (

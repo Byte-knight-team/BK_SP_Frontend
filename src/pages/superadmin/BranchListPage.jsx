@@ -17,34 +17,17 @@ import { useAuth } from "../../context/AuthContext";
 export default function BranchListPage() {
     /*
         useLocation is used to read messages sent from another page.
-
-        Example:
-        After creating a branch, CreateBranchPage can redirect back to this page
-        and send a success message like:
-        navigate("/staff/branches", {
-            state: { successMessage: "Branch created successfully." }
-        });
     */
     const location = useLocation();
 
     /*
         useOutletContext is coming from MainLayout.
 
-        In your layout system, child pages can update the top header by calling:
-        setHeaderInfo({
-            title,
-            description,
-            Icon
-        });
     */
     const { setHeaderInfo } = useOutletContext();
 
     /*
         branchList stores the branches loaded from the backend.
-        loading controls the "Loading branches..." message.
-        actionLoadingId stores the branch ID currently being activated/deactivated.
-        error stores error messages.
-        successMessage stores success messages.
     */
     const [branchList, setBranchList] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -54,9 +37,7 @@ export default function BranchListPage() {
 
     /*
         Read logged-in user from AuthContext.
-
         AuthContext now gets user data from the decoded JWT token.
-        We no longer read authUser from localStorage.
     */
     const { user } = useAuth();
 
@@ -64,10 +45,6 @@ export default function BranchListPage() {
 
     /*
         Branch Management should only be available to SUPER_ADMIN.
-
-        Backend already protects this,
-        but this frontend check helps show a clean "No Access" message
-        instead of letting ADMIN users see a broken page.
     */
     const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
 
@@ -83,9 +60,6 @@ export default function BranchListPage() {
 
     /*
         Set the header information for this page.
-
-        This appears in the shared layout header area.
-        When this page unmounts, we clear the header info.
     */
     useEffect(() => {
         setHeaderInfo({
@@ -99,9 +73,6 @@ export default function BranchListPage() {
 
     /*
         Load all branches from the backend.
-
-        This calls:
-        GET /api/admin/branches
     */
     const loadBranches = async () => {
         setLoading(true);
@@ -115,9 +86,6 @@ export default function BranchListPage() {
         } else {
             /*
                 Make sure the branch list is always an array.
-
-                If backend returns something unexpected,
-                the page will not crash.
             */
             setBranchList(Array.isArray(data) ? data : []);
         }
@@ -127,9 +95,6 @@ export default function BranchListPage() {
 
     /*
         Load branches when the page opens.
-
-        Only SUPER_ADMIN should call the branch API.
-        If ADMIN opens this page, we stop loading and show No Access.
     */
     useEffect(() => {
         if (isSuperAdmin) {
@@ -141,9 +106,6 @@ export default function BranchListPage() {
 
     /*
         Get branch ID safely.
-
-        Backend may return id or branchId depending on response DTO.
-        This supports both names.
     */
     const getBranchId = (branch) => {
         return branch.id || branch.branchId;
@@ -151,13 +113,6 @@ export default function BranchListPage() {
 
     /*
         Get branch status safely.
-
-        Main expected backend value:
-        status: "ACTIVE" or "INACTIVE"
-
-        Fallback values:
-        active: true / false
-        isActive: true / false
     */
     const getBranchStatus = (branch) => {
         if (branch.status) return branch.status;
@@ -175,8 +130,6 @@ export default function BranchListPage() {
 
     /*
         Convert branch status into a true/false value.
-
-        This makes button and badge rendering easier.
     */
     const isBranchActive = (branch) => {
         return getBranchStatus(branch) === "ACTIVE";
@@ -184,7 +137,6 @@ export default function BranchListPage() {
 
     /*
         Format date for display.
-
         If createdAt is missing or invalid,
         show N/A instead of crashing.
     */
@@ -202,12 +154,6 @@ export default function BranchListPage() {
 
     /*
         Activate or deactivate a branch.
-
-        If branch is active:
-        PATCH /api/admin/branches/{id}/deactivate
-
-        If branch is inactive:
-        PATCH /api/admin/branches/{id}/activate
     */
     const handleToggleStatus = async (branch) => {
         const branchId = getBranchId(branch);
@@ -245,9 +191,6 @@ export default function BranchListPage() {
 
     /*
         Frontend access protection.
-
-        ADMIN users should not manage branches.
-        Backend protects it too, but this gives a cleaner UI.
     */
     if (!isSuperAdmin) {
         return (
@@ -273,15 +216,6 @@ export default function BranchListPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        {/* Reload branch list manually */}
-                        {/* <button
-                            type="button"
-                            onClick={loadBranches}
-                            className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                        >
-                            <RiRefreshLine size={18} />
-                            Refresh
-                        </button> */}
 
                         {/* Go to create branch page */}
                         <Link

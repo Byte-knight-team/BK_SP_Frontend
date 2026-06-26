@@ -46,7 +46,7 @@ export default function CreateStaffPage() {
 
     /*
         useOutletContext comes from MainLayout.
-        It lets this page update the shared header section.
+
     */
     const { setHeaderInfo } = useOutletContext();
 
@@ -61,19 +61,12 @@ export default function CreateStaffPage() {
 
     /*
         Check logged-in user's role.
-
-        SUPER_ADMIN can select branches manually.
-        ADMIN uses their own branch automatically.
     */
     const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
     const isAdmin = loggedInRole === "ADMIN";
 
     /*
         formData stores all form input values.
-
-        branchId:
-        - SUPER_ADMIN starts empty and must select a branch for non-SUPER_ADMIN staff.
-        - ADMIN automatically uses their own branch.
     */
     const [formData, setFormData] = useState({
         fullName: "",
@@ -83,16 +76,11 @@ export default function CreateStaffPage() {
         roleName: isSuperAdmin ? "RECEPTIONIST" : "MANAGER",
         branchId: isSuperAdmin ? "" : loggedInBranchId,
 
-        // Actual salary saved for this staff member.
-        // This will be auto-filled from selected role baseSalary.
         salary: "",
     });
 
     /*
         loading controls the Create Staff button.
-        error stores validation or backend errors.
-        branches stores branch list loaded from backend.
-        roles stores role list loaded from backend.
     */
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -111,13 +99,6 @@ export default function CreateStaffPage() {
 
     /*
         Check whether a branch is active.
-
-        Main backend response:
-        status: "ACTIVE" or "INACTIVE"
-
-        Fallback support:
-        active: true / false
-        isActive: true / false
     */
     const isActiveBranch = (branch) => {
         if (branch.status) {
@@ -137,9 +118,6 @@ export default function CreateStaffPage() {
 
     /*
         Only ACTIVE branches should appear in the Create Staff dropdown.
-
-        Branch Management page can show all branches,
-        but staff creation should not allow inactive branches.
     */
     const activeBranches = branches.filter(isActiveBranch);
 
@@ -171,18 +149,35 @@ export default function CreateStaffPage() {
     }, [isSuperAdmin]);
 
     /*
-        Load roles from backend so staff role dropdown is database-driven.
-    */
+    Load roles from backend so staff role dropdown is database-driven.
+*/
     useEffect(() => {
         const loadRoles = async () => {
+            /*
+                Show loading state while roles are being fetched.
+            */
             setRolesLoading(true);
 
             try {
+                /*
+                    Get role list from backend.
+                */
                 const data = await getRolesAPI();
+
+                /*
+                    Ensure the response is an array.
+                    If backend returns something unexpected, use an empty array.
+                */
                 const roleList = Array.isArray(data) ? data : [];
 
+                /*
+                    Store all roles in state.
+                */
                 setRoles(roleList);
 
+                /*
+                    Keep only roles that the current user is allowed to assign.
+                */
                 const filteredRoles = roleList.filter((role) =>
                     canAssignRole(role.name, isSuperAdmin, isAdmin)
                 );
@@ -194,6 +189,9 @@ export default function CreateStaffPage() {
 
                 const defaultRole = roleList.find((role) => role.name === defaultRoleName);
 
+                /*
+                    Update form with default role and salary , if role has no baseSalary, keep salary input empty.
+                */
                 setFormData((previous) => ({
                     ...previous,
                     roleName: defaultRoleName,
@@ -203,8 +201,14 @@ export default function CreateStaffPage() {
                             : String(defaultRole.baseSalary),
                 }));
             } catch (error) {
+                /*
+                    Log role loading error for debugging.
+                */
                 console.error("Failed to load role data:", error);
             } finally {
+                /*
+                    Stop loading state whether request succeeds or fails.
+                */
                 setRolesLoading(false);
             }
         };
@@ -248,9 +252,6 @@ export default function CreateStaffPage() {
 
     /*
         Gets the branch name for the success/failure message.
-
-        This is important because if email fails, the admin must clearly know
-        which staff account the temporary password belongs to.
     */
     const getCreatedStaffBranchName = (payload, data) => {
         if (payload.roleName === "SUPER_ADMIN") {
@@ -275,10 +276,6 @@ export default function CreateStaffPage() {
 
     /*
         Update formData when user types or selects something.
-
-        Example:
-        If input has name="email",
-        this function updates formData.email.
     */
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -291,16 +288,13 @@ export default function CreateStaffPage() {
 
             /*
                 SUPER_ADMIN does not belong to a branch.
-
-                So if role is changed to SUPER_ADMIN,
-                clear branchId.
             */
             if (name === "roleName" && value === "SUPER_ADMIN") {
                 updatedData.branchId = "";
             }
 
             /*
-                When role changes, auto-fill salary from that role's base salary.
+                When role changes, auto fill salary from that role's base salary.
                 User can still manually change the salary after this.
             */
             if (name === "roleName") {
