@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
-  RiErrorWarningLine,
   RiGiftLine,
   RiPercentLine,
   RiRefreshLine,
@@ -18,6 +17,7 @@ import {
 } from "../../apis/staff/systemConfig";
 
 import { useAuth } from "../../context/AuthContext";
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 /**
  * Default form values for global system configuration.
@@ -62,10 +62,30 @@ function toNumber(value) {
   return numberValue;
 }
 
+/**
+ * Build form state from backend response.
+ */
+function mapConfigToForm(data) {
+  return {
+    taxEnabled: Boolean(data?.taxEnabled),
+    taxPercentage: data?.taxPercentage ?? 0,
+
+    serviceChargeEnabled: Boolean(data?.serviceChargeEnabled),
+    serviceChargePercentage: data?.serviceChargePercentage ?? 0,
+
+    loyaltyEnabled: Boolean(data?.loyaltyEnabled),
+    pointsPerAmount: data?.pointsPerAmount ?? 0,
+    amountPerPoint: data?.amountPerPoint ?? 0,
+    minPointsToRedeem: data?.minPointsToRedeem ?? 0,
+    valuePerPoint: data?.valuePerPoint ?? 0,
+
+    // Preserve hidden backend field.
+    orderCancelWindowMinutes: data?.orderCancelWindowMinutes ?? 10,
+  };
+}
+
 export default function SystemConfigPage() {
   const outletContext = useOutletContext();
-
-  // MainLayout provides setHeaderInfo through Outlet context.
   const setHeaderInfo = outletContext?.setHeaderInfo;
 
   const [formData, setFormData] = useState(DEFAULT_FORM);
@@ -73,9 +93,6 @@ export default function SystemConfigPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
 
   /*
     Read logged-in user from AuthContext.
@@ -97,9 +114,16 @@ export default function SystemConfigPage() {
     if (setHeaderInfo) {
       setHeaderInfo({
         title: "System Configuration",
-        subtitle: "Manage global tax, service charge, and loyalty rules.",
+        description: "Manage global tax, service charge, and loyalty rules.",
+        Icon: RiSettings3Line,
       });
     }
+
+    return () => {
+      if (setHeaderInfo) {
+        setHeaderInfo(null);
+      }
+    };
   }, [setHeaderInfo]);
 
   /**
@@ -109,31 +133,15 @@ export default function SystemConfigPage() {
     async function loadGlobalConfig() {
       try {
         setLoading(true);
-        setErrorMessage("");
-        setSuccessMessage("");
 
         const data = await getGlobalConfigAPI();
 
-        setFormData({
-          taxEnabled: Boolean(data?.taxEnabled),
-          taxPercentage: data?.taxPercentage ?? 0,
-
-          serviceChargeEnabled: Boolean(data?.serviceChargeEnabled),
-          serviceChargePercentage: data?.serviceChargePercentage ?? 0,
-
-          loyaltyEnabled: Boolean(data?.loyaltyEnabled),
-          pointsPerAmount: data?.pointsPerAmount ?? 0,
-          amountPerPoint: data?.amountPerPoint ?? 0,
-          minPointsToRedeem: data?.minPointsToRedeem ?? 0,
-          valuePerPoint: data?.valuePerPoint ?? 0,
-
-          // Preserve hidden backend field.
-          orderCancelWindowMinutes: data?.orderCancelWindowMinutes ?? 10,
-        });
-
+        setFormData(mapConfigToForm(data));
         setLastUpdatedAt(data?.updatedAt || null);
       } catch (error) {
-        setErrorMessage(error.message || "Failed to load global configuration.");
+        showErrorToast(
+          error.message || "Failed to load global configuration."
+        );
       } finally {
         setLoading(false);
       }
@@ -173,15 +181,58 @@ export default function SystemConfigPage() {
   }
 
   /**
+   * Validate configuration before saving.
+   */
+  function validateForm() {
+    const taxPercentage = toNumber(formData.taxPercentage);
+    const serviceChargePercentage = toNumber(formData.serviceChargePercentage);
+    const pointsPerAmount = toNumber(formData.pointsPerAmount);
+    const amountPerPoint = toNumber(formData.amountPerPoint);
+    const minPointsToRedeem = toNumber(formData.minPointsToRedeem);
+    const valuePerPoint = toNumber(formData.valuePerPoint);
+
+    if (taxPercentage < 0) {
+      return "Tax percentage cannot be negative.";
+    }
+
+    if (serviceChargePercentage < 0) {
+      return "Service charge percentage cannot be negative.";
+    }
+
+    if (pointsPerAmount < 0) {
+      return "Points per amount cannot be negative.";
+    }
+
+    if (amountPerPoint < 0) {
+      return "Amount per point cannot be negative.";
+    }
+
+    if (minPointsToRedeem < 0) {
+      return "Minimum points to redeem cannot be negative.";
+    }
+
+    if (valuePerPoint < 0) {
+      return "Value per point cannot be negative.";
+    }
+
+    return "";
+  }
+
+  /**
    * Save global configuration.
    */
   async function handleSubmit(event) {
     event.preventDefault();
 
+    const validationError = validateForm();
+
+    if (validationError) {
+      showErrorToast(validationError);
+      return;
+    }
+
     try {
       setSaving(true);
-      setErrorMessage("");
-      setSuccessMessage("");
 
       const payload = {
         taxEnabled: Boolean(formData.taxEnabled),
@@ -202,51 +253,17 @@ export default function SystemConfigPage() {
 
       const updatedData = await updateGlobalConfigAPI(payload);
 
-      setSuccessMessage("Global system configuration updated successfully.");
+      showSuccessToast("Global system configuration updated successfully.");
 
       if (updatedData?.updatedAt) {
         setLastUpdatedAt(updatedData.updatedAt);
       }
     } catch (error) {
-      setErrorMessage(error.message || "Failed to update global configuration.");
+      showErrorToast(
+        error.message || "Failed to update global configuration."
+      );
     } finally {
       setSaving(false);
-    }
-  }
-
-  /**
-   * Reload global config from backend.
-   */
-  async function handleReload() {
-    try {
-      setLoading(true);
-      setErrorMessage("");
-      setSuccessMessage("");
-
-      const data = await getGlobalConfigAPI();
-
-      setFormData({
-        taxEnabled: Boolean(data?.taxEnabled),
-        taxPercentage: data?.taxPercentage ?? 0,
-
-        serviceChargeEnabled: Boolean(data?.serviceChargeEnabled),
-        serviceChargePercentage: data?.serviceChargePercentage ?? 0,
-
-        loyaltyEnabled: Boolean(data?.loyaltyEnabled),
-        pointsPerAmount: data?.pointsPerAmount ?? 0,
-        amountPerPoint: data?.amountPerPoint ?? 0,
-        minPointsToRedeem: data?.minPointsToRedeem ?? 0,
-        valuePerPoint: data?.valuePerPoint ?? 0,
-
-        // Preserve hidden backend field.
-        orderCancelWindowMinutes: data?.orderCancelWindowMinutes ?? 10,
-      });
-
-      setLastUpdatedAt(data?.updatedAt || null);
-    } catch (error) {
-      setErrorMessage(error.message || "Failed to reload global configuration.");
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -292,56 +309,6 @@ export default function SystemConfigPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page summary card */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex items-start gap-4">
-            <div className="rounded-full bg-blue-50 p-3 text-blue-600">
-              <RiSettings3Line size={26} />
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Global System Configuration
-              </h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                Configure system-wide tax, service charge, and loyalty rules.
-              </p>
-
-              {lastUpdatedAt && (
-                <p className="mt-2 text-xs text-gray-400">
-                  Last updated: {lastUpdatedAt}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* <button
-            type="button"
-            onClick={handleReload}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-          >
-            <RiRefreshLine size={18} />
-            Reload
-          </button> */}
-        </div>
-      </div>
-
-      {/* Success message */}
-      {successMessage && (
-        <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-          {successMessage}
-        </div>
-      )}
-
-      {/* Error message */}
-      {errorMessage && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <RiErrorWarningLine size={20} className="mt-0.5 shrink-0" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Tax and service charge section */}
@@ -398,7 +365,7 @@ export default function SystemConfigPage() {
                   min="0"
                   step="0.01"
                   disabled={!formData.taxEnabled}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
                 />
               </div>
             </div>
@@ -438,7 +405,7 @@ export default function SystemConfigPage() {
                   min="0"
                   step="0.01"
                   disabled={!formData.serviceChargeEnabled}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
                 />
               </div>
             </div>
@@ -448,7 +415,7 @@ export default function SystemConfigPage() {
         {/* Loyalty section */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-6 flex items-center gap-3">
-            <div className="rounded-full bg-purple-50 p-2 text-purple-600">
+            <div className="rounded-full bg-orange-50 p-2 text-orange-600">
               <RiGiftLine size={22} />
             </div>
 
@@ -499,7 +466,7 @@ export default function SystemConfigPage() {
                 min="0"
                 step="0.01"
                 disabled={!formData.loyaltyEnabled}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
               />
             </div>
 
@@ -516,7 +483,7 @@ export default function SystemConfigPage() {
                 min="0"
                 step="0.01"
                 disabled={!formData.loyaltyEnabled}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
               />
             </div>
 
@@ -533,7 +500,7 @@ export default function SystemConfigPage() {
                 min="0"
                 step="1"
                 disabled={!formData.loyaltyEnabled}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
               />
             </div>
 
@@ -550,7 +517,7 @@ export default function SystemConfigPage() {
                 min="0"
                 step="0.01"
                 disabled={!formData.loyaltyEnabled}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
               />
             </div>
           </div>
@@ -561,7 +528,7 @@ export default function SystemConfigPage() {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RiSaveLine size={18} />
             {saving ? "Saving..." : "Save Global Configuration"}
