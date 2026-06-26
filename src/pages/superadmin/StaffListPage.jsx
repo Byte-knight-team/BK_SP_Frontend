@@ -8,6 +8,7 @@ import {
   RiErrorWarningLine,
   RiFileCopyLine,
   RiSearchLine,
+  RiCloseLine,
 } from "@remixicon/react";
 
 import {
@@ -31,6 +32,7 @@ import {
   - Keeps View, Edit, Invite, Activate/Deactivate actions.
   - Uses toast notifications for action feedback.
   - Adds frontend-only search and filters using loaded staff data.
+  - Adds confirmation modal before activate/deactivate actions.
   - Keeps actions aligned horizontally.
 */
 export default function StaffListPage() {
@@ -51,6 +53,8 @@ export default function StaffListPage() {
   const [roleFilter, setRoleFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  const [staffToConfirm, setStaffToConfirm] = useState(null);
 
   const { user: authUser } = useAuth();
 
@@ -169,6 +173,16 @@ export default function StaffListPage() {
     setStatusFilter("");
   };
 
+  const openStatusConfirmModal = (staff) => {
+    setNoticeMessage("");
+    setStaffToConfirm(staff);
+  };
+
+  const closeStatusConfirmModal = () => {
+    if (actionLoadingId) return;
+    setStaffToConfirm(null);
+  };
+
   const handleToggleStatus = async (staff) => {
     const staffId = getStaffId(staff);
     const isActive = isStaffActive(staff);
@@ -198,6 +212,7 @@ export default function StaffListPage() {
     }
 
     setActionLoadingId(null);
+    setStaffToConfirm(null);
   };
 
   const handleResendInvite = async (staff) => {
@@ -471,11 +486,10 @@ Please manually share this temporary password with the staff member.`
 
                       <td className="px-5 py-4 align-middle">
                         <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                            isActive
-                              ? "bg-green-50 text-green-700"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isActive
+                            ? "bg-green-50 text-green-700"
+                            : "bg-gray-100 text-gray-500"
+                            }`}
                         >
                           {isActive ? "Active" : "Inactive"}
                         </span>
@@ -511,12 +525,11 @@ Please manually share this temporary password with the staff member.`
                             <button
                               type="button"
                               disabled={isActionLoading}
-                              onClick={() => handleToggleStatus(staff)}
-                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                                isActive
-                                  ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                  : "bg-green-50 text-green-700 hover:bg-green-100"
-                              }`}
+                              onClick={() => openStatusConfirmModal(staff)}
+                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isActive
+                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                : "bg-green-50 text-green-700 hover:bg-green-100"
+                                }`}
                             >
                               {isActionLoading
                                 ? "Updating..."
@@ -538,6 +551,111 @@ Please manually share this temporary password with the staff member.`
             </table>
           </div>
         )}
+      </div>
+
+      {staffToConfirm && (
+        <StaffStatusConfirmModal
+          staff={staffToConfirm}
+          isLoading={actionLoadingId === getStaffId(staffToConfirm)}
+          onClose={closeStatusConfirmModal}
+          onConfirm={() => handleToggleStatus(staffToConfirm)}
+        />
+      )}
+    </div>
+  );
+}
+
+function StaffStatusConfirmModal({ staff, isLoading, onClose, onConfirm }) {
+  const staffName = staff.fullName || staff.name || "this staff member";
+  const staffEmail = staff.email || "No email";
+  const staffRole = getStaffRole(staff);
+  const staffBranch = getStaffBranchName(staff);
+  const active = isStaffActive(staff);
+
+  const actionLabel = active ? "Deactivate" : "Activate";
+  const actionText = active ? "deactivate" : "activate";
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/40 px-4">
+      <div className="w-full max-w-lg rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${active
+                ? "bg-red-50 text-red-600"
+                : "bg-green-50 text-green-700"
+                }`}
+            >
+              <RiErrorWarningLine size={22} />
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-gray-900">
+                {actionLabel} Staff Account?
+              </h3>
+
+              <p className="mt-1 text-sm leading-6 text-gray-500">
+                Please confirm before you {actionText} this staff account.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RiCloseLine size={18} />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+          <div className="text-sm font-bold text-gray-900">{staffName}</div>
+
+          <div className="mt-1 text-xs text-gray-500">{staffEmail}</div>
+
+          <div className="mt-3 grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
+            <div>
+              <span className="font-semibold text-gray-800">Role:</span>{" "}
+              {staffRole}
+            </div>
+
+            <div>
+              <span className="font-semibold text-gray-800">Branch:</span>{" "}
+              {staffBranch}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm leading-6 text-orange-800">
+          {active
+            ? "Deactivating this account will prevent the staff member from using their account until it is activated again."
+            : "Activating this account will allow the staff member to use their account again."}
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
+            className="inline-flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isLoading}
+            className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${active
+                ? "bg-red-500 shadow-red-100 hover:bg-red-600"
+                : "bg-green-600 shadow-green-100 hover:bg-green-700"
+              }`}
+          >
+            {isLoading ? "Updating..." : `Yes, ${actionLabel}`}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -626,19 +744,17 @@ function StaffNoticeCard({ message, onClose }) {
 
   return (
     <div
-      className={`mt-5 rounded-2xl border px-4 py-4 ${
-        isWarning
-          ? "border-amber-100 bg-amber-50 text-amber-800"
-          : "border-emerald-100 bg-emerald-50 text-emerald-800"
-      }`}
+      className={`mt-5 rounded-2xl border px-4 py-4 ${isWarning
+        ? "border-amber-100 bg-amber-50 text-amber-800"
+        : "border-emerald-100 bg-emerald-50 text-emerald-800"
+        }`}
     >
       <div className="flex items-start gap-3">
         <div
-          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-            isWarning
-              ? "bg-amber-100 text-amber-700"
-              : "bg-emerald-100 text-emerald-700"
-          }`}
+          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isWarning
+            ? "bg-amber-100 text-amber-700"
+            : "bg-emerald-100 text-emerald-700"
+            }`}
         >
           {isWarning ? (
             <RiErrorWarningLine size={19} />
@@ -674,11 +790,10 @@ function StaffNoticeCard({ message, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className={`rounded-xl px-3 py-2 text-xs font-bold ${
-                  isWarning
-                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                    : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                }`}
+                className={`rounded-xl px-3 py-2 text-xs font-bold ${isWarning
+                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                  : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                  }`}
               >
                 Dismiss
               </button>
