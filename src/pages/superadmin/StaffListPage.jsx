@@ -38,6 +38,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50];
   - Adds frontend-only search and filters using loaded staff data.
   - Adds frontend-only pagination after search/filter.
   - Adds confirmation modal before activate/deactivate actions.
+  - Uses visual loading, empty, and no-match table states.
   - Keeps actions aligned horizontally.
 */
 export default function StaffListPage() {
@@ -460,15 +461,27 @@ Please manually share this temporary password with the staff member.`
 
       <div className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
         {loading ? (
-          <div className="p-8 text-sm text-gray-500">Loading staff...</div>
+          <StaffTableState
+            Icon={RiTeamLine}
+            title="Loading staff"
+            description="Please wait while staff accounts are loaded."
+            iconClassName="bg-gray-100 text-gray-600"
+            pulse
+          />
         ) : staffList.length === 0 ? (
-          <div className="p-8 text-sm text-gray-500">
-            No staff members found.
-          </div>
+          <StaffTableState
+            Icon={RiTeamLine}
+            title="No staff members found"
+            description="Create your first staff account to start managing internal users."
+            iconClassName="bg-gray-100 text-gray-600"
+          />
         ) : filteredStaffList.length === 0 ? (
-          <div className="p-8 text-sm text-gray-500">
-            No matching staff found. Try changing the search text or filters.
-          </div>
+          <StaffTableState
+            Icon={RiSearchLine}
+            title="No matching staff found"
+            description="Try changing the search text or filters to find the staff member you need."
+            iconClassName="bg-orange-50 text-orange-600"
+          />
         ) : (
           <div className="overflow-x-auto rounded-xl">
             <table className="w-full min-w-[1220px] text-left">
@@ -544,11 +557,10 @@ Please manually share this temporary password with the staff member.`
 
                       <td className="px-5 py-4 align-middle">
                         <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                            isActive
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isActive
                               ? "bg-green-50 text-green-700"
                               : "bg-gray-100 text-gray-500"
-                          }`}
+                            }`}
                         >
                           {isActive ? "Active" : "Inactive"}
                         </span>
@@ -585,11 +597,10 @@ Please manually share this temporary password with the staff member.`
                               type="button"
                               disabled={isActionLoading}
                               onClick={() => openStatusConfirmModal(staff)}
-                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                                isActive
+                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isActive
                                   ? "bg-red-50 text-red-600 hover:bg-red-100"
                                   : "bg-green-50 text-green-700 hover:bg-green-100"
-                              }`}
+                                }`}
                             >
                               {isActionLoading
                                 ? "Updating..."
@@ -671,11 +682,10 @@ Please manually share this temporary password with the staff member.`
                   key={pageNumber}
                   type="button"
                   onClick={() => setCurrentPage(pageNumber)}
-                  className={`h-9 min-w-9 rounded-xl px-3 text-sm font-bold transition-colors ${
-                    pageNumber === safeCurrentPage
+                  className={`h-9 min-w-9 rounded-xl px-3 text-sm font-bold transition-colors ${pageNumber === safeCurrentPage
                       ? "bg-orange-500 text-white shadow-sm shadow-orange-100"
                       : "border border-gray-200 text-gray-700 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   {pageNumber}
                 </button>
@@ -707,6 +717,34 @@ Please manually share this temporary password with the staff member.`
   );
 }
 
+function StaffTableState({
+  Icon,
+  title,
+  description,
+  iconClassName,
+  pulse = false,
+}) {
+  return (
+    <div className="p-8 text-center">
+      <div
+        className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${iconClassName}`}
+      >
+        {pulse ? (
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+        ) : (
+          <Icon size={24} />
+        )}
+      </div>
+
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
 function StaffStatusConfirmModal({ staff, isLoading, onClose, onConfirm }) {
   const staffName = staff.fullName || staff.name || "this staff member";
   const staffEmail = staff.email || "No email";
@@ -723,11 +761,10 @@ function StaffStatusConfirmModal({ staff, isLoading, onClose, onConfirm }) {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
-                active
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${active
                   ? "bg-red-50 text-red-600"
                   : "bg-green-50 text-green-700"
-              }`}
+                }`}
             >
               <RiErrorWarningLine size={22} />
             </div>
@@ -791,11 +828,10 @@ function StaffStatusConfirmModal({ staff, isLoading, onClose, onConfirm }) {
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${
-              active
+            className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${active
                 ? "bg-red-500 shadow-red-100 hover:bg-red-600"
                 : "bg-green-600 shadow-green-100 hover:bg-green-700"
-            }`}
+              }`}
           >
             {isLoading ? "Updating..." : `Yes, ${actionLabel}`}
           </button>
@@ -910,19 +946,17 @@ function StaffNoticeCard({ message, onClose }) {
 
   return (
     <div
-      className={`mt-5 rounded-2xl border px-4 py-4 ${
-        isWarning
+      className={`mt-5 rounded-2xl border px-4 py-4 ${isWarning
           ? "border-amber-100 bg-amber-50 text-amber-800"
           : "border-emerald-100 bg-emerald-50 text-emerald-800"
-      }`}
+        }`}
     >
       <div className="flex items-start gap-3">
         <div
-          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-            isWarning
+          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isWarning
               ? "bg-amber-100 text-amber-700"
               : "bg-emerald-100 text-emerald-700"
-          }`}
+            }`}
         >
           {isWarning ? (
             <RiErrorWarningLine size={19} />
@@ -958,11 +992,10 @@ function StaffNoticeCard({ message, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className={`rounded-xl px-3 py-2 text-xs font-bold ${
-                  isWarning
+                className={`rounded-xl px-3 py-2 text-xs font-bold ${isWarning
                     ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
                     : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                }`}
+                  }`}
               >
                 Dismiss
               </button>
