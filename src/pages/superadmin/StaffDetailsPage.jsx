@@ -14,6 +14,7 @@ import {
   RiShieldUserLine,
   RiStore2Line,
   RiMoneyDollarCircleLine,
+  RiErrorWarningLine,
 } from "@remixicon/react";
 
 import { getStaffByIdAPI } from "../../apis/staff/staff";
@@ -100,27 +101,32 @@ export default function StaffDetailsPage() {
 
   if (loading) {
     return (
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 text-sm text-gray-500 shadow-sm">
-        Loading staff details...
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          <StaffDetailsState
+            Icon={RiUserLine}
+            title="Loading staff details"
+            description="Please wait while the staff account information is loaded."
+            iconClassName="bg-gray-100 text-gray-600"
+            loading
+          />
+        </div>
       </div>
     );
   }
 
   if (pageError) {
     return (
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <Link
-            to={staffListPath}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
-          >
-            <RiArrowLeftLine size={18} />
-            Back to staff list
-          </Link>
-        </div>
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+          <BackToStaffListLink staffListPath={staffListPath} />
 
-        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-          {pageError}
+          <StaffDetailsState
+            Icon={RiErrorWarningLine}
+            title="Could not load staff details"
+            description={pageError}
+            iconClassName="bg-red-50 text-red-600"
+          />
         </div>
       </div>
     );
@@ -128,18 +134,17 @@ export default function StaffDetailsPage() {
 
   if (!staff) {
     return (
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <Link
-            to={staffListPath}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
-          >
-            <RiArrowLeftLine size={18} />
-            Back to staff list
-          </Link>
-        </div>
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+          <BackToStaffListLink staffListPath={staffListPath} />
 
-        <div className="text-sm text-gray-500">Staff member not found.</div>
+          <StaffDetailsState
+            Icon={RiUserLine}
+            title="Staff member not found"
+            description="The selected staff account could not be found. It may have been removed or the ID may be incorrect."
+            iconClassName="bg-gray-100 text-gray-600"
+          />
+        </div>
       </div>
     );
   }
@@ -148,15 +153,7 @@ export default function StaffDetailsPage() {
     <div className="max-w-5xl">
       <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
         {/* Back link */}
-        <div className="mb-6">
-          <Link
-            to={staffListPath}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
-          >
-            <RiArrowLeftLine size={18} />
-            Back to staff list
-          </Link>
-        </div>
+        <BackToStaffListLink staffListPath={staffListPath} />
 
         {/* Main staff identity section */}
         <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
@@ -225,6 +222,48 @@ export default function StaffDetailsPage() {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+function BackToStaffListLink({ staffListPath }) {
+  return (
+    <div className="mb-6">
+      <Link
+        to={staffListPath}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
+      >
+        <RiArrowLeftLine size={18} />
+        Back to staff list
+      </Link>
+    </div>
+  );
+}
+
+function StaffDetailsState({
+  Icon,
+  title,
+  description,
+  iconClassName,
+  loading = false,
+}) {
+  return (
+    <div className="text-center">
+      <div
+        className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${iconClassName}`}
+      >
+        {loading ? (
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+        ) : (
+          <Icon size={24} />
+        )}
+      </div>
+
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
+        {description}
+      </p>
     </div>
   );
 }

@@ -243,11 +243,36 @@ export default function DashboardPage() {
             disabled={loading}
             className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <RiRefreshLine size={18} />
+            {loading ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+            ) : (
+              <RiRefreshLine size={18} />
+            )}
+
             {loading ? "Refreshing..." : "Refresh"}
           </button>
         </div>
       </div>
+
+      {loading && (
+        <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-orange-900">
+                Loading dashboard data
+              </h4>
+
+              <p className="mt-0.5 text-sm text-orange-700">
+                Please wait while staff and branch summary details are loaded.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary cards */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -265,9 +290,15 @@ export default function DashboardPage() {
                     {card.title}
                   </p>
 
-                  <h2 className="mt-3 text-3xl font-bold text-gray-900">
-                    {loading ? "-" : card.value}
-                  </h2>
+                  <div className="mt-3 flex min-h-10 items-center">
+                    {loading ? (
+                      <div className="h-7 w-7 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+                    ) : (
+                      <h2 className="text-3xl font-bold text-gray-900">
+                        {card.value}
+                      </h2>
+                    )}
+                  </div>
 
                   <p className="mt-2 text-sm text-gray-500">
                     {card.description}

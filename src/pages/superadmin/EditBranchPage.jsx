@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import {
   RiBuilding2Line,
   RiArrowLeftLine,
   RiSaveLine,
+  RiErrorWarningLine,
+  RiShieldUserLine,
 } from "@remixicon/react";
 
 import {
@@ -19,6 +21,14 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
+const DEFAULT_BRANCH_CONFIG = {
+  deliveryFee: 0,
+  deliveryEnabled: false,
+  pickupEnabled: false,
+  dineInEnabled: false,
+  branchActiveForOrders: false,
+};
+
 export default function EditBranchPage() {
   const { id } = useParams();
   const { setHeaderInfo } = useOutletContext();
@@ -30,13 +40,7 @@ export default function EditBranchPage() {
     email: "",
   });
 
-  const [branchConfig, setBranchConfig] = useState({
-    deliveryFee: 0,
-    deliveryEnabled: false,
-    pickupEnabled: false,
-    dineInEnabled: false,
-    branchActiveForOrders: false,
-  });
+  const [branchConfig, setBranchConfig] = useState(DEFAULT_BRANCH_CONFIG);
 
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState("");
@@ -44,6 +48,7 @@ export default function EditBranchPage() {
   const [saving, setSaving] = useState(false);
   const [configLoading, setConfigLoading] = useState(true);
   const [configSaving, setConfigSaving] = useState(false);
+  const [configError, setConfigError] = useState("");
 
   const { user } = useAuth();
 
@@ -60,7 +65,7 @@ export default function EditBranchPage() {
     return () => setHeaderInfo(null);
   }, [setHeaderInfo]);
 
-  const loadBranch = async () => {
+  const loadBranch = useCallback(async () => {
     setLoading(true);
     setPageError("");
 
@@ -79,29 +84,26 @@ export default function EditBranchPage() {
     }
 
     setLoading(false);
-  };
+  }, [id]);
 
-  const loadBranchConfig = async () => {
+  const loadBranchConfig = useCallback(async () => {
+    setConfigLoading(true);
+    setConfigError("");
+
     try {
-      setConfigLoading(true);
-
       const data = await getBranchConfigAPI(id);
-
-      setBranchConfig({
-        deliveryFee: data?.deliveryFee ?? 0,
-        deliveryEnabled: Boolean(data?.deliveryEnabled),
-        pickupEnabled: Boolean(data?.pickupEnabled),
-        dineInEnabled: Boolean(data?.dineInEnabled),
-        branchActiveForOrders: Boolean(data?.branchActiveForOrders),
-      });
+      setBranchConfig(normalizeBranchConfig(data));
     } catch (error) {
-      showErrorToast(
-        error.message || "Failed to load branch order configuration."
-      );
+      const message =
+        error.message || "Failed to load branch order configuration.";
+
+      setConfigError(message);
+      showErrorToast(message);
+      setBranchConfig(DEFAULT_BRANCH_CONFIG);
     } finally {
       setConfigLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -111,7 +113,7 @@ export default function EditBranchPage() {
       setLoading(false);
       setConfigLoading(false);
     }
-  }, [id, isSuperAdmin]);
+  }, [id, isSuperAdmin, loadBranch, loadBranchConfig]);
 
   const cleanContactNumber = (value) => {
     const cleaned = value.replace(/[^\d+]/g, "");
@@ -241,9 +243,10 @@ export default function EditBranchPage() {
       return;
     }
 
-    try {
-      setConfigSaving(true);
+    setConfigSaving(true);
+    setConfigError("");
 
+    try {
       const payload = {
         deliveryFee: toNumber(branchConfig.deliveryFee),
         deliveryEnabled: Boolean(branchConfig.deliveryEnabled),
@@ -257,9 +260,11 @@ export default function EditBranchPage() {
       showSuccessToast("Branch order configuration updated successfully.");
       await loadBranchConfig();
     } catch (error) {
-      showErrorToast(
-        error.message || "Failed to update branch order configuration."
-      );
+      const message =
+        error.message || "Failed to update branch order configuration.";
+
+      setConfigError(message);
+      showErrorToast(message);
     } finally {
       setConfigSaving(false);
     }
@@ -267,56 +272,56 @@ export default function EditBranchPage() {
 
   if (!isSuperAdmin) {
     return (
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
-        <h3 className="text-lg font-bold text-gray-900">No Access</h3>
-
-        <p className="mt-2 text-sm text-gray-500">
-          Only SUPER_ADMIN users can edit branches.
-        </p>
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          <EditBranchState
+            Icon={RiShieldUserLine}
+            title="No Access"
+            description="Only SUPER_ADMIN users can edit branches."
+            iconClassName="bg-red-50 text-red-600"
+          />
+        </div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
-        <p className="text-sm text-gray-500">Loading branch details...</p>
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          <EditBranchState
+            Icon={RiBuilding2Line}
+            title="Loading branch edit form"
+            description="Please wait while branch details and order configuration are loaded."
+            iconClassName="bg-gray-100 text-gray-600"
+            loading
+          />
+        </div>
       </div>
     );
   }
 
   if (pageError) {
     return (
-      <div className="rounded-[1.5rem] border border-red-100 bg-red-50 p-8 shadow-sm">
-        <h3 className="text-lg font-bold text-red-700">
-          Unable to load branch details
-        </h3>
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+          <BackToBranchesLink />
 
-        <p className="mt-2 text-sm text-red-600">{pageError}</p>
-
-        <Link
-          to="/staff/branches"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100"
-        >
-          <RiArrowLeftLine size={18} />
-          Back to branches
-        </Link>
+          <EditBranchState
+            Icon={RiErrorWarningLine}
+            title="Unable to load branch details"
+            description={pageError}
+            iconClassName="bg-red-50 text-red-600"
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl space-y-6">
       <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <Link
-            to={`/staff/branches/${id}`}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
-          >
-            <RiArrowLeftLine size={18} />
-            Back to branch details
-          </Link>
-        </div>
+        <BackToBranchDetailsLink id={id} />
 
         <div className="mb-5 border-b border-gray-100 pb-5">
           <h3 className="text-xl font-bold text-gray-900">Branch Details</h3>
@@ -400,9 +405,14 @@ export default function EditBranchPage() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <RiSaveLine size={18} />
+              {saving ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-white" />
+              ) : (
+                <RiSaveLine size={18} />
+              )}
+
               {saving ? "Saving..." : "Save Branch Details"}
             </button>
           </div>
@@ -423,10 +433,33 @@ export default function EditBranchPage() {
           </p>
         </div>
 
+        {configError && (
+          <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-medium text-red-600">{configError}</p>
+
+              <button
+                type="button"
+                onClick={loadBranchConfig}
+                disabled={configLoading}
+                className="inline-flex w-fit items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
         {configLoading ? (
-          <p className="mt-6 text-sm text-gray-500">
-            Loading branch order configuration...
-          </p>
+          <div className="mt-6">
+            <EditBranchState
+              Icon={RiBuilding2Line}
+              title="Loading branch order configuration"
+              description="Please wait while delivery and order method settings are loaded."
+              iconClassName="bg-gray-100 text-gray-600"
+              loading
+            />
+          </div>
         ) : (
           <>
             <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -442,7 +475,7 @@ export default function EditBranchPage() {
                   onChange={handleConfigInputChange}
                   min="0"
                   step="0.01"
-                  disabled={!branchConfig.deliveryEnabled}
+                  disabled={!branchConfig.deliveryEnabled || configSaving}
                   className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
                 />
 
@@ -451,94 +484,57 @@ export default function EditBranchPage() {
                 </p>
               </div>
 
-              <label className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Active For Orders
-                  </p>
+              <ConfigToggleCard
+                name="branchActiveForOrders"
+                label="Active For Orders"
+                description="Allow this branch to receive customer orders."
+                checked={branchConfig.branchActiveForOrders}
+                disabled={configSaving}
+                onChange={handleConfigCheckboxChange}
+              />
 
-                  <p className="mt-2 text-sm font-semibold text-gray-900">
-                    Allow this branch to receive customer orders.
-                  </p>
-                </div>
+              <ConfigToggleCard
+                name="deliveryEnabled"
+                label="Delivery"
+                description="Enable delivery orders for this branch."
+                checked={branchConfig.deliveryEnabled}
+                disabled={configSaving}
+                onChange={handleConfigCheckboxChange}
+              />
 
-                <input
-                  type="checkbox"
-                  name="branchActiveForOrders"
-                  checked={branchConfig.branchActiveForOrders}
-                  onChange={handleConfigCheckboxChange}
-                  className="h-5 w-5 rounded border-gray-300"
-                />
-              </label>
+              <ConfigToggleCard
+                name="pickupEnabled"
+                label="Pickup"
+                description="Enable pickup orders for this branch."
+                checked={branchConfig.pickupEnabled}
+                disabled={configSaving}
+                onChange={handleConfigCheckboxChange}
+              />
 
-              <label className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Delivery
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-gray-900">
-                    Enable delivery orders for this branch.
-                  </p>
-                </div>
-
-                <input
-                  type="checkbox"
-                  name="deliveryEnabled"
-                  checked={branchConfig.deliveryEnabled}
-                  onChange={handleConfigCheckboxChange}
-                  className="h-5 w-5 rounded border-gray-300"
-                />
-              </label>
-
-              <label className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Pickup
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-gray-900">
-                    Enable pickup orders for this branch.
-                  </p>
-                </div>
-
-                <input
-                  type="checkbox"
-                  name="pickupEnabled"
-                  checked={branchConfig.pickupEnabled}
-                  onChange={handleConfigCheckboxChange}
-                  className="h-5 w-5 rounded border-gray-300"
-                />
-              </label>
-
-              <label className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 md:col-span-2">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Dine-In
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-gray-900">
-                    Enable dine-in orders for this branch.
-                  </p>
-                </div>
-
-                <input
-                  type="checkbox"
+              <div className="md:col-span-2">
+                <ConfigToggleCard
                   name="dineInEnabled"
+                  label="Dine-In"
+                  description="Enable dine-in orders for this branch."
                   checked={branchConfig.dineInEnabled}
+                  disabled={configSaving}
                   onChange={handleConfigCheckboxChange}
-                  className="h-5 w-5 rounded border-gray-300"
                 />
-              </label>
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end">
               <button
                 type="submit"
                 disabled={configSaving}
-                className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <RiSaveLine size={18} />
+                {configSaving ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-white" />
+                ) : (
+                  <RiSaveLine size={18} />
+                )}
+
                 {configSaving ? "Saving..." : "Save Branch Configuration"}
               </button>
             </div>
@@ -547,4 +543,109 @@ export default function EditBranchPage() {
       </form>
     </div>
   );
+}
+
+function BackToBranchesLink() {
+  return (
+    <div className="mb-6">
+      <Link
+        to="/staff/branches"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
+      >
+        <RiArrowLeftLine size={18} />
+        Back to branches
+      </Link>
+    </div>
+  );
+}
+
+function BackToBranchDetailsLink({ id }) {
+  return (
+    <div className="mb-6">
+      <Link
+        to={`/staff/branches/${id}`}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
+      >
+        <RiArrowLeftLine size={18} />
+        Back to branch details
+      </Link>
+    </div>
+  );
+}
+
+function EditBranchState({
+  Icon,
+  title,
+  description,
+  iconClassName,
+  loading = false,
+}) {
+  return (
+    <div className="text-center">
+      <div
+        className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${iconClassName}`}
+      >
+        {loading ? (
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+        ) : (
+          <Icon size={24} />
+        )}
+      </div>
+
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function ConfigToggleCard({
+  name,
+  label,
+  description,
+  checked,
+  disabled,
+  onChange,
+}) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition hover:border-orange-100 hover:bg-orange-50/40">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+          {label}
+        </p>
+
+        <p className="mt-2 text-sm font-semibold text-gray-900">
+          {description}
+        </p>
+      </div>
+
+      <input
+        type="checkbox"
+        name={name}
+        checked={Boolean(checked)}
+        onChange={onChange}
+        disabled={disabled}
+        className="h-5 w-5 shrink-0 cursor-pointer accent-orange-500 disabled:cursor-not-allowed"
+      />
+    </label>
+  );
+}
+
+function normalizeBranchConfig(response) {
+  const config = response?.data || response || {};
+
+  return {
+    ...DEFAULT_BRANCH_CONFIG,
+    ...config,
+    deliveryFee:
+      config.deliveryFee === null || config.deliveryFee === undefined
+        ? 0
+        : config.deliveryFee,
+    deliveryEnabled: Boolean(config.deliveryEnabled),
+    pickupEnabled: Boolean(config.pickupEnabled),
+    dineInEnabled: Boolean(config.dineInEnabled),
+    branchActiveForOrders: Boolean(config.branchActiveForOrders),
+  };
 }
