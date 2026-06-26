@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
-import { getAuthToken } from '../utils/authToken'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -32,7 +31,7 @@ export default function useOrderStatusWebSocket(orderId, onUpdate) {
   const connect = useCallback(() => {
     if (!orderId) return // Don't connect if we don't know the order ID yet
 
-    const token = getAuthToken()
+    const token = localStorage.getItem('customer_jwt') || localStorage.getItem('qr_session_token');
 
     const client = new Client({
       // Use SockJS as the transport factory

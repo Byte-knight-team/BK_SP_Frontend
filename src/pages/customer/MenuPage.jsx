@@ -19,6 +19,7 @@ import {
   ChefHat,
   Search
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 function getBranchId() {
   // Decode branchId from QR session token
