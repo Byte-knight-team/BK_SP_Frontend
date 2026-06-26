@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Pencil, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import IngredientPicker from './IngredientPicker'
+import CloudinaryImageUpload from './CloudinaryImageUpload'
 
 // EditMenuItemModal — lets a chef edit their PENDING or REJECTED menu items
 // existingIngredients are pre-loaded by the parent when the chef clicks a card
@@ -95,16 +96,8 @@ const EditMenuItemModal = ({
         </div>
 
         <h3 className="text-lg font-bold text-gray-900 mb-0.5">Edit Menu Item</h3>
-
-        {/* Rejection warning banner */}
-        {item?.status === 'REJECTED' && (
-          <div className="my-2 rounded-2xl bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-500 font-semibold">
-            This item was rejected — update and resubmit for approval.
-          </div>
-        )}
-
         <p className="text-gray-400 text-xs mb-4">
-          Changes will be resubmitted to admin for approval.
+          Update the details of this active menu item.
         </p>
 
         <div className="flex flex-col gap-2 mb-4">
@@ -163,13 +156,9 @@ const EditMenuItemModal = ({
               className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
-          <input
-            type="text"
-            name="imageUrl"
-            placeholder="Image URL (optional)"
+          <CloudinaryImageUpload
             value={form.imageUrl}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+            onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
           />
 
           {/* Divider */}
@@ -197,7 +186,7 @@ const EditMenuItemModal = ({
               loading ? 'bg-gray-300 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 cursor-pointer'
             }`}
           >
-            {loading ? 'Saving...' : 'Save & Resubmit'}
+            {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
 

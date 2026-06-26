@@ -119,6 +119,14 @@ const MenuItemPage = () => {
     setIsViewOpen(true)
   }
 
+  // Called by MenuItemDetailModal after a successful recipe save —
+  // re-fetches the ingredient list so the modal reflects the latest saved state
+  const handleIngredientsSaved = async () => {
+    if (!viewItem) return
+    const { data } = await getMenuItemIngredientsAPI(viewItem.id)
+    setViewIngredients(data || [])
+  }
+
   // When chef clicks a card, load that item's existing ingredients before opening modal
   const openEdit = async (item) => {
     setSelectedItem(item)
@@ -159,6 +167,8 @@ const MenuItemPage = () => {
         onClose={() => { setIsViewOpen(false); setViewItem(null); setViewIngredients([]) }}
         item={viewItem}
         ingredients={viewIngredients}
+        inventoryItems={inventoryItems}
+        onSaved={handleIngredientsSaved}
       />
 
       <EditMenuItemModal
