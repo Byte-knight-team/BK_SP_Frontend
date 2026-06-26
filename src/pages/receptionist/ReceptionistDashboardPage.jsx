@@ -88,7 +88,9 @@ const ReceptionistDashboardPage = () => {
 
   // Connect to WebSocket using the branch ID from the JWT
   const branchId = user?.branchId
-  useWebSocket(branchId, handleNewAlert)
+  // Build the topic only when branchId is available — null topic prevents connection
+  const alertTopic = branchId ? `/topic/branch/${branchId}/alerts` : null
+  useWebSocket(branchId, alertTopic, handleNewAlert)
 
   // Track connection status separately via the branchId availability
   useEffect(() => {

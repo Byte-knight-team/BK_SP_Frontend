@@ -11,7 +11,7 @@ const TABS = [
   { id: 4, label: "On Hold" },
 ];
 
-const OrderTabs = ({ handleOrderClick, selectedOrderId, activeTab, setActiveTab }) => {
+const OrderTabs = ({ handleOrderClick, selectedOrderId, activeTab, setActiveTab, pendingRefreshKey }) => {
   return (
     // Fill the full height of the left panel and prevent its own overflow — inner content scrolls separately
     <div className="flex h-full flex-col overflow-hidden">
@@ -43,7 +43,8 @@ const OrderTabs = ({ handleOrderClick, selectedOrderId, activeTab, setActiveTab 
       {/* Scrollable order card list — only this area scrolls, not the tab bar above */}
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 pb-4 pt-3">
         {/* Conditionally render the correct tab content based on the active tab ID */}
-        {activeTab === 1 && <PendingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} />}
+        {/* pendingRefreshKey increments when a new order arrives via WebSocket — triggers a re-fetch inside PendingOrdersTab */}
+        {activeTab === 1 && <PendingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} refreshKey={pendingRefreshKey} />}
         {activeTab === 2 && <PreparingOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} />}
         {activeTab === 3 && <CompletedOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} />}
         {activeTab === 4 && <OnHoldOrdersTab handleOrderClick={handleOrderClick} selectedOrderId={selectedOrderId} />}
