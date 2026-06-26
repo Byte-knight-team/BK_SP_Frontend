@@ -15,6 +15,7 @@ import { getAllBranchesAPI } from "../../apis/staff/branches";
 import { getRolesAPI } from "../../apis/staff/roles";
 
 import { useAuth } from "../../context/AuthContext";
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 /*
   - Dynamic role rules -
@@ -52,10 +53,6 @@ function canAssignRole(roleName, isSuperAdmin, isAdmin) {
 
 /*
   Normalizes role API response into an array.
-
-  This supports both:
-  - direct array response
-  - wrapped response like { data: [...] }
 */
 function normalizeRoleList(response) {
   if (Array.isArray(response)) {
@@ -114,35 +111,29 @@ function getRoleBaseSalary(role) {
 export default function EditStaffPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { setHeaderInfo } = useOutletContext();
-
   const location = useLocation();
+  const { setHeaderInfo } = useOutletContext();
 
   /*
     This page is shared by SUPER_ADMIN and ADMIN.
-  
+
     SUPER_ADMIN route:
     /staff/staff/:id/edit
-  
+
     ADMIN route:
     /admin/staff/:id/edit
   */
   const isAdminPanelRoute = location.pathname.startsWith("/admin");
 
-  const staffListPath = isAdminPanelRoute
-    ? "/admin/staff"
-    : "/staff/staff";
+  const staffListPath = isAdminPanelRoute ? "/admin/staff" : "/staff/staff";
 
   const staffDetailsPath = isAdminPanelRoute
     ? `/admin/staff/${id}`
     : `/staff/staff/${id}`;
 
   /*
-  Read logged-in user details from AuthContext.
-
-  AuthContext now gets user data from the decoded JWT token.
-  We no longer read authUser from localStorage.
-*/
+    Read logged-in user details from AuthContext.
+  */
   const { user: authUser } = useAuth();
 
   const loggedInRole = authUser?.roleName || authUser?.role || "";
@@ -174,10 +165,10 @@ export default function EditStaffPage() {
     Page states.
   */
   const [pageLoading, setPageLoading] = useState(true);
+  const [pageError, setPageError] = useState("");
   const [branchLoading, setBranchLoading] = useState(false);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
 
   /*
     Role dropdown values come from backend roles table.
@@ -204,8 +195,7 @@ export default function EditStaffPage() {
 
   /*
     If the current staff role is not inside allowedRoles,
-    we still show it as a fallback option so the dropdown never appears blank.
-
+    still show it as a fallback option so the dropdown never appears blank.
   */
   const roleOptions = (() => {
     if (!formData.roleName) {
@@ -247,6 +237,11 @@ export default function EditStaffPage() {
     return getRoleBaseSalary(role);
   };
 
+  const stopWithError = (message) => {
+    showErrorToast(message);
+    setSaving(false);
+  };
+
   useEffect(() => {
     setHeaderInfo({
       title: "Edit Staff",
@@ -260,7 +255,7 @@ export default function EditStaffPage() {
   useEffect(() => {
     const loadPageData = async () => {
       setPageLoading(true);
-      setError("");
+      setPageError("");
 
       /*
         1. Load staff details.
@@ -268,7 +263,8 @@ export default function EditStaffPage() {
       const staffResult = await getStaffByIdAPI(id);
 
       if (staffResult.error) {
-        setError(staffResult.error);
+        setPageError(staffResult.error);
+        showErrorToast(staffResult.error);
         setPageLoading(false);
         return;
       }
@@ -291,6 +287,7 @@ export default function EditStaffPage() {
         setRoles(loadedRoles);
       } catch (error) {
         console.error("Failed to load role data:", error);
+        showErrorToast("Failed to load role data.");
         loadedRoles = [];
       } finally {
         setRolesLoading(false);
@@ -300,7 +297,9 @@ export default function EditStaffPage() {
         3. If old staff salary is null, show role base salary as helper/default.
         This does not save automatically until user clicks Save.
       */
-      const currentRole = loadedRoles.find((role) => role.name === staffRoleName);
+      const currentRole = loadedRoles.find(
+        (role) => role.name === staffRoleName
+      );
 
       const resolvedSalary =
         staff.salary === null || staff.salary === undefined
@@ -327,6 +326,8 @@ export default function EditStaffPage() {
 
         if (!branchResult.error) {
           setBranches(normalizeBranchList(branchResult.data));
+        } else {
+          showErrorToast(branchResult.error);
         }
 
         setBranchLoading(false);
@@ -377,7 +378,6 @@ export default function EditStaffPage() {
     event.preventDefault();
 
     setSaving(true);
-    setError("");
 
     /*
       Build payload carefully.
@@ -415,8 +415,7 @@ export default function EditStaffPage() {
       Basic validation.
     */
     if (!payload.fullName || !payload.email || !payload.phone) {
-      setError("Please fill all required fields.");
-      setSaving(false);
+      stopWithError("Please fill all required fields.");
       return;
     }
 
@@ -429,8 +428,7 @@ export default function EditStaffPage() {
       formData.roleName !== "SUPER_ADMIN" &&
       !payload.branchId
     ) {
-      setError("Please select a branch.");
-      setSaving(false);
+      stopWithError("Please select a branch.");
       return;
     }
 
@@ -443,60 +441,69 @@ export default function EditStaffPage() {
       payload.salary !== undefined &&
       payload.salary < 0
     ) {
-      setError("Salary cannot be negative.");
-      setSaving(false);
+      stopWithError("Salary cannot be negative.");
       return;
     }
 
     const result = await updateStaffAPI(id, payload);
 
     if (result.error) {
-      setError(result.error);
-      setSaving(false);
+      stopWithError(result.error);
       return;
     }
 
     setSaving(false);
 
-    navigate(staffListPath, {
-      state: {
-        successMessage: "Staff member updated successfully.",
-      },
-    });
+    showSuccessToast("Staff member updated successfully.");
+
+    navigate(staffListPath);
   };
 
   if (pageLoading) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm text-sm text-gray-500">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 text-sm text-gray-500 shadow-sm">
         Loading staff details...
+      </div>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <div className="rounded-[1.5rem] border border-red-100 bg-red-50 p-8 shadow-sm">
+        <h3 className="text-lg font-bold text-red-700">
+          Unable to load staff details
+        </h3>
+        <p className="mt-2 text-sm text-red-600">{pageError}</p>
+
+        <Link
+          to={staffListPath}
+          className="mt-5 inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100"
+        >
+          <RiArrowLeftLine size={18} />
+          Back to staff list
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl">
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
         <div className="mb-6">
           <Link
-            to={staffDetailsPath}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
+            to={staffListPath}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-700"
           >
             <RiArrowLeftLine size={18} />
-            Back to staff details
+            Back to staff list
           </Link>
         </div>
 
-        {error && (
-          <div className="mb-5 rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-medium text-red-600">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {/* Full name */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Full Name
               </label>
 
@@ -511,7 +518,7 @@ export default function EditStaffPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Email
               </label>
 
@@ -526,7 +533,7 @@ export default function EditStaffPage() {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Phone
               </label>
 
@@ -541,7 +548,7 @@ export default function EditStaffPage() {
 
             {/* Role */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Role
               </label>
 
@@ -572,7 +579,7 @@ export default function EditStaffPage() {
 
             {/* Monthly salary */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Monthly Salary (LKR)
               </label>
 
@@ -603,7 +610,7 @@ export default function EditStaffPage() {
             {isSuperAdmin ? (
               formData.roleName !== "SUPER_ADMIN" ? (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Branch
                   </label>
 
@@ -630,7 +637,7 @@ export default function EditStaffPage() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Branch
                   </label>
 
@@ -641,7 +648,7 @@ export default function EditStaffPage() {
               )
             ) : (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Branch
                 </label>
 
