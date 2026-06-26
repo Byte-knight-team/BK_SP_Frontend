@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Minus, Plus, Trash2, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { toast } from 'react-toastify';
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -66,7 +67,10 @@ export default function CartPage() {
                   </button>
                   <button
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-transparent text-slate-400 hover:text-red-500 ml-2"
-                    onClick={() => removeFromCart(item.id)}
+                    onClick={() => {
+                      removeFromCart(item.id);
+                      toast.info('Item removed from cart');
+                    }}
                   >
                     <Trash2 className="transition-colors duration-300" size={18} />
                   </button>

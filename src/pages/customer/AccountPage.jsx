@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2, Camera, Trash2, BarChart3 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
@@ -22,7 +23,6 @@ export default function AccountPage() {
   
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
   
   const fileInputRef = useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -65,18 +65,16 @@ export default function AccountPage() {
     // Validation
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError('Profile picture must be under 5MB');
+      toast.error('Profile picture must be under 5MB');
       return;
     }
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Only JPG, PNG, and WEBP formats are supported');
+      toast.error('Only JPG, PNG, and WEBP formats are supported');
       return;
     }
 
     setIsUploadingImage(true);
-    setError('');
-    setSuccessMsg('');
     try {
       // 1. Get presigned URL
       const presignRes = await createProfilePicturePresignUrl(file.name, file.type);
@@ -96,9 +94,9 @@ export default function AccountPage() {
 
       // 4. Reload profile to get the new GET URL
       await refetch();
-      setSuccessMsg('Profile picture updated successfully!');
+      toast.success('Profile picture updated successfully!');
     } catch (err) {
-      setError(err.message || 'Failed to upload profile picture');
+      toast.error(err.message || 'Failed to upload profile picture');
     } finally {
       setIsUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -109,8 +107,6 @@ export default function AccountPage() {
     if (!profile?.profilePictureUrl) return;
     
     setIsUploadingImage(true);
-    setError('');
-    setSuccessMsg('');
     try {
       const res = await removeProfilePicture();
       if (!res.ok) {
@@ -119,9 +115,9 @@ export default function AccountPage() {
       }
       
       await refetch();
-      setSuccessMsg('Profile picture removed');
+      toast.success('Profile picture removed');
     } catch (err) {
-      setError(err.message || 'Failed to remove picture');
+      toast.error(err.message || 'Failed to remove picture');
     } finally {
       setIsUploadingImage(false);
     }
@@ -129,7 +125,6 @@ export default function AccountPage() {
 
   const handleEdit = (section) => {
     setError('');
-    setSuccessMsg('');
     setFormData(profile);
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     setEditingSection(section);
@@ -170,7 +165,7 @@ export default function AccountPage() {
 
       await refetch();
       setEditingSection(null);
-      setSuccessMsg('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       
       // If they changed their username, update local storage so the Navbar reflects it
       localStorage.setItem('customer_name', payload.data.username);
@@ -206,7 +201,7 @@ export default function AccountPage() {
       }
 
       setEditingSection(null);
-      setSuccessMsg('Password changed successfully!');
+      toast.success('Password changed successfully!');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -253,11 +248,6 @@ export default function AccountPage() {
         {error && (
           <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
-          </div>
-        )}
-        {successMsg && (
-          <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {successMsg}
           </div>
         )}
 

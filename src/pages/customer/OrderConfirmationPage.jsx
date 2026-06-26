@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -23,6 +23,7 @@ import {
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import ReviewModal from '../../components/customer/modal/ReviewModal';
+import { toast } from 'react-toastify';
 import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 import useOrderStatusWebSocket from '../../hooks/useOrderStatusWebSocket';
@@ -134,6 +135,9 @@ export default function OrderConfirmationPage() {
     };
   }, [orderId]);
 
+  // Keep track of the last known status so we can trigger toasts reliably
+  const lastKnownStatus = useRef(null);
+
   // Subscribe to real-time status updates via WebSocket
   useOrderStatusWebSocket(orderId, (update) => {
     if (update && update.orderStatus) {
@@ -141,14 +145,33 @@ export default function OrderConfirmationPage() {
         if (!prev) return prev;
         // Don't update if the status is the same
         if (prev.orderStatus === update.orderStatus) return prev;
-
         return {
           ...prev,
           orderStatus: update.orderStatus,
         };
       });
+
+      // Trigger toast if it's a new status
+      if (lastKnownStatus.current && lastKnownStatus.current !== update.orderStatus) {
+        const friendlyStatus = update.orderStatus.replace(/_/g, ' ');
+        if (update.orderStatus === 'COMPLETED' || update.orderStatus === 'SERVED') {
+          toast.success(`Your order is ${friendlyStatus}! 🎉`);
+        } else if (update.orderStatus === 'CANCELLED') {
+          toast.error(`Your order has been ${friendlyStatus}.`);
+        } else {
+          toast.info(`Your order is now ${friendlyStatus}.`);
+        }
+      }
+      lastKnownStatus.current = update.orderStatus;
     }
   });
+
+  // Also update the ref when the initial fetch completes so we don't toast on first load
+  useEffect(() => {
+    if (order?.orderStatus) {
+      lastKnownStatus.current = order.orderStatus;
+    }
+  }, [order?.orderStatus]);
 
   const orderType = normalizeOrderType(order?.orderType);
   const isDelivery = orderType === 'DELIVERY' || orderType === 'ONLINE_DELIVERY';
