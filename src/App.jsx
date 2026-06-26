@@ -448,8 +448,12 @@ export default function App() {
         position="bottom-right"
         autoClose={4000}
         hideProgressBar={false} // Show the timer bar
+        newestOnTop
+        closeOnClick
         theme="colored" // Keep this for vibrant colors
         pauseOnHover={true} // Stop the timer if the mouse is over it
+        draggable
+        limit={3}
       />
     </>
   )

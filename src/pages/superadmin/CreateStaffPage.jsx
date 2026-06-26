@@ -6,6 +6,12 @@ import { createStaffAPI } from "../../apis/staff/staff";
 import { getAllBranchesAPI } from "../../apis/staff/branches";
 import { getRolesAPI } from "../../apis/staff/roles";
 
+import {
+    showSuccessToast,
+    showErrorToast,
+    showWarningToast,
+} from "../../utils/toast";
+
 import { useAuth } from "../../context/AuthContext";
 
 export default function CreateStaffPage() {
@@ -29,6 +35,14 @@ export default function CreateStaffPage() {
 
         return false;
     }
+
+    /*
+        stopWithError will show an error toast and stop the loading state.
+    */
+    const stopWithError = (message) => {
+        showErrorToast(message);
+        setLoading(false);
+    };
 
     /*
         useNavigate is used to redirect after successful staff creation.
@@ -83,7 +97,6 @@ export default function CreateStaffPage() {
         loading controls the Create Staff button.
     */
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
     const [branches, setBranches] = useState([]);
     const [roles, setRoles] = useState([]);
     const [rolesLoading, setRolesLoading] = useState(true);
@@ -315,7 +328,6 @@ export default function CreateStaffPage() {
         event.preventDefault();
 
         setLoading(true);
-        setError("");
 
         /*
             Create backend request payload.
@@ -352,8 +364,7 @@ export default function CreateStaffPage() {
             Validate required personal fields.
         */
         if (!payload.fullName || !payload.username || !payload.email || !payload.phone) {
-            setError("Please fill all required fields.");
-            setLoading(false);
+            stopWithError("Please fill all required fields.");
             return;
         }
 
@@ -368,14 +379,12 @@ export default function CreateStaffPage() {
         const phoneRegex = /^\d{10}$/;
 
         if (!emailRegex.test(payload.email)) {
-            setError("Invalid email format.");
-            setLoading(false);
+            stopWithError("Invalid email format.");
             return;
         }
 
         if (!phoneRegex.test(payload.phone)) {
-            setError("Phone number must be exactly 10 digits.");
-            setLoading(false);
+            stopWithError("Phone number must be exactly 10 digits.");
             return;
         }
 
@@ -386,8 +395,7 @@ export default function CreateStaffPage() {
             All other staff accounts must have a branch.
         */
         if (payload.roleName !== "SUPER_ADMIN" && !payload.branchId) {
-            setError("Please select a branch.");
-            setLoading(false);
+            stopWithError("Please select a branch.");
             return;
         }
 
@@ -395,8 +403,7 @@ export default function CreateStaffPage() {
             Salary cannot be negative.
         */
         if (payload.salary !== null && payload.salary < 0) {
-            setError("Salary cannot be negative.");
-            setLoading(false);
+            stopWithError("Salary cannot be negative.");
             return;
         }
 
@@ -416,14 +423,12 @@ export default function CreateStaffPage() {
             });
 
             if (!selectedBranch) {
-                setError("Selected branch was not found.");
-                setLoading(false);
+                stopWithError("Selected branch was not found.");
                 return;
             }
 
             if (!isActiveBranch(selectedBranch)) {
-                setError("Cannot create staff for an inactive branch.");
-                setLoading(false);
+                stopWithError("Cannot create staff for an inactive branch.");
                 return;
             }
         }
@@ -434,8 +439,7 @@ export default function CreateStaffPage() {
         const { data, error } = await createStaffAPI(payload);
 
         if (error) {
-            setError(error);
-            setLoading(false);
+            stopWithError(error);
             return;
         }
 
@@ -497,6 +501,14 @@ export default function CreateStaffPage() {
 
         setLoading(false);
 
+        if (data?.emailSent === true) {
+            showSuccessToast("Staff account created and invite email sent successfully.");
+          } else {
+            showWarningToast(
+              "Staff account created, but invite email failed. Temporary password is shown on the staff list page."
+            );
+          }
+
         navigate(staffListPath, {
             state: {
                 successMessage,
@@ -523,13 +535,6 @@ export default function CreateStaffPage() {
                         Back to staff list
                     </Link>
                 </div>
-
-                {/* Error message */}
-                {error && (
-                    <div className="mb-5 rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-medium text-red-600">
-                        {error}
-                    </div>
-                )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
