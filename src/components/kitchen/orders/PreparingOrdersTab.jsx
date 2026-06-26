@@ -1,6 +1,7 @@
 import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
+import { toast } from "react-toastify";
 
 const PreparingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
     //initialize state variables
@@ -17,7 +18,7 @@ const PreparingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
         const { data, error } = await getOrderCardsAPI("PREPARING");
         //handle error
         if (error) {
-          console.error("Error fetching stats details:", error);
+          toast.error("Error fetching preparing orders");
           return;
         }
         //handle success
@@ -32,11 +33,19 @@ const PreparingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
     }, []);
   
     if (loading) {
-    return <p className="py-8 text-center text-sm font-bold text-orange-400 animate-pulse">Loading...</p>;
-  }
+      return (
+        <p className="animate-pulse py-8 text-center text-sm font-bold text-orange-400">
+          Loading Preparing Orders...
+        </p>
+      );
+    }
 
-  if (preparingOrdersDetails.length === 0) {
-    return <p className="py-8 text-center text-sm text-gray-300">No preparing orders right now</p>;
+    if ((preparingOrdersDetails.length === 0)) {
+      return (
+        <p className="py-8 text-center text-sm text-gray-300">
+          No preparing orders right now
+        </p>
+      );
   }
     
   return (
@@ -49,6 +58,7 @@ const PreparingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
           id={`#ORD-${order.id}`}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
+          //if the order is already selected, highlight it
           isSelected={order.id === selectedOrderId}
         />
       ))}

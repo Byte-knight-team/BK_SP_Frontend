@@ -51,12 +51,12 @@ export const updateInventoryStockAPI = async (updateData) => {
     const result = await response.json();
 
     if (!response.ok) {
-      // If status is 403 or 400, return it as an error!
+      // If status is 403, 400, 500.... etc (not 200 or 201) then return it as an error!
       // If the backend crashes and doesn't send any message at all, it will show "Something went wrong"
       return { data: null, error: result.message || "Something went wrong" };
     }
 
-    return { data: result, error: null };
+    return { data: result, error: null }; // success case. error is always null
   } catch (error) {
     return { data: null, error: error.message };
   }
