@@ -160,9 +160,20 @@ function CustomerLayout() {
   )
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
         <Route path="/staff/login" element={<StaffLoginPage />} />

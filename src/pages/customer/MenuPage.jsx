@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useDeferredValue } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
@@ -32,62 +33,40 @@ function getBranchId() {
 }
 
 export default function MenuPage() {
-  const [menuItems, setMenuItems] = useState([]);
-  //const [favorites, setFavorites] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItemForReviews, setSelectedItemForReviews] = useState(null);
   
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const branchId = getBranchId();
 
-  useEffect(() => {
-    let isMounted = true;
+  const {
+    data: menuItems = [],
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['menuItems', branchId],
+    queryFn: async () => {
+      const res = await getCustomerMenu(branchId);
+      const payload = await res.json().catch(() => ({}));
 
-    const loadMenu = async () => {
-      setIsLoading(true);
-      setError('');
-
-      try {
-        const branchId = getBranchId();
-        const res = await getCustomerMenu(branchId);
-        const payload = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(payload?.message || 'Unable to load menu items.');
-        }
-
-        const items = Array.isArray(payload?.data) ? payload.data : [];
-
-        if (isMounted) {
-          setMenuItems(
-            items.map((item) => ({
-              ...item,
-              image: item.imageUrl,
-              price: Number(item.price),
-              averageRating: item.averageRating ?? null,
-              ratingCount: item.ratingCount ?? 0,
-            }))
-          );
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err.message || 'Unable to load menu items.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      if (!res.ok) {
+        throw new Error(payload?.message || 'Unable to load menu items.');
       }
-    };
 
-    loadMenu();
+      const items = Array.isArray(payload?.data) ? payload.data : [];
+      return items.map((item) => ({
+        ...item,
+        image: item.imageUrl,
+        price: Number(item.price),
+        averageRating: item.averageRating ?? null,
+        ratingCount: item.ratingCount ?? 0,
+      }));
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const error = queryError?.message || '';
 
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
