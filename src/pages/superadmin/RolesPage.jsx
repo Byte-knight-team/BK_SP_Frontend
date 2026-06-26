@@ -122,20 +122,20 @@ function getLockedRoleMessage(roleName) {
 
 function NoAccessView({ currentRoleName }) {
   return (
-    <div className="rounded-2xl border border-red-100 bg-red-50 p-6">
-      <div className="flex items-start gap-4">
-        <div className="rounded-full bg-red-100 p-3 text-red-600">
-          <RiLockLine size={24} />
-        </div>
+    <div className="max-w-5xl">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+        <div className="text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+            <RiLockLine size={24} />
+          </div>
 
-        <div>
-          <h2 className="text-lg font-semibold text-red-700">No Access</h2>
+          <h3 className="font-semibold text-gray-900">No Access</h3>
 
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
             Roles & Permissions management is only available for SUPER_ADMIN.
           </p>
 
-          <p className="mt-3 text-xs text-red-500">
+          <p className="mt-3 text-xs font-medium text-red-500">
             Current role: {currentRoleName || "Unknown"}
           </p>
         </div>
@@ -205,7 +205,8 @@ export default function RolesPage() {
   useEffect(() => {
     if (selectedRole) {
       setBaseSalaryInput(
-        selectedRole.baseSalary === null || selectedRole.baseSalary === undefined
+        selectedRole.baseSalary === null ||
+          selectedRole.baseSalary === undefined
           ? ""
           : String(selectedRole.baseSalary)
       );
@@ -285,6 +286,8 @@ export default function RolesPage() {
       });
     } catch (error) {
       showErrorToast(error.message || "Failed to load roles and privileges.");
+      setRoles([]);
+      setPrivileges([]);
     } finally {
       setInitialLoading(false);
     }
@@ -324,11 +327,15 @@ export default function RolesPage() {
   }, [isSuperAdmin, selectedRoleId, loadPermissionsForRole]);
 
   function handleSelectRole(roleId) {
+    if (saving || permissionsLoading || salarySaving || deletingRole) {
+      return;
+    }
+
     setSelectedRoleId(roleId);
   }
 
   function handleTogglePermission(permissionName) {
-    if (selectedRoleIsLocked) {
+    if (selectedRoleIsLocked || permissionsLoading || saving) {
       return;
     }
 
@@ -524,7 +531,7 @@ export default function RolesPage() {
   return (
     <div className="space-y-6">
       {/* Add Role form */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
         <form onSubmit={handleCreateRole} className="space-y-3">
           <div>
             <div className="flex items-center justify-between gap-3">
@@ -546,16 +553,18 @@ export default function RolesPage() {
             type="text"
             value={newRoleName}
             onChange={(event) => setNewRoleName(event.target.value)}
+            disabled={creatingRole}
             placeholder="Example: WAITER"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
           />
 
           <textarea
             value={newRoleDescription}
             onChange={(event) => setNewRoleDescription(event.target.value)}
+            disabled={creatingRole}
             placeholder="Role description"
             rows={2}
-            className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+            className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
           />
 
           <input
@@ -564,16 +573,22 @@ export default function RolesPage() {
             step="0.01"
             value={newRoleBaseSalary}
             onChange={(event) => setNewRoleBaseSalary(event.target.value)}
+            disabled={creatingRole}
             placeholder="Base salary, example: 45000"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
           />
 
           <button
             type="submit"
             disabled={creatingRole}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <RiAddLine size={18} />
+            {creatingRole ? (
+              <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
+            ) : (
+              <RiAddLine size={18} />
+            )}
+
             {creatingRole ? "Creating..." : "Create Role"}
           </button>
         </form>
@@ -581,7 +596,7 @@ export default function RolesPage() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Roles list */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm xl:col-span-1">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white shadow-sm xl:col-span-1">
           <div className="border-b border-gray-100 p-5">
             <div className="flex items-center gap-2">
               <RiUserSettingsLine size={20} className="text-gray-500" />
@@ -597,16 +612,25 @@ export default function RolesPage() {
 
           <div className="p-3">
             {initialLoading ? (
-              <div className="p-4 text-sm text-gray-500">
-                Loading roles...
-              </div>
+              <PanelState
+                title="Loading roles"
+                description="Please wait while roles and privileges are loaded."
+                loading
+              />
             ) : roles.length === 0 ? (
-              <div className="p-4 text-sm text-gray-500">No roles found.</div>
+              <PanelState
+                title="No roles found"
+                description="No role records were returned from the backend."
+              />
+            ) : visibleRoles.length === 0 ? (
+              <PanelState
+                title="No editable roles"
+                description="Only protected roles are available right now."
+              />
             ) : (
               <div className="space-y-2">
                 {visibleRoles.map((role) => {
-                  const isSelected =
-                    String(role.id) === String(selectedRoleId);
+                  const isSelected = String(role.id) === String(selectedRoleId);
 
                   const roleIsCore = isCoreRoleName(role.name);
                   const roleIsPermissionLocked =
@@ -617,7 +641,13 @@ export default function RolesPage() {
                       key={role.id}
                       type="button"
                       onClick={() => handleSelectRole(role.id)}
-                      className={`w-full rounded-xl border p-4 text-left transition ${
+                      disabled={
+                        saving ||
+                        permissionsLoading ||
+                        salarySaving ||
+                        deletingRole
+                      }
+                      className={`w-full rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-70 ${
                         isSelected
                           ? "border-orange-200 bg-orange-50"
                           : "border-gray-100 bg-white hover:bg-gray-50"
@@ -691,11 +721,12 @@ export default function RolesPage() {
         </div>
 
         {/* Permissions panel */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm xl:col-span-2">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white shadow-sm xl:col-span-2">
           {!selectedRole ? (
-            <div className="p-6 text-sm text-gray-500">
-              Please select a role from the left side.
-            </div>
+            <PanelState
+              title="Select a role"
+              description="Please select a role from the left side to view salary and permissions."
+            />
           ) : (
             <div className="p-5">
               {/* Role base salary editor */}
@@ -717,7 +748,7 @@ export default function RolesPage() {
                       min="0"
                       step="0.01"
                       value={baseSalaryInput}
-                      disabled={selectedRoleIsLocked}
+                      disabled={selectedRoleIsLocked || salarySaving}
                       onChange={(event) =>
                         setBaseSalaryInput(event.target.value)
                       }
@@ -729,10 +760,17 @@ export default function RolesPage() {
                   <button
                     type="button"
                     onClick={handleSaveBaseSalary}
-                    disabled={!selectedRole || selectedRoleIsLocked || salarySaving}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+                    disabled={
+                      !selectedRole || selectedRoleIsLocked || salarySaving
+                    }
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    <RiSaveLine size={18} />
+                    {salarySaving ? (
+                      <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
+                    ) : (
+                      <RiSaveLine size={18} />
+                    )}
+
                     {salarySaving ? "Saving..." : "Save Salary"}
                   </button>
                 </div>
@@ -752,6 +790,13 @@ export default function RolesPage() {
                       Select or remove permissions for this role, then save your
                       changes.
                     </p>
+
+                    {permissionsLoading && (
+                      <p className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-orange-600">
+                        <Spinner className="h-3.5 w-3.5 border-orange-200 border-t-orange-600" />
+                        Loading permissions...
+                      </p>
+                    )}
 
                     {hasUnsavedChanges && !selectedRoleIsLocked && (
                       <p className="mt-2 text-xs font-medium text-amber-600">
@@ -784,7 +829,12 @@ export default function RolesPage() {
                       title={selectedRoleDeleteBlockedReason || "Delete role"}
                       className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
                     >
-                      <RiDeleteBinLine size={18} />
+                      {deletingRole ? (
+                        <Spinner className="h-4 w-4 border-red-200 border-t-red-600" />
+                      ) : (
+                        <RiDeleteBinLine size={18} />
+                      )}
+
                       {deletingRole ? "Deleting..." : "Delete Role"}
                     </button>
 
@@ -800,7 +850,12 @@ export default function RolesPage() {
                       }
                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
                     >
-                      <RiSaveLine size={18} />
+                      {saving ? (
+                        <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
+                      ) : (
+                        <RiSaveLine size={18} />
+                      )}
+
                       {saving ? "Saving..." : "Save Permissions"}
                     </button>
                   </div>
@@ -821,13 +876,16 @@ export default function RolesPage() {
                   </p>
                 </div>
               ) : permissionsLoading ? (
-                <div className="rounded-xl border border-gray-100 p-5 text-sm text-gray-500">
-                  Loading permissions...
-                </div>
+                <PanelState
+                  title="Loading permissions"
+                  description="Please wait while permissions for the selected role are loaded."
+                  loading
+                />
               ) : privileges.length === 0 ? (
-                <div className="rounded-xl border border-gray-100 p-5 text-sm text-gray-500">
-                  No privileges found.
-                </div>
+                <PanelState
+                  title="No privileges found"
+                  description="No privilege records were returned from the backend."
+                />
               ) : (
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                   {visiblePrivileges.map((privilege) => {
@@ -836,7 +894,7 @@ export default function RolesPage() {
                     return (
                       <label
                         key={privilege.id}
-                        className={`flex items-start gap-3 rounded-xl border p-3 transition ${
+                        className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
                           checked
                             ? "border-orange-200 bg-orange-50"
                             : "border-gray-100 hover:bg-gray-50"
@@ -845,12 +903,22 @@ export default function RolesPage() {
                         <input
                           type="checkbox"
                           checked={checked}
-                          disabled={selectedRoleIsLocked}
+                          disabled={selectedRoleIsLocked || saving}
                           onChange={() =>
                             handleTogglePermission(privilege.name)
                           }
-                          className="mt-1 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="peer sr-only"
                         />
+
+                        <span
+                          className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] font-bold ${
+                            checked
+                              ? "border-orange-500 bg-orange-500 text-white"
+                              : "border-gray-300 bg-white text-transparent"
+                          }`}
+                        >
+                          ✓
+                        </span>
 
                         <div>
                           <p
@@ -881,5 +949,33 @@ export default function RolesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function PanelState({ title, description, loading = false }) {
+  return (
+    <div className="p-6 text-center">
+      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+        {loading ? (
+          <Spinner className="h-5 w-5 border-gray-300 border-t-orange-500" />
+        ) : (
+          <RiShieldCheckLine size={22} />
+        )}
+      </div>
+
+      <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function Spinner({ className }) {
+  return (
+    <span
+      className={`inline-flex animate-spin rounded-full border-2 ${className}`}
+    />
   );
 }

@@ -4,6 +4,7 @@ import {
   RiBuilding2Line,
   RiArrowLeftLine,
   RiAddLine,
+  RiShieldUserLine,
 } from "@remixicon/react";
 
 import { useAuth } from "../../context/AuthContext";
@@ -110,12 +111,15 @@ export default function CreateBranchPage() {
 
   if (!isSuperAdmin) {
     return (
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
-        <h3 className="text-lg font-bold text-gray-900">No Access</h3>
-
-        <p className="mt-2 text-sm text-gray-500">
-          Only SUPER_ADMIN users can create branches.
-        </p>
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          <CreateBranchState
+            Icon={RiShieldUserLine}
+            title="No Access"
+            description="Only SUPER_ADMIN users can create branches."
+            iconClassName="bg-red-50 text-red-600"
+          />
+        </div>
       </div>
     );
   }
@@ -123,7 +127,7 @@ export default function CreateBranchPage() {
   return (
     <div className="max-w-5xl">
       <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
-        {/* Back link inside the card, same style as Edit Staff */}
+        {/* Back link */}
         <div className="mb-6">
           <Link
             to="/staff/branches"
@@ -134,7 +138,7 @@ export default function CreateBranchPage() {
           </Link>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 border-b border-gray-100 pb-5">
           <h3 className="text-lg font-bold text-gray-900">Branch Details</h3>
 
           <p className="mt-1 text-sm text-gray-500">
@@ -153,8 +157,9 @@ export default function CreateBranchPage() {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              disabled={loading}
               placeholder="Example: Maharagama Branch"
-              className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50"
+              className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
             />
           </div>
 
@@ -167,9 +172,10 @@ export default function CreateBranchPage() {
               name="address"
               value={formData.address}
               onChange={handleChange}
+              disabled={loading}
               placeholder="Example: 123 High Level Road, Maharagama"
               rows="3"
-              className="w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50"
+              className="w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
             />
           </div>
 
@@ -184,8 +190,9 @@ export default function CreateBranchPage() {
                 name="contactNumber"
                 value={formData.contactNumber}
                 onChange={handleChange}
+                disabled={loading}
                 placeholder="Example: +94771234567"
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50"
+                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
               />
             </div>
 
@@ -199,10 +206,16 @@ export default function CreateBranchPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={loading}
                 placeholder="Example: maharagama@cravehouse.com"
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50"
+                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
               />
             </div>
+          </div>
+
+          <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+            New branches are created as active branches. You can later
+            deactivate the branch from the branch list or branch details page.
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-3">
@@ -216,14 +229,45 @@ export default function CreateBranchPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <RiAddLine size={18} />
+              {loading ? (
+                <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
+              ) : (
+                <RiAddLine size={18} />
+              )}
+
               {loading ? "Creating..." : "Create Branch"}
             </button>
           </div>
         </form>
       </div>
     </div>
+  );
+}
+
+function CreateBranchState({ Icon, title, description, iconClassName }) {
+  return (
+    <div className="text-center">
+      <div
+        className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${iconClassName}`}
+      >
+        <Icon size={24} />
+      </div>
+
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function Spinner({ className }) {
+  return (
+    <span
+      className={`inline-flex animate-spin rounded-full border-2 ${className}`}
+    />
   );
 }
