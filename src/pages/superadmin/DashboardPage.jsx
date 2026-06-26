@@ -1,7 +1,7 @@
 // src/pages/superadmin/DashboardPage.jsx
 
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useOutletContext } from "react-router-dom";
 import {
   RiTeamLine,
   RiStore2Line,
@@ -9,34 +9,35 @@ import {
   RiCloseCircleLine,
   RiRefreshLine,
   RiArrowRightLine,
+  RiShieldCheckLine,
+  RiSettings3Line,
+  RiFileList3Line,
 } from "@remixicon/react";
 
 import { getAllStaffAPI } from "../../apis/staff/staff";
 import { getAllBranchesAPI } from "../../apis/staff/branches";
+import { showErrorToast } from "../../utils/toast";
 
 /*
   Super Admin Dashboard
 */
 export default function DashboardPage() {
-  /*
-    staffList stores all staff loaded from backend.
-    branchList stores all branches loaded from backend.
-    loading controls dashboard loading state.
-    error stores API errors.
-  */
+  const { setHeaderInfo } = useOutletContext();
+
   const [staffList, setStaffList] = useState([]);
   const [branchList, setBranchList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  /*
-    Normalizes backend response into an array.
+  useEffect(() => {
+    setHeaderInfo({
+      title: "Dashboard",
+      description: "System governance and branch-wide administration.",
+      Icon: RiStore2Line,
+    });
 
-    This protects the dashboard if backend returns:
-    - direct array
-    - { data: [...] }
-    - { content: [...] }
-  */
+    return () => setHeaderInfo(null);
+  }, [setHeaderInfo]);
+
   const normalizeList = (response) => {
     if (Array.isArray(response)) {
       return response;
@@ -61,12 +62,6 @@ export default function DashboardPage() {
     return [];
   };
 
-  /*
-    Staff active status helper.
-    Backend may return:
-    - active: true / false
-    - isActive: true / false
-  */
   const isStaffActive = (staff) => {
     if (typeof staff.active === "boolean") {
       return staff.active;
@@ -79,9 +74,6 @@ export default function DashboardPage() {
     return false;
   };
 
-  /*
-    Branch active status helper.
-  */
   const isBranchActive = (branch) => {
     if (branch.status) {
       return branch.status === "ACTIVE";
@@ -98,18 +90,14 @@ export default function DashboardPage() {
     return false;
   };
 
-  /*
-    Load dashboard data using already-created APIs.
-  */
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     setLoading(true);
-    setError("");
 
     const staffResult = await getAllStaffAPI();
     const branchResult = await getAllBranchesAPI();
 
     if (staffResult.error || branchResult.error) {
-      setError(
+      showErrorToast(
         staffResult.error ||
           branchResult.error ||
           "Failed to load dashboard data."
@@ -120,18 +108,12 @@ export default function DashboardPage() {
     setBranchList(normalizeList(branchResult.data));
 
     setLoading(false);
-  };
-
-  /*
-    Load data when dashboard opens.
-  */
-  useEffect(() => {
-    loadDashboardData();
   }, []);
 
-  /*
-    Dashboard calculated values.
-  */
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
   const totalStaff = staffList.length;
   const activeStaff = staffList.filter(isStaffActive).length;
   const inactiveStaff = totalStaff - activeStaff;
@@ -140,95 +122,132 @@ export default function DashboardPage() {
   const activeBranches = branchList.filter(isBranchActive).length;
   const inactiveBranches = totalBranches - activeBranches;
 
-  /*
-    Summary cards shown at the top.
-  */
-  const summaryCards = [
-    {
-      title: "Total Staff",
-      value: totalStaff,
-      description: "All staff accounts in the system",
-      icon: RiTeamLine,
-    },
-    {
-      title: "Active Staff",
-      value: activeStaff,
-      description: "Staff accounts currently active",
-      icon: RiCheckboxCircleLine,
-    },
-    {
-      title: "Inactive Staff",
-      value: inactiveStaff,
-      description: "Staff accounts currently inactive",
-      icon: RiCloseCircleLine,
-    },
-    {
-      title: "Total Branches",
-      value: totalBranches,
-      description: "All restaurant branches",
-      icon: RiStore2Line,
-    },
-    {
-      title: "Active Branches",
-      value: activeBranches,
-      description: "Branches currently operating",
-      icon: RiCheckboxCircleLine,
-    },
-    {
-      title: "Inactive Branches",
-      value: inactiveBranches,
-      description: "Branches currently disabled",
-      icon: RiCloseCircleLine,
-    },
-    // new cards
-  ];
+  const summaryCards = useMemo(
+    () => [
+      {
+        title: "Total Staff",
+        value: totalStaff,
+        description: "All staff accounts in the system",
+        icon: RiTeamLine,
+        tone: "orange",
+      },
+      {
+        title: "Active Staff",
+        value: activeStaff,
+        description: "Staff accounts currently active",
+        icon: RiCheckboxCircleLine,
+        tone: "green",
+      },
+      {
+        title: "Inactive Staff",
+        value: inactiveStaff,
+        description: "Staff accounts currently inactive",
+        icon: RiCloseCircleLine,
+        tone: "gray",
+      },
+      {
+        title: "Total Branches",
+        value: totalBranches,
+        description: "All restaurant branches",
+        icon: RiStore2Line,
+        tone: "orange",
+      },
+      {
+        title: "Active Branches",
+        value: activeBranches,
+        description: "Branches currently operating",
+        icon: RiCheckboxCircleLine,
+        tone: "green",
+      },
+      {
+        title: "Inactive Branches",
+        value: inactiveBranches,
+        description: "Branches currently disabled",
+        icon: RiCloseCircleLine,
+        tone: "gray",
+      },
+    ],
+    [
+      totalStaff,
+      activeStaff,
+      inactiveStaff,
+      totalBranches,
+      activeBranches,
+      inactiveBranches,
+    ]
+  );
 
-  /*
-    Simple quick links to your own pages.
-  */
   const quickLinks = [
     {
       title: "Staff Management",
-      description: "View and manage staff accounts.",
+      description: "View, create, edit, activate, and deactivate staff.",
       path: "/staff/staff",
       icon: RiTeamLine,
     },
     {
       title: "Branch Management",
-      description: "View and manage branches.",
+      description: "View and manage restaurant branches.",
       path: "/staff/branches",
       icon: RiStore2Line,
     },
+    {
+      title: "Roles & Permissions",
+      description: "Manage role salaries and access permissions.",
+      path: "/staff/roles",
+      icon: RiShieldCheckLine,
+    },
+    {
+      title: "System Configuration",
+      description: "Manage tax, service charge, and loyalty rules.",
+      path: "/staff/system-config",
+      icon: RiSettings3Line,
+    },
+    {
+      title: "Audit Logs",
+      description: "Review important system activity records.",
+      path: "/staff/audit-logs",
+      icon: RiFileList3Line,
+    },
   ];
 
+  const getIconToneClass = (tone) => {
+    if (tone === "green") {
+      return "bg-green-50 text-green-600";
+    }
+
+    if (tone === "gray") {
+      return "bg-gray-100 text-gray-600";
+    }
+
+    return "bg-orange-50 text-orange-600";
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Small dashboard title */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Simple summary of staff and branch records.
-          </p>
-        </div>
+    <div className="space-y-5">
+      {/* Overview card */}
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">
+              Dashboard Overview
+            </h3>
 
-        <button
-          type="button"
-          onClick={loadDashboardData}
-          disabled={loading}
-          className="inline-flex w-fit items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-        >
-          <RiRefreshLine size={20} />
-          {loading ? "Refreshing..." : "Refresh"}
-        </button>
+            <p className="mt-1 text-sm text-gray-500">
+              Quick summary of staff accounts and restaurant branches.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={loadDashboardData}
+            disabled={loading}
+            className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <RiRefreshLine size={18} />
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
       </div>
-
-      {/* Error message */}
-      {error && (
-        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-          {error}
-        </div>
-      )}
 
       {/* Summary cards */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -255,7 +274,11 @@ export default function DashboardPage() {
                   </p>
                 </div>
 
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
+                <div
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${getIconToneClass(
+                    card.tone
+                  )}`}
+                >
                   <Icon size={24} />
                 </div>
               </div>
@@ -267,11 +290,12 @@ export default function DashboardPage() {
       {/* Quick links */}
       <section className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-bold text-gray-900">Quick Actions</h2>
+
         <p className="mt-1 text-sm text-gray-500">
-          Go directly to the main management pages.
+          Go directly to the main super admin management pages.
         </p>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {quickLinks.map((link) => {
             const Icon = link.icon;
 
@@ -282,14 +306,15 @@ export default function DashboardPage() {
                 className="group flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4 transition hover:border-orange-200 hover:bg-orange-50"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-orange-600">
-                    <Icon size={24} />
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-orange-600">
+                    <Icon size={22} />
                   </div>
 
                   <div>
                     <h3 className="text-sm font-bold text-gray-900">
                       {link.title}
                     </h3>
+
                     <p className="mt-1 text-sm text-gray-500">
                       {link.description}
                     </p>
@@ -298,7 +323,7 @@ export default function DashboardPage() {
 
                 <RiArrowRightLine
                   size={20}
-                  className="text-gray-300 group-hover:text-orange-500"
+                  className="shrink-0 text-gray-300 group-hover:text-orange-500"
                 />
               </Link>
             );
