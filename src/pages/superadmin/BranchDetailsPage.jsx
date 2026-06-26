@@ -6,7 +6,6 @@ import {
   RiEditLine,
   RiErrorWarningLine,
   RiShieldUserLine,
-  RiSaveLine,
 } from "@remixicon/react";
 
 import {
@@ -15,10 +14,7 @@ import {
   deactivateBranchAPI,
 } from "../../apis/staff/branches";
 
-import {
-  getBranchConfigAPI,
-  updateBranchConfigAPI,
-} from "../../apis/staff/systemConfig";
+import { getBranchConfigAPI } from "../../apis/staff/systemConfig";
 
 import { useAuth } from "../../context/AuthContext";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
@@ -40,7 +36,6 @@ export default function BranchDetailsPage() {
 
   const [loading, setLoading] = useState(true);
   const [configLoading, setConfigLoading] = useState(false);
-  const [configSaving, setConfigSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const [pageError, setPageError] = useState("");
@@ -165,53 +160,6 @@ export default function BranchDetailsPage() {
 
     await loadBranch();
     setActionLoading(false);
-  };
-
-  const handleConfigChange = (event) => {
-    const { name, value, type, checked } = event.target;
-
-    setBranchConfig((previous) => ({
-      ...previous,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleSaveBranchConfig = async () => {
-    setConfigSaving(true);
-    setConfigError("");
-
-    const payload = {
-      ...branchConfig,
-      deliveryFee:
-        branchConfig.deliveryFee === "" || branchConfig.deliveryFee === null
-          ? 0
-          : Number(branchConfig.deliveryFee),
-      deliveryEnabled: Boolean(branchConfig.deliveryEnabled),
-      pickupEnabled: Boolean(branchConfig.pickupEnabled),
-      dineInEnabled: Boolean(branchConfig.dineInEnabled),
-      branchActiveForOrders: Boolean(branchConfig.branchActiveForOrders),
-    };
-
-    if (payload.deliveryFee < 0) {
-      showErrorToast("Delivery fee cannot be negative.");
-      setConfigSaving(false);
-      return;
-    }
-
-    try {
-      const updatedConfig = await updateBranchConfigAPI(id, payload);
-
-      setBranchConfig(normalizeBranchConfig(updatedConfig));
-      showSuccessToast("Branch configuration updated successfully.");
-    } catch (error) {
-      const message =
-        error.message || "Failed to update branch order configuration.";
-
-      setConfigError(message);
-      showErrorToast(message);
-    } finally {
-      setConfigSaving(false);
-    }
   };
 
   if (!isSuperAdmin) {
@@ -372,10 +320,7 @@ export default function BranchDetailsPage() {
       <BranchOrderConfigurationCard
         branchConfig={branchConfig}
         configLoading={configLoading}
-        configSaving={configSaving}
         configError={configError}
-        onChange={handleConfigChange}
-        onSave={handleSaveBranchConfig}
         onReload={loadBranchConfig}
       />
     </div>
@@ -385,10 +330,7 @@ export default function BranchDetailsPage() {
 function BranchOrderConfigurationCard({
   branchConfig,
   configLoading,
-  configSaving,
   configError,
-  onChange,
-  onSave,
   onReload,
 }) {
   return (
@@ -400,7 +342,7 @@ function BranchOrderConfigurationCard({
           </h3>
 
           <p className="mt-1 text-sm text-gray-500">
-            Configure delivery fee and available order methods for this branch.
+            View delivery fee and available order methods for this branch.
           </p>
         </div>
 
@@ -429,97 +371,66 @@ function BranchOrderConfigurationCard({
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
-          <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-            Delivery Fee
-          </label>
-
-          <input
-            type="number"
-            name="deliveryFee"
-            value={branchConfig.deliveryFee}
-            onChange={onChange}
-            min="0"
-            step="0.01"
-            disabled={configLoading || configSaving}
-            className="mt-3 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-100 disabled:text-gray-400"
-          />
-
-          <p className="mt-2 text-xs text-gray-400">
-            Delivery fee is used only when delivery is enabled.
-          </p>
-        </div>
-
-        <ConfigToggleCard
-          name="branchActiveForOrders"
-          label="Active for Orders"
-          description="Allow this branch to receive customer orders."
-          checked={branchConfig.branchActiveForOrders}
-          disabled={configLoading || configSaving}
-          onChange={onChange}
-        />
-
-        <ConfigToggleCard
-          name="deliveryEnabled"
-          label="Delivery"
-          description="Enable delivery orders for this branch."
-          checked={branchConfig.deliveryEnabled}
-          disabled={configLoading || configSaving}
-          onChange={onChange}
-        />
-
-        <ConfigToggleCard
-          name="pickupEnabled"
-          label="Pickup"
-          description="Enable pickup orders for this branch."
-          checked={branchConfig.pickupEnabled}
-          disabled={configLoading || configSaving}
-          onChange={onChange}
-        />
-
-        <div className="lg:col-span-2">
-          <ConfigToggleCard
-            name="dineInEnabled"
-            label="Dine-In"
-            description="Enable dine-in orders for this branch."
-            checked={branchConfig.dineInEnabled}
-            disabled={configLoading || configSaving}
-            onChange={onChange}
+      {configLoading ? (
+        <div className="mt-6">
+          <BranchDetailsState
+            Icon={RiBuilding2Line}
+            title="Loading branch order configuration"
+            description="Please wait while delivery and order method settings are loaded."
+            iconClassName="bg-gray-100 text-gray-600"
+            loading
           />
         </div>
-      </div>
+      ) : (
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              Delivery Fee
+            </p>
 
-      <div className="mt-6 flex justify-end">
-        <button
-          type="button"
-          onClick={onSave}
-          disabled={configLoading || configSaving}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-md shadow-orange-200 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {configSaving ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-white" />
-          ) : (
-            <RiSaveLine size={18} />
-          )}
+            <div className="mt-3 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900">
+              {branchConfig.deliveryFee || "0"}
+            </div>
 
-          {configSaving ? "Saving..." : "Save Branch Configuration"}
-        </button>
-      </div>
+            <p className="mt-2 text-xs text-gray-400">
+              Delivery fee is used only when delivery is enabled.
+            </p>
+          </div>
+
+          <ConfigStatusCard
+            label="Active for Orders"
+            description="Allow this branch to receive customer orders."
+            enabled={branchConfig.branchActiveForOrders}
+          />
+
+          <ConfigStatusCard
+            label="Delivery"
+            description="Enable delivery orders for this branch."
+            enabled={branchConfig.deliveryEnabled}
+          />
+
+          <ConfigStatusCard
+            label="Pickup"
+            description="Enable pickup orders for this branch."
+            enabled={branchConfig.pickupEnabled}
+          />
+
+          <div className="lg:col-span-2">
+            <ConfigStatusCard
+              label="Dine-In"
+              description="Enable dine-in orders for this branch."
+              enabled={branchConfig.dineInEnabled}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function ConfigToggleCard({
-  name,
-  label,
-  description,
-  checked,
-  disabled,
-  onChange,
-}) {
+function ConfigStatusCard({ label, description, enabled }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5 transition hover:border-orange-100 hover:bg-orange-50/40">
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5">
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
           {label}
@@ -530,15 +441,18 @@ function ConfigToggleCard({
         </p>
       </div>
 
-      <input
-        type="checkbox"
-        name={name}
-        checked={Boolean(checked)}
-        onChange={onChange}
-        disabled={disabled}
-        className="h-5 w-5 shrink-0 cursor-pointer accent-orange-500 disabled:cursor-not-allowed"
-      />
-    </label>
+      <div
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+          enabled ? "bg-orange-500" : "bg-gray-300"
+        }`}
+      >
+        <div
+          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+            enabled ? "translate-x-5" : "translate-x-0"
+          }`}
+        />
+      </div>
+    </div>
   );
 }
 

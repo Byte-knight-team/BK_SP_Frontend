@@ -7,7 +7,6 @@ import {
   RiStore2Line,
   RiCheckboxCircleLine,
   RiCloseCircleLine,
-  RiRefreshLine,
   RiArrowRightLine,
   RiShieldCheckLine,
   RiSettings3Line,
@@ -99,8 +98,8 @@ export default function DashboardPage() {
     if (staffResult.error || branchResult.error) {
       showErrorToast(
         staffResult.error ||
-          branchResult.error ||
-          "Failed to load dashboard data."
+        branchResult.error ||
+        "Failed to load dashboard data."
       );
     }
 
@@ -222,58 +221,23 @@ export default function DashboardPage() {
     return "bg-orange-50 text-orange-600";
   };
 
-  return (
-    <div className="space-y-5">
-      {/* Overview card */}
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">
-              Dashboard Overview
-            </h3>
-
-            <p className="mt-1 text-sm text-gray-500">
-              Quick summary of staff accounts and restaurant branches.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={loadDashboardData}
-            disabled={loading}
-            className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
-            ) : (
-              <RiRefreshLine size={18} />
-            )}
-
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
+  if (loading) {
+    return (
+      <div className="w-full">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          <DashboardState
+            Icon={RiStore2Line}
+            title="Loading dashboard"
+            description="Please wait while staff and branch summary details are loaded."
+            loading
+          />
         </div>
       </div>
+    );
+  }
 
-      {loading && (
-        <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
-            </div>
-
-            <div>
-              <h4 className="text-sm font-bold text-orange-900">
-                Loading dashboard data
-              </h4>
-
-              <p className="mt-0.5 text-sm text-orange-700">
-                Please wait while staff and branch summary details are loaded.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
+  return (
+    <div className="space-y-5">
       {/* Summary cards */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {summaryCards.map((card) => {
@@ -290,15 +254,9 @@ export default function DashboardPage() {
                     {card.title}
                   </p>
 
-                  <div className="mt-3 flex min-h-10 items-center">
-                    {loading ? (
-                      <div className="h-7 w-7 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
-                    ) : (
-                      <h2 className="text-3xl font-bold text-gray-900">
-                        {card.value}
-                      </h2>
-                    )}
-                  </div>
+                  <h2 className="mt-3 text-3xl font-bold text-gray-900">
+                    {card.value}
+                  </h2>
 
                   <p className="mt-2 text-sm text-gray-500">
                     {card.description}
@@ -362,5 +320,33 @@ export default function DashboardPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function DashboardState({ Icon, title, description, loading = false }) {
+  return (
+    <div className="text-center">
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+        {loading ? (
+          <Spinner className="h-6 w-6 border-gray-300 border-t-orange-500" />
+        ) : (
+          <Icon size={24} />
+        )}
+      </div>
+
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function Spinner({ className }) {
+  return (
+    <span
+      className={`inline-flex animate-spin rounded-full border-2 ${className}`}
+    />
   );
 }
