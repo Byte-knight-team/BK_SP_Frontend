@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 import { toast } from "react-toastify";
 
-const PendingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
+const PendingOrdersTab = ({ handleOrderClick, selectedOrderId, refreshKey }) => {
   const [pendingOrdersDetails, setPendingOrdersDetails] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +27,7 @@ const PendingOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
     };
 
     fetchPendingOrdersDetails();
-  }, []);
+  }, [refreshKey]); // Re-runs whenever refreshKey increments — triggered by a new order arriving via WebSocket
 
   if (loading) {
     return (

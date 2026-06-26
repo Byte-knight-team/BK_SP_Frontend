@@ -1,14 +1,23 @@
 import { RiClipboardLine } from "@remixicon/react";
 import OrderTabs from "../../components/kitchen/orders/OrderTabs";
 import SelectedOrder from "../../components/kitchen/orders/SelectedOrder";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { ClipboardList } from "lucide-react";
+import { toast } from "react-toastify";
+import useWebSocket from "../../hooks/useWebSocket";
 
 const KitchenOrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState(null); // Tracks which order is currently selected in the left panel
   const { setHeaderInfo } = useOutletContext();
   const [activeTab, setActiveTab] = useState(1); // When the page loads, the Pending tab (id: 1) is active by default
+
+  // Used to trigger a refresh of the pending orders list when a new order arrives
+  const [pendingRefreshKey, setPendingRefreshKey] = useState(0)
+
+  const { user } = useAuth()
+  const branchId = user?.branchId
 
   useEffect(() => {
     setHeaderInfo({
@@ -18,28 +27,42 @@ const KitchenOrdersPage = () => {
     });
   }, []);
 
+  // Called when a new order notification arrives from the receptionist via WebSocket
+  const handleNewOrder = useCallback((message) => {
+    // Show a toast notification so the chef is alerted immediately
+    toast.success(`🍽️ ${message.message}`, { autoClose: 5000 })
+
+    // Switch to Pending tab and trigger a refresh of the order list
+    setActiveTab(1)
+    setPendingRefreshKey((prev) => prev + 1)
+  }, [])
+
+  // Subscribe to the kitchen-orders topic for this branch
+  const kitchenOrderTopic = branchId
+    ? `/topic/branch/${branchId}/kitchen-orders`
+    : null
+
+  useWebSocket(branchId, kitchenOrderTopic, handleNewOrder)
+
   return (
-    // Full height layout minus the header bar — fills the screen without scrolling the page itself
     <div className="flex h-[calc(100vh-80px)] gap-5 bg-gray-50 p-6">
 
-      {/* Left panel — scrollable order list with tab switcher */}
+      {/* Left panel — order list with tab switcher */}
       <div className="flex w-96 shrink-0 flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-        {/* OrderTabs manages both the tab buttons and the order card list inside */}
         <OrderTabs
-          handleOrderClick={(id) => setSelectedOrder(id)} // When a card is clicked, store its ID as the selected order
-          selectedOrderId={selectedOrder} // Passed down so the active card can be highlighted
-          activeTab={activeTab} // Tells OrderTabs which tab is currently active
-          setActiveTab={setActiveTab} // Allows child components (like SelectedOrder) to switch tabs when an order status changes
+          handleOrderClick={(id) => setSelectedOrder(id)}
+          selectedOrderId={selectedOrder}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          pendingRefreshKey={pendingRefreshKey} // Passed to trigger re-fetch when a new order arrives
         />
       </div>
 
-      {/* Right panel — shows full detail of the selected order */}
+      {/* Right panel — full detail of the selected order */}
       <div className="flex-1 overflow-y-auto">
         {selectedOrder ? (
-          // Render the full order detail when an order is selected
           <SelectedOrder orderId={selectedOrder} setActiveTab={setActiveTab} />
         ) : (
-          // Empty state — shown when no order is selected yet
           <div className="flex h-full flex-col items-center justify-center gap-3 rounded-3xl border border-gray-100 bg-white">
             <div className="rounded-2xl bg-orange-50 p-5 text-orange-300">
               <ClipboardList size={32} />
