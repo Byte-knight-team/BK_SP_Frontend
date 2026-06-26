@@ -16,18 +16,18 @@ const MealTable = ({
   onCompleteMeal,
 }) => {
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-100">
+    <div className="overflow-x-auto rounded-2xl border border-gray-100 [&::-webkit-scrollbar]:hidden">
       <table className="w-full border-collapse text-left">
         {/* table header */}
         <thead className="bg-gray-50/80 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
           <tr>
-            <th className="px-6 py-4">Meal Item</th>
-            <th className="px-6 py-4 text-center">Qty</th>
-            <th className="px-6 py-4 text-center">Status</th>
-            <th className="px-6 py-4 text-center">Chef Name</th>
+            <th className="px-4 py-3">Meal Item</th>
+            <th className="px-4 py-3 text-center">Qty</th>
+            <th className="px-4 py-3 text-center">Status</th>
+            <th className="px-4 py-3 text-center">Chef Name</th>
             {/* show actions only if the order is not completed or on hold */}
             {(orderStatus === 'PENDING' || orderStatus === 'PREPARING') && (
-              <th className="px-6 py-4 text-center">Actions</th>
+              <th className="px-4 py-3 text-center">Actions</th>
             )}
           </tr>
         </thead>
@@ -37,21 +37,21 @@ const MealTable = ({
           {mealsData.map((meal) => (
             <tr key={meal.id} className="transition-colors hover:bg-gray-50/50">
               {/* meal name */}
-              <td className="px-4 py-3">
+              <td className="px-3 py-3">
                 <div className="flex flex-col text-left">
                   <span className="font-bold text-gray-800">{meal.name}</span>
                 </div>
               </td>
 
               {/* quantity */}
-              <td className="px-4 py-3 text-center">
+              <td className="px-3 py-3 text-center">
                 <span className="rounded-lg bg-gray-50 px-3 py-1 text-sm font-bold text-gray-800">
                   x{meal.qty}
                 </span>
               </td>
 
               {/* status badge */}
-              <td className="px-4 py-3 text-center">
+              <td className="px-3 py-3 text-center">
                 <span
                   className={`inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase ${
                     statusStyles[meal.status]
@@ -63,7 +63,7 @@ const MealTable = ({
               </td>
 
               {/* chef name column */}
-              <td className="px-4 py-3 text-center">
+              <td className="px-3 py-3 text-center">
                 <p
                   className={`text-xs font-bold tracking-tight ${
                     meal.chefName === 'Not Assigned'
@@ -77,7 +77,7 @@ const MealTable = ({
 
               {/* action buttons column */}
               {(orderStatus === 'PENDING' || orderStatus === 'PREPARING') && (
-                <td className="px-4 py-3">
+                <td className="px-3 py-3">
                   <div className="flex justify-center gap-2">
                     {meal.status === 'PENDING' && (
                       <>

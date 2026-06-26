@@ -8,7 +8,7 @@ import OrderDetailPanel from '../../components/receptionist/orders/OrderDetailPa
 
 const TABS = [
   { key: 'PLACED',    label: 'Incoming' },
-  { key: 'KITCHEN',   label: 'In Kitchen' },
+  { key: 'KITCHEN',   label: 'Kitchen' },
   { key: 'ON_HOLD',   label: 'On Hold' },
   { key: 'COMPLETED', label: 'Ready' },
   { key: 'SERVED',    label: 'Served' },
@@ -65,10 +65,10 @@ const OrderManagementPage = () => {
     : orders.filter((o) => o.orderType === typeFilter)
 
   return (
-    <div className="flex h-[calc(100vh-80px)] gap-5 bg-gray-50 p-6">
+    <div className="flex h-[calc(100vh-80px)] gap-4 p-0">
 
       {/* LEFT PANEL */}
-      <div className="flex w-96 shrink-0 flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+      <div className="flex w-80 shrink-0 flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
 
         {/* Panel header + tabs */}
         <div className="px-5 pt-5">

@@ -118,13 +118,13 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
   const isCashDue = order.paymentStatus === 'PENDING'
 
   return (
-    <div className="rounded-3xl border border-gray-100 bg-white p-6 space-y-5">
+    <div className="rounded-3xl border border-gray-100 bg-white p-4 space-y-3">
 
       {/* HEADER */}
-      <div className="flex items-start justify-between flex-wrap gap-3">
+      <div className="flex items-start justify-between flex-wrap gap-2">
         <div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="text-xl font-bold text-gray-900">{order.orderNumber}</h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-lg font-bold text-gray-900">{order.orderNumber}</h2>
             <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${
               isQR
                 ? 'bg-purple-50 text-purple-600 border border-purple-100'
@@ -134,7 +134,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
               {isQR ? 'QR Dine-in' : 'Online Pickup'}
             </span>
           </div>
-          <p className="mt-1 text-xs text-gray-400">{order.placedAt}</p>
+          <p className="mt-0.5 text-xs text-gray-400">{order.placedAt}</p>
         </div>
 
         {isCashDue && (
@@ -148,22 +148,22 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
       </div>
 
       {/* CUSTOMER + LOCATION */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-gray-50 p-4 space-y-1.5">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Customer</p>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-2xl bg-gray-50 p-3 space-y-1">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Customer</p>
           <p className="text-sm font-bold text-gray-800">
             {order.contactName || order.customerName || 'Guest'}
           </p>
           <p className="text-xs text-gray-500">{order.contactPhone || order.customerPhone}</p>
           <p className="text-xs text-gray-500 truncate">{order.contactEmail || order.customerEmail}</p>
         </div>
-        <div className="rounded-2xl bg-gray-50 p-4 space-y-1.5">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">
+        <div className="rounded-2xl bg-gray-50 p-3 space-y-1">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">
             {isQR ? 'Table' : 'Pickup Info'}
           </p>
           {isQR ? (
             <>
-              <p className="text-3xl font-black text-orange-500">#{order.tableNumber}</p>
+              <p className="text-2xl font-black text-orange-500">#{order.tableNumber}</p>
               <p className="text-xs text-gray-400">Dine-in table</p>
             </>
           ) : (
@@ -177,29 +177,29 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
 
       {/* ITEMS */}
       <div>
-        <p className="mb-3 text-sm font-bold text-gray-800">Items Ordered</p>
-        <div className="rounded-2xl border border-gray-100 overflow-hidden">
+        <p className="mb-2 text-sm font-bold text-gray-800">Items Ordered</p>
+        <div className="rounded-2xl border border-gray-100 overflow-x-auto [&::-webkit-scrollbar]:hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-xs text-gray-400">
               <tr>
-                <th className="px-4 py-2.5 text-left font-semibold">Item</th>
-                <th className="px-4 py-2.5 text-center font-semibold">Qty</th>
-                <th className="px-4 py-2.5 text-right font-semibold">Subtotal</th>
-                <th className="px-4 py-2.5 text-right font-semibold">Status</th>
+                <th className="px-3 py-2 text-left font-semibold">Item</th>
+                <th className="px-3 py-2 text-center font-semibold">Qty</th>
+                <th className="px-3 py-2 text-right font-semibold">Subtotal</th>
+                <th className="px-3 py-2 text-right font-semibold">Status</th>
                 {activeTab === 'COMPLETED' && isQR && (
-                  <th className="px-4 py-2.5 text-center font-semibold">Serve</th>
+                  <th className="px-3 py-2 text-center font-semibold">Serve</th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {order.items.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50/60">
-                  <td className="px-4 py-3 font-medium text-gray-800">{item.itemName}</td>
-                  <td className="px-4 py-3 text-center text-gray-600">{item.quantity}</td>
-                  <td className="px-4 py-3 text-right font-bold text-gray-700">
+                  <td className="px-3 py-2 font-medium text-gray-800">{item.itemName}</td>
+                  <td className="px-3 py-2 text-center text-gray-600">{item.quantity}</td>
+                  <td className="px-3 py-2 text-right font-bold text-gray-700">
                     Rs. {item.subtotal.toFixed(2)}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-2 text-right">
                     <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
                       ITEM_STATUS_STYLES[item.status] || 'bg-gray-100 text-gray-400'
                     }`}>
@@ -207,7 +207,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
                     </span>
                   </td>
                   {activeTab === 'COMPLETED' && isQR && (
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2 text-center">
                       {item.status === 'READY' ? (
                         <button onClick={() => handleServeItem(item.id)}
                           className="rounded-xl bg-green-500 px-3 py-1 text-xs font-bold text-white hover:bg-green-600">
@@ -228,32 +228,32 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
       </div>
 
       {/* PAYMENT SUMMARY */}
-      <div className="rounded-2xl bg-gray-50 p-4 space-y-2">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-3">Payment Summary</p>
-        <div className="flex justify-between text-sm text-gray-600">
+      <div className="rounded-2xl bg-gray-50 p-3 space-y-1.5">
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Payment Summary</p>
+        <div className="flex justify-between text-xs text-gray-600">
           <span>Subtotal</span><span>Rs. {order.totalAmount.toFixed(2)}</span>
         </div>
         {order.taxAmount > 0 && (
-          <div className="flex justify-between text-sm text-gray-600">
+          <div className="flex justify-between text-xs text-gray-600">
             <span>Tax</span><span>Rs. {order.taxAmount.toFixed(2)}</span>
           </div>
         )}
         {order.serviceCharge > 0 && (
-          <div className="flex justify-between text-sm text-gray-600">
+          <div className="flex justify-between text-xs text-gray-600">
             <span>Service Charge</span><span>Rs. {order.serviceCharge.toFixed(2)}</span>
           </div>
         )}
         {order.discountAmount > 0 && (
-          <div className="flex justify-between text-sm text-green-600">
+          <div className="flex justify-between text-xs text-green-600">
             <span>Discount {order.appliedCouponCode && `(${order.appliedCouponCode})`}</span>
             <span>− Rs. {order.discountAmount.toFixed(2)}</span>
           </div>
         )}
-        <div className="border-t border-gray-200 pt-2 flex justify-between text-base font-black text-gray-900">
+        <div className="border-t border-gray-200 pt-1.5 flex justify-between text-sm font-black text-gray-900">
           <span>Total Due</span>
           <span className="text-orange-600">Rs. {order.finalAmount.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between text-xs pt-1">
+        <div className="flex justify-between text-xs">
           <span className="text-gray-400">Payment Status</span>
           <span className={`font-bold ${isCashDue ? 'text-red-500' : 'text-green-600'}`}>
             {isCashDue ? 'CASH — Not Yet Collected' : '✓ PAID'}
@@ -263,24 +263,24 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
 
       {/* KITCHEN NOTES */}
       {order.kitchenNotes && (
-        <div className="rounded-2xl border border-orange-100 bg-orange-50 p-4">
+        <div className="rounded-2xl border border-orange-100 bg-orange-50 p-3">
           <p className="text-[10px] font-bold uppercase tracking-wide text-orange-500 mb-1">Kitchen Note</p>
-          <p className="text-sm text-orange-800">{order.kitchenNotes}</p>
+          <p className="text-xs text-orange-800">{order.kitchenNotes}</p>
         </div>
       )}
 
       {/* HOLD REASON */}
       {order.holdReason && (
-        <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
+        <div className="rounded-2xl border border-red-100 bg-red-50 p-3">
           <p className="text-[10px] font-bold uppercase tracking-wide text-red-500 mb-1">Hold Reason</p>
-          <p className="text-sm text-red-800">{order.holdReason}</p>
+          <p className="text-xs text-red-800">{order.holdReason}</p>
         </div>
       )}
 
       {/* STOCK CHECK */}
       {activeTab === 'PLACED' && (
         <div>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <div className="rounded-xl bg-orange-100 p-1.5 text-orange-600">
                 <FlaskConical size={13} />
@@ -322,7 +322,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
       )}
 
       {/* ACTION BUTTONS */}
-      <div className="flex gap-3 flex-wrap pt-2">
+      <div className="flex gap-3 flex-wrap pt-1">
         {activeTab === 'PLACED' && (
           <>
             <button onClick={() => setIsHoldOpen(true)}
