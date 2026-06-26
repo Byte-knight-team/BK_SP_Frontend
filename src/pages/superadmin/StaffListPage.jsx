@@ -9,6 +9,8 @@ import {
   RiFileCopyLine,
   RiSearchLine,
   RiCloseLine,
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
 } from "@remixicon/react";
 
 import {
@@ -25,6 +27,8 @@ import {
   showWarningToast,
 } from "../../utils/toast";
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
+
 /*
   StaffListPage
 
@@ -32,6 +36,7 @@ import {
   - Keeps View, Edit, Invite, Activate/Deactivate actions.
   - Uses toast notifications for action feedback.
   - Adds frontend-only search and filters using loaded staff data.
+  - Adds frontend-only pagination after search/filter.
   - Adds confirmation modal before activate/deactivate actions.
   - Keeps actions aligned horizontally.
 */
@@ -53,6 +58,9 @@ export default function StaffListPage() {
   const [roleFilter, setRoleFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [staffToConfirm, setStaffToConfirm] = useState(null);
 
@@ -126,8 +134,50 @@ export default function StaffListPage() {
     });
   }, [staffList, searchTerm, roleFilter, branchFilter, statusFilter]);
 
+  const totalPages =
+    filteredStaffList.length === 0
+      ? 0
+      : Math.ceil(filteredStaffList.length / pageSize);
+
+  const safeCurrentPage =
+    totalPages === 0 ? 1 : Math.min(currentPage, totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+
+  const paginatedStaffList = useMemo(() => {
+    return filteredStaffList.slice(startIndex, endIndex);
+  }, [filteredStaffList, startIndex, endIndex]);
+
+  const firstVisibleStaffNumber =
+    filteredStaffList.length === 0 ? 0 : startIndex + 1;
+
+  const lastVisibleStaffNumber = Math.min(
+    endIndex,
+    filteredStaffList.length
+  );
+
+  const visiblePageNumbers = getVisiblePageNumbers(
+    safeCurrentPage,
+    totalPages
+  );
+
   const hasActiveFilters =
     searchTerm.trim() !== "" || roleFilter || branchFilter || statusFilter;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, roleFilter, branchFilter, statusFilter, pageSize]);
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+
+    if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
 
   useEffect(() => {
     if (location.state?.successMessage) {
@@ -181,6 +231,14 @@ export default function StaffListPage() {
   const closeStatusConfirmModal = () => {
     if (actionLoadingId) return;
     setStaffToConfirm(null);
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(page - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((page) => Math.min(page + 1, totalPages));
   };
 
   const handleToggleStatus = async (staff) => {
@@ -367,7 +425,7 @@ Please manually share this temporary password with the staff member.`
 
           <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
             <p>
-              Showing{" "}
+              Matching{" "}
               <span className="font-bold text-gray-800">
                 {filteredStaffList.length}
               </span>{" "}
@@ -443,7 +501,7 @@ Please manually share this temporary password with the staff member.`
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {filteredStaffList.map((staff) => {
+                {paginatedStaffList.map((staff) => {
                   const staffId = getStaffId(staff);
                   const isActive = isStaffActive(staff);
                   const isActionLoading = actionLoadingId === staffId;
@@ -486,10 +544,11 @@ Please manually share this temporary password with the staff member.`
 
                       <td className="px-5 py-4 align-middle">
                         <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isActive
-                            ? "bg-green-50 text-green-700"
-                            : "bg-gray-100 text-gray-500"
-                            }`}
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                            isActive
+                              ? "bg-green-50 text-green-700"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
                         >
                           {isActive ? "Active" : "Inactive"}
                         </span>
@@ -526,10 +585,11 @@ Please manually share this temporary password with the staff member.`
                               type="button"
                               disabled={isActionLoading}
                               onClick={() => openStatusConfirmModal(staff)}
-                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isActive
-                                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                : "bg-green-50 text-green-700 hover:bg-green-100"
-                                }`}
+                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                                isActive
+                                  ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                  : "bg-green-50 text-green-700 hover:bg-green-100"
+                              }`}
                             >
                               {isActionLoading
                                 ? "Updating..."
@@ -549,6 +609,88 @@ Please manually share this temporary password with the staff member.`
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {!loading && filteredStaffList.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <p className="text-sm text-gray-500">
+                Page{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalPages === 0 ? 0 : safeCurrentPage}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalPages}
+                </span>{" "}
+                • Showing{" "}
+                <span className="font-semibold text-gray-800">
+                  {firstVisibleStaffNumber}
+                </span>
+                -
+                <span className="font-semibold text-gray-800">
+                  {lastVisibleStaffNumber}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-800">
+                  {filteredStaffList.length}
+                </span>{" "}
+                staff
+              </p>
+
+              <label className="flex items-center gap-2 text-sm text-gray-500">
+                Rows:
+                <select
+                  value={pageSize}
+                  onChange={(event) => setPageSize(Number(event.target.value))}
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={goToPreviousPage}
+                disabled={safeCurrentPage <= 1}
+                className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <RiArrowLeftSLine size={18} />
+                Previous
+              </button>
+
+              {visiblePageNumbers.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`h-9 min-w-9 rounded-xl px-3 text-sm font-bold transition-colors ${
+                    pageNumber === safeCurrentPage
+                      ? "bg-orange-500 text-white shadow-sm shadow-orange-100"
+                      : "border border-gray-200 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={goToNextPage}
+                disabled={safeCurrentPage >= totalPages}
+                className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+                <RiArrowRightSLine size={18} />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -581,10 +723,11 @@ function StaffStatusConfirmModal({ staff, isLoading, onClose, onConfirm }) {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${active
-                ? "bg-red-50 text-red-600"
-                : "bg-green-50 text-green-700"
-                }`}
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                active
+                  ? "bg-red-50 text-red-600"
+                  : "bg-green-50 text-green-700"
+              }`}
             >
               <RiErrorWarningLine size={22} />
             </div>
@@ -648,10 +791,11 @@ function StaffStatusConfirmModal({ staff, isLoading, onClose, onConfirm }) {
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${active
+            className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+              active
                 ? "bg-red-500 shadow-red-100 hover:bg-red-600"
                 : "bg-green-600 shadow-green-100 hover:bg-green-700"
-              }`}
+            }`}
           >
             {isLoading ? "Updating..." : `Yes, ${actionLabel}`}
           </button>
@@ -721,6 +865,28 @@ function getUniqueSortedValues(values) {
   );
 }
 
+function getVisiblePageNumbers(currentPage, totalPages) {
+  if (totalPages <= 0) {
+    return [];
+  }
+
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  let startPage = Math.max(currentPage - 2, 1);
+  let endPage = Math.min(startPage + 4, totalPages);
+
+  if (endPage - startPage < 4) {
+    startPage = Math.max(endPage - 4, 1);
+  }
+
+  return Array.from(
+    { length: endPage - startPage + 1 },
+    (_, index) => startPage + index
+  );
+}
+
 function StaffNoticeCard({ message, onClose }) {
   const isWarning =
     message.toLowerCase().includes("failed") ||
@@ -744,17 +910,19 @@ function StaffNoticeCard({ message, onClose }) {
 
   return (
     <div
-      className={`mt-5 rounded-2xl border px-4 py-4 ${isWarning
-        ? "border-amber-100 bg-amber-50 text-amber-800"
-        : "border-emerald-100 bg-emerald-50 text-emerald-800"
-        }`}
+      className={`mt-5 rounded-2xl border px-4 py-4 ${
+        isWarning
+          ? "border-amber-100 bg-amber-50 text-amber-800"
+          : "border-emerald-100 bg-emerald-50 text-emerald-800"
+      }`}
     >
       <div className="flex items-start gap-3">
         <div
-          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isWarning
-            ? "bg-amber-100 text-amber-700"
-            : "bg-emerald-100 text-emerald-700"
-            }`}
+          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+            isWarning
+              ? "bg-amber-100 text-amber-700"
+              : "bg-emerald-100 text-emerald-700"
+          }`}
         >
           {isWarning ? (
             <RiErrorWarningLine size={19} />
@@ -790,10 +958,11 @@ function StaffNoticeCard({ message, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className={`rounded-xl px-3 py-2 text-xs font-bold ${isWarning
-                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                  : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                  }`}
+                className={`rounded-xl px-3 py-2 text-xs font-bold ${
+                  isWarning
+                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                    : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                }`}
               >
                 Dismiss
               </button>
