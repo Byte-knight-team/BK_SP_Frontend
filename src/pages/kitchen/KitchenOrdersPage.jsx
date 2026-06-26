@@ -45,10 +45,10 @@ const KitchenOrdersPage = () => {
   useWebSocket(branchId, kitchenOrderTopic, handleNewOrder)
 
   return (
-    <div className="flex h-[calc(100vh-80px)] gap-5 bg-gray-50 p-6">
+    <div className="flex h-[calc(100vh-80px)] gap-4 p-0">
 
       {/* Left panel — order list with tab switcher */}
-      <div className="flex w-96 shrink-0 flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+      <div className="flex w-80 shrink-0 flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
         <OrderTabs
           handleOrderClick={(id) => setSelectedOrder(id)}
           selectedOrderId={selectedOrder}

@@ -12,8 +12,11 @@ const STATUS_BORDER = {
 const OrderCard = ({ order, isSelected, onClick }) => {
   const isQR      = order.orderType === 'QR'
   const isCashDue = order.paymentStatus === 'PENDING'
-  const initial   = (order.customerName || 'G').charAt(0).toUpperCase()
   const border    = STATUS_BORDER[order.status] || 'border-l-gray-300'
+  // Only show the time portion (e.g. "12:21 AM") since we always show today's orders
+  const timeDisplay = order.placedAt?.includes(',')
+    ? order.placedAt.split(', ')[1]
+    : order.placedAt
 
   return (
     <button
@@ -24,10 +27,10 @@ const OrderCard = ({ order, isSelected, onClick }) => {
           : 'border border-gray-100'
       }`}
     >
-      {/* Top row: avatar + order number + type badge */}
+      {/* Top row: icon + order number + type badge */}
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-sm font-black text-orange-600">
-          {initial}
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-500">
+          {isQR ? <Monitor size={16} /> : <ShoppingBag size={16} />}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
@@ -40,19 +43,16 @@ const OrderCard = ({ order, isSelected, onClick }) => {
             </span>
           </div>
           <p className="mt-0.5 truncate text-xs text-gray-500">
-            {order.customerName || 'Guest'}
-            {isQR && order.tableNumber
-              ? ` · Table #${order.tableNumber}`
-              : ' · Pickup'}
+            {isQR && order.tableNumber ? `Table #${order.tableNumber}` : 'Pickup'}
           </p>
         </div>
       </div>
 
-      {/* Bottom row: time + cash badge + amount */}
-      <div className="mt-3 flex items-center justify-between">
+      {/* Bottom row: time + cash badge + amount — flex-wrap prevents overflow on narrow cards */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-1">
         <span className="flex items-center gap-1 text-xs text-gray-400">
           <Clock size={10} />
-          {order.placedAt}
+          {timeDisplay}
         </span>
         <div className="flex items-center gap-2">
           {isCashDue && (
