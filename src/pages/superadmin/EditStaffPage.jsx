@@ -8,7 +8,11 @@ import {
   useOutletContext,
   useParams,
 } from "react-router-dom";
-import { RiArrowLeftLine, RiEditLine } from "@remixicon/react";
+import {
+  RiArrowLeftLine,
+  RiEditLine,
+  RiErrorWarningLine,
+} from "@remixicon/react";
 
 import { getStaffByIdAPI, updateStaffAPI } from "../../apis/staff/staff";
 import { getAllBranchesAPI } from "../../apis/staff/branches";
@@ -461,27 +465,33 @@ export default function EditStaffPage() {
 
   if (pageLoading) {
     return (
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 text-sm text-gray-500 shadow-sm">
-        Loading staff details...
+      <div className="max-w-4xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          <EditStaffState
+            Icon={RiEditLine}
+            title="Loading staff edit form"
+            description="Please wait while staff details, roles, and branch information are loaded."
+            iconClassName="bg-gray-100 text-gray-600"
+            loading
+          />
+        </div>
       </div>
     );
   }
 
   if (pageError) {
     return (
-      <div className="rounded-[1.5rem] border border-red-100 bg-red-50 p-8 shadow-sm">
-        <h3 className="text-lg font-bold text-red-700">
-          Unable to load staff details
-        </h3>
-        <p className="mt-2 text-sm text-red-600">{pageError}</p>
+      <div className="max-w-4xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+          <BackToStaffListLink staffListPath={staffListPath} />
 
-        <Link
-          to={staffListPath}
-          className="mt-5 inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100"
-        >
-          <RiArrowLeftLine size={18} />
-          Back to staff list
-        </Link>
+          <EditStaffState
+            Icon={RiErrorWarningLine}
+            title="Unable to load staff details"
+            description={pageError}
+            iconClassName="bg-red-50 text-red-600"
+          />
+        </div>
       </div>
     );
   }
@@ -489,15 +499,7 @@ export default function EditStaffPage() {
   return (
     <div className="max-w-4xl">
       <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
-        <div className="mb-6">
-          <Link
-            to={staffListPath}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-700"
-          >
-            <RiArrowLeftLine size={18} />
-            Back to staff list
-          </Link>
-        </div>
+        <BackToStaffListLink staffListPath={staffListPath} />
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -548,8 +550,9 @@ export default function EditStaffPage() {
 
             {/* Role */}
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
+              <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
                 Role
+                {rolesLoading && <InlineSpinner />}
               </label>
 
               <select
@@ -610,8 +613,9 @@ export default function EditStaffPage() {
             {isSuperAdmin ? (
               formData.roleName !== "SUPER_ADMIN" ? (
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
                     Branch
+                    {branchLoading && <InlineSpinner />}
                   </label>
 
                   <select
@@ -661,7 +665,7 @@ export default function EditStaffPage() {
 
           <div className="flex items-center justify-end gap-3 pt-2">
             <Link
-              to={staffListPath}
+              to={staffDetailsPath}
               className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               Cancel
@@ -670,13 +674,65 @@ export default function EditStaffPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
+              {saving && (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-white" />
+              )}
+
               {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
       </div>
     </div>
+  );
+}
+
+function BackToStaffListLink({ staffListPath }) {
+  return (
+    <div className="mb-6">
+      <Link
+        to={staffListPath}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-700"
+      >
+        <RiArrowLeftLine size={18} />
+        Back to staff list
+      </Link>
+    </div>
+  );
+}
+
+function EditStaffState({
+  Icon,
+  title,
+  description,
+  iconClassName,
+  loading = false,
+}) {
+  return (
+    <div className="text-center">
+      <div
+        className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${iconClassName}`}
+      >
+        {loading ? (
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+        ) : (
+          <Icon size={24} />
+        )}
+      </div>
+
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function InlineSpinner() {
+  return (
+    <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
   );
 }
