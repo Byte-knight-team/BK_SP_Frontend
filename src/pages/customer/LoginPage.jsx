@@ -122,12 +122,12 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/*<div className="flex items-center justify-between text-sm">
-              <button type="button" className="font-medium text-orange-500 hover:text-orange-600">
+            <div className="flex items-center justify-end text-sm">
+              <Link to="/forgot-password" className="font-semibold text-orange-500 hover:text-orange-600 transition-colors">
                 Forgot password?
-              </button>
+              </Link>
             </div>
-            */}
+
             <button
               type="submit"
               disabled={isSubmitting}
