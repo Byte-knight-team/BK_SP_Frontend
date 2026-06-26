@@ -87,6 +87,8 @@ import CheckoutPage from './pages/customer/CheckoutPage'
 import CardPaymentPage from './pages/customer/CardPaymentPage'
 import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'
 import CustomerLoginPage from './pages/customer/LoginPage'
+import ForgotPasswordPage from './pages/customer/ForgotPasswordPage'
+import ResetPasswordPage from './pages/customer/ResetPasswordPage'
 import SignupPersonalPage from './pages/customer/SignupPersonalPage'
 import SignupAddressPage from './pages/customer/SignupAddressPage'
 import MobileVerificationPage from './pages/customer/MobileVerificationPage'
@@ -158,9 +160,20 @@ function CustomerLayout() {
   )
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
         <Route path="/staff/login" element={<StaffLoginPage />} />
@@ -325,7 +338,10 @@ export default function App() {
               </CustomerProtectedRoute>
             }
           />
+          {/* Customer Auth Pages */}
           <Route path="/login" element={<CustomerLoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/signup" element={<SignupPersonalPage />} />
           <Route path="/signup/address" element={<SignupAddressPage />} />
           <Route path="/signup/qr" element={<MobileVerificationPage />} />
