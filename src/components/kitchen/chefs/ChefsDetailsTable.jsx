@@ -9,7 +9,7 @@ import {
 import { toast } from 'react-toastify'
 import ChefActionModal from './ChefActionModal'
 
-const ChefDetailsTable = () => {
+const ChefDetailsTable = ({ onActionSuccess }) => {
   const [chefs, setChefs] = useState([])
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -30,15 +30,14 @@ const ChefDetailsTable = () => {
     const { data, error } = await getChefsAPI()
 
     if (error) {
-      console.error('Error fetching chefs:', error)
+      toast.error("Error fetching chefs")
     } else if (data) {
       setChefs(data)
     }
-
     if (showLoading) setLoading(false)
   }
 
-  // 2. Initial load
+  // Initial load
   useEffect(() => {
     fetchChefs(true)
   }, [])
@@ -49,7 +48,7 @@ const ChefDetailsTable = () => {
         {/* Animated Spinner Ring */}
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-100 border-t-orange-500"></div>
 
-        {/* Subtle Loading Text */}
+        {/* Loading Text */}
         <p className="animate-pulse text-sm font-bold tracking-widest text-gray-400 uppercase">
           Fetching Chefs...
         </p>
@@ -60,7 +59,7 @@ const ChefDetailsTable = () => {
   return (
     <div className="w-full overflow-hidden">
       <table className="w-full border-collapse text-left">
-        {/* --- Table Header --- */}
+        {/* Table Header */}
         <thead className="bg-gray-50 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
           <tr>
             <th className="px-6 py-4 text-center">Chef Name</th>
@@ -73,13 +72,13 @@ const ChefDetailsTable = () => {
           </tr>
         </thead>
 
-        {/* --- Table Body --- */}
-        <tbody className="divide-y divide-gray-50">
+        {/* Table Body */}
+        <tbody className="divide-y divide-gray-100">
           {chefs.map((chef, index) => (
-            <tr key={index} className="transition-colors hover:bg-gray-200 border-gray-300">
+            <tr key={index} className="transition-colors hover:bg-gray-100">
               {/* Chef Name & Avatar */}
               <td className="px-6 py-4 pl-20 text-left">
-                <div className="flex items-center justify-start gap-3">
+                <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400">
                     <User size={20} />
                   </div>
@@ -119,6 +118,7 @@ const ChefDetailsTable = () => {
                           : 'border-gray-100 bg-gray-50 text-gray-400' // For UNAVAILABLE
                   }`}
                 >
+                  {/* tiny dot to indicate status */}
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${
                       chef.workStatus === 'AVAILABLE'
@@ -161,7 +161,7 @@ const ChefDetailsTable = () => {
                     IN
                   </button>
 
-                  {/* UPDATE: Only enabled if they are currently working */}
+                  {/* STATUS UPDATE: Only enabled if they are currently working */}
                   <button
                     onClick={() => handleOpenModal('UPDATE_STATUS', chef)}
                     disabled={chef.workStatus === 'UNAVAILABLE'}
@@ -197,10 +197,12 @@ const ChefDetailsTable = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         type={modalType}
+        // Using optional chaining (?.) to prevent "Cannot read properties of null" errors 
+        // if selectedChef is not yet set when the modal renders.
         chefName={selectedChef?.fullName}
         currentStatus={selectedChef?.workStatus}
         onConfirm={async (data) => {
-          let result
+          let result;
 
           if (modalType === 'CHECK_IN') {
             result = await checkInChefAPI(selectedChef.staffId)
@@ -213,7 +215,10 @@ const ChefDetailsTable = () => {
             toast.error(result.error)
           } else {
             toast.success(result.data.message || 'Success')
-            fetchChefs(false) // Background fetch!
+            fetchChefs(false) // Background fetch! (table will update)
+            if (onActionSuccess) {
+              onActionSuccess(); // for update the chef stat cards in chefs page
+            }
           }
           setIsModalOpen(false)
         }}

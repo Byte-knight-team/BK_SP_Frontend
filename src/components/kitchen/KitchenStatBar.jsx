@@ -1,10 +1,10 @@
-import React from "react";
-import ProgressBar from "./ProgressBar";
+import React from 'react'
+import ProgressBar from './ProgressBar'
 
 const warningLevelColors = {
-  CRITICAL: "text-red-500",
-  LOW: "text-yellow-500",
-};
+  CRITICAL: 'text-red-500',
+  LOW: 'text-yellow-500',
+}
 
 const KitchenStatBar = ({
   mealName,
@@ -15,7 +15,7 @@ const KitchenStatBar = ({
   maxStock,
   quantity,
   unit,
-  warningLevel
+  warningLevel,
 }) => {
   return (
     <div className="mb-3 flex flex-col">
@@ -30,7 +30,7 @@ const KitchenStatBar = ({
         </div>
       </div>
 
-      {/*conditional rendering - if weight and warningLevel are present, then show the weight and warning level - then this component can be used for low inventory alerts*/}
+      {/*conditional rendering - if weight and warningLevel are present, then show the weight and warning level - then this can be used for low inventory alerts*/}
       {unit && warningLevel && (
         <div className="mb-2 flex flex-row justify-between">
           <div className="text-xs font-medium text-gray-500 uppercase">
@@ -49,7 +49,7 @@ const KitchenStatBar = ({
         <ProgressBar percentage={percentage} color={color} />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default KitchenStatBar;
+export default KitchenStatBar

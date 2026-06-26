@@ -1,156 +1,159 @@
-import { useState, useEffect } from "react";
-import OrderStepper from "../OrderStepper";
-import MealTable from "./MealTable";
-import { AlertCircle } from "lucide-react";
-import AssignChefModal from "./AssignChefModal";
-import HoldOrderModal from "./HoldOrderModal";
-import ActionConfirmationModal from "./ActionConfirmationModal";
+import { useState, useEffect } from 'react'
+import OrderStepper from '../OrderStepper'
+import MealTable from './MealTable'
+import { AlertCircle } from 'lucide-react'
+import AssignChefModal from './AssignChefModal'
+import HoldOrderModal from './HoldOrderModal'
+import ActionConfirmationModal from './ActionConfirmationModal'
 import {
   getOrderDetailsAPI,
   assignChefToMealAPI,
   holdOrderAPI,
   startMealAPI,
   completeMealAPI,
-} from "../../../apis/kitchen/orders";
+} from '../../../apis/kitchen/orders'
+import { toast } from 'react-toastify'
 
 const statusLabels = {
-  PENDING: "Placed on",
-  PREPARING: "Preparing started at",
-  COMPLETED: "Completed at",
-  ON_HOLD: "Hold at",
-};
+  PENDING: 'Placed on',
+  PREPARING: 'Preparing started at',
+  COMPLETED: 'Completed at',
+  ON_HOLD: 'Hold at',
+}
 
 const statusColors = {
-  PENDING: "bg-orange-50 text-orange-500",
-  PREPARING: "bg-blue-50 text-blue-500",
-  COMPLETED: "bg-green-50 text-green-500",
-  ON_HOLD: "bg-red-50 text-red-600",
-};
+  PENDING: 'bg-orange-50 text-orange-500',
+  PREPARING: 'bg-blue-50 text-blue-500',
+  COMPLETED: 'bg-green-50 text-green-500',
+  ON_HOLD: 'bg-red-50 text-red-600',
+}
 
 const SelectedOrder = ({ orderId, setActiveTab }) => {
-
-  const [order, setOrder] = useState(null); // Stores the fully formatted order data
-  const [loading, setLoading] = useState(false); // Controls the loading state UI
-  const [isModalOpen, setIsModalOpen] = useState(false); // Controls the Chef Modal visibility
-  const [targetMeal, setTargetMeal] = useState(null); // Remembers which meal is currently being assigned
-  const [isHoldModalOpen, setIsHoldModalOpen] = useState(false); //Controls the Hold Modal visibility
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [actionType, setActionType] = useState(""); // Stores "START" or "COMPLETE"
+  const [order, setOrder] = useState(null) // Stores the fully formatted order data
+  const [loading, setLoading] = useState(false) // Controls the loading state UI
+  const [isChefAssignModalOpen, setIsChefAssignModalOpen] = useState(false) // Controls the Chef Modal visibility
+  const [targetMeal, setTargetMeal] = useState(null) // Remembers which meal is currently being assigned
+  const [isHoldModalOpen, setIsHoldModalOpen] = useState(false) //Controls the Hold Modal visibility
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false)
+  const [actionType, setActionType] = useState('') // Stores "START" or "COMPLETE"
 
   // Fetches the latest data from the Backend API (whenever orderId changes or we can call it manually right after the chef is assigned successfully)
   const fetchOrderDetails = async (showLoading = true) => {
-    if (!orderId) return;
-    if (showLoading) setLoading(true); // Only show loading text if requested
-    const { data, error } = await getOrderDetailsAPI(orderId);
+    if (!orderId) return
+    if (showLoading) setLoading(true)
+
+    const { data, error } = await getOrderDetailsAPI(orderId)
+
     if (error) {
-      console.error("Error fetching order details:", error);
+      console.error('Error fetching order details:', error)
     } else if (data) {
       // Map backend data to local state structure
       setOrder({
         id: `#ORD-${data.id}`,
-        time: new Date(data.statusUpdatedAt || data.createdAt).toLocaleString(),
+        time: new Date(data.statusUpdatedAt).toLocaleString(),
         status: data.status,
-        holdReason: data.holdReason || "",
-        kitchenNote: data.kitchenNotes || "",
+        holdReason: data.holdReason || '',
+        kitchenNote: data.kitchenNotes || '',
         meals: data.items.map((item) => ({
           id: item.id,
           name: item.itemName,
           qty: item.quantity,
           status: item.status,
-          chefName: item.assignedChefName || "Not Assigned",
+          chefName: item.assignedChefName || 'Not Assigned',
         })),
-      });
+      })
     }
-    setLoading(false);
-    return data?.status; // return order status to update the tab
-  };
+    setLoading(false)
+  }
 
   useEffect(() => {
-    fetchOrderDetails(true);
-  }, [orderId]);
+    fetchOrderDetails(true)
+  }, [orderId])
 
   // Handler for when the AssignChefModal returns a selected Chef ID
   const handleChefAssignment = async (chefStaffId) => {
-    if (!targetMeal) return;
+    if (!targetMeal) return
 
     // Send the assignment to the Backend database
-    const { error } = await assignChefToMealAPI(targetMeal.id, chefStaffId);
+    const { error } = await assignChefToMealAPI(targetMeal.id, chefStaffId)
 
     if (error) {
-      alert("Failed to assign chef.");
+      toast.error('Failed to assign chef.')
     } else {
+      toast.success('Chef assigned successfully!')
       // Close modal on success
-      setIsModalOpen(false);
+      setIsChefAssignModalOpen(false)
       // REFRESH ONLY: Fetches data again to update the UI without reloading the whole page
-      fetchOrderDetails(false); // set to false to prevent showing loading screen again (background fetch)
+      fetchOrderDetails(false) // set to false to prevent showing loading screen again (background fetch)
     }
-  };
+  }
 
   // Triggered when "Assign Chef" button inside the MealTable is clicked
   const handleAssignChef = (meal) => {
-    setTargetMeal(meal); // store the meal that needs to be assigned
-    setIsModalOpen(true); // open the modal
-  };
+    setTargetMeal(meal) // store the meal that needs to be assigned
+    setIsChefAssignModalOpen(true) // open the modal
+  }
 
   // calls the Hold API and then calls fetchOrderDetails(false) to update silently.
   const handleHoldOrder = async (reason) => {
-    const { error } = await holdOrderAPI(orderId, reason);
+    const { error } = await holdOrderAPI(orderId, reason)
 
     if (!error) {
-      alert("Order put on hold successfully.");
-      setIsHoldModalOpen(false); // Close the modal
-      fetchOrderDetails(false); // This is the background fetch! (No loading screen)
+      toast.success('Order put on hold successfully.')
+      setIsHoldModalOpen(false) // Close the modal
+      fetchOrderDetails(false) // This is the background fetch! (No loading screen)
       // Switch to On Hold tab (Tab ID is 4)
-      setActiveTab(4);
+      setActiveTab(4)
     } else {
-      alert("Failed to hold order. Please try again.");
-    }
-  };
-
-  const handleStartMeal = (meal) => {
-    setTargetMeal(meal);
-    setActionType("START");
-    setIsActionModalOpen(true);
-  };
-
-  const handleCompleteMeal = (meal) => {
-    setTargetMeal(meal);
-    setActionType("COMPLETE");
-    setIsActionModalOpen(true);
-  };
-
-  const confirmMealAction = async () => {
-  if (!targetMeal) return;
-
-  if (actionType === "START") {
-    // Call the Start API
-    const { error } = await startMealAPI(targetMeal.id);
-    
-    // If it works, do the success logic for START
-    if (!error) {
-      setActiveTab(2);             // Switch to Preparing tab
-      setIsActionModalOpen(false); // Close modal
-      fetchOrderDetails(false);    // Background refresh
-    } else {
-      alert("Failed to start meal. Please try again.");
-    }
-    
-  } else {
-    // Call the Complete API and we get the order stataus immediately
-    const { data, error } = await completeMealAPI(targetMeal.id);
-
-    if (!error) {
-      setIsActionModalOpen(false); // Close modal
-      fetchOrderDetails(false); // Background refresh
-      //if the backend returns the final order status as complete, then switch to the completed tab
-      if (data && data.orderStatus === "COMPLETED") {
-        setActiveTab(3); // Switch to Completed tab (Tab ID is 3)
-      }
-    } else {
-      alert("Failed to complete meal. Please try again.");
+      toast.error('Failed to hold order. Please try again.')
     }
   }
-};
+
+  const handleStartMeal = (meal) => {
+    setTargetMeal(meal)
+    setActionType('START')
+    setIsActionModalOpen(true)
+  }
+
+  const handleCompleteMeal = (meal) => {
+    setTargetMeal(meal)
+    setActionType('COMPLETE')
+    setIsActionModalOpen(true)
+  }
+
+  const confirmMealAction = async () => {
+    if (!targetMeal) return
+
+    if (actionType === 'START') {
+      // Call the Start API
+      const { error } = await startMealAPI(targetMeal.id)
+
+      // If it works, do the success logic for START
+      if (!error) {
+        toast.success('Meal preparation started!')
+        setActiveTab(2) // Switch to Preparing tab
+        setIsActionModalOpen(false) // Close modal
+        fetchOrderDetails(false) // Background refresh
+      } else {
+        toast.error('Failed to start meal. Please try again.')
+      }
+    } else {
+      // Call the Complete API and we get the order stataus immediately
+      const { data, error } = await completeMealAPI(targetMeal.id)
+
+      if (!error) {
+        toast.success('Meal completed!')
+        setIsActionModalOpen(false) // Close modal
+        fetchOrderDetails(false) // Background refresh
+        //if the backend returns the final order status as complete, then switch to the completed tab
+        if (data && data.orderStatus === 'COMPLETED') {
+          setActiveTab(3) // Switch to Completed tab (Tab ID is 3)
+        }
+      } else {
+        toast.error('Failed to complete meal. Please try again.')
+      }
+    }
+  }
 
   // State Management: If data is loading, show animation
   if (loading)
@@ -160,7 +163,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
           Loading Order Details...
         </p>
       </div>
-    );
+    )
   // State Management: If no order is selected yet
   if (!order)
     return (
@@ -169,7 +172,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
           Select an order from the list to view details.
         </p>
       </div>
-    );
+    )
 
   return (
     <div className="rounded-3xl border border-gray-100 bg-white p-5">
@@ -178,7 +181,8 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         <div>
           <h1 className="text-xl font-bold text-gray-800">Order {order.id}</h1>
           <p className="mt-1 text-sm font-medium text-gray-400">
-            {statusLabels[order.status] || "Updated at"} {order.time}
+            {/* Dynamic Property Access */}
+            {statusLabels[order.status]} {order.time}
           </p>
         </div>
 
@@ -186,14 +190,15 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
           {/* order status badge */}
           <span
             className={`rounded-full px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase ${
-              statusColors[order.status] || "bg-gray-50 text-gray-500"
+              statusColors[order.status] || 'bg-gray-50 text-gray-500'
             }`}
           >
-            {order.status}
+            {/* Remove the underscores (if available) from the status, then uppercase the whole string */}
+            {order.status.replace('_', ' ').toUpperCase()}
           </span>
 
           {/* display hold the order button (when order is pending) */}
-          {order.status === "PENDING" && (
+          {order.status === 'PENDING' && (
             <button
               onClick={() => setIsHoldModalOpen(true)} // This opens the modal
               className="flex items-center gap-1 rounded-full border border-red-100 px-4 py-1.5 text-[10px] font-bold text-red-500 transition-all hover:bg-red-50"
@@ -206,13 +211,14 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
 
       {/* stepper logic */}
       <div className="mt-4">
-        {order.status === "ON_HOLD" ? (
+        {/* if the order is on hold, display the awaiting action text and the hold reason */}
+        {order.status === 'ON_HOLD' ? (
           <div className="flex items-start gap-4 rounded-2xl border border-red-100 bg-red-50 p-6">
             <AlertCircle size={24} className="mt-0.5 text-red-500" />
             <div>
               <h3 className="font-bold text-red-800">Awaiting Action</h3>
               <p className="mt-1 text-xs text-red-500">
-                Reason: {order.holdReason || "Not specified"}
+                Reason: {order.holdReason || 'Not specified'}
               </p>
             </div>
           </div>
@@ -244,10 +250,12 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         />
       </div>
 
+      {/* Modals */}
+
       {/* assign chef modal */}
       <AssignChefModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isChefAssignModalOpen}
+        onClose={() => setIsChefAssignModalOpen(false)}
         onAssign={handleChefAssignment}
         // Passes the name of the selected meal to the Modal.
         // The '?.' (Optional Chaining) ensures the app doesn't crash if no meal is selected yet.
@@ -271,7 +279,7 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
         chefName={targetMeal?.chefName}
       />
     </div>
-  );
-};
+  )
+}
 
-export default SelectedOrder;
+export default SelectedOrder

@@ -1,9 +1,11 @@
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import './index.css';
+import './index.css'
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
@@ -53,8 +55,17 @@ import CustomerManagementPage from './pages/superadmin/CustomerManagement'
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
+import ManagerSalesSummaryPage from './pages/manager/ManagerSalesSummaryPage'
 import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
 import ManagerDriversPage from './pages/manager/ManagerDriversPage'
+import ManagerStaffPage from './pages/manager/ManagerStaffPage'
+
+import ManagerReportsPage from './pages/manager/ManagerReportsPage'
+
+// Delivery pages
+import DeliveryLayout from './layouts/delivery/DeliveryLayout'
+import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
+import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -75,12 +86,15 @@ import CheckoutPage from './pages/customer/CheckoutPage'
 import CardPaymentPage from './pages/customer/CardPaymentPage'
 import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'
 import CustomerLoginPage from './pages/customer/LoginPage'
+import ForgotPasswordPage from './pages/customer/ForgotPasswordPage'
+import ResetPasswordPage from './pages/customer/ResetPasswordPage'
 import SignupPersonalPage from './pages/customer/SignupPersonalPage'
 import SignupAddressPage from './pages/customer/SignupAddressPage'
 import MobileVerificationPage from './pages/customer/MobileVerificationPage'
 import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
+import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
 
@@ -94,17 +108,10 @@ import ApprovalsPage from './pages/kitchen/ApprovalsPage'
 
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
+import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
+import OrderManagementPage from './pages/receptionist/OrderManagementPage'
 
-function isTokenExpired(token) {
-  if (!token) return true
 
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
 
 // Customer / QR token cleanup only.
 function AuthGuard() {
@@ -132,18 +139,40 @@ function AuthGuard() {
   return null
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+})
+
 function CustomerLayout() {
   return (
-    <CartProvider>
-      <AuthGuard />
-      <Outlet />
-    </CartProvider>
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <AuthGuard />
+        <Outlet />
+      </CartProvider>
+    </QueryClientProvider>
   )
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
 }
 
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
         <Route path="/staff/login" element={<StaffLoginPage />} />
@@ -226,6 +255,25 @@ export default function App() {
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Route>
 
+
+        {/* DELIVERY area */}
+        <Route
+          path="/delivery"
+          element={
+            <ProtectedRoute allowedRoles={['DELIVERY']}>
+              <DeliveryLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeliveryDashboardPage />} />
+          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
+          <Route path="history" element={<ComingSoonPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/delivery" replace />} />
+        </Route>
+
         {/* MANAGER area */}
         <Route
           path="/manager"
@@ -236,32 +284,15 @@ export default function App() {
           }
         >
           <Route index element={<ManagerDashboardPage />} />
+          <Route path="sales" element={<ManagerSalesSummaryPage />} />
           <Route path="orders" element={<ComingSoonPage />} />
-          <Route path="reports" element={<ComingSoonPage />} />
-          <Route path="staff" element={<ComingSoonPage />} />
+          <Route path="reports" element={<ManagerReportsPage />} />
+          <Route path="staff" element={<ManagerStaffPage />} />
           <Route path="inventory" element={<ManagerInventoryPage />} />
           <Route path="drivers" element={<ManagerDriversPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/manager" replace />} />
-        </Route>
-
-        {/* DELIVERY area */}
-        <Route
-          path="/delivery"
-          element={
-            <ProtectedRoute allowedRoles={['DELIVERY']}>
-              <MainLayout Sidebar={DeliverySidebar} Header={DeliveryHeader} />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<ComingSoonPage />} />
-          <Route path="orders" element={<ComingSoonPage />} />
-          <Route path="routes" element={<ComingSoonPage />} />
-          <Route path="status" element={<ComingSoonPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-
-          <Route path="*" element={<Navigate to="/delivery" replace />} />
         </Route>
 
         {/* Customer routes */}
@@ -305,7 +336,10 @@ export default function App() {
               </CustomerProtectedRoute>
             }
           />
+          {/* Customer Auth Pages */}
           <Route path="/login" element={<CustomerLoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/signup" element={<SignupPersonalPage />} />
           <Route path="/signup/address" element={<SignupAddressPage />} />
           <Route path="/signup/qr" element={<MobileVerificationPage />} />
@@ -325,6 +359,18 @@ export default function App() {
             }
           />
           <Route
+            path="/statistics"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/statistics"
+                unauthenticatedRedirect="/login?redirect=/statistics"
+              >
+                <StatisticsPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
             path="/orders"
             element={
               <CustomerProtectedRoute
@@ -336,6 +382,24 @@ export default function App() {
               </CustomerProtectedRoute>
             }
           />
+        </Route>
+
+        {/* DELIVERY area */}
+        <Route
+          path="/delivery"
+          element={
+            <ProtectedRoute allowedRoles={['DELIVERY']}>
+              <DeliveryLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeliveryDashboardPage />} />
+          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
+          <Route path="history" element={<ComingSoonPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/delivery" replace />} />
         </Route>
 
         {/* CHEF / KITCHEN area */}
@@ -357,7 +421,6 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/kitchen" replace />} />
         </Route>
-
         {/* RECEPTIONIST area */}
         <Route
           path="/receptionist"
@@ -371,10 +434,8 @@ export default function App() {
           }
         >
           <Route index element={<ReceptionistDashboardPage />} />
-
-          <Route path="orders" element={<ComingSoonPage />} />
-          <Route path="tables" element={<ComingSoonPage />} />
-          <Route path="settings" element={<ComingSoonPage />} />
+          <Route path="tables" element={<ReceptionistTablePage />} />
+          <Route path="orders" element={<OrderManagementPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/receptionist" replace />} />

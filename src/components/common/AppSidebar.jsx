@@ -33,11 +33,11 @@ export default function AppSidebar({
   const formattedRoleLabel = roleLabel.replace(/_/g, " ");
 
   return (
-    <aside className="flex h-screen w-[192px] flex-col justify-between border-r border-gray-100 bg-white">
+    <aside className="w-[270px] bg-white border-r border-gray-100 flex flex-col justify-between h-screen">
       <div>
         {/* Logo and branch section */}
-        <div className="border-b border-gray-100 px-3 py-3">
-          <div className="flex items-center gap-2.5">
+        <div className="px-4 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
             <img
               src={craveHouseLogo}
               alt="Crave House Logo"
@@ -58,7 +58,7 @@ export default function AppSidebar({
         </div>
 
         {/* Sidebar navigation links */}
-        <nav className="space-y-1 px-2.5 py-3">
+        <nav className="px-3 py-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item);

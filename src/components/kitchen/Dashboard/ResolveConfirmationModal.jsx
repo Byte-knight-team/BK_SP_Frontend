@@ -1,7 +1,16 @@
 import { X, CheckCircle } from "lucide-react";
+import { useState } from "react";
 
 const ResolveConfirmationModal = ({ isOpen, onClose, onConfirm, alertMessage }) => {
+  const [loading, setLoading] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    await onConfirm();
+    setLoading(false);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -37,10 +46,11 @@ const ResolveConfirmationModal = ({ isOpen, onClose, onConfirm, alertMessage }) 
             Cancel
           </button>
           <button 
-            onClick={onConfirm} 
-            className="flex-1 rounded-2xl bg-green-500 py-4 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600 transition-all"
+            onClick={handleConfirm} 
+            disabled={loading}
+            className="flex-1 rounded-2xl bg-green-500 py-4 text-sm font-bold text-white hover:bg-green-600 transition-all disabled:bg-gray-300"
           >
-            Yes, it's Fixed
+            {loading ? "Resolving..." : "Yes, it's Fixed"}
           </button>
         </div>
       </div>

@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useDeferredValue } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/Navbar';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
+import MenuItemReviewsModal from '../../components/customer/modal/MenuItemReviewsModal';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { getCustomerMenu } from '../../apis/customer/menu';
 import menuCover from '../../assets/menu cover image.avif';
@@ -18,7 +21,7 @@ import {
 } from 'lucide-react';
 
 function getBranchId() {
-  // Decode branchId from QR session token on-the-fly, never store decoded IDs
+  // Decode branchId from QR session token
   const qrSessionToken = localStorage.getItem('qr_session_token');
   if (qrSessionToken) {
     const claims = getQrSessionClaims(qrSessionToken);
@@ -30,65 +33,48 @@ function getBranchId() {
 }
 
 export default function MenuPage() {
-  const [menuItems, setMenuItems] = useState([]);
-  const [favorites, setFavorites] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItemForReviews, setSelectedItemForReviews] = useState(null);
   
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const branchId = getBranchId();
 
-  useEffect(() => {
-    let isMounted = true;
+  const {
+    data: menuItems = [],
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['menuItems', branchId],
+    queryFn: async () => {
+      const res = await getCustomerMenu(branchId);
+      const payload = await res.json().catch(() => ({}));
 
-    const loadMenu = async () => {
-      setIsLoading(true);
-      setError('');
-
-      try {
-        const branchId = getBranchId();
-        const res = await getCustomerMenu(branchId);
-        const payload = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(payload?.message || 'Unable to load menu items.');
-        }
-
-        const items = Array.isArray(payload?.data) ? payload.data : [];
-
-        if (isMounted) {
-          setMenuItems(
-            items.map((item) => ({
-              ...item,
-              image: item.imageUrl,
-              price: Number(item.price),
-            }))
-          );
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err.message || 'Unable to load menu items.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      if (!res.ok) {
+        throw new Error(payload?.message || 'Unable to load menu items.');
       }
-    };
 
-    loadMenu();
+      const items = Array.isArray(payload?.data) ? payload.data : [];
+      return items.map((item) => ({
+        ...item,
+        image: item.imageUrl,
+        price: Number(item.price),
+        averageRating: item.averageRating ?? null,
+        ratingCount: item.ratingCount ?? 0,
+      }));
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const error = queryError?.message || '';
+
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const groupedCategories = useMemo(() => {
     const filteredItems = menuItems.filter((item) => {
-      if (!searchQuery.trim()) return true;
+      if (!deferredSearchQuery.trim()) return true;
       
-      const query = searchQuery.toLowerCase();
+      const query = deferredSearchQuery.toLowerCase();
       return (
         item.name.toLowerCase().includes(query) ||
         (item.description && item.description.toLowerCase().includes(query))
@@ -112,18 +98,17 @@ export default function MenuPage() {
     }, {});
   }, [menuItems, searchQuery]);
 
-  const toggleFavorite = (id) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]
-    );
-  };
+  // const toggleFavorite = (id) => {
+  //   setFavorites((prev) =>
+  //     prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]
+  //   );
+  // };
 
   const renderMenuCard = (item) => (
     <div
-      className="flex overflow-hidden rounded-[18px] border border-slate-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(15,23,42,0.08)] max-[480px]:flex-col"
-      key={item.id}
+      className="flex flex-col sm:flex-row h-auto sm:h-[230px] overflow-hidden rounded-[18px] border border-slate-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(15,23,42,0.08)]"
     >
-      <div className="relative w-[180px] min-h-[200px] shrink-0 max-md:w-[140px] max-md:min-h-[150px] max-[480px]:w-full max-[480px]:min-h-[200px]">
+      <div className="relative w-full sm:w-[140px] md:w-[180px] h-[200px] sm:h-full shrink-0">
         <img
           src={item.image}
           alt={item.name}
@@ -152,8 +137,11 @@ export default function MenuPage() {
 
         <div className="flex items-center gap-4 text-[0.85rem] text-gray-500 mb-3 flex-wrap">
           <span className="flex items-center gap-2 font-medium text-gray-700">
-            <Star size={16} fill="#F59E0B" />
-            {item.rating || '—'}
+            <Star size={16} fill={item.averageRating ? "#F59E0B" : "none"} />
+            {item.averageRating != null
+              ? <span className="flex items-center gap-2"><span>{Number(item.averageRating).toFixed(1)}</span><button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedItemForReviews(item); }} className="text-xs text-orange-500 underline underline-offset-2 hover:text-orange-600">({item.ratingCount || 0} reviews)</button></span>
+              : '—'
+            }
           </span>
           <span className="flex items-center gap-2">
             <Clock size={16} /> {item.preparationTime || '—'} min
@@ -321,7 +309,20 @@ export default function MenuPage() {
                           )}
 
                           <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
-                            {items.map(renderMenuCard)}
+                            <AnimatePresence>
+                              {items.map((item, idx) => (
+                                <motion.div
+                                  key={item.id}
+                                  initial={{ opacity: 0, y: 8 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -8 }}
+                                  transition={{ duration: 0.35, delay: Math.min(0.25, idx * 0.08) }}
+                                  layout
+                                >
+                                  {renderMenuCard(item)}
+                                </motion.div>
+                              ))}
+                            </AnimatePresence>
                           </div>
                         </div>
                       ),
@@ -334,10 +335,17 @@ export default function MenuPage() {
         )}
       </section>
 
-      {/* ───── Bottom Trust Bar ───── */}
+      {/* Bottom Trust Bar */}
       <div className="px-6 py-6 text-center text-sm text-slate-500 max-md:px-4">
         Fresh ingredients, consistent plating, and a simpler experience.
       </div>
+
+      {selectedItemForReviews && (
+        <MenuItemReviewsModal
+          item={selectedItemForReviews}
+          onClose={() => setSelectedItemForReviews(null)}
+        />
+      )}
     </CustomerPageShell>
   );
 }
