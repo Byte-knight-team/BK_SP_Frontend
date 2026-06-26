@@ -4,6 +4,8 @@ import {
   RiBuilding2Line,
   RiAddLine,
   RiSearchLine,
+  RiErrorWarningLine,
+  RiCloseLine,
 } from "@remixicon/react";
 
 import {
@@ -30,6 +32,8 @@ export default function BranchListPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  const [branchToConfirm, setBranchToConfirm] = useState(null);
 
   const { user } = useAuth();
 
@@ -125,6 +129,15 @@ export default function BranchListPage() {
     setStatusFilter("");
   };
 
+  const openStatusConfirmModal = (branch) => {
+    setBranchToConfirm(branch);
+  };
+
+  const closeStatusConfirmModal = () => {
+    if (actionLoadingId) return;
+    setBranchToConfirm(null);
+  };
+
   /*
     Activate or deactivate a branch.
   */
@@ -156,6 +169,7 @@ export default function BranchListPage() {
     }
 
     setActionLoadingId(null);
+    setBranchToConfirm(null);
   };
 
   if (!isSuperAdmin) {
@@ -382,7 +396,7 @@ export default function BranchListPage() {
                           <button
                             type="button"
                             disabled={isActionLoading}
-                            onClick={() => handleToggleStatus(branch)}
+                            onClick={() => openStatusConfirmModal(branch)}
                             className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                               active
                                 ? "bg-red-50 text-red-600 hover:bg-red-100"
@@ -404,6 +418,122 @@ export default function BranchListPage() {
             </table>
           </div>
         )}
+      </div>
+
+      {branchToConfirm && (
+        <BranchStatusConfirmModal
+          branch={branchToConfirm}
+          isLoading={actionLoadingId === getBranchId(branchToConfirm)}
+          onClose={closeStatusConfirmModal}
+          onConfirm={() => handleToggleStatus(branchToConfirm)}
+        />
+      )}
+    </div>
+  );
+}
+
+function BranchStatusConfirmModal({ branch, isLoading, onClose, onConfirm }) {
+  const branchId = getBranchId(branch);
+  const branchName = branch.name || "this branch";
+  const branchEmail = branch.email || "No email";
+  const branchContact =
+    branch.contactNumber || branch.phone || "No contact number";
+  const branchAddress = branch.address || "No address";
+  const active = isBranchActive(branch);
+
+  const actionLabel = active ? "Deactivate" : "Activate";
+  const actionText = active ? "deactivate" : "activate";
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/40 px-4">
+      <div className="w-full max-w-lg rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                active
+                  ? "bg-red-50 text-red-600"
+                  : "bg-green-50 text-green-700"
+              }`}
+            >
+              <RiErrorWarningLine size={22} />
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-gray-900">
+                {actionLabel} Branch?
+              </h3>
+
+              <p className="mt-1 text-sm leading-6 text-gray-500">
+                Please confirm before you {actionText} this restaurant branch.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RiCloseLine size={18} />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+          <div className="text-sm font-bold text-gray-900">{branchName}</div>
+
+          <div className="mt-1 text-xs text-gray-500">
+            ID: {branchId || "N/A"}
+          </div>
+
+          <div className="mt-3 grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
+            <div>
+              <span className="font-semibold text-gray-800">Email:</span>{" "}
+              {branchEmail}
+            </div>
+
+            <div>
+              <span className="font-semibold text-gray-800">Contact:</span>{" "}
+              {branchContact}
+            </div>
+          </div>
+
+          <div className="mt-3 text-xs text-gray-600">
+            <span className="font-semibold text-gray-800">Address:</span>{" "}
+            {branchAddress}
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm leading-6 text-orange-800">
+          {active
+            ? "Deactivating this branch will mark it as inactive. Staff and branch-related operations may be affected depending on backend rules."
+            : "Activating this branch will make it available again for branch-level operations."}
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
+            className="inline-flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isLoading}
+            className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+              active
+                ? "bg-red-500 shadow-red-100 hover:bg-red-600"
+                : "bg-green-600 shadow-green-100 hover:bg-green-700"
+            }`}
+          >
+            {isLoading ? "Updating..." : `Yes, ${actionLabel}`}
+          </button>
+        </div>
       </div>
     </div>
   );
