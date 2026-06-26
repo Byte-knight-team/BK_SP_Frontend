@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Link,
   useLocation,
@@ -17,6 +17,7 @@ import {
 } from "@remixicon/react";
 
 import { getStaffByIdAPI } from "../../apis/staff/staff";
+import { showErrorToast } from "../../utils/toast";
 
 /*
   StaffDetailsPage
@@ -35,68 +36,23 @@ import { getStaffByIdAPI } from "../../apis/staff/staff";
   - If opened from /staff, back/edit links stay in /staff.
 */
 export default function StaffDetailsPage() {
-  /*
-    Staff ID comes from the URL.
-    /staff/staff/21
-  */
   const { id } = useParams();
-
-  /*
-    useLocation helps us check whether this page is opened from
-    Super Admin area or Admin area.
-  */
   const location = useLocation();
-  /*
-    setHeaderInfo comes from MainLayout through Outlet context.
-    It updates the shared page header.
-  */
   const { setHeaderInfo } = useOutletContext();
 
-  /*
-    This page is shared by SUPER_ADMIN and ADMIN.
-  */
   const isAdminPanelRoute = location.pathname.startsWith("/admin");
 
-  /*
-    Back button path.
-    If Admin opened this page, go back to:
-    /admin/staff
+  const staffListPath = isAdminPanelRoute ? "/admin/staff" : "/staff/staff";
 
-    If Super Admin opened this page, go back to:
-    /staff/staff
-  */
-  const staffListPath = isAdminPanelRoute
-    ? "/admin/staff"
-    : "/staff/staff";
-
-  /*
-    Edit button path.
-
-    If Admin opened this page, edit route should be:
-    /admin/staff/:id/edit
-
-    If Super Admin opened this page, edit route should be:
-    /staff/staff/:id/edit
-  */
   const staffEditPath = isAdminPanelRoute
     ? `/admin/staff/${id}/edit`
     : `/staff/staff/${id}/edit`;
 
-  /*
-    Staff member loaded from backend.
-  */
   const [staff, setStaff] = useState(null);
-
-  /*
-    Page loading and error states.
-  */
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [pageError, setPageError] = useState("");
 
-  /*
-    Set page header when this page opens.
-  */
-  useEffect(() => { 
+  useEffect(() => {
     setHeaderInfo({
       title: "Staff Details",
       description: "View staff account information and branch assignment.",
@@ -106,37 +62,27 @@ export default function StaffDetailsPage() {
     return () => setHeaderInfo(null);
   }, [setHeaderInfo]);
 
-  /*
-    Load one staff member by ID.
+  const loadStaff = useCallback(async () => {
+    setLoading(true);
+    setPageError("");
 
-    Backend endpoint:
-    GET /api/admin/staff/{id}
-  */
-  useEffect(() => {
-    const loadStaff = async () => {
-      setLoading(true);
-      setError("");
+    const { data, error } = await getStaffByIdAPI(id);
 
-      const { data, error } = await getStaffByIdAPI(id);
+    if (error) {
+      setPageError(error);
+      setStaff(null);
+      showErrorToast(error);
+    } else {
+      setStaff(data);
+    }
 
-      if (error) {
-        setError(error);
-        setStaff(null);
-      } else {
-        setStaff(data);
-      }
-
-      setLoading(false);
-    };
-
-    loadStaff();
+    setLoading(false);
   }, [id]);
 
-  /*
-    Backend responses may use active or isActive.
+  useEffect(() => {
+    loadStaff();
+  }, [loadStaff]);
 
-    This helper safely gets the active status.
-  */
   const isActive =
     typeof staff?.active === "boolean"
       ? staff.active
@@ -144,11 +90,6 @@ export default function StaffDetailsPage() {
         ? staff.isActive
         : false;
 
-  /*
-    Formats salary for display.
-
-    Old staff records may have null salary, so we show "Not assigned".
-  */
   const formatSalary = (salary) => {
     if (salary === null || salary === undefined || salary === "") {
       return "Not assigned";
@@ -157,104 +98,101 @@ export default function StaffDetailsPage() {
     return `LKR ${Number(salary).toLocaleString()}`;
   };
 
-  /*
-    Loading state.
-  */
   if (loading) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm text-sm text-gray-500">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 text-sm text-gray-500 shadow-sm">
         Loading staff details...
       </div>
     );
   }
 
-  /*
-    Error state.
-  */
-  if (error) {
+  if (pageError) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
-        <div className="rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-medium text-red-600">
-          {error}
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <Link
+            to={staffListPath}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
+          >
+            <RiArrowLeftLine size={18} />
+            Back to staff list
+          </Link>
         </div>
 
-        <Link
-          to={staffListPath}
-          className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
-        >
-          <RiArrowLeftLine size={18} />
-          Back to staff list
-        </Link>
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          {pageError}
+        </div>
       </div>
     );
   }
 
-  /*
-    Empty state.
-  */
   if (!staff) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
-        <div className="text-sm text-gray-500">Staff member not found.</div>
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <Link
+            to={staffListPath}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
+          >
+            <RiArrowLeftLine size={18} />
+            Back to staff list
+          </Link>
+        </div>
 
-        <Link
-          to={staffListPath}
-          className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
-        >
-          <RiArrowLeftLine size={18} />
-          Back to staff list
-        </Link>
+        <div className="text-sm text-gray-500">Staff member not found.</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm">
-        {/* Top actions */}
-        <div className="flex items-center justify-between gap-4 mb-8">
+    <div className="max-w-5xl">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        {/* Back link */}
+        <div className="mb-6">
           <Link
             to={staffListPath}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
           >
             <RiArrowLeftLine size={18} />
             Back to staff list
           </Link>
+        </div>
+
+        {/* Main staff identity section */}
+        <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h3 className="text-xl font-bold text-gray-900">
+                {staff.fullName || staff.name || "No name"}
+              </h3>
+
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  isActive
+                    ? "bg-green-50 text-green-700"
+                    : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {isActive ? "Active" : "Inactive"}
+              </span>
+            </div>
+
+            <p className="mt-1 text-sm text-gray-500">
+              @{staff.username || "no-username"}
+            </p>
+          </div>
 
           <Link
             to={staffEditPath}
-            className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
           >
             <RiEditLine size={18} />
             Edit Staff
           </Link>
         </div>
 
-        {/* Main staff identity section */}
-        <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-6">
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {staff.fullName || staff.name || "No name"}
-            </h3>
-
-            <p className="text-sm text-gray-500 mt-1">
-              @{staff.username || "no-username"}
-            </p>
-          </div>
-
-          <span
-            className={`rounded-full px-4 py-1.5 text-xs font-bold ${
-              isActive
-                ? "bg-green-50 text-green-700"
-                : "bg-gray-100 text-gray-500"
-            }`}
-          >
-            {isActive ? "Active" : "Inactive"}
-          </span>
-        </div>
-
         {/* Staff information cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
           <DetailCard
             icon={RiMailLine}
             label="Email"
@@ -283,6 +221,7 @@ export default function StaffDetailsPage() {
             icon={RiStore2Line}
             label="Branch"
             value={staff.branchName || staff.branch?.name || "Global Access"}
+            wide
           />
         </div>
       </div>
@@ -290,25 +229,24 @@ export default function StaffDetailsPage() {
   );
 }
 
-/*
-  DetailCard
-
-  Small reusable card for displaying one staff field.
-*/
-function DetailCard({ icon: Icon, label, value }) {
+function DetailCard({ icon: Icon, label, value, wide = false }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4">
+    <div
+      className={`rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 ${
+        wide ? "md:col-span-2" : ""
+      }`}
+    >
       <div className="flex items-center gap-3">
-        <div className="text-orange-500">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
           <Icon size={20} />
         </div>
 
-        <div>
+        <div className="min-w-0">
           <div className="text-xs font-bold uppercase tracking-wider text-gray-400">
             {label}
           </div>
 
-          <div className="text-sm font-semibold text-gray-900 mt-1">
+          <div className="mt-1 break-words text-sm font-semibold text-gray-900">
             {value}
           </div>
         </div>
