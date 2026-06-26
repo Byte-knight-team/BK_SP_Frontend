@@ -99,7 +99,7 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
     key={item.id}
     item={item}
     onView={() => onView(item)}
-    onEdit={activeTab !== 'ACTIVE' ? () => onEdit(item) : undefined}
+    onEdit={activeTab === 'ACTIVE' ? () => onEdit(item) : undefined}
   />
 ))}
 

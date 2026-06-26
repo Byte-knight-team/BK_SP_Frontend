@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { UtensilsCrossed, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import IngredientPicker from './IngredientPicker'
+import CloudinaryImageUpload from './CloudinaryImageUpload'
 
 // AddMenuItemModal — lets a chef submit a new menu item (lands in PENDING status)
 // After the item is created, the parent saves the ingredient list using the returned item ID
@@ -147,13 +148,9 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
               className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
-          <input
-            type="text"
-            name="imageUrl"
-            placeholder="Image URL (optional)"
+          <CloudinaryImageUpload
             value={form.imageUrl}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+            onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
           />
 
           {/* Divider */}
