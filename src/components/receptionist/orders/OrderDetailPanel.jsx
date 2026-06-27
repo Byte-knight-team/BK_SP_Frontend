@@ -96,7 +96,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
     } else {
       toast.success('Order cancelled.')
       setIsCancelOpen(false)
-      onTabChange(null)         // clear selection (cancelled has no tab to show)
+      onTabChange('CANCELLED')  // switch to Cancelled tab and silently show the order
     }
     setIsActing(false)
   }
@@ -307,6 +307,14 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
         <div className="rounded-2xl border border-red-100 bg-red-50 p-3">
           <p className="text-[10px] font-bold uppercase tracking-wide text-red-500 mb-1">Hold Reason</p>
           <p className="text-xs text-red-800">{order.holdReason}</p>
+        </div>
+      )}
+
+      {/* CANCEL REASON */}
+      {order.cancelReason && (
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-1">Cancellation Reason</p>
+          <p className="text-xs text-gray-700">{order.cancelReason}</p>
         </div>
       )}
 
