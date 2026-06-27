@@ -1,15 +1,14 @@
-import { authFetch } from "../apiHelper";
+import { authFetch, buildApiUrl } from "../apiHelper";
 
-//get order-cards by status
+// get order-cards by status
 export const getOrderCardsAPI = async (orderStatus) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/order-cards?status=${orderStatus}`,
+      buildApiUrl(`/api/v1/kitchen/order-cards?status=${orderStatus}`)
     );
     const result = await response.json();
     return { data: result.data, error: null };
   } catch (error) {
-    console.error(`Error fetching ${orderStatus} orders:`, error);
     return { data: null, error: error };
   }
 };
@@ -18,103 +17,59 @@ export const getOrderCardsAPI = async (orderStatus) => {
 export const getOrderDetailsAPI = async (orderId) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/order-details/${orderId}`
+      buildApiUrl(`/api/v1/kitchen/order-details/${orderId}`)
     );
     const result = await response.json();
     return { data: result.data, error: null };
   } catch (error) {
-    console.error(`Error fetching order #${orderId} details:`, error);
     return { data: null, error: error };
   }
 };
 
-// Get available chefs for assignment (those who are already checked in)
+// get available line chefs for assignment
+// returns: [{ staffId, chefName, workStatus, activeItemCount }]
 export const getAvailableChefsAPI = async () => {
   try {
-    const response = await authFetch(`http://localhost:8080/api/v1/kitchen/available-chefs`);
+    const response = await authFetch(buildApiUrl(`/api/v1/kitchen/available-chefs`));
     const result = await response.json();
     return { data: result.data, error: null };
   } catch (error) {
-    console.error("Error fetching available chefs:", error);
     return { data: null, error: error };
   }
 };
 
-// Assign a specific chef to a meal (OrderItem)
+// assign a line chef to a meal item
 export const assignChefToMealAPI = async (itemId, chefStaffId) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/assign`,
+      buildApiUrl(`/api/v1/kitchen/order-items/${itemId}/assign`),
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chefStaffId: chefStaffId }), // Sends the ID to the backend
+        body: JSON.stringify({ chefStaffId }),
       }
     );
     const result = await response.json();
     return { data: result.data, error: null };
   } catch (error) {
-    console.error(`Error assigning chef ${chefId} to item ${itemId}:`, error);
     return { data: null, error: error };
   }
 };
 
-// Put an order on hold by sending the reason
+// put an order on hold
 export const holdOrderAPI = async (orderId, holdReason) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/orders/${orderId}/hold`,
+      buildApiUrl(`/api/v1/kitchen/orders/${orderId}/hold`),
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ holdReason: holdReason }),
+        body: JSON.stringify({ holdReason }),
       }
     );
     const result = await response.json();
     return { data: result.data, error: null };
   } catch (error) {
-    console.error(`Error holding order #${orderId}:`, error);
     return { data: null, error: error };
   }
 };
-
-// start preparing a specific meal item
-// Returns INSUFFICIENT_STOCK error message if stock is too low for any ingredient
-export const startMealAPI = async (itemId) => {
-  try {
-    const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/start`,
-      { method: 'PUT' }
-    )
-    const result = await response.json()
-
-    // Backend returns 400 with ApiResponse { success, message } when stock check fails
-    if (!response.ok) {
-      return { data: null, error: result.message || 'Failed to start meal' }
-    }
-
-    return { data: result.data, error: null }
-  } catch (error) {
-    console.error(`Error starting meal #${itemId}:`, error)
-    return { data: null, error: error.message }
-  }
-}
-
-
-// complete a specific meal item
-export const completeMealAPI = async (itemId) => {
-  try {
-    const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/order-items/${itemId}/complete`,
-      { method: "PUT" }
-    );
-    const result = await response.json();
-    return { data: result.data, error: null };
-  } catch (error) {
-    return { data: null, error: error };
-  }
-};
-
-
-
-
