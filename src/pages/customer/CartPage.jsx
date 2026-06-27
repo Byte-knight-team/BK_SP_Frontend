@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const { cartItems, updateQuantity, removeFromCart, cartTotal } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, cartTotal, updateItemNote } = useCart();
 
   const subtotal = cartTotal;
 
@@ -42,43 +42,65 @@ export default function CartPage() {
           </div>
         ) : (
           cartItems.map((item) => (
-            <div className="flex items-center gap-4 p-[18px] px-5 bg-white border border-slate-200 rounded-[14px] transition-shadow duration-300 hover:shadow-md max-[480px]:flex-wrap" key={item.id}>
-              <img src={item.imageUrl || item.image} alt={item.name} className="w-20 h-20 rounded-[10px] object-cover shrink-0" />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-heading text-[0.95rem] font-bold text-slate-900 mb-1">
-                  {item.name}
-                </h3>
-                <span className="block text-[0.88rem] font-semibold text-orange-500 mb-2.5">
-                  LKR {item.price.toLocaleString()}
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition-all duration-300 hover:border-orange-500 hover:bg-orange-500 hover:text-white"
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className="text-[0.95rem] font-semibold text-slate-900 min-w-[20px] text-center">{item.quantity}</span>
-                  <button
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition-all duration-300 hover:border-orange-500 hover:bg-orange-500 hover:text-white"
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  >
-                    <Plus size={14} />
-                  </button>
-                  <button
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-transparent text-slate-400 hover:text-red-500 ml-2"
-                    onClick={() => {
-                      removeFromCart(item.id);
-                      toast.info('Item removed from cart');
-                    }}
-                  >
-                    <Trash2 className="transition-colors duration-300" size={18} />
-                  </button>
+            <div className="flex flex-col gap-2.5 p-3.5 bg-white border border-slate-200 rounded-[14px] transition-shadow duration-300 hover:shadow-md" key={item.id}>
+              <div className="flex items-start gap-3.5">
+                <img src={item.imageUrl || item.image} alt={item.name} className="w-[72px] h-[72px] rounded-[10px] object-cover shrink-0" />
+                
+                <div className="flex-1 min-w-0 flex flex-col justify-between min-h-[72px]">
+                  {/* Top Row: Title & Total Price */}
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <h3 className="font-heading text-[0.95rem] font-bold text-slate-900 leading-tight">
+                      {item.name}
+                    </h3>
+                    <span className="font-heading text-[0.95rem] font-bold text-slate-900 shrink-0">
+                      LKR {(item.price * item.quantity).toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  {/* Bottom Row: Base Price & Quantity */}
+                  <div className="flex flex-wrap justify-between items-center mt-auto gap-2">
+                    <span className="text-[0.82rem] font-semibold text-orange-500 truncate">
+                      LKR {item.price.toLocaleString()} <span className="hidden sm:inline">each</span>
+                    </span>
+                    
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full p-0.5">
+                        <button
+                          className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-slate-600 shadow-sm transition-colors hover:text-orange-500 hover:border-orange-200 border border-transparent"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          <Minus size={13} />
+                        </button>
+                        <span className="text-[0.85rem] font-bold text-slate-800 min-w-[18px] text-center">{item.quantity}</span>
+                        <button
+                          className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-slate-600 shadow-sm transition-colors hover:text-orange-500 hover:border-orange-200 border border-transparent"
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          <Plus size={13} />
+                        </button>
+                      </div>
+                      <button
+                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                        onClick={() => {
+                          removeFromCart(item.id);
+                          toast.info('Item removed');
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <span className="font-heading text-base font-bold text-slate-900 whitespace-nowrap shrink-0 max-[480px]:w-full max-[480px]:text-right max-[480px]:mt-2">
-                LKR {(item.price * item.quantity).toLocaleString()}
-              </span>
+              
+              {/* Kitchen Note Input */}
+              <input
+                type="text"
+                placeholder="Add a kitchen note (optional, e.g. no onions)"
+                className="w-full text-[0.8rem] px-3 py-2 rounded-[8px] border border-slate-200 bg-slate-50 focus:outline-none focus:border-orange-300 focus:bg-white text-slate-700 placeholder-slate-400 transition-colors"
+                value={item.kitchenNote || ''}
+                onChange={(e) => updateItemNote(item.id, e.target.value)}
+              />
             </div>
           ))
         )}
