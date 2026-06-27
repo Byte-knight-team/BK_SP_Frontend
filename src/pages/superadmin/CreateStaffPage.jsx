@@ -18,6 +18,7 @@ import {
 } from "../../utils/toast";
 
 import { useAuth } from "../../context/AuthContext";
+import StaffCreatedSuccessModal from "../../components/common/StaffCreatedSuccessModal";
 
 export default function CreateStaffPage() {
   /*
@@ -50,7 +51,7 @@ export default function CreateStaffPage() {
   };
 
   /*
-    useNavigate is used to redirect after successful staff creation.
+    useNavigate is used for modal action buttons.
   */
   const navigate = useNavigate();
   const location = useLocation();
@@ -105,6 +106,11 @@ export default function CreateStaffPage() {
   const [branchLoading, setBranchLoading] = useState(true);
 
   /*
+    Stores the successfully created staff account for the success modal.
+  */
+  const [createdStaff, setCreatedStaff] = useState(null);
+
+  /*
     Role dropdown values come from backend roles table.
     This allows newly-created roles like LINE_CHEF to appear automatically.
   */
@@ -151,9 +157,6 @@ export default function CreateStaffPage() {
       const { data, error } = await getAllBranchesAPI();
 
       if (!error) {
-        /*
-          Always keep branches as an array so map/filter will not crash.
-        */
         setBranches(Array.isArray(data) ? data : []);
       } else {
         showErrorToast(error);
@@ -171,31 +174,15 @@ export default function CreateStaffPage() {
   */
   useEffect(() => {
     const loadRoles = async () => {
-      /*
-        Show loading state while roles are being fetched.
-      */
       setRolesLoading(true);
 
       try {
-        /*
-          Get role list from backend.
-        */
         const data = await getRolesAPI();
 
-        /*
-          Ensure the response is an array.
-          If backend returns something unexpected, use an empty array.
-        */
         const roleList = Array.isArray(data) ? data : [];
 
-        /*
-          Store all roles in state.
-        */
         setRoles(roleList);
 
-        /*
-          Keep only roles that the current user is allowed to assign.
-        */
         const filteredRoles = roleList.filter((role) =>
           canAssignRole(role.name, isSuperAdmin, isAdmin)
         );
@@ -209,30 +196,20 @@ export default function CreateStaffPage() {
           (role) => role.name === defaultRoleName
         );
 
-        /*
-          Update form with default role and salary.
-          If role has no baseSalary, keep salary input empty.
-        */
         setFormData((previous) => ({
           ...previous,
           roleName: defaultRoleName,
           salary:
             defaultRole?.baseSalary === null ||
-            defaultRole?.baseSalary === undefined
+              defaultRole?.baseSalary === undefined
               ? ""
               : String(defaultRole.baseSalary),
         }));
       } catch (error) {
-        /*
-          Log role loading error for debugging.
-        */
         console.error("Failed to load role data:", error);
         showErrorToast("Failed to load role data.");
         setRoles([]);
       } finally {
-        /*
-          Stop loading state whether request succeeds or fails.
-        */
         setRolesLoading(false);
       }
     };
@@ -275,7 +252,7 @@ export default function CreateStaffPage() {
   };
 
   /*
-    Gets the branch name for the success/failure message.
+    Gets the branch name for the success modal.
   */
   const getCreatedStaffBranchName = (payload, data) => {
     if (payload.roleName === "SUPER_ADMIN") {
@@ -296,6 +273,32 @@ export default function CreateStaffPage() {
     });
 
     return selectedBranch?.name || "Selected branch";
+  };
+
+  /*
+    Reset the form after admin chooses Create Another.
+  */
+  const resetFormForAnotherStaff = () => {
+    const defaultRoleName =
+      allowedRoles.find((role) => role.name === "RECEPTIONIST")?.name ||
+      allowedRoles[0]?.name ||
+      "";
+
+    const defaultRole = roles.find((role) => role.name === defaultRoleName);
+
+    setFormData({
+      fullName: "",
+      username: "",
+      email: "",
+      phone: "",
+      roleName: defaultRoleName,
+      branchId: isSuperAdmin ? "" : loggedInBranchId,
+      salary:
+        defaultRole?.baseSalary === null ||
+          defaultRole?.baseSalary === undefined
+          ? ""
+          : String(defaultRole.baseSalary),
+    });
   };
 
   /*
@@ -341,16 +344,6 @@ export default function CreateStaffPage() {
 
     setLoading(true);
 
-    /*
-      Create backend request payload.
-
-      For SUPER_ADMIN role:
-      branchId should be null.
-
-      For other roles:
-      - SUPER_ADMIN selects branch from dropdown.
-      - ADMIN automatically uses loggedInBranchId.
-    */
     const payload = {
       fullName: formData.fullName.trim(),
       username: formData.username.trim(),
@@ -364,31 +357,18 @@ export default function CreateStaffPage() {
             ? Number(formData.branchId)
             : Number(loggedInBranchId),
 
-      /*
-        Salary is optional.
-        If empty, backend can use role base salary.
-      */
       salary:
         formData.roleName === "SUPER_ADMIN" || formData.salary === ""
           ? null
           : Number(formData.salary),
     };
 
-    /*
-      Validate required personal fields.
-    */
     if (!payload.fullName || !payload.username || !payload.email || !payload.phone) {
       stopWithError("Please fill all required fields.");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    /*
-      Final phone validation before calling backend.
-      Even though the input limits length, we keep this validation to make sure
-      the submitted value is exactly valid.
-    */
     const phoneRegex = /^\d{10}$/;
 
     if (!emailRegex.test(payload.email)) {
@@ -401,34 +381,16 @@ export default function CreateStaffPage() {
       return;
     }
 
-    /*
-      Validate branch selection.
-
-      SUPER_ADMIN account does not need a branch.
-      All other staff accounts must have a branch.
-    */
     if (payload.roleName !== "SUPER_ADMIN" && !payload.branchId) {
       stopWithError("Please select a branch.");
       return;
     }
 
-    /*
-      Salary cannot be negative.
-    */
     if (payload.salary !== null && payload.salary < 0) {
       stopWithError("Salary cannot be negative.");
       return;
     }
 
-    /*
-      Extra frontend safety check.
-
-      If SUPER_ADMIN is creating a branch-level staff user,
-      check whether the selected branch is active.
-
-      This prevents staff creation for inactive branches from the frontend.
-      Backend should also reject inactive branch IDs.
-    */
     if (isSuperAdmin && payload.roleName !== "SUPER_ADMIN") {
       const selectedBranch = branches.find((branch) => {
         const branchId = branch.id || branch.branchId;
@@ -446,9 +408,6 @@ export default function CreateStaffPage() {
       }
     }
 
-    /*
-      Call backend API to create staff.
-    */
     const { data, error } = await createStaffAPI(payload);
 
     if (error) {
@@ -456,71 +415,64 @@ export default function CreateStaffPage() {
       return;
     }
 
-    /*
-      Staff creation can succeed in two ways:
-
-      1. Staff created + invite email sent successfully.
-      2. Staff created + invite email failed.
-
-      In both cases, we show the created staff member details so the admin
-      knows exactly which account was created.
-
-      Temporary password is shown ONLY when email failed,
-      because when email succeeds, the staff member receives it by email.
-    */
     const createdStaffName = data?.fullName || payload.fullName;
     const createdStaffUsername = data?.username || payload.username;
     const createdStaffEmail = data?.email || payload.email;
     const createdStaffRole = data?.roleName || payload.roleName;
     const createdStaffBranch = getCreatedStaffBranchName(payload, data);
 
-    /*
-      Build clear multi-line success message for StaffListPage.
+    const createdStaffDetails = {
+      ...data,
+      id: data?.id,
+      fullName: createdStaffName,
+      username: createdStaffUsername,
+      email: createdStaffEmail,
+      phone: data?.phone || payload.phone,
+      roleName: createdStaffRole,
+      branchId: data?.branchId ?? payload.branchId,
+      branchName: createdStaffBranch,
+      emailSent: Boolean(data?.emailSent),
+      inviteStatus: data?.inviteStatus || "UNKNOWN",
+      temporaryPassword: data?.temporaryPassword,
+      message: data?.message,
+    };
 
-      \n creates line breaks inside the string.
-      StaffListPage must use whitespace-pre-line to display those line breaks.
-    */
-    const successMessage =
-      data?.emailSent === true
-        ? `Staff account created successfully.
-Invite email sent successfully.
-
-Name: ${createdStaffName}
-Username: @${createdStaffUsername}
-Email: ${createdStaffEmail}
-Role: ${createdStaffRole}
-Branch: ${createdStaffBranch}`
-        : `Staff account created successfully, but invite email failed.
-
-Name: ${createdStaffName}
-Username: @${createdStaffUsername}
-Email: ${createdStaffEmail}
-Role: ${createdStaffRole}
-Branch: ${createdStaffBranch}
-Temporary password: ${data?.temporaryPassword || "Not returned"}
-
-Please manually share this temporary password with the staff member.`;
-
+    setCreatedStaff(createdStaffDetails);
     setLoading(false);
 
     if (data?.emailSent === true) {
       showSuccessToast("Staff account created and invite email sent successfully.");
     } else {
       showWarningToast(
-        "Staff account created, but invite email failed. Temporary password is shown on the staff list page."
+        "Staff account created, but invite email failed. Temporary password is shown in the success modal."
       );
+    }
+  };
+
+  const handleViewCreatedStaff = () => {
+    if (createdStaff?.id) {
+      navigate(`${staffListPath}/${createdStaff.id}`);
+      return;
     }
 
     navigate(staffListPath, {
       state: {
-        successMessage,
-
-        /*
-          StaffListPage uses this to automatically search and show
-          the newly-created staff row after redirect.
-        */
         createdStaffSearch:
-          createdStaffEmail || createdStaffUsername || createdStaffName,
+          createdStaff?.email || createdStaff?.username || createdStaff?.fullName,
+      },
+    });
+  };
+
+  const handleCreateAnother = () => {
+    setCreatedStaff(null);
+    resetFormForAnotherStaff();
+  };
+
+  const handleBackToStaffList = () => {
+    navigate(staffListPath, {
+      state: {
+        createdStaffSearch:
+          createdStaff?.email || createdStaff?.username || createdStaff?.fullName,
       },
     });
   };
@@ -531,259 +483,269 @@ Please manually share this temporary password with the staff member.`;
     (isSuperAdmin && formData.roleName !== "SUPER_ADMIN" && branchLoading);
 
   return (
-    <div className="max-w-4xl">
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
-        {/* Back link */}
-        <div className="mb-6">
-          <Link
-            to={staffListPath}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
-          >
-            <RiArrowLeftLine size={18} />
-            Back to staff list
-          </Link>
-        </div>
+    <>
+      <div className="max-w-4xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          {/* Back link */}
+          <div className="mb-6">
+            <Link
+              to={staffListPath}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600"
+            >
+              <RiArrowLeftLine size={18} />
+              Back to staff list
+            </Link>
+          </div>
 
-        {(rolesLoading || branchLoading) && (
-          <div className="mb-5 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white">
-                <Spinner className="h-5 w-5 border-gray-300 border-t-orange-500" />
+          {(rolesLoading || branchLoading) && (
+            <div className="mb-5 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white">
+                  <Spinner className="h-5 w-5 border-gray-300 border-t-orange-500" />
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-orange-900">
+                    Preparing staff form
+                  </h4>
+
+                  <p className="mt-0.5 text-sm text-orange-700">
+                    Please wait while roles and branch options are loaded.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {/* Full name */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Full Name
+                </label>
+
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Branch 01 Receptionist"
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
               </div>
 
+              {/* Username */}
               <div>
-                <h4 className="text-sm font-bold text-orange-900">
-                  Preparing staff form
-                </h4>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Username
+                </label>
 
-                <p className="mt-0.5 text-sm text-orange-700">
-                  Please wait while roles and branch options are loaded.
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="recep01"
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Email
+                </label>
+
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="recep01@test.com"
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Phone
+                </label>
+
+                <input
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="0771234567"
+                  inputMode="numeric"
+                  maxLength={10}
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+
+                <p className="mt-1 text-xs text-gray-400">
+                  Phone number must be exactly 10 digits.
                 </p>
               </div>
-            </div>
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            {/* Full name */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Full Name
-              </label>
+              {/* Role dropdown */}
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  Role
+                  {rolesLoading && <InlineSpinner />}
+                </label>
 
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Branch 01 Receptionist"
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-              />
-            </div>
+                <select
+                  name="roleName"
+                  value={formData.roleName}
+                  onChange={handleChange}
+                  disabled={rolesLoading || loading}
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
+                >
+                  {rolesLoading ? (
+                    <option value={formData.roleName}>Loading roles...</option>
+                  ) : allowedRoles.length === 0 ? (
+                    <option value="">No assignable roles available</option>
+                  ) : (
+                    allowedRoles.map((role) => (
+                      <option key={role.id || role.name} value={role.name}>
+                        {role.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
 
-            {/* Username */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Username
-              </label>
+              {/* Monthly salary */}
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  Monthly Salary (LKR)
+                  {rolesLoading && <InlineSpinner />}
+                </label>
 
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="recep01"
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-              />
-            </div>
+                <input
+                  type="number"
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  disabled={formData.roleName === "SUPER_ADMIN" || rolesLoading}
+                  placeholder={
+                    rolesLoading ? "Loading role salary..." : "Enter staff salary"
+                  }
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
+                />
 
-            {/* Email */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Email
-              </label>
+                <p className="mt-1 text-xs text-gray-400">
+                  Auto-filled from the selected role. You can adjust it before
+                  creating the staff member.
+                </p>
+              </div>
 
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="recep01@test.com"
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-              />
-            </div>
+              {/* Branch section */}
+              {isSuperAdmin ? (
+                formData.roleName !== "SUPER_ADMIN" ? (
+                  <div>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      Branch
+                      {branchLoading && <InlineSpinner />}
+                    </label>
 
-            {/* Phone */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Phone
-              </label>
+                    <select
+                      name="branchId"
+                      value={formData.branchId}
+                      onChange={handleChange}
+                      disabled={branchLoading || loading}
+                      className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
+                    >
+                      <option value="">
+                        {branchLoading ? "Loading branches..." : "Select branch"}
+                      </option>
 
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="0771234567"
-                inputMode="numeric"
-                maxLength={10}
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-              />
+                      {activeBranches.map((branch) => (
+                        <option
+                          key={branch.id || branch.branchId}
+                          value={branch.id || branch.branchId}
+                        >
+                          {branch.name}
+                        </option>
+                      ))}
 
-              <p className="mt-1 text-xs text-gray-400">
-                Phone number must be exactly 10 digits.
-              </p>
-            </div>
-
-            {/* Role dropdown */}
-            <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                Role
-                {rolesLoading && <InlineSpinner />}
-              </label>
-
-              <select
-                name="roleName"
-                value={formData.roleName}
-                onChange={handleChange}
-                disabled={rolesLoading || loading}
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
-              >
-                {rolesLoading ? (
-                  <option value={formData.roleName}>Loading roles...</option>
-                ) : allowedRoles.length === 0 ? (
-                  <option value="">No assignable roles available</option>
+                      {!branchLoading && activeBranches.length === 0 && (
+                        <option value="" disabled>
+                          No active branches available
+                        </option>
+                      )}
+                    </select>
+                  </div>
                 ) : (
-                  allowedRoles.map((role) => (
-                    <option key={role.id || role.name} value={role.name}>
-                      {role.name}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      Branch
+                    </label>
 
-            {/* Monthly salary */}
-            <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                Monthly Salary (LKR)
-                {rolesLoading && <InlineSpinner />}
-              </label>
-
-              <input
-                type="number"
-                name="salary"
-                value={formData.salary}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                disabled={formData.roleName === "SUPER_ADMIN" || rolesLoading}
-                placeholder={
-                  rolesLoading ? "Loading role salary..." : "Enter staff salary"
-                }
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
-              />
-
-              <p className="mt-1 text-xs text-gray-400">
-                Auto-filled from the selected role. You can adjust it before
-                creating the staff member.
-              </p>
-            </div>
-
-            {/* Branch section */}
-            {isSuperAdmin ? (
-              formData.roleName !== "SUPER_ADMIN" ? (
-                <div>
-                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    Branch
-                    {branchLoading && <InlineSpinner />}
-                  </label>
-
-                  <select
-                    name="branchId"
-                    value={formData.branchId}
-                    onChange={handleChange}
-                    disabled={branchLoading || loading}
-                    className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
-                  >
-                    <option value="">
-                      {branchLoading ? "Loading branches..." : "Select branch"}
-                    </option>
-
-                    {/* Show only ACTIVE branches in staff creation */}
-                    {activeBranches.map((branch) => (
-                      <option
-                        key={branch.id || branch.branchId}
-                        value={branch.id || branch.branchId}
-                      >
-                        {branch.name}
-                      </option>
-                    ))}
-
-                    {/* Show helpful message if there are no active branches */}
-                    {!branchLoading && activeBranches.length === 0 && (
-                      <option value="" disabled>
-                        No active branches available
-                      </option>
-                    )}
-                  </select>
-                </div>
+                    <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                      Global access — no branch required
+                    </div>
+                  </div>
+                )
               ) : (
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Branch
                   </label>
 
-                  <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
-                    Global access — no branch required
+                  <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                    {loggedInBranchName}
                   </div>
                 </div>
-              )
-            ) : (
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Branch
-                </label>
-
-                <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-                  {loggedInBranchName}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Info message */}
-          <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
-            After staff creation, the backend will generate a temporary password
-            and send the invite email. If email sending fails, the temporary
-            password will be shown once on the staff list page.
-          </div>
-
-          {/* Form buttons */}
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Link
-              to={staffListPath}
-              className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </Link>
-
-            <button
-              type="submit"
-              disabled={submitDisabled}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading && (
-                <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
               )}
+            </div>
 
-              {loading ? "Creating..." : "Create Staff"}
-            </button>
-          </div>
-        </form>
+            {/* Info message */}
+            <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+              After staff creation, the backend will generate a temporary password
+              and send the invite email. If email sending fails, the temporary
+              password will be shown once in the success modal.
+            </div>
+
+            {/* Form buttons */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Link
+                to={staffListPath}
+                className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </Link>
+
+              <button
+                type="submit"
+                disabled={submitDisabled}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading && (
+                  <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
+                )}
+
+                {loading ? "Creating..." : "Create Staff"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+
+      {createdStaff && (
+        <StaffCreatedSuccessModal
+          staff={createdStaff}
+          onViewStaff={handleViewCreatedStaff}
+          onCreateAnother={handleCreateAnother}
+          onBackToList={handleBackToStaffList}
+          onClose={handleBackToStaffList}
+        />
+      )}
+    </>
   );
 }
 
@@ -795,6 +757,8 @@ function InlineSpinner() {
 
 function Spinner({ className }) {
   return (
-    <span className={`inline-flex animate-spin rounded-full border-2 ${className}`} />
+    <span
+      className={`inline-flex animate-spin rounded-full border-2 ${className}`}
+    />
   );
 }
