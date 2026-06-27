@@ -23,6 +23,9 @@ import ManagerHeader from './components/manager/ManagerHeader'
 import KitchenSidebar from './components/kitchen/KitchenSidebar'
 import KitchenHeader from './components/kitchen/KitchenHeader'
 
+import LineChefSidebar from './components/line-chef/LineChefSidebar'
+import LineChefHeader from './components/line-chef/LineChefHeader'
+
 import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
 
@@ -104,6 +107,9 @@ import ChefsPage from './pages/kitchen/ChefsPage'
 import InventoryPage from './pages/kitchen/InventoryPage'
 import MenuItemPage from './pages/kitchen/MenuItemPage'
 import ApprovalsPage from './pages/kitchen/ApprovalsPage'
+
+// Line Chef pages
+import LineChefDashboard from './pages/line-chef/LineChefDashboard'
 
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
@@ -425,6 +431,21 @@ export default function App() {
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/receptionist" replace />} />
+        </Route>
+
+        {/* LINE_CHEF area */}
+        <Route
+          path="/line-chef"
+          element={
+            <ProtectedRoute allowedRoles={['LINE_CHEF']}>
+              <MainLayout Sidebar={LineChefSidebar} Header={LineChefHeader} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<LineChefDashboard />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/line-chef" replace />} />
         </Route>
 
         {/* Fallback */}
