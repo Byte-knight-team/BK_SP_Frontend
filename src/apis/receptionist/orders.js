@@ -22,15 +22,6 @@ export const getReceptionistOrderDetailAPI = async (orderId) => {
   }
 }
 
-export const checkOrderStockAPI = async (orderId) => {
-  try {
-    const response = await authFetch(buildApiUrl(`${BASE}/${orderId}/stock-check`))
-    const result = await response.json()
-    return { data: result.data, error: null }
-  } catch (error) {
-    return { data: null, error: error.message }
-  }
-}
 
 export const sendToKitchenAPI = async (orderId) => {
   try {

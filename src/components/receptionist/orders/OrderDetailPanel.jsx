@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Monitor, ShoppingBag, Truck, FlaskConical } from 'lucide-react'
+import { Monitor, ShoppingBag, Truck } from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
   getReceptionistOrderDetailAPI,
@@ -9,7 +9,6 @@ import {
   collectPaymentAPI,
   serveOrderAPI,
   serveOrderItemAPI,
-  checkOrderStockAPI,
 } from '../../../apis/receptionist/orders'
 import SendToKitchenModal from './SendToKitchenModal'
 import HoldOrderModal from './HoldOrderModal'
@@ -34,13 +33,10 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
   const [isCancelOpen, setIsCancelOpen]   = useState(false)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
-  const [stockResult, setStockResult]         = useState(null)
-  const [isCheckingStock, setIsCheckingStock] = useState(false)
 
   useEffect(() => {
     if (orderId) {
       fetchDetail()
-      setStockResult(null)
     }
   }, [orderId])
 
@@ -50,14 +46,6 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
     if (error) toast.error('Failed to load order details.')
     else setOrder(data)
     if (showLoading) setLoading(false)
-  }
-
-  const handleStockCheck = async () => {
-    setIsCheckingStock(true)
-    const { data, error } = await checkOrderStockAPI(orderId)
-    if (error) toast.error('Stock check failed.')
-    else setStockResult(data)
-    setIsCheckingStock(false)
   }
 
   const handleSendToKitchen = async () => {
@@ -217,8 +205,8 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
                 <th className="px-3 py-2 text-left font-semibold">Item</th>
                 <th className="px-3 py-2 text-center font-semibold">Qty</th>
                 <th className="px-3 py-2 text-right font-semibold">Subtotal</th>
-                {!isCancelled && activeTab !== 'SERVED' && <th className="px-3 py-2 text-right font-semibold">Status</th>}
-                {activeTab === 'COMPLETED' && isQR && (
+                {!isCancelled && order.status !== 'SERVED' && <th className="px-3 py-2 text-right font-semibold">Status</th>}
+                {order.status === 'COMPLETED' && isQR && (
                   <th className="px-3 py-2 text-center font-semibold">Serve</th>
                 )}
               </tr>
@@ -231,7 +219,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
                   <td className="px-3 py-2 text-right font-bold text-gray-700">
                     Rs. {item.subtotal.toFixed(2)}
                   </td>
-                  {!isCancelled && activeTab !== 'SERVED' && (
+                  {!isCancelled && order.status !== 'SERVED' && (
                     <td className="px-3 py-2 text-right">
                       <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
                         ITEM_STATUS_STYLES[item.status] || 'bg-gray-100 text-gray-400'
@@ -240,7 +228,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
                       </span>
                     </td>
                   )}
-                  {activeTab === 'COMPLETED' && isQR && (
+                  {order.status === 'COMPLETED' && isQR && (
                     <td className="px-3 py-2 text-center">
                       {item.status === 'READY' ? (
                         <button onClick={() => handleServeItem(item.id)}
@@ -325,53 +313,10 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
         </div>
       )}
 
-      {/* STOCK CHECK */}
-      {activeTab === 'PLACED' && (
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="rounded-xl bg-orange-100 p-1.5 text-orange-600">
-                <FlaskConical size={13} />
-              </div>
-              <p className="text-sm font-bold text-gray-800">Stock Check</p>
-            </div>
-            <button onClick={handleStockCheck} disabled={isCheckingStock}
-              className="rounded-2xl bg-orange-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-orange-600 disabled:bg-gray-300">
-              {isCheckingStock ? 'Checking...' : 'Run Check'}
-            </button>
-          </div>
-          {stockResult && (
-            <div className="rounded-2xl border border-gray-100 overflow-hidden">
-              {stockResult.results.length === 0 ? (
-                <p className="p-4 text-sm text-gray-400 italic">No ingredient data linked to these items.</p>
-              ) : (
-                stockResult.results.map((r, i) => (
-                  <div key={i} className={`flex items-start gap-3 p-3 border-b border-gray-50 last:border-0 ${
-                    r.sufficient ? 'bg-green-50/50' : 'bg-red-50/50'
-                  }`}>
-                    <span className={`text-base font-black mt-0.5 ${r.sufficient ? 'text-green-500' : 'text-red-500'}`}>
-                      {r.sufficient ? '✓' : '✗'}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">{r.menuItemName}</p>
-                      {!r.sufficient && <p className="text-xs text-red-500 mt-0.5">{r.shortage}</p>}
-                    </div>
-                  </div>
-                ))
-              )}
-              <div className={`px-4 py-2 text-xs font-bold ${
-                stockResult.allSufficient ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
-              }`}>
-                {stockResult.allSufficient ? '✓ All items have sufficient stock' : '⚠ Some items have stock shortages'}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* ACTION BUTTONS */}
+      {/* ACTION BUTTONS — driven by order.status, not activeTab, so switching tabs never shows wrong buttons */}
       <div className="flex gap-3 flex-wrap pt-1">
-        {activeTab === 'PLACED' && (
+        {order.status === 'PLACED' && (
           <>
             <button onClick={() => setIsHoldOpen(true)}
               className="rounded-2xl border border-orange-200 px-4 py-2.5 text-sm font-bold text-orange-500 hover:bg-orange-50">
@@ -384,7 +329,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
           </>
         )}
 
-        {activeTab === 'ON_HOLD' && (
+        {order.status === 'ON_HOLD' && (
           <>
             <button onClick={() => setIsCancelOpen(true)}
               className="rounded-2xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">
@@ -397,9 +342,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
           </>
         )}
 
-        {/* QR dine-in: items are served per-row in the table above — no footer button needed */}
-        {/* Pickup: hand over in person */}
-        {activeTab === 'COMPLETED' && !isQR && !isDelivery && (
+        {order.status === 'COMPLETED' && !isQR && !isDelivery && (
           <button onClick={handleServeOrder} disabled={isActing || isCashDue}
             className={`w-full rounded-2xl py-3 text-sm font-bold text-white transition-all ${
               isCashDue || isActing
@@ -410,8 +353,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
           </button>
         )}
 
-        {/* Delivery: manager handles dispatch — no action for receptionist */}
-        {activeTab === 'COMPLETED' && isDelivery && (
+        {order.status === 'COMPLETED' && isDelivery && (
           <div className="w-full rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 text-xs font-semibold text-teal-600">
             Ready for delivery — the manager will assign a driver from the delivery dashboard.
           </div>
@@ -424,7 +366,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
         onClose={() => setIsKitchenOpen(false)}
         onConfirm={handleSendToKitchen}
         orderNumber={order.orderNumber}
-        isOnHold={activeTab === 'ON_HOLD'}
+        isOnHold={order.status === 'ON_HOLD'}
         isLoading={isActing}
       />
       <HoldOrderModal

@@ -32,8 +32,8 @@ const KitchenOrdersPage = () => {
     // Show a toast notification so the chef is alerted immediately
     toast.success(`🍽️ ${message.message}`, { autoClose: 5000 })
 
-    // Switch to Pending tab and trigger a refresh of the order list
-    setActiveTab(1)
+    // Silently refresh the pending list in the background — do NOT switch tabs,
+    // as the chef may be actively working on a different section
     setPendingRefreshKey((prev) => prev + 1)
   }, [])
 
