@@ -85,7 +85,7 @@ export default function SignupAddressPage() {
       <div className="relative z-10 mx-auto w-full max-w-[380px]">
         <button
           type="button"
-          onClick={() => navigate('/signup', { state: { personal } })}
+          onClick={() => navigate(-1)}
           className="mb-5 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
         >
           <ArrowLeft size={16} />
