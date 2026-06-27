@@ -6,7 +6,6 @@ import {
   RiTeamLine,
   RiStore2Line,
   RiCheckboxCircleLine,
-  RiCloseCircleLine,
   RiShieldCheckLine,
   RiSettings3Line,
   RiFileList3Line,
@@ -14,6 +13,10 @@ import {
   RiRefreshLine,
   RiPercentLine,
   RiGiftLine,
+  RiMoneyDollarCircleLine,
+  RiTimerFlashLine,
+  RiBarChartBoxLine,
+  RiLineChartLine,
 } from "@remixicon/react";
 
 import { getAllStaffAPI } from "../../apis/staff/staff";
@@ -21,16 +24,21 @@ import { getAllBranchesAPI } from "../../apis/staff/branches";
 import { getAllCustomersAPI } from "../../apis/staff/customers";
 import { getGlobalConfigAPI } from "../../apis/staff/systemConfig";
 
+import {
+  getAdminDashboardSummaryAPI,
+  getAdminDashboardRevenueTrendAPI,
+  getSuperAdminBranchRevenueAPI,
+} from "../../apis/staff/dashboard";
+
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 /*
   Super Admin Dashboard
 
   Purpose:
-  - Shows useful system-wide summary data.
-  - Shows staff, branch, customer, and global config status.
-  - Adds manual refresh support.
-  - Removes quick action shortcut cards.
+  - Keeps system governance summary from the previous dashboard.
+  - Adds Super Admin revenue and branch performance overview.
+  - Removes Total Orders / Active Orders / Order Flow because those are not needed here.
 */
 export default function DashboardPage() {
   const { setHeaderInfo } = useOutletContext();
@@ -39,6 +47,10 @@ export default function DashboardPage() {
   const [branchList, setBranchList] = useState([]);
   const [customerList, setCustomerList] = useState([]);
   const [globalConfig, setGlobalConfig] = useState(null);
+
+  const [dashboardSummary, setDashboardSummary] = useState(null);
+  const [revenueTrend, setRevenueTrend] = useState([]);
+  const [branchRevenue, setBranchRevenue] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,45 +66,31 @@ export default function DashboardPage() {
   }, [setHeaderInfo]);
 
   const normalizeList = (response) => {
-    if (Array.isArray(response)) {
-      return response;
-    }
-
-    if (Array.isArray(response?.data)) {
-      return response.data;
-    }
-
-    if (Array.isArray(response?.content)) {
-      return response.content;
-    }
-
-    if (Array.isArray(response?.branches)) {
-      return response.branches;
-    }
-
-    if (Array.isArray(response?.staff)) {
-      return response.staff;
-    }
-
-    if (Array.isArray(response?.customers)) {
-      return response.customers;
-    }
-
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response?.data)) return response.data;
+    if (Array.isArray(response?.content)) return response.content;
+    if (Array.isArray(response?.branches)) return response.branches;
+    if (Array.isArray(response?.staff)) return response.staff;
+    if (Array.isArray(response?.customers)) return response.customers;
     return [];
   };
 
+  const normalizeObject = (response) => {
+    if (response?.data && typeof response.data === "object") {
+      return response.data;
+    }
+
+    if (response && typeof response === "object") {
+      return response;
+    }
+
+    return null;
+  };
+
   const isStaffActive = (staff) => {
-    if (typeof staff?.active === "boolean") {
-      return staff.active;
-    }
-
-    if (typeof staff?.isActive === "boolean") {
-      return staff.isActive;
-    }
-
-    if (typeof staff?.enabled === "boolean") {
-      return staff.enabled;
-    }
+    if (typeof staff?.active === "boolean") return staff.active;
+    if (typeof staff?.isActive === "boolean") return staff.isActive;
+    if (typeof staff?.enabled === "boolean") return staff.enabled;
 
     const status = String(staff?.status || staff?.accountStatus || "")
       .trim()
@@ -109,29 +107,16 @@ export default function DashboardPage() {
       return String(branch.status).trim().toUpperCase() === "ACTIVE";
     }
 
-    if (typeof branch?.active === "boolean") {
-      return branch.active;
-    }
-
-    if (typeof branch?.isActive === "boolean") {
-      return branch.isActive;
-    }
+    if (typeof branch?.active === "boolean") return branch.active;
+    if (typeof branch?.isActive === "boolean") return branch.isActive;
 
     return false;
   };
 
   const isCustomerActive = (customer) => {
-    if (typeof customer?.active === "boolean") {
-      return customer.active;
-    }
-
-    if (typeof customer?.isActive === "boolean") {
-      return customer.isActive;
-    }
-
-    if (typeof customer?.enabled === "boolean") {
-      return customer.enabled;
-    }
+    if (typeof customer?.active === "boolean") return customer.active;
+    if (typeof customer?.isActive === "boolean") return customer.isActive;
+    if (typeof customer?.enabled === "boolean") return customer.enabled;
 
     const status = String(customer?.status || customer?.accountStatus || "")
       .trim()
@@ -152,13 +137,53 @@ export default function DashboardPage() {
       }
 
       try {
-        const [staffResult, branchResult, customerResult, configResult] =
-          await Promise.allSettled([
-            getAllStaffAPI(),
-            getAllBranchesAPI(),
-            getAllCustomersAPI(),
-            getGlobalConfigAPI(),
-          ]);
+        const [
+          summaryResult,
+          revenueTrendResult,
+          branchRevenueResult,
+          staffResult,
+          branchResult,
+          customerResult,
+          configResult,
+        ] = await Promise.allSettled([
+          getAdminDashboardSummaryAPI(),
+          getAdminDashboardRevenueTrendAPI(7),
+          getSuperAdminBranchRevenueAPI(7),
+          getAllStaffAPI(),
+          getAllBranchesAPI(),
+          getAllCustomersAPI(),
+          getGlobalConfigAPI(),
+        ]);
+
+        if (summaryResult.status === "fulfilled") {
+          if (summaryResult.value?.error) {
+            setDashboardSummary(null);
+          } else {
+            setDashboardSummary(normalizeObject(summaryResult.value));
+          }
+        } else {
+          setDashboardSummary(null);
+        }
+
+        if (revenueTrendResult.status === "fulfilled") {
+          if (revenueTrendResult.value?.error) {
+            setRevenueTrend([]);
+          } else {
+            setRevenueTrend(normalizeList(revenueTrendResult.value));
+          }
+        } else {
+          setRevenueTrend([]);
+        }
+
+        if (branchRevenueResult.status === "fulfilled") {
+          if (branchRevenueResult.value?.error) {
+            setBranchRevenue([]);
+          } else {
+            setBranchRevenue(normalizeList(branchRevenueResult.value));
+          }
+        } else {
+          setBranchRevenue([]);
+        }
 
         if (staffResult.status === "fulfilled") {
           if (staffResult.value?.error) {
@@ -256,7 +281,65 @@ export default function DashboardPage() {
   const branchActiveRate = calculateRate(activeBranches, totalBranches);
   const customerActiveRate = calculateRate(activeCustomers, totalCustomers);
 
-  const summaryCards = useMemo(
+  const totalRevenue = Number(dashboardSummary?.totalRevenue || 0);
+
+  const totalBranchPeriodRevenue = branchRevenue.reduce((total, branch) => {
+    return total + Number(branch?.periodRevenue || 0);
+  }, 0);
+
+  const totalBranchTodayRevenue = branchRevenue.reduce((total, branch) => {
+    return total + Number(branch?.todayRevenue || 0);
+  }, 0);
+
+  const totalBranchPeriodOrders = branchRevenue.reduce((total, branch) => {
+    return total + Number(branch?.periodOrderCount || 0);
+  }, 0);
+
+  const topBranch = useMemo(() => {
+    if (!branchRevenue.length) return null;
+
+    return branchRevenue.reduce((currentTop, branch) => {
+      const currentRevenue = Number(currentTop?.periodRevenue || 0);
+      const branchRevenueValue = Number(branch?.periodRevenue || 0);
+
+      return branchRevenueValue > currentRevenue ? branch : currentTop;
+    }, branchRevenue[0]);
+  }, [branchRevenue]);
+
+  const businessCards = [
+    {
+      title: "Total Revenue",
+      value: formatMoney(totalRevenue),
+      description: "Successful paid revenue across the system",
+      icon: RiMoneyDollarCircleLine,
+      tone: "green",
+    },
+    {
+      title: "Today Branch Revenue",
+      value: formatMoney(totalBranchTodayRevenue),
+      description: "Revenue across all branches today",
+      icon: RiTimerFlashLine,
+      tone: "green",
+    },
+    {
+      title: "7-Day Branch Revenue",
+      value: formatMoney(totalBranchPeriodRevenue),
+      description: `${totalBranchPeriodOrders} paid orders in the period`,
+      icon: RiBarChartBoxLine,
+      tone: "green",
+    },
+    {
+      title: "Top Branch",
+      value: topBranch?.branchName || "No revenue yet",
+      description: topBranch
+        ? `${formatMoney(topBranch.periodRevenue)} in last 7 days`
+        : "No paid branch revenue found",
+      icon: RiStore2Line,
+      tone: "orange",
+    },
+  ];
+
+  const governanceCards = useMemo(
     () => [
       {
         title: "Total Staff",
@@ -367,18 +450,6 @@ export default function DashboardPage() {
     },
   ];
 
-  const getIconToneClass = (tone) => {
-    if (tone === "green") {
-      return "bg-green-50 text-green-600";
-    }
-
-    if (tone === "gray") {
-      return "bg-gray-100 text-gray-600";
-    }
-
-    return "bg-orange-50 text-orange-600";
-  };
-
   if (loading) {
     return (
       <div className="w-full">
@@ -396,21 +467,20 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      {/* Dashboard toolbar */}
       <section className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h3 className="text-lg font-bold text-gray-900">
-              System Overview
+              Super Admin Overview
             </h3>
 
             <p className="mt-1 text-sm text-gray-500">
-              Monitor staff, branches, customers, and global business rules
-              across the whole restaurant system.
+              Monitor branch revenue, system governance, customer activity, and
+              global business rules.
             </p>
 
             <p className="mt-2 text-sm text-gray-500">
-              Total system records:{" "}
+              Total governance records:{" "}
               <span className="font-semibold text-gray-800">
                 {totalStaff + totalBranches + totalCustomers}
               </span>
@@ -434,61 +504,76 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Summary cards */}
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {summaryCards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <div
-              key={card.title}
-              className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-gray-500">
-                    {card.title}
-                  </p>
-
-                  <h2 className="mt-3 text-3xl font-bold text-gray-900">
-                    {card.value}
-                  </h2>
-
-                  <p className="mt-2 text-sm text-gray-500">
-                    {card.description}
-                  </p>
-                </div>
-
-                <div
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${getIconToneClass(
-                    card.tone
-                  )}`}
-                >
-                  <Icon size={24} />
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {businessCards.map((card) => (
+          <SummaryCard key={card.title} {...card} />
+        ))}
       </section>
 
-      {/* Operational status */}
       <section className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-600">
-            <RiFileList3Line size={22} />
-          </div>
+        <SectionHeader
+          Icon={RiStore2Line}
+          title="Branch Revenue Overview"
+          description="Super Admin view of branch-wise paid revenue for the last 7 days."
+        />
 
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">
-              Operational Status
-            </h3>
+        <div className="mt-5 overflow-x-auto">
+          {branchRevenue.length ? (
+            <table className="min-w-full divide-y divide-gray-100 text-left text-sm">
+              <thead>
+                <tr className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                  <th className="px-4 py-3">Branch</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">7-Day Revenue</th>
+                  <th className="px-4 py-3 text-right">7-Day Orders</th>
+                  <th className="px-4 py-3 text-right">Today Revenue</th>
+                  <th className="px-4 py-3 text-right">Today Orders</th>
+                  <th className="px-4 py-3 text-right">Average Order</th>
+                </tr>
+              </thead>
 
-            <p className="text-sm text-gray-500">
-              Active and inactive breakdown across main system areas.
-            </p>
-          </div>
+              <tbody className="divide-y divide-gray-100">
+                {branchRevenue.map((branch) => (
+                  <BranchRevenueRow key={branch.branchId} branch={branch} />
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <EmptyState text="No branch revenue data available." />
+          )}
         </div>
+      </section>
+
+      <section className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
+        <SectionHeader
+          Icon={RiLineChartLine}
+          title="7-Day Revenue Trend"
+          description="Daily revenue movement across the selected dashboard period."
+        />
+
+        <div className="mt-5 space-y-3">
+          {revenueTrend.length ? (
+            revenueTrend.map((point) => (
+              <RevenueTrendRow key={point.date} point={point} />
+            ))
+          ) : (
+            <EmptyState text="No revenue trend data available." />
+          )}
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {governanceCards.map((card) => (
+          <SummaryCard key={card.title} {...card} />
+        ))}
+      </section>
+
+      <section className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
+        <SectionHeader
+          Icon={RiFileList3Line}
+          title="Operational Status"
+          description="Active and inactive breakdown across main system areas."
+        />
 
         <div className="mt-5 space-y-4">
           {statusRows.map((row) => (
@@ -497,24 +582,13 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Customer and configuration insight */}
       <section className="grid gap-5 xl:grid-cols-2">
         <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-600">
-              <RiUserHeartLine size={22} />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">
-                Customer Insights
-              </h3>
-
-              <p className="text-sm text-gray-500">
-                Loyalty and verification summary.
-              </p>
-            </div>
-          </div>
+          <SectionHeader
+            Icon={RiUserHeartLine}
+            title="Customer Insights"
+            description="Loyalty and verification summary."
+          />
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <InsightTile
@@ -544,21 +618,11 @@ export default function DashboardPage() {
         </div>
 
         <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-600">
-              <RiSettings3Line size={22} />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">
-                Global Rules
-              </h3>
-
-              <p className="text-sm text-gray-500">
-                Current tax, service charge, and loyalty configuration.
-              </p>
-            </div>
-          </div>
+          <SectionHeader
+            Icon={RiSettings3Line}
+            title="Global Rules"
+            description="Current tax, service charge, and loyalty configuration."
+          />
 
           <div className="mt-5 space-y-3">
             {configItems.map((item) => (
@@ -567,6 +631,110 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function SummaryCard({ title, value, description, icon: Icon, tone }) {
+  return (
+    <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-gray-500">{title}</p>
+
+          <h2 className="mt-3 text-3xl font-bold text-gray-900">{value}</h2>
+
+          <p className="mt-2 text-sm text-gray-500">{description}</p>
+        </div>
+
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${getIconToneClass(
+            tone
+          )}`}
+        >
+          <Icon size={24} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({ Icon, title, description }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-600">
+        <Icon size={22} />
+      </div>
+
+      <div>
+        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+
+        <p className="text-sm text-gray-500">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function BranchRevenueRow({ branch }) {
+  const active =
+    String(branch?.branchStatus || "").trim().toUpperCase() === "ACTIVE";
+
+  return (
+    <tr className="text-gray-700">
+      <td className="px-4 py-4">
+        <div>
+          <p className="font-semibold text-gray-900">{branch.branchName}</p>
+          <p className="text-xs text-gray-400">ID: {branch.branchId}</p>
+        </div>
+      </td>
+
+      <td className="px-4 py-4">
+        <span
+          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+            active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
+          }`}
+        >
+          {branch.branchStatus || "UNKNOWN"}
+        </span>
+      </td>
+
+      <td className="px-4 py-4 text-right font-semibold text-gray-900">
+        {formatMoney(branch.periodRevenue)}
+      </td>
+
+      <td className="px-4 py-4 text-right">
+        {Number(branch.periodOrderCount || 0).toLocaleString()}
+      </td>
+
+      <td className="px-4 py-4 text-right font-semibold text-gray-900">
+        {formatMoney(branch.todayRevenue)}
+      </td>
+
+      <td className="px-4 py-4 text-right">
+        {Number(branch.todayOrderCount || 0).toLocaleString()}
+      </td>
+
+      <td className="px-4 py-4 text-right">
+        {formatMoney(branch.averageOrderValue)}
+      </td>
+    </tr>
+  );
+}
+
+function RevenueTrendRow({ point }) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
+      <div>
+        <h4 className="text-sm font-bold text-gray-900">
+          {point?.dayLabel || "Day"}
+        </h4>
+
+        <p className="text-xs text-gray-500">{point?.date}</p>
+      </div>
+
+      <div className="text-sm font-bold text-gray-900">
+        {formatMoney(point?.revenue)}
+      </div>
     </div>
   );
 }
@@ -642,6 +810,14 @@ function ConfigStatusItem({ label, enabled, value, Icon }) {
   );
 }
 
+function EmptyState({ text }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-6 text-center text-sm text-gray-500">
+      {text}
+    </div>
+  );
+}
+
 function DashboardState({ Icon, title, description, loading = false }) {
   return (
     <div className="text-center">
@@ -678,10 +854,25 @@ function calculateRate(active, total) {
   return Math.round((active / total) * 100);
 }
 
+function getIconToneClass(tone) {
+  if (tone === "green") {
+    return "bg-green-50 text-green-600";
+  }
+
+  if (tone === "gray") {
+    return "bg-gray-100 text-gray-600";
+  }
+
+  return "bg-orange-50 text-orange-600";
+}
+
 function formatMoney(value) {
   if (value === null || value === undefined || value === "") {
     return "LKR 0";
   }
 
-  return `LKR ${Number(value).toLocaleString()}`;
+  return `LKR ${Number(value).toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
 }
