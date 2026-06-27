@@ -11,6 +11,7 @@ import {
   RiEyeLine,
   RiEditLine,
   RiShieldUserLine,
+  RiRefreshLine,
 } from "@remixicon/react";
 
 import {
@@ -158,11 +159,13 @@ export default function BranchListPage() {
       setLoadError(error);
       setBranchList([]);
       showErrorToast(error);
-    } else {
-      setBranchList(Array.isArray(data) ? data : []);
+      setLoading(false);
+      return false;
     }
 
+    setBranchList(Array.isArray(data) ? data : []);
     setLoading(false);
+    return true;
   };
 
   /*
@@ -175,6 +178,14 @@ export default function BranchListPage() {
       setLoading(false);
     }
   }, [isSuperAdmin]);
+
+  const handleRefreshBranches = async () => {
+    const success = await loadBranches();
+
+    if (success) {
+      showSuccessToast("Branches refreshed successfully.");
+    }
+  };
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -270,13 +281,30 @@ export default function BranchListPage() {
             </p>
           </div>
 
-          <Link
-            to={`${branchBasePath}/create`}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
-          >
-            <RiAddLine size={18} />
-            Create Branch
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleRefreshBranches}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <Spinner className="h-4 w-4 border-gray-300 border-t-orange-500" />
+              ) : (
+                <RiRefreshLine size={18} />
+              )}
+
+              {loading ? "Refreshing..." : "Refresh"}
+            </button>
+
+            <Link
+              to={`${branchBasePath}/create`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
+            >
+              <RiAddLine size={18} />
+              Create Branch
+            </Link>
+          </div>
         </div>
 
         <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">

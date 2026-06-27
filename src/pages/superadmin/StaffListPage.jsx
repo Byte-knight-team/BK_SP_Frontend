@@ -13,6 +13,7 @@ import {
   RiArrowRightSLine,
   RiEyeLine,
   RiEditLine,
+  RiRefreshLine,
 } from "@remixicon/react";
 
 import {
@@ -40,6 +41,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50];
   - Adds frontend-only search and filters using loaded staff data.
   - Adds frontend-only pagination after search/filter.
   - Adds confirmation modal before activate/deactivate actions.
+  - Adds refresh button to reload staff list manually.
   - Uses visual loading, empty, and no-match table states.
   - Keeps actions aligned horizontally.
 */
@@ -206,16 +208,28 @@ export default function StaffListPage() {
       setLoadError(error);
       setStaffList([]);
       showErrorToast(error);
-    } else {
-      setStaffList(Array.isArray(data) ? data : []);
+      setLoading(false);
+      return false;
     }
 
+    setStaffList(Array.isArray(data) ? data : []);
     setLoading(false);
+    return true;
   };
 
   useEffect(() => {
     loadStaff();
   }, []);
+
+  const handleRefreshStaff = async () => {
+    setNoticeMessage("");
+
+    const success = await loadStaff();
+
+    if (success) {
+      showSuccessToast("Staff accounts refreshed successfully.");
+    }
+  };
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -352,13 +366,30 @@ Please manually share this temporary password with the staff member.`
             </p>
           </div>
 
-          <Link
-            to={`${staffBasePath}/create`}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
-          >
-            <RiAddLine size={18} />
-            Create Staff
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleRefreshStaff}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <Spinner className="h-4 w-4 border-gray-300 border-t-orange-500" />
+              ) : (
+                <RiRefreshLine size={18} />
+              )}
+
+              {loading ? "Refreshing..." : "Refresh"}
+            </button>
+
+            <Link
+              to={`${staffBasePath}/create`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
+            >
+              <RiAddLine size={18} />
+              Create Staff
+            </Link>
+          </div>
         </div>
 
         <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
