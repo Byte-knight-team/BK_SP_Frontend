@@ -373,6 +373,7 @@ export default function CheckoutPage() {
         items: cartItems.map((item) => ({
           menuItemId: item.id,
           quantity: item.quantity,
+          kitchenNote: item.kitchenNote || undefined,
         })),
         contactName: contact.username.trim(),
         contactPhone: contact.phone.trim(),
