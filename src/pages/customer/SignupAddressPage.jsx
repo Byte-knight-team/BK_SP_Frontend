@@ -6,6 +6,7 @@ import { ArrowLeft, Building2, MapPin, Hash, Home } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import { registerCustomer } from '../../apis/customer/auth';
 import GlassBackground from '../../components/customer/GlassBackground';
+import { toast } from 'react-toastify';
 import { signupAddressSchema } from '../../lib/validations/auth';
 
 export default function SignupAddressPage() {
@@ -23,7 +24,7 @@ export default function SignupAddressPage() {
       postalCode: '',
     },
   });
-  
+
   const [error, setError] = useState('');
 
   const redirectTo = location.state?.redirect || '/menu';
@@ -67,6 +68,11 @@ export default function SignupAddressPage() {
       localStorage.removeItem('qr_branch_id');
       localStorage.removeItem('qr_table_id');
 
+      toast('Registration successful! Welcome!', {
+        className: 'toast-orange-auth font-semibold shadow-lg',
+        icon: '🎉',
+      });
+
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to register.');
@@ -79,7 +85,7 @@ export default function SignupAddressPage() {
       <div className="relative z-10 mx-auto w-full max-w-[380px]">
         <button
           type="button"
-          onClick={() => navigate('/signup', { state: { personal } })}
+          onClick={() => navigate(-1)}
           className="mb-5 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
         >
           <ArrowLeft size={16} />
