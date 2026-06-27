@@ -24,7 +24,7 @@ const ITEM_STATUS_STYLES = {
   ON_HOLD:   'bg-red-50 text-red-500 border border-red-100',
 }
 
-const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
+const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
   const [order, setOrder]   = useState(null)
   const [loading, setLoading] = useState(false)
   const [isActing, setIsActing] = useState(false)
@@ -44,12 +44,12 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
     }
   }, [orderId])
 
-  const fetchDetail = async () => {
-    setLoading(true)
+  const fetchDetail = async (showLoading = true) => {
+    if (showLoading) setLoading(true)
     const { data, error } = await getReceptionistOrderDetailAPI(orderId)
     if (error) toast.error('Failed to load order details.')
     else setOrder(data)
-    setLoading(false)
+    if (showLoading) setLoading(false)
   }
 
   const handleStockCheck = async () => {
@@ -63,24 +63,41 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
   const handleSendToKitchen = async () => {
     setIsActing(true)
     const { error } = await sendToKitchenAPI(orderId)
-    if (error) toast.error(error)
-    else { toast.success('Order sent to kitchen!'); setIsKitchenOpen(false); onActionDone() }
+    if (error) {
+      toast.error(error)
+    } else {
+      toast.success('Order sent to kitchen!')
+      setIsKitchenOpen(false)
+      fetchDetail(false)        // silently refresh right panel (status: PENDING)
+      onTabChange('KITCHEN')    // switch left panel to Kitchen tab
+    }
     setIsActing(false)
   }
 
   const handleHold = async (reason) => {
     setIsActing(true)
     const { error } = await holdReceptionistOrderAPI(orderId, reason)
-    if (error) toast.error(error)
-    else { toast.success('Order put on hold.'); setIsHoldOpen(false); onActionDone() }
+    if (error) {
+      toast.error(error)
+    } else {
+      toast.success('Order put on hold.')
+      setIsHoldOpen(false)
+      fetchDetail(false)        // silently refresh right panel (status: ON_HOLD)
+      onTabChange('ON_HOLD')    // switch left panel to On Hold tab
+    }
     setIsActing(false)
   }
 
   const handleCancel = async (reason) => {
     setIsActing(true)
     const { error } = await cancelReceptionistOrderAPI(orderId, reason)
-    if (error) toast.error(error)
-    else { toast.success('Order cancelled.'); setIsCancelOpen(false); onActionDone() }
+    if (error) {
+      toast.error(error)
+    } else {
+      toast.success('Order cancelled.')
+      setIsCancelOpen(false)
+      onTabChange(null)         // clear selection (cancelled has no tab to show)
+    }
     setIsActing(false)
   }
 
@@ -88,22 +105,27 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
     setIsActing(true)
     const { error } = await collectPaymentAPI(orderId)
     if (error) toast.error(error)
-    else { toast.success('Payment collected!'); setIsPaymentOpen(false); fetchDetail() }
+    else { toast.success('Payment collected!'); setIsPaymentOpen(false); fetchDetail(false) }
     setIsActing(false)
   }
 
   const handleServeOrder = async () => {
     setIsActing(true)
     const { error } = await serveOrderAPI(orderId)
-    if (error) toast.error(error)
-    else { toast.success('Order handed over!'); onActionDone() }
+    if (error) {
+      toast.error(error)
+    } else {
+      toast.success('Order handed over!')
+      fetchDetail(false)        // silently refresh right panel (status: SERVED)
+      onTabChange('SERVED')     // switch left panel to Served tab
+    }
     setIsActing(false)
   }
 
   const handleServeItem = async (itemId) => {
     const { error } = await serveOrderItemAPI(itemId)
     if (error) toast.error(error)
-    else { toast.success('Item served!'); fetchDetail() }
+    else { toast.success('Item served!'); fetchDetail(false) }
   }
 
   if (loading) return (
@@ -194,7 +216,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
                 <th className="px-3 py-2 text-left font-semibold">Item</th>
                 <th className="px-3 py-2 text-center font-semibold">Qty</th>
                 <th className="px-3 py-2 text-right font-semibold">Subtotal</th>
-                <th className="px-3 py-2 text-right font-semibold">Status</th>
+                {activeTab !== 'SERVED' && <th className="px-3 py-2 text-right font-semibold">Status</th>}
                 {activeTab === 'COMPLETED' && isQR && (
                   <th className="px-3 py-2 text-center font-semibold">Serve</th>
                 )}
@@ -208,13 +230,15 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
                   <td className="px-3 py-2 text-right font-bold text-gray-700">
                     Rs. {item.subtotal.toFixed(2)}
                   </td>
-                  <td className="px-3 py-2 text-right">
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
-                      ITEM_STATUS_STYLES[item.status] || 'bg-gray-100 text-gray-400'
-                    }`}>
-                      {item.status}
-                    </span>
-                  </td>
+                  {activeTab !== 'SERVED' && (
+                    <td className="px-3 py-2 text-right">
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                        ITEM_STATUS_STYLES[item.status] || 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </td>
+                  )}
                   {activeTab === 'COMPLETED' && isQR && (
                     <td className="px-3 py-2 text-center">
                       {item.status === 'READY' ? (
@@ -362,7 +386,11 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
         {/* Pickup: hand over in person */}
         {activeTab === 'COMPLETED' && !isQR && !isDelivery && (
           <button onClick={handleServeOrder} disabled={isActing || isCashDue}
-            className="w-full rounded-2xl bg-green-500 py-3 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600 disabled:bg-gray-300">
+            className={`w-full rounded-2xl py-3 text-sm font-bold text-white transition-all ${
+              isCashDue || isActing
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-green-500 shadow-lg shadow-green-200 hover:bg-green-600 cursor-pointer'
+            }`}>
             {isCashDue ? 'Collect Payment First' : 'Hand Over & Complete ✓'}
           </button>
         )}

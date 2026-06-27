@@ -48,7 +48,6 @@ const OrderManagementPage = () => {
 
   useEffect(() => {
     fetchOrders()
-    setSelectedOrderId(null)
   }, [activeTab])
 
   const fetchOrders = async () => {
@@ -148,9 +147,13 @@ const OrderManagementPage = () => {
           <OrderDetailPanel
             orderId={selectedOrderId}
             activeTab={activeTab}
-            onActionDone={() => {
-              fetchOrders()
-              setSelectedOrderId(null)
+            onTabChange={(targetTab) => {
+              if (targetTab) {
+                setActiveTab(targetTab) // triggers useEffect → fetchOrders() for new tab
+              } else {
+                setSelectedOrderId(null) // cancel: clear panel, stay on current tab
+                fetchOrders()
+              }
             }}
           />
         ) : (
