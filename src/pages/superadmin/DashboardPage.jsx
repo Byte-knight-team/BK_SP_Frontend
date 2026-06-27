@@ -16,7 +16,6 @@ import {
   RiMoneyDollarCircleLine,
   RiTimerFlashLine,
   RiBarChartBoxLine,
-  RiLineChartLine,
 } from "@remixicon/react";
 
 import { getAllStaffAPI } from "../../apis/staff/staff";
@@ -26,7 +25,6 @@ import { getGlobalConfigAPI } from "../../apis/staff/systemConfig";
 
 import {
   getAdminDashboardSummaryAPI,
-  getAdminDashboardRevenueTrendAPI,
   getSuperAdminBranchRevenueAPI,
 } from "../../apis/staff/dashboard";
 
@@ -38,7 +36,8 @@ import { showSuccessToast, showErrorToast } from "../../utils/toast";
   Purpose:
   - Keeps system governance summary from the previous dashboard.
   - Adds Super Admin revenue and branch performance overview.
-  - Removes Total Orders / Active Orders / Order Flow because those are not needed here.
+  - Removes Total Orders / Active Orders / Order Flow.
+  - Removes 7-Day Revenue Trend section.
 */
 export default function DashboardPage() {
   const { setHeaderInfo } = useOutletContext();
@@ -49,7 +48,6 @@ export default function DashboardPage() {
   const [globalConfig, setGlobalConfig] = useState(null);
 
   const [dashboardSummary, setDashboardSummary] = useState(null);
-  const [revenueTrend, setRevenueTrend] = useState([]);
   const [branchRevenue, setBranchRevenue] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -139,7 +137,6 @@ export default function DashboardPage() {
       try {
         const [
           summaryResult,
-          revenueTrendResult,
           branchRevenueResult,
           staffResult,
           branchResult,
@@ -147,7 +144,6 @@ export default function DashboardPage() {
           configResult,
         ] = await Promise.allSettled([
           getAdminDashboardSummaryAPI(),
-          getAdminDashboardRevenueTrendAPI(7),
           getSuperAdminBranchRevenueAPI(7),
           getAllStaffAPI(),
           getAllBranchesAPI(),
@@ -165,16 +161,6 @@ export default function DashboardPage() {
           setDashboardSummary(null);
         }
 
-        if (revenueTrendResult.status === "fulfilled") {
-          if (revenueTrendResult.value?.error) {
-            setRevenueTrend([]);
-          } else {
-            setRevenueTrend(normalizeList(revenueTrendResult.value));
-          }
-        } else {
-          setRevenueTrend([]);
-        }
-
         if (branchRevenueResult.status === "fulfilled") {
           if (branchRevenueResult.value?.error) {
             setBranchRevenue([]);
@@ -190,7 +176,9 @@ export default function DashboardPage() {
             showErrorToast(staffResult.value.error);
             setStaffList([]);
           } else {
-            setStaffList(normalizeList(staffResult.value?.data));
+            setStaffList(
+              normalizeList(staffResult.value?.data || staffResult.value)
+            );
           }
         } else {
           setStaffList([]);
@@ -202,7 +190,9 @@ export default function DashboardPage() {
             showErrorToast(branchResult.value.error);
             setBranchList([]);
           } else {
-            setBranchList(normalizeList(branchResult.value?.data));
+            setBranchList(
+              normalizeList(branchResult.value?.data || branchResult.value)
+            );
           }
         } else {
           setBranchList([]);
@@ -214,7 +204,9 @@ export default function DashboardPage() {
             showErrorToast(customerResult.value.error);
             setCustomerList([]);
           } else {
-            setCustomerList(normalizeList(customerResult.value?.data));
+            setCustomerList(
+              normalizeList(customerResult.value?.data || customerResult.value)
+            );
           }
         } else {
           setCustomerList([]);
@@ -222,7 +214,12 @@ export default function DashboardPage() {
         }
 
         if (configResult.status === "fulfilled") {
-          setGlobalConfig(configResult.value || null);
+          if (configResult.value?.error) {
+            setGlobalConfig(null);
+            showErrorToast(configResult.value.error);
+          } else {
+            setGlobalConfig(normalizeObject(configResult.value));
+          }
         } else {
           setGlobalConfig(null);
           showErrorToast("Failed to load system configuration summary.");
@@ -544,24 +541,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
-        <SectionHeader
-          Icon={RiLineChartLine}
-          title="7-Day Revenue Trend"
-          description="Daily revenue movement across the selected dashboard period."
-        />
-
-        <div className="mt-5 space-y-3">
-          {revenueTrend.length ? (
-            revenueTrend.map((point) => (
-              <RevenueTrendRow key={point.date} point={point} />
-            ))
-          ) : (
-            <EmptyState text="No revenue trend data available." />
-          )}
-        </div>
-      </section>
-
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {governanceCards.map((card) => (
           <SummaryCard key={card.title} {...card} />
@@ -718,24 +697,6 @@ function BranchRevenueRow({ branch }) {
         {formatMoney(branch.averageOrderValue)}
       </td>
     </tr>
-  );
-}
-
-function RevenueTrendRow({ point }) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
-      <div>
-        <h4 className="text-sm font-bold text-gray-900">
-          {point?.dayLabel || "Day"}
-        </h4>
-
-        <p className="text-xs text-gray-500">{point?.date}</p>
-      </div>
-
-      <div className="text-sm font-bold text-gray-900">
-        {formatMoney(point?.revenue)}
-      </div>
-    </div>
   );
 }
 
