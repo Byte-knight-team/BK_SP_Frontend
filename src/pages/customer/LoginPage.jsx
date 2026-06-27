@@ -4,6 +4,7 @@ import { ArrowLeft, Mail, Lock } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import { loginCustomer } from '../../apis/customer/auth';
 import GlassBackground from '../../components/customer/GlassBackground';
+import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -56,6 +57,11 @@ export default function LoginPage() {
 
       const redirectSearchParams = new URLSearchParams(location.search);
       const redirectTo = redirectSearchParams.get('redirect') || '/menu';
+
+      toast('Successfully logged in!', {
+        className: 'toast-orange-auth font-semibold shadow-lg',
+        icon: '👋',
+      });
 
       navigate(redirectTo, { replace: true });
     } catch (err) {
