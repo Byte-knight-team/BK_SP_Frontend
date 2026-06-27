@@ -1,3 +1,5 @@
+// src/pages/superadmin/BranchDetailsPage.jsx
+
 import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import {
@@ -15,6 +17,11 @@ import {
   RiPhoneLine,
   RiCalendarLine,
   RiRefreshLine,
+  RiTeamLine,
+  RiUserSettingsLine,
+  RiRestaurantLine,
+  RiTruckLine,
+  RiCustomerService2Line,
 } from "@remixicon/react";
 
 import {
@@ -23,6 +30,7 @@ import {
   deactivateBranchAPI,
 } from "../../apis/staff/branches";
 
+import { getAllStaffAPI } from "../../apis/staff/staff";
 import { getBranchConfigAPI } from "../../apis/staff/systemConfig";
 import { getSuperAdminBranchRevenueAPI } from "../../apis/staff/dashboard";
 
@@ -52,15 +60,18 @@ export default function BranchDetailsPage() {
   const [branch, setBranch] = useState(null);
   const [branchConfig, setBranchConfig] = useState(DEFAULT_BRANCH_CONFIG);
   const [branchRevenue, setBranchRevenue] = useState(DEFAULT_BRANCH_REVENUE);
+  const [branchStaffList, setBranchStaffList] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [configLoading, setConfigLoading] = useState(false);
   const [revenueLoading, setRevenueLoading] = useState(false);
+  const [staffLoading, setStaffLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const [pageError, setPageError] = useState("");
   const [configError, setConfigError] = useState("");
   const [revenueError, setRevenueError] = useState("");
+  const [staffError, setStaffError] = useState("");
 
   const { user } = useAuth();
 
@@ -70,7 +81,8 @@ export default function BranchDetailsPage() {
   useEffect(() => {
     setHeaderInfo({
       title: "Branch Details",
-      description: "View branch information, revenue, and order configuration.",
+      description:
+        "View branch information, revenue, staff summary, and order configuration.",
       Icon: RiBuilding2Line,
     });
 
@@ -108,6 +120,7 @@ export default function BranchDetailsPage() {
       }
 
       const revenueList = normalizeList(response);
+
       const selectedBranchRevenue = revenueList.find(
         (item) => String(item?.branchId) === String(id)
       );
@@ -115,10 +128,40 @@ export default function BranchDetailsPage() {
       setBranchRevenue(selectedBranchRevenue || DEFAULT_BRANCH_REVENUE);
     } catch (error) {
       const message = error.message || "Failed to load branch revenue details.";
+
       setRevenueError(message);
       setBranchRevenue(DEFAULT_BRANCH_REVENUE);
     } finally {
       setRevenueLoading(false);
+    }
+  }, [id]);
+
+  const loadBranchStaff = useCallback(async () => {
+    setStaffLoading(true);
+    setStaffError("");
+
+    try {
+      const response = await getAllStaffAPI();
+
+      if (response?.error) {
+        throw new Error(response.error);
+      }
+
+      const staffList = normalizeList(response?.data || response);
+
+      const filteredStaff = staffList.filter((staff) => {
+        const staffBranchId = getStaffBranchId(staff);
+        return String(staffBranchId) === String(id);
+      });
+
+      setBranchStaffList(filteredStaff);
+    } catch (error) {
+      const message = error.message || "Failed to load branch staff details.";
+
+      setStaffError(message);
+      setBranchStaffList([]);
+    } finally {
+      setStaffLoading(false);
     }
   }, [id]);
 
@@ -139,8 +182,12 @@ export default function BranchDetailsPage() {
     setBranch(data);
     setLoading(false);
 
-    await Promise.allSettled([loadBranchConfig(), loadBranchRevenue()]);
-  }, [id, loadBranchConfig, loadBranchRevenue]);
+    await Promise.allSettled([
+      loadBranchConfig(),
+      loadBranchRevenue(),
+      loadBranchStaff(),
+    ]);
+  }, [id, loadBranchConfig, loadBranchRevenue, loadBranchStaff]);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -170,18 +217,6 @@ export default function BranchDetailsPage() {
     return getBranchStatus(branchData) === "ACTIVE";
   };
 
-  const formatDate = (dateValue) => {
-    if (!dateValue) return "N/A";
-
-    const date = new Date(dateValue);
-
-    if (Number.isNaN(date.getTime())) {
-      return "N/A";
-    }
-
-    return date.toLocaleDateString();
-  };
-
   const handleToggleStatus = async () => {
     if (!branch) return;
 
@@ -207,6 +242,16 @@ export default function BranchDetailsPage() {
 
     await loadBranch();
     setActionLoading(false);
+  };
+
+  const handleRefreshDetails = async () => {
+    await Promise.allSettled([
+      loadBranchConfig(),
+      loadBranchRevenue(),
+      loadBranchStaff(),
+    ]);
+
+    showSuccessToast("Branch details refreshed successfully.");
   };
 
   if (!isSuperAdmin) {
@@ -277,6 +322,16 @@ export default function BranchDetailsPage() {
   const active = isBranchActive(branch);
   const branchId = branch?.id || branch?.branchId || id;
 
+  const totalStaff = branchStaffList.length;
+  const activeStaff = branchStaffList.filter(isStaffActive).length;
+  const inactiveStaff = totalStaff - activeStaff;
+
+  const adminCount = countStaffByRole(branchStaffList, "ADMIN");
+  const managerCount = countStaffByRole(branchStaffList, "MANAGER");
+  const chefCount = countStaffByRole(branchStaffList, "CHEF");
+  const receptionistCount = countStaffByRole(branchStaffList, "RECEPTIONIST");
+  const deliveryCount = countStaffByRole(branchStaffList, "DELIVERY");
+
   return (
     <div className="w-full space-y-5">
       <section className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
@@ -301,20 +356,18 @@ export default function BranchDetailsPage() {
             </div>
 
             <p className="mt-1 text-sm text-gray-500">Branch ID: {branchId}</p>
+
             <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
-              View operational information, revenue summary, contact details,
-              and order configuration for this branch.
+              View operational information, revenue summary, assigned staff,
+              contact details, and order configuration for this branch.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={() => {
-                loadBranchRevenue();
-                loadBranchConfig();
-              }}
-              disabled={revenueLoading || configLoading}
+              onClick={handleRefreshDetails}
+              disabled={revenueLoading || configLoading || staffLoading}
               className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RiRefreshLine size={18} />
@@ -392,6 +445,20 @@ export default function BranchDetailsPage() {
         onReload={loadBranchRevenue}
       />
 
+      <BranchStaffSummaryCard
+        totalStaff={totalStaff}
+        activeStaff={activeStaff}
+        inactiveStaff={inactiveStaff}
+        adminCount={adminCount}
+        managerCount={managerCount}
+        chefCount={chefCount}
+        receptionistCount={receptionistCount}
+        deliveryCount={deliveryCount}
+        staffLoading={staffLoading}
+        staffError={staffError}
+        onReload={loadBranchStaff}
+      />
+
       <section className="grid grid-cols-1 gap-5 xl:grid-cols-3">
         <div className="xl:col-span-1">
           <BranchBasicDetailsCard branch={branch} branchId={branchId} />
@@ -430,27 +497,13 @@ function BranchRevenueSummaryCard({
         </div>
 
         {revenueLoading ? (
-          <div className="inline-flex items-center gap-2 rounded-xl bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600" />
-            Loading revenue
-          </div>
+          <LoadingPill text="Loading revenue" />
         ) : (
-          <button
-            type="button"
-            onClick={onReload}
-            className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
-          >
-            <RiRefreshLine size={17} />
-            Reload Revenue
-          </button>
+          <SmallReloadButton label="Reload Revenue" onClick={onReload} />
         )}
       </div>
 
-      {revenueError && (
-        <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
-          <p className="text-sm font-medium text-red-600">{revenueError}</p>
-        </div>
-      )}
+      {revenueError && <ErrorBox message={revenueError} />}
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <RevenueMetricCard
@@ -492,6 +545,101 @@ function BranchRevenueSummaryCard({
   );
 }
 
+function BranchStaffSummaryCard({
+  totalStaff,
+  activeStaff,
+  inactiveStaff,
+  adminCount,
+  managerCount,
+  chefCount,
+  receptionistCount,
+  deliveryCount,
+  staffLoading,
+  staffError,
+  onReload,
+}) {
+  const staffCards = [
+    {
+      label: "Total Staff",
+      value: totalStaff,
+      description: "Staff assigned to this branch",
+      Icon: RiTeamLine,
+    },
+    {
+      label: "Active Staff",
+      value: activeStaff,
+      description: "Currently active accounts",
+      Icon: RiShieldUserLine,
+    },
+    {
+      label: "Inactive Staff",
+      value: inactiveStaff,
+      description: "Disabled or inactive accounts",
+      Icon: RiErrorWarningLine,
+    },
+    {
+      label: "Admins",
+      value: adminCount,
+      description: "Branch admin users",
+      Icon: RiUserSettingsLine,
+    },
+    {
+      label: "Managers",
+      value: managerCount,
+      description: "Branch manager users",
+      Icon: RiUserSettingsLine,
+    },
+    {
+      label: "Chefs",
+      value: chefCount,
+      description: "Kitchen staff users",
+      Icon: RiRestaurantLine,
+    },
+    {
+      label: "Receptionists",
+      value: receptionistCount,
+      description: "Front-desk staff users",
+      Icon: RiCustomerService2Line,
+    },
+    {
+      label: "Delivery Staff",
+      value: deliveryCount,
+      description: "Delivery users",
+      Icon: RiTruckLine,
+    },
+  ];
+
+  return (
+    <section className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">
+            Branch Staff Summary
+          </h3>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Staff distribution and role breakdown for this branch.
+          </p>
+        </div>
+
+        {staffLoading ? (
+          <LoadingPill text="Loading staff" />
+        ) : (
+          <SmallReloadButton label="Reload Staff" onClick={onReload} />
+        )}
+      </div>
+
+      {staffError && <ErrorBox message={staffError} />}
+
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {staffCards.map((card) => (
+          <StaffMetricCard key={card.label} {...card} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function BranchBasicDetailsCard({ branch, branchId }) {
   return (
     <section className="h-full rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
@@ -511,7 +659,7 @@ function BranchBasicDetailsCard({ branch, branchId }) {
         />
         <BranchInfoRow
           label="Created Date"
-          value={formatSafeDate(branch?.createdAt || branch?.createdDate)}
+          value={formatDate(branch?.createdAt || branch?.createdDate)}
         />
         <BranchInfoRow label="Address" value={branch?.address || "N/A"} />
       </div>
@@ -539,27 +687,13 @@ function BranchOrderConfigurationCard({
         </div>
 
         {configLoading ? (
-          <div className="inline-flex items-center gap-2 rounded-xl bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600" />
-            Loading configuration
-          </div>
+          <LoadingPill text="Loading configuration" />
         ) : (
-          <button
-            type="button"
-            onClick={onReload}
-            className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
-          >
-            <RiRefreshLine size={17} />
-            Reload Config
-          </button>
+          <SmallReloadButton label="Reload Config" onClick={onReload} />
         )}
       </div>
 
-      {configError && (
-        <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
-          <p className="text-sm font-medium text-red-600">{configError}</p>
-        </div>
-      )}
+      {configError && <ErrorBox message={configError} />}
 
       {configLoading ? (
         <div className="mt-6">
@@ -640,6 +774,30 @@ function RevenueMetricCard({ Icon, label, value, description }) {
   );
 }
 
+function StaffMetricCard({ label, value, description, Icon }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+            {label}
+          </p>
+
+          <h4 className="mt-3 text-2xl font-bold text-gray-900">
+            {Number(value || 0).toLocaleString()}
+          </h4>
+
+          <p className="mt-2 text-xs text-gray-400">{description}</p>
+        </div>
+
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-orange-600">
+          <Icon size={20} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BranchQuickInfoCard({ Icon, label, value }) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
@@ -700,6 +858,36 @@ function ConfigStatusCard({ label, description, enabled }) {
           }`}
         />
       </div>
+    </div>
+  );
+}
+
+function SmallReloadButton({ label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
+    >
+      <RiRefreshLine size={17} />
+      {label}
+    </button>
+  );
+}
+
+function LoadingPill({ text }) {
+  return (
+    <div className="inline-flex items-center gap-2 rounded-xl bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700">
+      <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600" />
+      {text}
+    </div>
+  );
+}
+
+function ErrorBox({ message }) {
+  return (
+    <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
+      <p className="text-sm font-medium text-red-600">{message}</p>
     </div>
   );
 }
@@ -766,10 +954,53 @@ function normalizeList(response) {
   if (Array.isArray(response)) return response;
   if (Array.isArray(response?.data)) return response.data;
   if (Array.isArray(response?.content)) return response.content;
+  if (Array.isArray(response?.staff)) return response.staff;
+  if (Array.isArray(response?.branches)) return response.branches;
+  if (Array.isArray(response?.customers)) return response.customers;
   return [];
 }
 
-function formatSafeDate(dateValue) {
+function getStaffBranchId(staff) {
+  return (
+    staff?.branchId ||
+    staff?.branch?.id ||
+    staff?.branch?.branchId ||
+    staff?.assignedBranchId ||
+    staff?.branchDetails?.id ||
+    null
+  );
+}
+
+function isStaffActive(staff) {
+  if (typeof staff?.active === "boolean") return staff.active;
+  if (typeof staff?.isActive === "boolean") return staff.isActive;
+  if (typeof staff?.enabled === "boolean") return staff.enabled;
+
+  const status = String(staff?.status || staff?.accountStatus || "")
+    .trim()
+    .toUpperCase();
+
+  return status === "ACTIVE";
+}
+
+function getStaffRole(staff) {
+  return String(
+    staff?.roleName ||
+      staff?.role ||
+      staff?.userRole ||
+      staff?.role?.name ||
+      staff?.user?.role?.name ||
+      ""
+  )
+    .trim()
+    .toUpperCase();
+}
+
+function countStaffByRole(staffList, roleName) {
+  return staffList.filter((staff) => getStaffRole(staff) === roleName).length;
+}
+
+function formatDate(dateValue) {
   if (!dateValue) return "N/A";
 
   const date = new Date(dateValue);
