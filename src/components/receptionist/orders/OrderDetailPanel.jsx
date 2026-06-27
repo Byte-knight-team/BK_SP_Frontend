@@ -136,9 +136,10 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
 
   if (!order) return null
 
-  const isQR       = order.orderType === 'QR'
-  const isDelivery = order.orderType === 'ONLINE_DELIVERY'
-  const isCashDue  = order.paymentStatus === 'PENDING'
+  const isQR          = order.orderType === 'QR'
+  const isDelivery    = order.orderType === 'ONLINE_DELIVERY'
+  const isCashDue     = order.paymentStatus === 'PENDING'
+  const isCancelled   = order.status === 'CANCELLED'
 
   return (
     <div className="rounded-3xl border border-gray-100 bg-white p-4 space-y-3">
@@ -160,7 +161,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
           <p className="mt-0.5 text-xs text-gray-400">{order.placedAt}</p>
         </div>
 
-        {isCashDue && !isDelivery && (
+        {isCashDue && !isDelivery && !isCancelled && (
           <button
             onClick={() => setIsPaymentOpen(true)}
             className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
@@ -216,7 +217,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
                 <th className="px-3 py-2 text-left font-semibold">Item</th>
                 <th className="px-3 py-2 text-center font-semibold">Qty</th>
                 <th className="px-3 py-2 text-right font-semibold">Subtotal</th>
-                {activeTab !== 'SERVED' && <th className="px-3 py-2 text-right font-semibold">Status</th>}
+                {!isCancelled && activeTab !== 'SERVED' && <th className="px-3 py-2 text-right font-semibold">Status</th>}
                 {activeTab === 'COMPLETED' && isQR && (
                   <th className="px-3 py-2 text-center font-semibold">Serve</th>
                 )}
@@ -230,7 +231,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
                   <td className="px-3 py-2 text-right font-bold text-gray-700">
                     Rs. {item.subtotal.toFixed(2)}
                   </td>
-                  {activeTab !== 'SERVED' && (
+                  {!isCancelled && activeTab !== 'SERVED' && (
                     <td className="px-3 py-2 text-right">
                       <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
                         ITEM_STATUS_STYLES[item.status] || 'bg-gray-100 text-gray-400'
@@ -284,12 +285,18 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
         )}
         <div className="border-t border-gray-200 pt-1.5 flex justify-between text-sm font-black text-gray-900">
           <span>Total Due</span>
-          <span className="text-orange-600">Rs. {order.finalAmount.toFixed(2)}</span>
+          <span className={isCancelled ? 'text-gray-400' : 'text-orange-600'}>Rs. {order.finalAmount.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-xs">
           <span className="text-gray-400">Payment Status</span>
-          <span className={`font-bold ${isCashDue ? (isDelivery ? 'text-teal-600' : 'text-red-500') : 'text-green-600'}`}>
-            {isCashDue ? (isDelivery ? 'Cash on Delivery' : 'CASH — Not Yet Collected') : '✓ PAID'}
+          <span className={`font-bold ${
+            isCancelled   ? 'text-gray-400'
+            : isCashDue   ? (isDelivery ? 'text-teal-600' : 'text-red-500')
+            : 'text-green-600'
+          }`}>
+            {isCancelled ? '— Order cancelled'
+              : isCashDue ? (isDelivery ? 'Cash on Delivery' : 'CASH — Not Yet Collected')
+              : '✓ PAID'}
           </span>
         </div>
       </div>
