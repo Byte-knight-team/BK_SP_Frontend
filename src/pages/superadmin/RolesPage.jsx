@@ -9,6 +9,8 @@ import {
   RiUserSettingsLine,
   RiAddLine,
   RiDeleteBinLine,
+  RiRefreshLine,
+  RiCloseLine,
 } from "@remixicon/react";
 
 import {
@@ -92,8 +94,145 @@ const CORE_ROLE_NAMES = [
 
 const PERMISSION_LOCKED_ROLE_NAMES = ["SUPER_ADMIN", "CUSTOMER"];
 
+const PERMISSION_GROUP_LABELS = {
+  STAFF: "Staff Management",
+  BRANCH: "Branch Management",
+  ROLE: "Roles & Permissions",
+  PRIVILEGE: "Privileges",
+  CONFIG: "System Configuration",
+  AUDIT: "Audit Logs",
+  CUSTOMER: "Customer Management",
+  MENU: "Menu Management",
+  CATEGORY: "Menu Categories",
+  ITEM: "Menu Items",
+  ORDER: "Orders",
+  RESERVATION: "Reservations",
+  INVENTORY: "Inventory",
+  DELIVERY: "Delivery",
+  PAYMENT: "Payments",
+  KITCHEN: "Kitchen Operations",
+  TABLE: "Table Management",
+  QR: "QR Sessions",
+  PROMOTION: "Promotions",
+  COUPON: "Coupons",
+  REVIEW: "Reviews",
+  REPORT: "Reports",
+  AUTH: "Authentication",
+  USER: "Users",
+  SYSTEM: "System",
+  OTHER: "Other Permissions",
+};
+
+const PERMISSION_GROUP_ORDER = [
+  "STAFF",
+  "BRANCH",
+  "ROLE",
+  "PRIVILEGE",
+  "CONFIG",
+  "AUDIT",
+  "CUSTOMER",
+  "MENU",
+  "CATEGORY",
+  "ITEM",
+  "ORDER",
+  "RESERVATION",
+  "INVENTORY",
+  "DELIVERY",
+  "PAYMENT",
+  "KITCHEN",
+  "TABLE",
+  "QR",
+  "PROMOTION",
+  "COUPON",
+  "REVIEW",
+  "REPORT",
+  "AUTH",
+  "USER",
+  "SYSTEM",
+  "OTHER",
+];
+
 function normalizeRoleNameForCheck(roleName) {
-  return String(roleName || "").trim().toUpperCase();
+  const normalizedRole = String(roleName || "").trim().toUpperCase();
+
+  if (normalizedRole.startsWith("ROLE_")) {
+    return normalizedRole.replace("ROLE_", "");
+  }
+
+  return normalizedRole;
+}
+
+function getPermissionGroupKey(permissionName) {
+  const normalizedName = String(permissionName || "").trim().toUpperCase();
+
+  if (!normalizedName) {
+    return "OTHER";
+  }
+
+  const nameParts = normalizedName.split("_").filter(Boolean);
+
+  const matchedKnownGroup = PERMISSION_GROUP_ORDER.find((groupKey) => {
+    return groupKey !== "OTHER" && nameParts.includes(groupKey);
+  });
+
+  if (matchedKnownGroup) {
+    return matchedKnownGroup;
+  }
+
+  return nameParts[0] || "OTHER";
+}
+
+function getPermissionGroupLabel(groupKey) {
+  return PERMISSION_GROUP_LABELS[groupKey] || formatPermissionName(groupKey);
+}
+
+function groupPrivilegesByModule(privileges) {
+  const groups = new Map();
+
+  privileges.forEach((privilege) => {
+    const groupKey = getPermissionGroupKey(privilege.name);
+    const groupLabel = getPermissionGroupLabel(groupKey);
+
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, {
+        key: groupKey,
+        label: groupLabel,
+        items: [],
+      });
+    }
+
+    groups.get(groupKey).items.push(privilege);
+  });
+
+  return Array.from(groups.values())
+    .map((group) => ({
+      ...group,
+      items: [...group.items].sort((firstPrivilege, secondPrivilege) =>
+        String(firstPrivilege.name || "").localeCompare(
+          String(secondPrivilege.name || ""),
+          undefined,
+          { sensitivity: "base" }
+        )
+      ),
+    }))
+    .sort((firstGroup, secondGroup) => {
+      const firstIndex = PERMISSION_GROUP_ORDER.indexOf(firstGroup.key);
+      const secondIndex = PERMISSION_GROUP_ORDER.indexOf(secondGroup.key);
+
+      const safeFirstIndex =
+        firstIndex === -1 ? PERMISSION_GROUP_ORDER.length : firstIndex;
+
+      const safeSecondIndex =
+        secondIndex === -1 ? PERMISSION_GROUP_ORDER.length : secondIndex;
+
+      if (safeFirstIndex !== safeSecondIndex) {
+        return safeFirstIndex - safeSecondIndex;
+      }
+
+      return firstGroup.label.localeCompare(secondGroup.label, undefined, {
+        sensitivity: "base",
+      });
+    });
 }
 
 function isCoreRoleName(roleName) {
@@ -151,7 +290,8 @@ export default function RolesPage() {
   const { user: currentUser } = useAuth();
 
   const currentRoleName = getCurrentRoleName(currentUser);
-  const isSuperAdmin = currentRoleName === "SUPER_ADMIN";
+  const isSuperAdmin =
+    normalizeRoleNameForCheck(currentRoleName) === "SUPER_ADMIN";
 
   const [roles, setRoles] = useState([]);
   const [privileges, setPrivileges] = useState([]);
@@ -171,8 +311,10 @@ export default function RolesPage() {
   const [newRoleDescription, setNewRoleDescription] = useState("");
   const [newRoleBaseSalary, setNewRoleBaseSalary] = useState("");
   const [creatingRole, setCreatingRole] = useState(false);
+  const [createRoleModalOpen, setCreateRoleModalOpen] = useState(false);
 
   const [deletingRole, setDeletingRole] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState(null);
 
   useEffect(() => {
     if (setHeaderInfo) {
@@ -248,7 +390,19 @@ export default function RolesPage() {
     );
   }, [selectedPermissionNames, originalPermissionNames]);
 
+  const refreshDisabled =
+    initialLoading ||
+    permissionsLoading ||
+    saving ||
+    salarySaving ||
+    creatingRole ||
+    deletingRole;
+
   const visiblePrivileges = privileges;
+
+  const groupedPrivileges = useMemo(() => {
+    return groupPrivilegesByModule(visiblePrivileges);
+  }, [visiblePrivileges]);
 
   const loadRolesAndPrivileges = useCallback(async () => {
     if (!isSuperAdmin) return;
@@ -439,6 +593,7 @@ export default function RolesPage() {
       setNewRoleName("");
       setNewRoleDescription("");
       setNewRoleBaseSalary("");
+      setCreateRoleModalOpen(false);
 
       showSuccessToast(
         "Role created successfully. You can now assign permissions."
@@ -450,8 +605,9 @@ export default function RolesPage() {
     }
   }
 
-  async function handleDeleteSelectedRole() {
+  function handleOpenDeleteRoleModal() {
     if (!selectedRole) {
+      showErrorToast("Select a role first.");
       return;
     }
 
@@ -460,18 +616,23 @@ export default function RolesPage() {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Are you sure you want to delete the role "${selectedRole.name}"?`
-    );
+    setRoleToDelete(selectedRole);
+  }
 
-    if (!confirmed) {
+  function handleCloseDeleteRoleModal() {
+    if (deletingRole) return;
+    setRoleToDelete(null);
+  }
+
+  async function handleConfirmDeleteRole() {
+    if (!roleToDelete) {
       return;
     }
 
     setDeletingRole(true);
 
     try {
-      await deleteRoleAPI(selectedRole.id);
+      await deleteRoleAPI(roleToDelete.id);
 
       const rolesResponse = await getRolesAPI();
       const normalizedRoles = normalizeRoles(rolesResponse);
@@ -486,6 +647,7 @@ export default function RolesPage() {
       setSelectedRoleId(nextRole?.id ?? null);
       setSelectedPermissionNames([]);
       setOriginalPermissionNames([]);
+      setRoleToDelete(null);
 
       showSuccessToast("Role deleted successfully.");
     } catch (error) {
@@ -524,74 +686,76 @@ export default function RolesPage() {
     }
   }
 
+  async function handleRefreshPage() {
+    if (refreshDisabled) {
+      return;
+    }
+
+    await loadRolesAndPrivileges();
+
+    if (selectedRoleId) {
+      await loadPermissionsForRole(selectedRoleId);
+    }
+
+    showSuccessToast("Roles and permissions refreshed.");
+  }
+
+  function handleOpenCreateRoleModal() {
+    setCreateRoleModalOpen(true);
+  }
+
+  function handleCloseCreateRoleModal() {
+    if (creatingRole) return;
+    setCreateRoleModalOpen(false);
+  }
+
   if (!isSuperAdmin) {
     return <NoAccessView currentRoleName={currentRoleName} />;
   }
 
   return (
     <div className="space-y-6">
-      {/* Add Role form */}
+      {/* Page toolbar */}
       <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
-        <form onSubmit={handleCreateRole} className="space-y-3">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="flex items-center justify-between gap-3">
-              <h4 className="text-sm font-semibold text-gray-900">
-                Add New Role
-              </h4>
+            <h3 className="text-lg font-bold text-gray-900">
+              Role Management Workspace
+            </h3>
 
-              <span className="rounded-full bg-orange-50 px-2 py-1 text-[10px] font-semibold text-orange-600">
-                SUPER_ADMIN
-              </span>
-            </div>
-
-            <p className="mt-1 text-xs text-gray-500">
-              Create the role first. Assign permissions after selecting it.
+            <p className="mt-1 text-sm text-gray-500">
+              Create roles, refresh RBAC data, update salary rules, and manage
+              grouped permissions from one place.
             </p>
           </div>
 
-          <input
-            type="text"
-            value={newRoleName}
-            onChange={(event) => setNewRoleName(event.target.value)}
-            disabled={creatingRole}
-            placeholder="Example: WAITER"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
-          />
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={handleRefreshPage}
+              disabled={refreshDisabled}
+              className="inline-flex h-11 min-w-[150px] items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {initialLoading || permissionsLoading ? (
+                <Spinner className="h-4 w-4 border-gray-300 border-t-orange-500" />
+              ) : (
+                <RiRefreshLine size={18} />
+              )}
 
-          <textarea
-            value={newRoleDescription}
-            onChange={(event) => setNewRoleDescription(event.target.value)}
-            disabled={creatingRole}
-            placeholder="Role description"
-            rows={2}
-            className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
-          />
+              {initialLoading || permissionsLoading ? "Refreshing..." : "Refresh"}
+            </button>
 
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={newRoleBaseSalary}
-            onChange={(event) => setNewRoleBaseSalary(event.target.value)}
-            disabled={creatingRole}
-            placeholder="Base salary, example: 45000"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
-          />
-
-          <button
-            type="submit"
-            disabled={creatingRole}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {creatingRole ? (
-              <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
-            ) : (
+            <button
+              type="button"
+              onClick={handleOpenCreateRoleModal}
+              disabled={refreshDisabled}
+              className="inline-flex h-11 min-w-[150px] items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
               <RiAddLine size={18} />
-            )}
-
-            {creatingRole ? "Creating..." : "Create Role"}
-          </button>
-        </form>
+              Create Role
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -647,21 +811,19 @@ export default function RolesPage() {
                         salarySaving ||
                         deletingRole
                       }
-                      className={`w-full rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-70 ${
-                        isSelected
-                          ? "border-orange-200 bg-orange-50"
-                          : "border-gray-100 bg-white hover:bg-gray-50"
-                      }`}
+                      className={`w-full rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-70 ${isSelected
+                        ? "border-orange-200 bg-orange-50"
+                        : "border-gray-100 bg-white hover:bg-gray-50"
+                        }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             <p
-                              className={`text-sm font-semibold ${
-                                isSelected
-                                  ? "text-orange-700"
-                                  : "text-gray-900"
-                              }`}
+                              className={`text-sm font-semibold ${isSelected
+                                ? "text-orange-700"
+                                : "text-gray-900"
+                                }`}
                             >
                               {role.name}
                             </p>
@@ -686,11 +848,10 @@ export default function RolesPage() {
                         </div>
 
                         <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${
-                            isSelected
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${isSelected
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-gray-100 text-gray-600"
+                            }`}
                         >
                           {role.permissionCount}
                         </span>
@@ -763,7 +924,7 @@ export default function RolesPage() {
                     disabled={
                       !selectedRole || selectedRoleIsLocked || salarySaving
                     }
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-11 min-w-[150px] items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {salarySaving ? (
                       <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
@@ -778,7 +939,7 @@ export default function RolesPage() {
 
               {/* Role permission action bar */}
               <div className="mb-5 rounded-xl border border-gray-100 bg-white p-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <h3 className="font-semibold text-gray-900">
                       {selectedRole
@@ -787,8 +948,8 @@ export default function RolesPage() {
                     </h3>
 
                     <p className="mt-1 text-xs text-gray-500">
-                      Select or remove permissions for this role, then save your
-                      changes.
+                      Permissions are grouped by system area. Select or remove
+                      permissions for this role, then save your changes.
                     </p>
 
                     {permissionsLoading && (
@@ -817,17 +978,17 @@ export default function RolesPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
                     <button
                       type="button"
-                      onClick={handleDeleteSelectedRole}
+                      onClick={handleOpenDeleteRoleModal}
                       disabled={
                         !selectedRole ||
                         deletingRole ||
                         Boolean(selectedRoleDeleteBlockedReason)
                       }
                       title={selectedRoleDeleteBlockedReason || "Delete role"}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
+                      className="inline-flex h-12 min-w-[185px] items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-red-200 bg-white px-5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
                     >
                       {deletingRole ? (
                         <Spinner className="h-4 w-4 border-red-200 border-t-red-600" />
@@ -848,7 +1009,7 @@ export default function RolesPage() {
                         permissionsLoading ||
                         !hasUnsavedChanges
                       }
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
+                      className="inline-flex h-12 min-w-[185px] items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-orange-500 px-5 text-sm font-semibold text-white shadow-sm shadow-orange-100 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:shadow-none"
                     >
                       {saving ? (
                         <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
@@ -887,65 +1048,322 @@ export default function RolesPage() {
                   description="No privilege records were returned from the backend."
                 />
               ) : (
-                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                  {visiblePrivileges.map((privilege) => {
-                    const checked = selectedPermissionSet.has(privilege.name);
+                <div className="space-y-5">
+                  {groupedPrivileges.map((group) => {
+                    const selectedCount = group.items.filter((privilege) =>
+                      selectedPermissionSet.has(privilege.name)
+                    ).length;
 
                     return (
-                      <label
-                        key={privilege.id}
-                        className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
-                          checked
-                            ? "border-orange-200 bg-orange-50"
-                            : "border-gray-100 hover:bg-gray-50"
-                        }`}
+                      <div
+                        key={group.key}
+                        className="rounded-2xl border border-gray-100 bg-gray-50/70 p-4"
                       >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={selectedRoleIsLocked || saving}
-                          onChange={() =>
-                            handleTogglePermission(privilege.name)
-                          }
-                          className="peer sr-only"
-                        />
+                        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900">
+                              {group.label}
+                            </h4>
 
-                        <span
-                          className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] font-bold ${
-                            checked
-                              ? "border-orange-500 bg-orange-500 text-white"
-                              : "border-gray-300 bg-white text-transparent"
-                          }`}
-                        >
-                          ✓
-                        </span>
-
-                        <div>
-                          <p
-                            className={`text-sm font-medium ${
-                              checked ? "text-orange-700" : "text-gray-700"
-                            }`}
-                          >
-                            {formatPermissionName(privilege.name)}
-                          </p>
-
-                          <p className="mt-1 text-xs text-gray-400">
-                            {privilege.name}
-                          </p>
-
-                          {privilege.description && (
                             <p className="mt-1 text-xs text-gray-500">
-                              {privilege.description}
+                              {selectedCount} of {group.items.length}{" "}
+                              permissions selected
                             </p>
-                          )}
+                          </div>
+
+                          <span className="inline-flex w-fit rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-500 ring-1 ring-gray-100">
+                            {group.key}
+                          </span>
                         </div>
-                      </label>
+
+                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                          {group.items.map((privilege) => {
+                            const checked = selectedPermissionSet.has(
+                              privilege.name
+                            );
+
+                            return (
+                              <label
+                                key={privilege.id || privilege.name}
+                                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${checked
+                                  ? "border-orange-200 bg-orange-50"
+                                  : "border-gray-100 bg-white hover:bg-gray-50"
+                                  }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  disabled={selectedRoleIsLocked || saving}
+                                  onChange={() =>
+                                    handleTogglePermission(privilege.name)
+                                  }
+                                  className="peer sr-only"
+                                />
+
+                                <span
+                                  className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] font-bold ${checked
+                                    ? "border-orange-500 bg-orange-500 text-white"
+                                    : "border-gray-300 bg-white text-transparent"
+                                    }`}
+                                >
+                                  ✓
+                                </span>
+
+                                <div>
+                                  <p
+                                    className={`text-sm font-medium ${checked
+                                      ? "text-orange-700"
+                                      : "text-gray-700"
+                                      }`}
+                                  >
+                                    {formatPermissionName(privilege.name)}
+                                  </p>
+
+                                  <p className="mt-1 text-xs text-gray-400">
+                                    {privilege.name}
+                                  </p>
+
+                                  {privilege.description && (
+                                    <p className="mt-1 text-xs text-gray-500">
+                                      {privilege.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
               )}
             </div>
           )}
+        </div>
+      </div>
+
+      {createRoleModalOpen && (
+        <CreateRoleModal
+          newRoleName={newRoleName}
+          newRoleDescription={newRoleDescription}
+          newRoleBaseSalary={newRoleBaseSalary}
+          creatingRole={creatingRole}
+          onRoleNameChange={setNewRoleName}
+          onRoleDescriptionChange={setNewRoleDescription}
+          onRoleBaseSalaryChange={setNewRoleBaseSalary}
+          onClose={handleCloseCreateRoleModal}
+          onSubmit={handleCreateRole}
+        />
+      )}
+
+      {roleToDelete && (
+        <DeleteRoleConfirmModal
+          role={roleToDelete}
+          deletingRole={deletingRole}
+          onClose={handleCloseDeleteRoleModal}
+          onConfirm={handleConfirmDeleteRole}
+        />
+      )}
+    </div>
+  );
+}
+
+function CreateRoleModal({
+  newRoleName,
+  newRoleDescription,
+  newRoleBaseSalary,
+  creatingRole,
+  onRoleNameChange,
+  onRoleDescriptionChange,
+  onRoleBaseSalaryChange,
+  onClose,
+  onSubmit,
+}) {
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/40 px-4">
+      <div className="w-full max-w-xl rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">
+              Create New Role
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Create the role first. After creating it, select the role and
+              assign permissions.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={creatingRole}
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RiCloseLine size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="mt-5 space-y-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+              Role Name
+            </label>
+
+            <input
+              type="text"
+              value={newRoleName}
+              onChange={(event) => onRoleNameChange(event.target.value)}
+              disabled={creatingRole}
+              placeholder="Example: WAITER"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
+            />
+
+            <p className="mt-1 text-xs text-gray-400">
+              Role name will be saved in uppercase format.
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+              Description
+            </label>
+
+            <textarea
+              value={newRoleDescription}
+              onChange={(event) => onRoleDescriptionChange(event.target.value)}
+              disabled={creatingRole}
+              placeholder="Role description"
+              rows={3}
+              className="w-full resize-none rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+              Base Salary
+            </label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={newRoleBaseSalary}
+              onChange={(event) => onRoleBaseSalaryChange(event.target.value)}
+              disabled={creatingRole}
+              placeholder="Example: 45000"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-400"
+            />
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={creatingRole}
+              className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={creatingRole}
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 text-sm font-bold text-white shadow-sm shadow-orange-100 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {creatingRole ? (
+                <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
+              ) : (
+                <RiAddLine size={18} />
+              )}
+
+              {creatingRole ? "Creating..." : "Create Role"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DeleteRoleConfirmModal({ role, deletingRole, onClose, onConfirm }) {
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/40 px-4">
+      <div className="w-full max-w-lg rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <RiDeleteBinLine size={22} />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Delete Role?</h3>
+
+              <p className="mt-1 text-sm leading-6 text-gray-500">
+                Please confirm before deleting this role. This action cannot be
+                undone.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={deletingRole}
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RiCloseLine size={20} />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+          <div className="text-sm font-bold text-gray-900">{role.name}</div>
+
+          <div className="mt-1 text-xs text-gray-500">
+            {role.description || "No description"}
+          </div>
+
+          <div className="mt-3 grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
+            <div>
+              <span className="font-semibold text-gray-800">Permissions:</span>{" "}
+              {role.permissionCount ?? 0}
+            </div>
+
+            <div>
+              <span className="font-semibold text-gray-800">Active users:</span>{" "}
+              {role.activeUserCount ?? 0}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+          Only non-core roles with no active users should be deleted. Make sure
+          this role is no longer needed before continuing.
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={deletingRole}
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={deletingRole}
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-500 px-4 text-sm font-bold text-white shadow-sm shadow-red-100 hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {deletingRole && (
+              <Spinner className="h-4 w-4 border-red-200 border-t-white" />
+            )}
+
+            {deletingRole ? "Deleting..." : "Yes, Delete Role"}
+          </button>
         </div>
       </div>
     </div>

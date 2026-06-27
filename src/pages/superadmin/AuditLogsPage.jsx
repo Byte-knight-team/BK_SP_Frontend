@@ -283,7 +283,7 @@ export default function AuditLogsPage() {
               <RiRefreshLine size={18} />
             )}
 
-            {loading ? "Reloading..." : "Reload"}
+            {loading ? "Refreshing..." : "Refresh"}
           </button>
         </div>
 

@@ -42,16 +42,18 @@ const DEFAULT_FORM = {
   orderCancelWindowMinutes: 10,
 };
 
-/**
- * Support both possible role fields from login response.
- */
 function getUserRoleName(user) {
   return user?.roleName || user?.role || "";
 }
 
-/**
- * Convert input values to numbers before sending to backend.
- */
+function normalizeRole(role) {
+  return String(role || "")
+    .trim()
+    .replace(/^ROLE_/, "")
+    .replace(/\s+/g, "_")
+    .toUpperCase();
+}
+
 function toNumber(value) {
   const numberValue = Number(value);
 
@@ -62,9 +64,6 @@ function toNumber(value) {
   return numberValue;
 }
 
-/**
- * Build form state from backend response.
- */
 function mapConfigToForm(data) {
   return {
     taxEnabled: Boolean(data?.taxEnabled),
@@ -92,25 +91,15 @@ export default function SystemConfigPage() {
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
 
-  /*
-    Read logged-in user from AuthContext.
-
-    AuthContext gets user data from the decoded JWT token.
-    We do not read authUser from localStorage.
-  */
   const { user: authUser } = useAuth();
 
-  const roleName = getUserRoleName(authUser);
-
-  // Global system configuration is SUPER_ADMIN only.
+  const roleName = normalizeRole(getUserRoleName(authUser));
   const isSuperAdmin = roleName === "SUPER_ADMIN";
 
-  /**
-   * Set page header inside the shared layout.
-   */
   useEffect(() => {
     if (setHeaderInfo) {
       setHeaderInfo({
@@ -127,42 +116,52 @@ export default function SystemConfigPage() {
     };
   }, [setHeaderInfo]);
 
-  /**
-   * Load global configuration from backend.
-   */
-  const loadGlobalConfig = useCallback(async () => {
+  const loadGlobalConfig = useCallback(async ({ showFullLoading = true } = {}) => {
     try {
-      setLoading(true);
+      if (showFullLoading) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
+
       setLoadError("");
 
       const data = await getGlobalConfigAPI();
 
       setFormData(mapConfigToForm(data));
       setLastUpdatedAt(data?.updatedAt || null);
+
+      return true;
     } catch (error) {
-      const message =
-        error.message || "Failed to load global configuration.";
+      const message = error.message || "Failed to load global configuration.";
 
       setLoadError(message);
       showErrorToast(message);
+
+      return false;
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
-    // Do not call backend for users who should not access this page.
     if (!isSuperAdmin) {
       setLoading(false);
       return;
     }
 
-    loadGlobalConfig();
+    loadGlobalConfig({ showFullLoading: true });
   }, [isSuperAdmin, loadGlobalConfig]);
 
-  /**
-   * Handle number input changes.
-   */
+  async function handleRefreshConfig() {
+    const success = await loadGlobalConfig({ showFullLoading: false });
+
+    if (success) {
+      showSuccessToast("System configuration refreshed successfully.");
+    }
+  }
+
   function handleInputChange(event) {
     const { name, value } = event.target;
 
@@ -172,9 +171,6 @@ export default function SystemConfigPage() {
     }));
   }
 
-  /**
-   * Handle toggle changes.
-   */
   function handleCheckboxChange(event) {
     const { name, checked } = event.target;
 
@@ -184,9 +180,6 @@ export default function SystemConfigPage() {
     }));
   }
 
-  /**
-   * Validate configuration before saving.
-   */
   function validateForm() {
     const taxPercentage = toNumber(formData.taxPercentage);
     const serviceChargePercentage = toNumber(formData.serviceChargePercentage);
@@ -222,9 +215,6 @@ export default function SystemConfigPage() {
     return "";
   }
 
-  /**
-   * Save global configuration.
-   */
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -263,20 +253,15 @@ export default function SystemConfigPage() {
         setLastUpdatedAt(updatedData.updatedAt);
       }
     } catch (error) {
-      showErrorToast(
-        error.message || "Failed to update global configuration."
-      );
+      showErrorToast(error.message || "Failed to update global configuration.");
     } finally {
       setSaving(false);
     }
   }
 
-  /**
-   * Clean no-access screen for ADMIN and other roles.
-   */
   if (!isSuperAdmin) {
     return (
-      <div className="max-w-5xl">
+      <div className="w-full">
         <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
           <SystemConfigState
             Icon={RiShieldKeyholeLine}
@@ -289,9 +274,6 @@ export default function SystemConfigPage() {
     );
   }
 
-  /**
-   * Loading screen.
-   */
   if (loading) {
     return (
       <div className="w-full">
@@ -310,7 +292,7 @@ export default function SystemConfigPage() {
 
   if (loadError) {
     return (
-      <div className="max-w-5xl">
+      <div className="w-full">
         <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
           <SystemConfigState
             Icon={RiSettings3Line}
@@ -320,7 +302,7 @@ export default function SystemConfigPage() {
             action={
               <button
                 type="button"
-                onClick={loadGlobalConfig}
+                onClick={() => loadGlobalConfig({ showFullLoading: true })}
                 className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
               >
                 <RiRefreshLine size={18} />
@@ -334,25 +316,70 @@ export default function SystemConfigPage() {
   }
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="w-full space-y-5">
+      {/* Top workspace card */}
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">
+              Configuration Workspace
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Update global tax, service charge, and loyalty rules used across
+              the restaurant system.
+            </p>
+
+            <p className="mt-2 text-sm text-gray-500">
+              {lastUpdatedAt
+                ? (
+                    <>
+                      Last updated:{" "}
+                      <span className="font-semibold text-gray-800">
+                        {formatDateTime(lastUpdatedAt)}
+                      </span>
+                    </>
+                  )
+                : (
+                    "No update timestamp available."
+                  )}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleRefreshConfig}
+            disabled={refreshing || saving}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {refreshing ? (
+              <Spinner className="h-4 w-4 border-gray-300 border-t-orange-500" />
+            ) : (
+              <RiRefreshLine size={18} />
+            )}
+
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Tax and service charge section */}
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
           <SectionHeader
             Icon={RiPercentLine}
             title="Tax & Service Charge"
             description="Configure system-wide percentage-based charges."
           />
 
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Tax card */}
-            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+          <div className="grid gap-5 xl:grid-cols-2">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
               <ToggleSwitch
                 name="taxEnabled"
                 label="Enable Tax"
                 description="Turn tax calculation on or off globally."
                 checked={formData.taxEnabled}
-                disabled={saving}
+                disabled={saving || refreshing}
                 onChange={handleCheckboxChange}
               />
 
@@ -361,19 +388,18 @@ export default function SystemConfigPage() {
                 name="taxPercentage"
                 value={formData.taxPercentage}
                 onChange={handleInputChange}
-                disabled={!formData.taxEnabled || saving}
+                disabled={!formData.taxEnabled || saving || refreshing}
                 step="0.01"
               />
             </div>
 
-            {/* Service charge card */}
-            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
               <ToggleSwitch
                 name="serviceChargeEnabled"
                 label="Enable Service Charge"
                 description="Turn service charge calculation on or off globally."
                 checked={formData.serviceChargeEnabled}
-                disabled={saving}
+                disabled={saving || refreshing}
                 onChange={handleCheckboxChange}
               />
 
@@ -382,7 +408,7 @@ export default function SystemConfigPage() {
                 name="serviceChargePercentage"
                 value={formData.serviceChargePercentage}
                 onChange={handleInputChange}
-                disabled={!formData.serviceChargeEnabled || saving}
+                disabled={!formData.serviceChargeEnabled || saving || refreshing}
                 step="0.01"
               />
             </div>
@@ -390,31 +416,31 @@ export default function SystemConfigPage() {
         </div>
 
         {/* Loyalty section */}
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
           <SectionHeader
             Icon={RiGiftLine}
             title="Loyalty Rules"
             description="Configure how customers earn and redeem loyalty points."
           />
 
-          <div className="mb-6 rounded-2xl border border-gray-100 bg-gray-50 p-5">
+          <div className="mb-5 rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
             <ToggleSwitch
               name="loyaltyEnabled"
               label="Enable Loyalty"
               description="Turn customer loyalty point rules on or off globally."
               checked={formData.loyaltyEnabled}
-              disabled={saving}
+              disabled={saving || refreshing}
               onChange={handleCheckboxChange}
             />
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-5 xl:grid-cols-4 lg:grid-cols-2">
             <NumberField
               label="Points Per Amount"
               name="pointsPerAmount"
               value={formData.pointsPerAmount}
               onChange={handleInputChange}
-              disabled={!formData.loyaltyEnabled || saving}
+              disabled={!formData.loyaltyEnabled || saving || refreshing}
               step="0.01"
             />
 
@@ -423,7 +449,7 @@ export default function SystemConfigPage() {
               name="amountPerPoint"
               value={formData.amountPerPoint}
               onChange={handleInputChange}
-              disabled={!formData.loyaltyEnabled || saving}
+              disabled={!formData.loyaltyEnabled || saving || refreshing}
               step="0.01"
             />
 
@@ -432,7 +458,7 @@ export default function SystemConfigPage() {
               name="minPointsToRedeem"
               value={formData.minPointsToRedeem}
               onChange={handleInputChange}
-              disabled={!formData.loyaltyEnabled || saving}
+              disabled={!formData.loyaltyEnabled || saving || refreshing}
               step="1"
             />
 
@@ -441,29 +467,27 @@ export default function SystemConfigPage() {
               name="valuePerPoint"
               value={formData.valuePerPoint}
               onChange={handleInputChange}
-              disabled={!formData.loyaltyEnabled || saving}
+              disabled={!formData.loyaltyEnabled || saving || refreshing}
               step="0.01"
             />
           </div>
         </div>
 
-        {/* Save button */}
-        <div className="flex flex-col gap-3 rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        {/* Save card */}
+        <div className="flex flex-col gap-3 rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h4 className="text-sm font-semibold text-gray-900">
-              Global Configuration
+              Save Global Configuration
             </h4>
 
             <p className="mt-1 text-sm text-gray-500">
-              {lastUpdatedAt
-                ? `Last updated: ${formatDateTime(lastUpdatedAt)}`
-                : "Changes will affect global ordering calculations after saving."}
+              Changes will affect global ordering calculations after saving.
             </p>
           </div>
 
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || refreshing}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? (
@@ -482,8 +506,8 @@ export default function SystemConfigPage() {
 
 function SectionHeader({ Icon, title, description }) {
   return (
-    <div className="mb-6 flex items-center gap-3">
-      <div className="rounded-full bg-orange-50 p-2 text-orange-600">
+    <div className="mb-5 flex items-center gap-3">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-600">
         <Icon size={22} />
       </div>
 
@@ -539,7 +563,7 @@ function NumberField({
   step = "0.01",
 }) {
   return (
-    <div className="mt-4">
+    <div>
       <label className="mb-2 block text-sm font-medium text-gray-700">
         {label}
       </label>
