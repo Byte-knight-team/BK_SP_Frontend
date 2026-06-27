@@ -130,7 +130,9 @@ const OrderManagementPage = () => {
         {/* Order cards */}
         <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 pb-4 pt-3">
           {isLoading ? (
-            <p className="py-12 text-center text-sm text-gray-400 animate-pulse">Loading...</p>
+            <p className="animate-pulse py-8 text-center text-sm font-bold text-orange-400">
+              Loading {TABS.find(t => t.key === activeTab)?.label} Orders...
+            </p>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2">
               <div className="rounded-2xl bg-gray-100 p-4 text-gray-400">
