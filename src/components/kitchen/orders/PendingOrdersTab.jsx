@@ -7,27 +7,26 @@ const PendingOrdersTab = ({ handleOrderClick, selectedOrderId, refreshKey }) => 
   const [pendingOrdersDetails, setPendingOrdersDetails] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchPendingOrdersDetails = async () => {
-      //enable loading
-      setLoading(true);
-      const { data, error } = await getOrderCardsAPI("PENDING");
-      //handle error
-      if (error) {
-        //show the error message (toast)
-        toast.error("Error fetching pending orders");
-        return;
-      }
-      //handle success
-      if (data) {
-        setPendingOrdersDetails(data);
-      }
-      //disable loading
-      setLoading(false);
-    };
+  const fetchPendingOrdersDetails = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    const { data, error } = await getOrderCardsAPI("PENDING");
+    if (error) {
+      toast.error("Error fetching pending orders");
+    } else if (data) {
+      setPendingOrdersDetails(data);
+    }
+    if (showLoading) setLoading(false);
+  };
 
-    fetchPendingOrdersDetails();
-  }, [refreshKey]); // Re-runs whenever refreshKey increments — triggered by a new order arriving via WebSocket
+  // Initial mount: show full loading state (list is empty)
+  useEffect(() => {
+    fetchPendingOrdersDetails(true);
+  }, []);
+
+  // WebSocket refresh: background fetch — existing orders stay visible, no flash
+  useEffect(() => {
+    if (refreshKey > 0) fetchPendingOrdersDetails(false);
+  }, [refreshKey]);
 
   if (loading) {
     return (
