@@ -39,7 +39,7 @@ export default function Button({
   const variantClasses = {
     secondary: 'border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-slate-300',
     primary: 'bg-orange-500 text-white hover:bg-orange-600 focus-visible:ring-orange-400',
-    accent: 'bg-amber-100 text-amber-700 hover:bg-amber-200 focus-visible:ring-amber-300',
+    accent: 'bg-slate-800 text-white shadow-sm hover:bg-slate-700 focus-visible:ring-slate-400',
     danger: 'bg-red-50 text-red-600 hover:bg-red-100 focus-visible:ring-red-300',
   };
 
