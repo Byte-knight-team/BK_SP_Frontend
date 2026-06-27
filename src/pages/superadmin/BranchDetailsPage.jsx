@@ -6,6 +6,15 @@ import {
   RiEditLine,
   RiErrorWarningLine,
   RiShieldUserLine,
+  RiMoneyDollarCircleLine,
+  RiTimerFlashLine,
+  RiShoppingBag3Line,
+  RiBarChartBoxLine,
+  RiMapPinLine,
+  RiMailLine,
+  RiPhoneLine,
+  RiCalendarLine,
+  RiRefreshLine,
 } from "@remixicon/react";
 
 import {
@@ -15,6 +24,7 @@ import {
 } from "../../apis/staff/branches";
 
 import { getBranchConfigAPI } from "../../apis/staff/systemConfig";
+import { getSuperAdminBranchRevenueAPI } from "../../apis/staff/dashboard";
 
 import { useAuth } from "../../context/AuthContext";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
@@ -27,19 +37,30 @@ const DEFAULT_BRANCH_CONFIG = {
   branchActiveForOrders: false,
 };
 
+const DEFAULT_BRANCH_REVENUE = {
+  periodRevenue: 0,
+  periodOrderCount: 0,
+  todayRevenue: 0,
+  todayOrderCount: 0,
+  averageOrderValue: 0,
+};
+
 export default function BranchDetailsPage() {
   const { id } = useParams();
   const { setHeaderInfo } = useOutletContext();
 
   const [branch, setBranch] = useState(null);
   const [branchConfig, setBranchConfig] = useState(DEFAULT_BRANCH_CONFIG);
+  const [branchRevenue, setBranchRevenue] = useState(DEFAULT_BRANCH_REVENUE);
 
   const [loading, setLoading] = useState(true);
   const [configLoading, setConfigLoading] = useState(false);
+  const [revenueLoading, setRevenueLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const [pageError, setPageError] = useState("");
   const [configError, setConfigError] = useState("");
+  const [revenueError, setRevenueError] = useState("");
 
   const { user } = useAuth();
 
@@ -49,7 +70,7 @@ export default function BranchDetailsPage() {
   useEffect(() => {
     setHeaderInfo({
       title: "Branch Details",
-      description: "View branch information and status.",
+      description: "View branch information, revenue, and order configuration.",
       Icon: RiBuilding2Line,
     });
 
@@ -75,6 +96,32 @@ export default function BranchDetailsPage() {
     }
   }, [id]);
 
+  const loadBranchRevenue = useCallback(async () => {
+    setRevenueLoading(true);
+    setRevenueError("");
+
+    try {
+      const response = await getSuperAdminBranchRevenueAPI(7);
+
+      if (response?.error) {
+        throw new Error(response.error);
+      }
+
+      const revenueList = normalizeList(response);
+      const selectedBranchRevenue = revenueList.find(
+        (item) => String(item?.branchId) === String(id)
+      );
+
+      setBranchRevenue(selectedBranchRevenue || DEFAULT_BRANCH_REVENUE);
+    } catch (error) {
+      const message = error.message || "Failed to load branch revenue details.";
+      setRevenueError(message);
+      setBranchRevenue(DEFAULT_BRANCH_REVENUE);
+    } finally {
+      setRevenueLoading(false);
+    }
+  }, [id]);
+
   const loadBranch = useCallback(async () => {
     setLoading(true);
     setPageError("");
@@ -92,8 +139,8 @@ export default function BranchDetailsPage() {
     setBranch(data);
     setLoading(false);
 
-    await loadBranchConfig();
-  }, [id, loadBranchConfig]);
+    await Promise.allSettled([loadBranchConfig(), loadBranchRevenue()]);
+  }, [id, loadBranchConfig, loadBranchRevenue]);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -164,7 +211,7 @@ export default function BranchDetailsPage() {
 
   if (!isSuperAdmin) {
     return (
-      <div className="max-w-5xl">
+      <div className="w-full">
         <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
           <BranchDetailsState
             Icon={RiShieldUserLine}
@@ -179,7 +226,7 @@ export default function BranchDetailsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl">
+      <div className="w-full">
         <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
           <BranchDetailsState
             Icon={RiBuilding2Line}
@@ -195,7 +242,7 @@ export default function BranchDetailsPage() {
 
   if (pageError && !branch) {
     return (
-      <div className="max-w-5xl">
+      <div className="w-full">
         <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
           <BackToBranchesLink />
 
@@ -212,7 +259,7 @@ export default function BranchDetailsPage() {
 
   if (!branch) {
     return (
-      <div className="max-w-5xl">
+      <div className="w-full">
         <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
           <BackToBranchesLink />
 
@@ -231,14 +278,14 @@ export default function BranchDetailsPage() {
   const branchId = branch?.id || branch?.branchId || id;
 
   return (
-    <div className="max-w-5xl space-y-5">
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+    <div className="w-full space-y-5">
+      <section className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
         <BackToBranchesLink />
 
-        <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
-          <div>
+        <div className="flex flex-col gap-5 border-b border-gray-100 pb-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h3 className="text-xl font-bold text-gray-900">
+              <h3 className="break-words text-2xl font-bold text-gray-900">
                 {branch?.name || "No branch name"}
               </h3>
 
@@ -254,9 +301,26 @@ export default function BranchDetailsPage() {
             </div>
 
             <p className="mt-1 text-sm text-gray-500">Branch ID: {branchId}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
+              View operational information, revenue summary, contact details,
+              and order configuration for this branch.
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                loadBranchRevenue();
+                loadBranchConfig();
+              }}
+              disabled={revenueLoading || configLoading}
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RiRefreshLine size={18} />
+              Refresh Details
+            </button>
+
             <Link
               to={`/staff/branches/${id}/edit`}
               className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
@@ -294,36 +358,164 @@ export default function BranchDetailsPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-          <BranchInfoCard label="Branch Name" value={branch?.name || "N/A"} />
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <BranchQuickInfoCard
+            Icon={RiMapPinLine}
+            label="Address"
+            value={branch?.address || "N/A"}
+          />
 
-          <BranchInfoCard label="Email" value={branch?.email || "N/A"} />
-
-          <BranchInfoCard
+          <BranchQuickInfoCard
+            Icon={RiPhoneLine}
             label="Contact Number"
             value={branch?.contactNumber || branch?.phone || "N/A"}
           />
 
-          <BranchInfoCard
+          <BranchQuickInfoCard
+            Icon={RiMailLine}
+            label="Email"
+            value={branch?.email || "N/A"}
+          />
+
+          <BranchQuickInfoCard
+            Icon={RiCalendarLine}
             label="Created Date"
             value={formatDate(branch?.createdAt || branch?.createdDate)}
           />
+        </div>
+      </section>
 
-          <BranchInfoCard
-            label="Address"
-            value={branch?.address || "N/A"}
-            wide
+      <BranchRevenueSummaryCard
+        branchRevenue={branchRevenue}
+        revenueLoading={revenueLoading}
+        revenueError={revenueError}
+        onReload={loadBranchRevenue}
+      />
+
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <div className="xl:col-span-1">
+          <BranchBasicDetailsCard branch={branch} branchId={branchId} />
+        </div>
+
+        <div className="xl:col-span-2">
+          <BranchOrderConfigurationCard
+            branchConfig={branchConfig}
+            configLoading={configLoading}
+            configError={configError}
+            onReload={loadBranchConfig}
           />
         </div>
+      </section>
+    </div>
+  );
+}
+
+function BranchRevenueSummaryCard({
+  branchRevenue,
+  revenueLoading,
+  revenueError,
+  onReload,
+}) {
+  return (
+    <section className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">
+            Branch Revenue Summary
+          </h3>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Revenue and paid order performance for this branch.
+          </p>
+        </div>
+
+        {revenueLoading ? (
+          <div className="inline-flex items-center gap-2 rounded-xl bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600" />
+            Loading revenue
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onReload}
+            className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
+          >
+            <RiRefreshLine size={17} />
+            Reload Revenue
+          </button>
+        )}
       </div>
 
-      <BranchOrderConfigurationCard
-        branchConfig={branchConfig}
-        configLoading={configLoading}
-        configError={configError}
-        onReload={loadBranchConfig}
-      />
-    </div>
+      {revenueError && (
+        <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
+          <p className="text-sm font-medium text-red-600">{revenueError}</p>
+        </div>
+      )}
+
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <RevenueMetricCard
+          Icon={RiMoneyDollarCircleLine}
+          label="7-Day Revenue"
+          value={formatMoney(branchRevenue?.periodRevenue)}
+          description="Paid revenue in selected period"
+        />
+
+        <RevenueMetricCard
+          Icon={RiTimerFlashLine}
+          label="Today Revenue"
+          value={formatMoney(branchRevenue?.todayRevenue)}
+          description="Paid revenue today"
+        />
+
+        <RevenueMetricCard
+          Icon={RiShoppingBag3Line}
+          label="7-Day Orders"
+          value={Number(branchRevenue?.periodOrderCount || 0).toLocaleString()}
+          description="Paid orders in selected period"
+        />
+
+        <RevenueMetricCard
+          Icon={RiShoppingBag3Line}
+          label="Today Orders"
+          value={Number(branchRevenue?.todayOrderCount || 0).toLocaleString()}
+          description="Paid orders today"
+        />
+
+        <RevenueMetricCard
+          Icon={RiBarChartBoxLine}
+          label="Average Order"
+          value={formatMoney(branchRevenue?.averageOrderValue)}
+          description="Average paid order value"
+        />
+      </div>
+    </section>
+  );
+}
+
+function BranchBasicDetailsCard({ branch, branchId }) {
+  return (
+    <section className="h-full rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+      <h3 className="text-lg font-bold text-gray-900">Branch Information</h3>
+
+      <p className="mt-1 text-sm text-gray-500">
+        Main registered details for this branch.
+      </p>
+
+      <div className="mt-5 space-y-4">
+        <BranchInfoRow label="Branch ID" value={branchId} />
+        <BranchInfoRow label="Branch Name" value={branch?.name || "N/A"} />
+        <BranchInfoRow label="Email" value={branch?.email || "N/A"} />
+        <BranchInfoRow
+          label="Contact Number"
+          value={branch?.contactNumber || branch?.phone || "N/A"}
+        />
+        <BranchInfoRow
+          label="Created Date"
+          value={formatSafeDate(branch?.createdAt || branch?.createdDate)}
+        />
+        <BranchInfoRow label="Address" value={branch?.address || "N/A"} />
+      </div>
+    </section>
   );
 }
 
@@ -334,7 +526,7 @@ function BranchOrderConfigurationCard({
   onReload,
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+    <div className="h-full rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h3 className="text-lg font-bold text-gray-900">
@@ -346,28 +538,26 @@ function BranchOrderConfigurationCard({
           </p>
         </div>
 
-        {configLoading && (
+        {configLoading ? (
           <div className="inline-flex items-center gap-2 rounded-xl bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600" />
             Loading configuration
           </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onReload}
+            className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
+          >
+            <RiRefreshLine size={17} />
+            Reload Config
+          </button>
         )}
       </div>
 
       {configError && (
         <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-medium text-red-600">{configError}</p>
-
-            <button
-              type="button"
-              onClick={onReload}
-              disabled={configLoading}
-              className="inline-flex w-fit items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Retry
-            </button>
-          </div>
+          <p className="text-sm font-medium text-red-600">{configError}</p>
         </div>
       )}
 
@@ -424,6 +614,64 @@ function BranchOrderConfigurationCard({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function RevenueMetricCard({ Icon, label, value, description }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+            {label}
+          </p>
+
+          <h4 className="mt-3 text-2xl font-bold text-gray-900">{value}</h4>
+
+          <p className="mt-2 text-xs text-gray-400">{description}</p>
+        </div>
+
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-orange-600">
+          <Icon size={20} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BranchQuickInfoCard({ Icon, label, value }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-orange-600">
+          <Icon size={20} />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+            {label}
+          </p>
+
+          <p className="mt-2 break-words text-sm font-semibold text-gray-900">
+            {value}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BranchInfoRow({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+        {label}
+      </p>
+
+      <p className="mt-1 break-words text-sm font-semibold text-gray-900">
+        {value}
+      </p>
     </div>
   );
 }
@@ -498,24 +746,6 @@ function BranchDetailsState({
   );
 }
 
-function BranchInfoCard({ label, value, wide = false }) {
-  return (
-    <div
-      className={`rounded-2xl border border-gray-100 bg-gray-50 p-4 ${
-        wide ? "md:col-span-2" : ""
-      }`}
-    >
-      <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-        {label}
-      </p>
-
-      <p className="mt-2 break-words text-sm font-semibold text-gray-900">
-        {value}
-      </p>
-    </div>
-  );
-}
-
 function normalizeBranchConfig(response) {
   const config = response?.data || response || {};
 
@@ -530,4 +760,34 @@ function normalizeBranchConfig(response) {
     dineInEnabled: Boolean(config.dineInEnabled),
     branchActiveForOrders: Boolean(config.branchActiveForOrders),
   };
+}
+
+function normalizeList(response) {
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response?.content)) return response.content;
+  return [];
+}
+
+function formatSafeDate(dateValue) {
+  if (!dateValue) return "N/A";
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "N/A";
+  }
+
+  return date.toLocaleDateString();
+}
+
+function formatMoney(value) {
+  if (value === null || value === undefined || value === "") {
+    return "LKR 0";
+  }
+
+  return `LKR ${Number(value).toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
 }
