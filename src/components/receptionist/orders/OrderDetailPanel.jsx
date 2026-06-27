@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Monitor, ShoppingBag, FlaskConical } from 'lucide-react'
+import { Monitor, ShoppingBag, Truck, FlaskConical } from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
   getReceptionistOrderDetailAPI,
@@ -114,8 +114,9 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
 
   if (!order) return null
 
-  const isQR     = order.orderType === 'QR'
-  const isCashDue = order.paymentStatus === 'PENDING'
+  const isQR       = order.orderType === 'QR'
+  const isDelivery = order.orderType === 'ONLINE_DELIVERY'
+  const isCashDue  = order.paymentStatus === 'PENDING'
 
   return (
     <div className="rounded-3xl border border-gray-100 bg-white p-4 space-y-3">
@@ -126,18 +127,18 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-lg font-bold text-gray-900">{order.orderNumber}</h2>
             <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${
-              isQR
-                ? 'bg-purple-50 text-purple-600 border border-purple-100'
-                : 'bg-blue-50 text-blue-600 border border-blue-100'
+              isQR       ? 'bg-purple-50 text-purple-600 border border-purple-100'
+              : isDelivery ? 'bg-teal-50 text-teal-600 border border-teal-100'
+              :              'bg-blue-50 text-blue-600 border border-blue-100'
             }`}>
-              {isQR ? <Monitor size={10} /> : <ShoppingBag size={10} />}
-              {isQR ? 'QR Dine-in' : 'Online Pickup'}
+              {isQR ? <Monitor size={10} /> : isDelivery ? <Truck size={10} /> : <ShoppingBag size={10} />}
+              {isQR ? 'QR Dine-in' : isDelivery ? 'Home Delivery' : 'Online Pickup'}
             </span>
           </div>
           <p className="mt-0.5 text-xs text-gray-400">{order.placedAt}</p>
         </div>
 
-        {isCashDue && (
+        {isCashDue && !isDelivery && (
           <button
             onClick={() => setIsPaymentOpen(true)}
             className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
@@ -159,12 +160,20 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
         </div>
         <div className="rounded-2xl bg-gray-50 p-3 space-y-1">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">
-            {isQR ? 'Table' : 'Pickup Info'}
+            {isQR ? 'Table' : isDelivery ? 'Delivery' : 'Pickup Info'}
           </p>
           {isQR ? (
             <>
               <p className="text-2xl font-black text-orange-500">#{order.tableNumber}</p>
               <p className="text-xs text-gray-400">Dine-in table</p>
+            </>
+          ) : isDelivery ? (
+            <>
+              <div className="flex items-center gap-1.5 text-teal-600">
+                <Truck size={14} />
+                <p className="text-sm font-bold">Home Delivery</p>
+              </div>
+              <p className="text-xs text-gray-400">Manager will assign a driver after completion</p>
             </>
           ) : (
             <>
@@ -255,8 +264,8 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
         </div>
         <div className="flex justify-between text-xs">
           <span className="text-gray-400">Payment Status</span>
-          <span className={`font-bold ${isCashDue ? 'text-red-500' : 'text-green-600'}`}>
-            {isCashDue ? 'CASH — Not Yet Collected' : '✓ PAID'}
+          <span className={`font-bold ${isCashDue ? (isDelivery ? 'text-teal-600' : 'text-red-500') : 'text-green-600'}`}>
+            {isCashDue ? (isDelivery ? 'Cash on Delivery' : 'CASH — Not Yet Collected') : '✓ PAID'}
           </span>
         </div>
       </div>
@@ -329,10 +338,6 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
               className="rounded-2xl border border-orange-200 px-4 py-2.5 text-sm font-bold text-orange-500 hover:bg-orange-50">
               Hold
             </button>
-            <button onClick={() => setIsCancelOpen(true)}
-              className="rounded-2xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">
-              Cancel
-            </button>
             <button onClick={() => setIsKitchenOpen(true)}
               className="ml-auto rounded-2xl bg-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-200 hover:bg-orange-600">
               Send to Kitchen →
@@ -353,11 +358,20 @@ const OrderDetailPanel = ({ orderId, activeTab, onActionDone }) => {
           </>
         )}
 
-        {activeTab === 'COMPLETED' && !isQR && (
+        {/* QR dine-in: items are served per-row in the table above — no footer button needed */}
+        {/* Pickup: hand over in person */}
+        {activeTab === 'COMPLETED' && !isQR && !isDelivery && (
           <button onClick={handleServeOrder} disabled={isActing || isCashDue}
             className="w-full rounded-2xl bg-green-500 py-3 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600 disabled:bg-gray-300">
             {isCashDue ? 'Collect Payment First' : 'Hand Over & Complete ✓'}
           </button>
+        )}
+
+        {/* Delivery: manager handles dispatch — no action for receptionist */}
+        {activeTab === 'COMPLETED' && isDelivery && (
+          <div className="w-full rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 text-xs font-semibold text-teal-600">
+            Ready for delivery — the manager will assign a driver from the delivery dashboard.
+          </div>
         )}
       </div>
 
