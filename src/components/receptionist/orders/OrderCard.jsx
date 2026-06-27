@@ -15,10 +15,22 @@ const OrderCard = ({ order, isSelected, onClick }) => {
   const isCashDue    = order.paymentStatus === 'PENDING'
   const isCancelled  = order.status === 'CANCELLED'
   const border       = STATUS_BORDER[order.status] || 'border-l-gray-300'
-  // Only show the time portion (e.g. "12:21 AM") since we always show today's orders
-  const timeDisplay = order.placedAt?.includes(',')
-    ? order.placedAt.split(', ')[1]
-    : order.placedAt
+
+  // For New/Cancelled tabs show placed time; for all other statuses show when status last changed
+  const usePlacedTime = order.status === 'PLACED'
+  const rawTime = usePlacedTime ? order.placedAt : (order.statusUpdatedAt || order.placedAt)
+  const timeDisplay = rawTime?.includes(',') ? rawTime.split(', ')[1] : rawTime
+
+  const TIME_LABELS = {
+    PLACED:    'Received',
+    PENDING:   'Sent',
+    PREPARING: 'Cooking',
+    COMPLETED: 'Ready',
+    ON_HOLD:   'Held',
+    SERVED:    'Served',
+    CANCELLED: 'Cancelled',
+  }
+  const timeLabel = TIME_LABELS[order.status] || 'At'
 
   const TypeIcon  = isQR ? Monitor : isDelivery ? Truck : ShoppingBag
   const badgeStyle = isQR
@@ -57,15 +69,16 @@ const OrderCard = ({ order, isSelected, onClick }) => {
         </div>
       </div>
 
-      {/* Bottom row: time + cash badge + amount — flex-wrap prevents overflow on narrow cards */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-1">
-        <span className="flex items-center gap-1 text-xs text-gray-400">
+      {/* Bottom row: time on left, price (+ cash badge) on right — no wrap */}
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <span className="flex shrink-0 items-center gap-1 text-xs text-gray-400">
           <Clock size={10} />
+          <span className="font-medium text-gray-500">{timeLabel}</span>
           {timeDisplay}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           {isCashDue && !isCancelled && (
-            <span className="rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-xs font-black text-red-500">
+            <span className="rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-[10px] font-black text-red-500">
               CASH DUE
             </span>
           )}
