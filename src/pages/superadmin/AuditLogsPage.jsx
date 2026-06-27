@@ -481,13 +481,13 @@ export default function AuditLogsPage() {
               <tbody className="divide-y divide-gray-100">
                 {filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50/70">
-                    <td className="px-5 py-4 align-middle font-bold text-gray-900">
+                    <td className="px-5 py-4 align-middle font-semibold text-gray-900">
                       #{log.id}
                     </td>
 
                     <td className="px-5 py-4 align-middle">
                       <span
-                        className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${getModuleBadgeClass(
+                        className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${getModuleBadgeClass(
                           log.module
                         )}`}
                       >
@@ -496,7 +496,7 @@ export default function AuditLogsPage() {
                     </td>
 
                     <td className="px-5 py-4 align-middle">
-                      <div className="font-bold text-gray-900">
+                      <div className="font-semibold text-gray-900">
                         {formatEnumLabel(log.eventType)}
                       </div>
 
