@@ -10,10 +10,11 @@ const STATUS_BORDER = {
 }
 
 const OrderCard = ({ order, isSelected, onClick }) => {
-  const isQR       = order.orderType === 'QR'
-  const isDelivery = order.orderType === 'ONLINE_DELIVERY'
-  const isCashDue  = order.paymentStatus === 'PENDING'
-  const border     = STATUS_BORDER[order.status] || 'border-l-gray-300'
+  const isQR         = order.orderType === 'QR'
+  const isDelivery   = order.orderType === 'ONLINE_DELIVERY'
+  const isCashDue    = order.paymentStatus === 'PENDING'
+  const isCancelled  = order.status === 'CANCELLED'
+  const border       = STATUS_BORDER[order.status] || 'border-l-gray-300'
   // Only show the time portion (e.g. "12:21 AM") since we always show today's orders
   const timeDisplay = order.placedAt?.includes(',')
     ? order.placedAt.split(', ')[1]
@@ -39,7 +40,9 @@ const OrderCard = ({ order, isSelected, onClick }) => {
     >
       {/* Top row: icon + order number + type badge */}
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-500">
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+          isCancelled ? 'bg-gray-100 text-gray-400' : 'bg-orange-100 text-orange-500'
+        }`}>
           <TypeIcon size={16} />
         </div>
         <div className="min-w-0 flex-1">
@@ -61,12 +64,12 @@ const OrderCard = ({ order, isSelected, onClick }) => {
           {timeDisplay}
         </span>
         <div className="flex items-center gap-2">
-          {isCashDue && (
+          {isCashDue && !isCancelled && (
             <span className="rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-xs font-black text-red-500">
               CASH DUE
             </span>
           )}
-          <span className="text-sm font-black text-orange-500">
+          <span className={`text-sm font-black ${isCancelled ? 'text-gray-400' : 'text-orange-500'}`}>
             Rs. {order.finalAmount.toFixed(2)}
           </span>
         </div>

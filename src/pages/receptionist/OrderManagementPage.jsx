@@ -57,7 +57,16 @@ const OrderManagementPage = () => {
     const statuses = STATUS_MAP[activeTab]
     const results  = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
     const combined = results.flatMap((r) => r.data || [])
-    combined.sort((a, b) => new Date(b.placedAt) - new Date(a.placedAt))
+
+    // Oldest first for action tabs — process longest-waiting orders first.
+    // Newest first for reference tabs — most recent entry is most relevant to look up.
+    const ascTabs = ['PLACED', 'KITCHEN', 'ON_HOLD', 'COMPLETED']
+    if (ascTabs.includes(activeTab)) {
+      combined.sort((a, b) => new Date(a.placedAt) - new Date(b.placedAt))
+    } else {
+      combined.sort((a, b) => new Date(b.placedAt) - new Date(a.placedAt))
+    }
+
     setOrders(combined)
     setIsLoading(false)
   }
