@@ -1,4 +1,4 @@
-import { Monitor, ShoppingBag, Clock } from 'lucide-react'
+import { Monitor, ShoppingBag, Truck, Clock } from 'lucide-react'
 
 const STATUS_BORDER = {
   PLACED:    'border-l-orange-400',
@@ -10,13 +10,23 @@ const STATUS_BORDER = {
 }
 
 const OrderCard = ({ order, isSelected, onClick }) => {
-  const isQR      = order.orderType === 'QR'
-  const isCashDue = order.paymentStatus === 'PENDING'
-  const border    = STATUS_BORDER[order.status] || 'border-l-gray-300'
+  const isQR       = order.orderType === 'QR'
+  const isDelivery = order.orderType === 'ONLINE_DELIVERY'
+  const isCashDue  = order.paymentStatus === 'PENDING'
+  const border     = STATUS_BORDER[order.status] || 'border-l-gray-300'
   // Only show the time portion (e.g. "12:21 AM") since we always show today's orders
   const timeDisplay = order.placedAt?.includes(',')
     ? order.placedAt.split(', ')[1]
     : order.placedAt
+
+  const TypeIcon  = isQR ? Monitor : isDelivery ? Truck : ShoppingBag
+  const badgeStyle = isQR
+    ? 'bg-purple-50 text-purple-600'
+    : isDelivery
+    ? 'bg-teal-50 text-teal-600'
+    : 'bg-blue-50 text-blue-600'
+  const badgeLabel = isQR ? 'QR' : isDelivery ? 'Delivery' : 'Pickup'
+  const subtitle   = isQR && order.tableNumber ? `Table #${order.tableNumber}` : isDelivery ? 'Home Delivery' : 'Pickup'
 
   return (
     <button
@@ -30,21 +40,17 @@ const OrderCard = ({ order, isSelected, onClick }) => {
       {/* Top row: icon + order number + type badge */}
       <div className="flex items-center gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-500">
-          {isQR ? <Monitor size={16} /> : <ShoppingBag size={16} />}
+          <TypeIcon size={16} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span className="truncate text-sm font-bold text-gray-900">{order.orderNumber}</span>
-            <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-tight ${
-              isQR ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
-            }`}>
-              {isQR ? <Monitor size={10} /> : <ShoppingBag size={10} />}
-              {isQR ? 'QR' : 'Pickup'}
+            <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-tight ${badgeStyle}`}>
+              <TypeIcon size={10} />
+              {badgeLabel}
             </span>
           </div>
-          <p className="mt-0.5 truncate text-xs text-gray-500">
-            {isQR && order.tableNumber ? `Table #${order.tableNumber}` : 'Pickup'}
-          </p>
+          <p className="mt-0.5 truncate text-xs text-gray-500">{subtitle}</p>
         </div>
       </div>
 

@@ -23,9 +23,10 @@ const STATUS_MAP = {
 }
 
 const TYPE_FILTERS = [
-  { key: 'ALL',          label: 'All' },
-  { key: 'QR',           label: 'QR' },
-  { key: 'ONLINE_PICKUP', label: 'Pickup' },
+  { key: 'ALL',             label: 'All' },
+  { key: 'QR',             label: 'QR' },
+  { key: 'ONLINE_PICKUP',  label: 'Pickup' },
+  { key: 'ONLINE_DELIVERY', label: 'Delivery' },
 ]
 
 const OrderManagementPage = () => {
