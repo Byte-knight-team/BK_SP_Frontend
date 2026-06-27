@@ -7,19 +7,21 @@ import OrderCard from '../../components/receptionist/orders/OrderCard'
 import OrderDetailPanel from '../../components/receptionist/orders/OrderDetailPanel'
 
 const TABS = [
-  { key: 'PLACED',    label: 'Incoming' },
-  { key: 'KITCHEN',   label: 'Kitchen' },
-  { key: 'ON_HOLD',   label: 'On Hold' },
-  { key: 'COMPLETED', label: 'Ready' },
-  { key: 'SERVED',    label: 'Served' },
+  { key: 'PLACED',     label: 'New' },
+  { key: 'KITCHEN',    label: 'Kitchen' },
+  { key: 'ON_HOLD',    label: 'Hold' },
+  { key: 'COMPLETED',  label: 'Ready' },
+  { key: 'SERVED',     label: 'Served' },
+  { key: 'CANCELLED',  label: 'Cancelled' },
 ]
 
 const STATUS_MAP = {
-  PLACED:    ['PLACED'],
-  KITCHEN:   ['PENDING', 'PREPARING'],
-  ON_HOLD:   ['ON_HOLD'],
-  COMPLETED: ['COMPLETED'],
-  SERVED:    ['SERVED'],
+  PLACED:     ['PLACED'],
+  KITCHEN:    ['PENDING', 'PREPARING'],
+  ON_HOLD:    ['ON_HOLD'],
+  COMPLETED:  ['COMPLETED'],
+  SERVED:     ['SERVED'],
+  CANCELLED:  ['CANCELLED'],
 }
 
 const TYPE_FILTERS = [
@@ -68,7 +70,7 @@ const OrderManagementPage = () => {
     <div className="flex h-[calc(100vh-80px)] gap-4 p-0">
 
       {/* LEFT PANEL */}
-      <div className="flex w-80 shrink-0 flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+      <div className="flex w-96 shrink-0 flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
 
         {/* Panel header + tabs */}
         <div className="px-5 pt-5">
@@ -148,12 +150,7 @@ const OrderManagementPage = () => {
             orderId={selectedOrderId}
             activeTab={activeTab}
             onTabChange={(targetTab) => {
-              if (targetTab) {
-                setActiveTab(targetTab) // triggers useEffect → fetchOrders() for new tab
-              } else {
-                setSelectedOrderId(null) // cancel: clear panel, stay on current tab
-                fetchOrders()
-              }
+              setActiveTab(targetTab) // triggers useEffect → fetchOrders() for new tab
             }}
           />
         ) : (
