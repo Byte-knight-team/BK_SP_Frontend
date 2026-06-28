@@ -320,7 +320,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
                           onClick={() => handleServeItem(item.id)}
                           disabled={servingItemId === item.id}
                           className="rounded-xl bg-green-500 px-3 py-1 text-xs font-bold text-white hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed">
-                          {servingItemId === item.id ? '...' : 'Serve'}
+                          Serve
                         </button>
                       ) : item.status === 'SERVED' ? (
                         <span className="text-xs text-gray-400">Done</span>
