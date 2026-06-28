@@ -180,20 +180,23 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
 
         <div className="flex items-center gap-2">
           {showCollectCash && (
-            <>
-              <button
-                onClick={() => generateBill(order)}
-                className="flex items-center gap-1.5 rounded-2xl border border-gray-200 px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
-              >
-                <FileDown size={14} /> Bill
-              </button>
-              <button
-                onClick={() => setIsPaymentOpen(true)}
-                className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
-              >
-                Collect Cash — Rs. {order.finalAmount.toFixed(2)}
-              </button>
-            </>
+            <button
+              onClick={() => setIsPaymentOpen(true)}
+              className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
+            >
+              Collect Cash — Rs. {order.finalAmount.toFixed(2)}
+            </button>
+          )}
+          {!isCashDue && !isCancelled && (
+            ((!isQR && !isDelivery && order.status === 'COMPLETED') ||
+            (isQR && order.status === 'SERVED'))
+          ) && (
+            <button
+              onClick={() => generateBill(order)}
+              className="flex items-center gap-1.5 rounded-2xl border border-gray-200 px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
+            >
+              <FileDown size={14} /> Download Bill
+            </button>
           )}
         </div>
       </div>
