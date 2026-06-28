@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import OrderStepper from '../OrderStepper'
 import MealTable from './MealTable'
 import { AlertCircle } from 'lucide-react'
@@ -33,6 +33,8 @@ const SelectedOrder = ({ orderId, setActiveTab, refreshKey }) => {
   const [targetMeal, setTargetMeal] = useState(null)
   const [isHoldModalOpen, setIsHoldModalOpen] = useState(false)
 
+  const prevStatusRef = useRef(null)
+
   const fetchOrderDetails = async (showLoading = true) => {
     if (!orderId) return
     if (showLoading) setLoading(true)
@@ -42,8 +44,17 @@ const SelectedOrder = ({ orderId, setActiveTab, refreshKey }) => {
     if (error) {
       console.error('Error fetching order details:', error)
     } else if (data) {
+      // On silent refresh only: detect status transition and switch the parent tab
+      if (!showLoading && prevStatusRef.current) {
+        const prev = prevStatusRef.current
+        const next = data.status
+        if (prev === 'PENDING' && next === 'PREPARING') setActiveTab(2)
+        else if (prev === 'PREPARING' && next === 'COMPLETED') setActiveTab(3)
+      }
+      prevStatusRef.current = data.status
+
       setOrder({
-        id: `#ORD-${data.id}`,
+        id: data.orderNumber,
         time: new Date(data.statusUpdatedAt).toLocaleString(),
         status: data.status,
         holdReason: data.holdReason || '',
@@ -61,6 +72,7 @@ const SelectedOrder = ({ orderId, setActiveTab, refreshKey }) => {
   }
 
   useEffect(() => {
+    prevStatusRef.current = null  // reset when a different order is selected
     fetchOrderDetails(true)
   }, [orderId])
 

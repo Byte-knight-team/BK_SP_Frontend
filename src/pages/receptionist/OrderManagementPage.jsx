@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { ClipboardList } from 'lucide-react'
 import { getReceptionistOrdersAPI } from '../../apis/receptionist/orders'
 import { toast } from 'react-toastify'
 import OrderCard from '../../components/receptionist/orders/OrderCard'
 import OrderDetailPanel from '../../components/receptionist/orders/OrderDetailPanel'
+import { useAuth } from '../../context/AuthContext'
+import useWebSocket from '../../hooks/useWebSocket'
 
 const TABS = [
   { key: 'PLACED',     label: 'New' },
@@ -33,12 +35,20 @@ const TYPE_FILTERS = [
 
 const OrderManagementPage = () => {
   const { setHeaderInfo } = useOutletContext()
+  const { user } = useAuth()
 
   const [activeTab, setActiveTab]             = useState('PLACED')
   const [typeFilter, setTypeFilter]           = useState('ALL')
   const [orders, setOrders]                   = useState([])
   const [isLoading, setIsLoading]             = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState(null)
+  const [detailRefreshKey, setDetailRefreshKey] = useState(0)
+
+  // Refs so the stable WebSocket callback can read latest values
+  const activeTabRef = useRef(activeTab)
+  useEffect(() => { activeTabRef.current = activeTab }, [activeTab])
+  const selectedOrderIdRef = useRef(selectedOrderId)
+  useEffect(() => { selectedOrderIdRef.current = selectedOrderId }, [selectedOrderId])
 
   useEffect(() => {
     setHeaderInfo({
@@ -70,6 +80,51 @@ const OrderManagementPage = () => {
     setOrders(combined)
     setIsLoading(false)
   }
+
+  // WebSocket: kitchen item updates (line chef starts/completes items)
+  const branchId = user?.branchId
+  const kitchenItemTopic = branchId ? `/topic/branch/${branchId}/kitchen-item-update` : null
+
+  const handleKitchenItemUpdate = useCallback((msg) => {
+    if (!msg?.orderId) return
+
+    // Notify receptionist whenever any order in the kitchen is completed
+    if (msg.orderStatus === 'COMPLETED') {
+      toast.success('✅ An order is ready! Kitchen has completed all items.', { autoClose: 6000 })
+    }
+
+    // Tab switch + detail refresh only for the currently selected order
+    if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
+      setDetailRefreshKey((prev) => prev + 1)
+      if (msg.orderStatus === 'COMPLETED' && activeTabRef.current === 'KITCHEN') {
+        setActiveTab('COMPLETED')
+      }
+    }
+  }, [])
+
+  useWebSocket(branchId, kitchenItemTopic, handleKitchenItemUpdate)
+
+  // Cross-role: kitchen held an order → switch Kitchen → Hold
+  const orderStatusTopic = branchId ? `/topic/branch/${branchId}/order-status-update` : null
+
+  const handleOrderStatusUpdate = useCallback((msg) => {
+    if (!msg?.orderId) return
+
+    // Notify receptionist whenever any order is put on hold by the kitchen
+    if (msg.newStatus === 'ON_HOLD') {
+      toast.warning('⚠️ Kitchen has put an order on hold. Please check the Hold tab.', { autoClose: 8000 })
+    }
+
+    // Tab switch + detail refresh only for the currently selected order
+    if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
+      setDetailRefreshKey((prev) => prev + 1)
+      if (msg.newStatus === 'ON_HOLD' && activeTabRef.current === 'KITCHEN') {
+        setActiveTab('ON_HOLD')
+      }
+    }
+  }, [])
+
+  useWebSocket(branchId, orderStatusTopic, handleOrderStatusUpdate)
 
   const filtered = typeFilter === 'ALL'
     ? orders
@@ -161,8 +216,9 @@ const OrderManagementPage = () => {
             orderId={selectedOrderId}
             activeTab={activeTab}
             onTabChange={(targetTab) => {
-              setActiveTab(targetTab) // triggers useEffect → fetchOrders() for new tab
+              setActiveTab(targetTab)
             }}
+            refreshKey={detailRefreshKey}
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 rounded-3xl border border-gray-100 bg-white">

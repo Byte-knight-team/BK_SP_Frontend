@@ -23,7 +23,7 @@ const ITEM_STATUS_STYLES = {
   ON_HOLD:   'bg-red-50 text-red-500 border border-red-100',
 }
 
-const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
+const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) => {
   const [order, setOrder]   = useState(null)
   const [loading, setLoading] = useState(false)
   const [isActing, setIsActing] = useState(false)
@@ -39,6 +39,13 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
       fetchDetail()
     }
   }, [orderId])
+
+  // Silent refresh when parent signals an external change (e.g. kitchen completes the order)
+  useEffect(() => {
+    if (orderId && refreshKey > 0) {
+      fetchDetail(false)
+    }
+  }, [refreshKey])
 
   const fetchDetail = async (showLoading = true) => {
     if (showLoading) setLoading(true)
@@ -341,16 +348,10 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
         )}
 
         {order.status === 'ON_HOLD' && (
-          <>
-            <button onClick={() => setIsCancelOpen(true)}
-              className="rounded-2xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">
-              Cancel Order
-            </button>
-            <button onClick={() => setIsKitchenOpen(true)}
-              className="ml-auto rounded-2xl bg-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-200 hover:bg-orange-600">
-              Send Back to Kitchen →
-            </button>
-          </>
+          <button onClick={() => setIsCancelOpen(true)}
+            className="rounded-2xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">
+            Cancel Order
+          </button>
         )}
 
         {order.status === 'COMPLETED' && !isQR && !isDelivery && (

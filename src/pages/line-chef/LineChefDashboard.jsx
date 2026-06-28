@@ -98,6 +98,7 @@ export default function LineChefDashboard() {
     } else {
       toast.success('Item marked as ready!')
       fetchItems(false)
+      setActiveTab('READY')
     }
     setActionLoading(false)
   }

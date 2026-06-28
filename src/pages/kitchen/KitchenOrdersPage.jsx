@@ -52,12 +52,22 @@ const KitchenOrdersPage = () => {
     ? `/topic/branch/${branchId}/kitchen-item-update`
     : null
 
-  const handleItemUpdate = useCallback(() => {
+  const handleItemUpdate = useCallback((msg) => {
     setItemUpdateKey((prev) => prev + 1)
     setPendingRefreshKey((prev) => prev + 1)
+
+    if (!msg?.itemName) return
+    if (msg.orderStatus === 'COMPLETED') {
+      toast.success(`✅ Order ready! All items completed.`, { autoClose: 5000 })
+    } else if (msg.newStatus === 'PREPARING') {
+      toast.info(`👨‍🍳 ${msg.itemName} started cooking`, { autoClose: 3000 })
+    } else if (msg.newStatus === 'READY') {
+      toast.success(`✅ ${msg.itemName} is ready`, { autoClose: 3000 })
+    }
   }, [])
 
   useWebSocket(branchId, kitchenItemUpdateTopic, handleItemUpdate)
+
 
   return (
     <div className="flex h-[calc(100vh-80px)] gap-4 p-0">
