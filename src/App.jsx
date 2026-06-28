@@ -134,6 +134,13 @@ function AuthGuard() {
       localStorage.removeItem('qr_session_token')
       localStorage.removeItem('qr_branch_id')
       localStorage.removeItem('qr_table_id')
+      
+      // Auto-logout customer when QR session drops
+      localStorage.removeItem('customer_jwt')
+      localStorage.removeItem('customer_role')
+      localStorage.removeItem('customer_user_id')
+      localStorage.removeItem('customer_name')
+      localStorage.removeItem('customer_profile_pic')
     }
   }, [location.pathname])
 
