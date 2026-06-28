@@ -112,8 +112,19 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
 
   const handleServeItem = async (itemId) => {
     const { error } = await serveOrderItemAPI(itemId)
-    if (error) toast.error(error)
-    else { toast.success('Item served!'); fetchDetail(false) }
+    if (error) {
+      toast.error(error)
+      return
+    }
+    toast.success('Item served!')
+    const { data } = await getReceptionistOrderDetailAPI(orderId)
+    if (data) {
+      setOrder(data)
+      // Auto-switch to Served tab only if all items are now served and we're on the Ready tab
+      if (data.status === 'SERVED' && activeTab === 'COMPLETED') {
+        onTabChange('SERVED')
+      }
+    }
   }
 
   if (loading) return (
@@ -206,7 +217,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
                 <th className="px-3 py-2 text-center font-semibold">Qty</th>
                 <th className="px-3 py-2 text-right font-semibold">Subtotal</th>
                 {!isCancelled && order.status !== 'SERVED' && <th className="px-3 py-2 text-right font-semibold">Status</th>}
-                {order.status === 'COMPLETED' && isQR && (
+                {isQR && !isCancelled && order.status !== 'SERVED' && order.status !== 'PLACED' && (
                   <th className="px-3 py-2 text-center font-semibold">Serve</th>
                 )}
               </tr>
@@ -228,7 +239,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange }) => {
                       </span>
                     </td>
                   )}
-                  {order.status === 'COMPLETED' && isQR && (
+                  {isQR && !isCancelled && order.status !== 'SERVED' && order.status !== 'PLACED' && (
                     <td className="px-3 py-2 text-center">
                       {item.status === 'READY' ? (
                         <button onClick={() => handleServeItem(item.id)}

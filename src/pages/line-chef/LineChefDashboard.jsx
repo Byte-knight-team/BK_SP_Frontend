@@ -8,9 +8,17 @@ import AssignedItemCard from '../../components/line-chef/AssignedItemCard'
 import { getMyItemsAPI, startItemAPI, completeItemAPI } from '../../apis/line-chef/items'
 
 const TABS = [
-  { key: 'PENDING', label: 'Queue' },
+  { key: 'PENDING', label: 'To Cook' },
   { key: 'PREPARING', label: 'Cooking' },
+  { key: 'READY', label: 'Done' },
 ]
+
+const sortItems = (items, status) => {
+  if (status === 'READY') {
+    return [...items].sort((a, b) => b.itemId - a.itemId) // newest first
+  }
+  return [...items].sort((a, b) => a.itemId - b.itemId) // oldest first
+}
 
 export default function LineChefDashboard() {
   const { setHeaderInfo } = useOutletContext()
@@ -55,7 +63,6 @@ export default function LineChefDashboard() {
       autoClose: 6000,
     })
     fetchItems(false)
-    setActiveTab('PENDING')
   })
 
   const handleStart = async (itemId) => {
@@ -83,14 +90,21 @@ export default function LineChefDashboard() {
     setActionLoading(false)
   }
 
-  const filteredItems = items.filter((item) => item.status === activeTab)
+  const filteredItems = sortItems(
+    activeTab === 'READY'
+      ? items.filter((item) => item.status === 'READY' || item.status === 'SERVED')
+      : items.filter((item) => item.status === activeTab),
+    activeTab
+  )
 
   return (
     <div className="p-6">
       {/* Tab bar */}
       <div className="mb-6 flex gap-2">
         {TABS.map((tab) => {
-          const count = items.filter((i) => i.status === tab.key).length
+          const count = tab.key === 'READY'
+            ? items.filter((i) => i.status === 'READY' || i.status === 'SERVED').length
+            : items.filter((i) => i.status === tab.key).length
           return (
             <button
               key={tab.key}
@@ -123,7 +137,7 @@ export default function LineChefDashboard() {
         <div className="flex flex-col items-center justify-center py-20 text-gray-300">
           <ClipboardList size={48} className="mb-3" />
           <p className="text-sm font-bold">
-            {activeTab === 'PENDING' ? 'No items in queue' : 'Nothing cooking right now'}
+            {activeTab === 'PENDING' ? 'No items to cook' : activeTab === 'PREPARING' ? 'Nothing cooking right now' : 'No completed items today'}
           </p>
         </div>
       ) : (
