@@ -6,9 +6,6 @@ export default defineConfig({
     global: 'globalThis',
   },
   plugins: [react()],
-  define: {
-    global: 'window',
-  },
   test: {
     globals: true,
     environment: 'jsdom',
