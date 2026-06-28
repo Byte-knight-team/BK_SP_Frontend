@@ -5,6 +5,7 @@ import { useCart } from '../../context/CartContext';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { calculateCheckout, placeCustomerOrder } from '../../apis/customer/checkout';
 import { getCustomerProfile } from '../../apis/customer/profile';
+import { toast } from 'react-toastify';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 //checkout state savings
@@ -233,9 +234,9 @@ export default function CheckoutPage() {
       const nextReceipt = await calculateTotals({ couponCode: code, redeemLoyaltyPoints: appliedLoyaltyPoints });
       setAppliedCouponCode(code);
       setReceipt(nextReceipt);
-
+      toast.success('Coupon applied successfully!');
     } catch (couponError) {
-      setError(couponError.message || 'Invalid coupon code.');
+      toast.error(couponError.message || 'Invalid coupon code.');
     } finally {
       setIsCalculating(false);
     }
@@ -250,9 +251,9 @@ export default function CheckoutPage() {
     try {
       const nextReceipt = await calculateTotals({ couponCode: null, redeemLoyaltyPoints: appliedLoyaltyPoints });
       setReceipt(nextReceipt);
-
+      toast.info('Coupon removed');
     } catch (clearError) {
-      setError(clearError.message || 'Unable to refresh totals.');
+      toast.error(clearError.message || 'Unable to refresh totals.');
     } finally {
       setIsCalculating(false);
     }
@@ -294,9 +295,9 @@ export default function CheckoutPage() {
       const nextReceipt = await calculateTotals({ couponCode: appliedCouponCode, redeemLoyaltyPoints: points });
       setAppliedLoyaltyPoints(points);
       setReceipt(nextReceipt);
-
+      toast.success('Loyalty points applied!');
     } catch (loyaltyError) {
-      setError(loyaltyError.message || 'Unable to apply loyalty points.');
+      toast.error(loyaltyError.message || 'Unable to apply loyalty points.');
     } finally {
       setIsCalculating(false);
     }
@@ -311,9 +312,9 @@ export default function CheckoutPage() {
     try {
       const nextReceipt = await calculateTotals({ couponCode: appliedCouponCode, redeemLoyaltyPoints: null });
       setReceipt(nextReceipt);
-
+      toast.info('Loyalty points removed');
     } catch (clearError) {
-      setError(clearError.message || 'Unable to refresh totals.');
+      toast.error(clearError.message || 'Unable to refresh totals.');
     } finally {
       setIsCalculating(false);
     }
@@ -372,6 +373,7 @@ export default function CheckoutPage() {
         items: cartItems.map((item) => ({
           menuItemId: item.id,
           quantity: item.quantity,
+          kitchenNote: item.kitchenNote || undefined,
         })),
         contactName: contact.username.trim(),
         contactPhone: contact.phone.trim(),
@@ -409,12 +411,13 @@ export default function CheckoutPage() {
         return;
       }
 
+      toast.success('Order placed successfully!');
       navigate('/order-confirmation', {
         replace: true,
         state: navState,
       });
     } catch (submitError) {
-      setError(submitError.message || 'Something went wrong. Please try again.');
+      toast.error(submitError.message || 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
