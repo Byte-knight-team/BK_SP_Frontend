@@ -43,7 +43,7 @@ export const generateBill = (order) => {
   doc.text('ORDER DETAILS', margin, y)
   y += 5.5
 
-  leftRight('Order Number:', `#${order.orderNumber}`)
+  leftRight('Order Number:', order.orderNumber)
   leftRight('Date:', order.placedAt || '—')
   leftRight('Type:', order.orderType === 'QR'
     ? 'QR Dine-in'
@@ -142,10 +142,10 @@ export const generateBill = (order) => {
   doc.setFontSize(8.5)
   doc.setFont('helvetica', 'normal')
   const paymentText = order.status === 'CANCELLED'
-    ? '— Cancelled'
+    ? 'Cancelled'
     : order.paymentStatus === 'PENDING'
-    ? 'Cash — Not Yet Collected'
-    : '✓ Paid'
+    ? 'Cash - Not Yet Collected'
+    : 'Paid'
   leftRight('Payment:', paymentText)
 
   divider()
