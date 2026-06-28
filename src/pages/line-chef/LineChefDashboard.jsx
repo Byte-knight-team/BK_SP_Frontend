@@ -65,6 +65,15 @@ export default function LineChefDashboard() {
     fetchItems(false)
   })
 
+  // WebSocket: notified when an item is reassigned away from this chef — silent refresh, no toast
+  const wsRemovalTopic = wsTopicUserId
+    ? `/topic/line-chef/${wsTopicUserId}/item-removed`
+    : null
+
+  useWebSocket(user?.branchId, wsRemovalTopic, () => {
+    fetchItems(false)
+  })
+
   const handleStart = async (itemId) => {
     setActionLoading(true)
     const { error } = await startItemAPI(itemId)
