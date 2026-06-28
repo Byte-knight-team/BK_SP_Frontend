@@ -26,7 +26,7 @@ const statusColors = {
   ON_HOLD: 'bg-red-50 text-red-600',
 }
 
-const SelectedOrder = ({ orderId, setActiveTab }) => {
+const SelectedOrder = ({ orderId, setActiveTab, refreshKey }) => {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isChefAssignModalOpen, setIsChefAssignModalOpen] = useState(false)
@@ -63,6 +63,11 @@ const SelectedOrder = ({ orderId, setActiveTab }) => {
   useEffect(() => {
     fetchOrderDetails(true)
   }, [orderId])
+
+  // Silent background refresh when a line chef starts/completes an item
+  useEffect(() => {
+    if (refreshKey > 0) fetchOrderDetails(false)
+  }, [refreshKey])
 
   const handleChefAssignment = async (chefStaffId) => {
     if (!targetMeal) return
