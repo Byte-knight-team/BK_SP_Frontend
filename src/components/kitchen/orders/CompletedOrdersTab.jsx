@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
 import { toast } from "react-toastify";
 
-const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
+const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId, refreshKey }) => {
   const [completedOrdersDetails, setCompletedOrdersDetails] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +27,7 @@ const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
     };
 
     fetchCompletedOrdersDetails();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) {
     return (

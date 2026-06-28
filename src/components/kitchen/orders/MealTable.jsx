@@ -18,7 +18,7 @@ const MealTable = ({ mealsData, orderStatus, onAssignChef }) => {
             <th className="px-4 py-3 text-center">Status</th>
             <th className="px-4 py-3 text-center">Line Chef</th>
             {(orderStatus === 'PENDING' || orderStatus === 'PREPARING') && (
-              <th className="px-4 py-3 text-center">Assign</th>
+              <th className="px-4 py-3 text-center">Action</th>
             )}
           </tr>
         </thead>
