@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Monitor, ShoppingBag, Truck, PauseCircle, XCircle } from 'lucide-react'
+import { Monitor, ShoppingBag, Truck, PauseCircle, XCircle, FileDown } from 'lucide-react'
+import { generateBill } from '../../../utils/generateBill'
 import { toast } from 'react-toastify'
 import {
   getReceptionistOrderDetailAPI,
@@ -177,14 +178,22 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
           <p className="mt-0.5 text-xs text-gray-400">{order.placedAt}</p>
         </div>
 
-        {showCollectCash && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsPaymentOpen(true)}
-            className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
+            onClick={() => generateBill(order)}
+            className="flex items-center gap-1.5 rounded-2xl border border-gray-200 px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
           >
-            Collect Cash — Rs. {order.finalAmount.toFixed(2)}
+            <FileDown size={14} /> Bill
           </button>
-        )}
+          {showCollectCash && (
+            <button
+              onClick={() => setIsPaymentOpen(true)}
+              className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
+            >
+              Collect Cash — Rs. {order.finalAmount.toFixed(2)}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ON HOLD BANNER */}
