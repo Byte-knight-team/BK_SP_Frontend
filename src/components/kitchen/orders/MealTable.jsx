@@ -1,4 +1,4 @@
-import { UserPlus } from 'lucide-react'
+import { UserPlus, MessageSquare } from 'lucide-react'
 
 const statusStyles = {
   PENDING:   'bg-orange-50 text-orange-500',
@@ -29,7 +29,9 @@ const MealTable = ({ mealsData, orderStatus, onAssignChef }) => {
               <td className="px-3 py-3">
                 <span className="font-bold text-gray-800">{meal.name}</span>
                 {meal.kitchenNotes && (
-                  <p className="mt-0.5 text-[10px] text-orange-500 font-medium">📝 {meal.kitchenNotes}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-orange-500">
+                    <MessageSquare size={9} /> {meal.kitchenNotes}
+                  </p>
                 )}
               </td>
 

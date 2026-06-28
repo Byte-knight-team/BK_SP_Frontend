@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Monitor, ShoppingBag, Truck, PauseCircle, XCircle, FileDown } from 'lucide-react'
+import { Monitor, ShoppingBag, Truck, PauseCircle, XCircle, FileDown, MessageSquare } from 'lucide-react'
 import { generateBill } from '../../../utils/generateBill'
 import { toast } from 'react-toastify'
 import {
@@ -293,7 +293,9 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
                   <td className={`px-3 py-2 font-medium ${isCancelled ? 'text-gray-400' : 'text-gray-800'}`}>
                     {item.itemName}
                     {item.kitchenNotes && (
-                      <p className={`mt-0.5 text-[10px] font-medium ${isCancelled ? 'text-gray-400' : 'text-orange-500'}`}>📝 {item.kitchenNotes}</p>
+                      <p className={`mt-0.5 flex items-center gap-1 text-[10px] font-medium ${isCancelled ? 'text-gray-400' : 'text-orange-500'}`}>
+                        <MessageSquare size={9} /> {item.kitchenNotes}
+                      </p>
                     )}
                   </td>
                   <td className={`px-3 py-2 text-center ${isCancelled ? 'text-gray-400' : 'text-gray-600'}`}>

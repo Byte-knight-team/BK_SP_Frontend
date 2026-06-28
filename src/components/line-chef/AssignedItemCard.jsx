@@ -1,4 +1,4 @@
-import { Play, CheckCircle2 } from 'lucide-react'
+import { Play, CheckCircle2, MessageSquare } from 'lucide-react'
 
 const statusConfig = {
   PENDING: { label: 'To Cook', style: 'bg-orange-50 text-orange-500 border border-orange-100' },
@@ -30,10 +30,14 @@ const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
 
       {/* kitchen notes */}
       {item.itemKitchenNotes && (
-        <p className="mt-2 text-[11px] font-medium text-orange-500">📝 {item.itemKitchenNotes}</p>
+        <p className="mt-2 flex items-center gap-1 text-[11px] font-medium text-orange-500">
+          <MessageSquare size={10} /> {item.itemKitchenNotes}
+        </p>
       )}
       {item.orderKitchenNotes && (
-        <p className="mt-1 text-[11px] font-medium text-orange-400">🗒 Order note: {item.orderKitchenNotes}</p>
+        <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-orange-400">
+          <MessageSquare size={10} /> Order: {item.orderKitchenNotes}
+        </p>
       )}
 
       {/* action button */}
