@@ -28,6 +28,8 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
   const [loading, setLoading] = useState(false)
   const [isActing, setIsActing] = useState(false)
 
+  const [servingItemId, setServingItemId] = useState(null)
+
   const [isKitchenOpen, setIsKitchenOpen] = useState(false)
   const [isHoldOpen, setIsHoldOpen]       = useState(false)
   const [isCancelOpen, setIsCancelOpen]   = useState(false)
@@ -82,6 +84,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
     else {
       toast.success('Order cancelled.')
       setIsCancelOpen(false)
+      fetchDetail(false)
       onTabChange('CANCELLED')
     }
     setIsActing(false)
@@ -112,14 +115,20 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
   }
 
   const handleServeItem = async (itemId) => {
+    setServingItemId(itemId)
     const { error } = await serveOrderItemAPI(itemId)
-    if (error) { toast.error(error); return }
+    if (error) {
+      toast.error(error)
+      setServingItemId(null)
+      return
+    }
     toast.success('Item served!')
     const { data } = await getReceptionistOrderDetailAPI(orderId)
     if (data) {
       setOrder(data)
       if (data.status === 'SERVED' && activeTab === 'COMPLETED') onTabChange('SERVED')
     }
+    setServingItemId(null)
   }
 
   if (loading) return (
@@ -286,9 +295,11 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
                   {isQR && !isCancelled && order.status !== 'SERVED' && order.status !== 'PLACED' && (
                     <td className="px-3 py-2 text-center">
                       {item.status === 'READY' ? (
-                        <button onClick={() => handleServeItem(item.id)}
-                          className="rounded-xl bg-green-500 px-3 py-1 text-xs font-bold text-white hover:bg-green-600">
-                          Serve
+                        <button
+                          onClick={() => handleServeItem(item.id)}
+                          disabled={servingItemId === item.id}
+                          className="rounded-xl bg-green-500 px-3 py-1 text-xs font-bold text-white hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                          {servingItemId === item.id ? '...' : 'Serve'}
                         </button>
                       ) : item.status === 'SERVED' ? (
                         <span className="text-xs text-gray-400">Done</span>
