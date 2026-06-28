@@ -16,6 +16,9 @@ const KitchenOrdersPage = () => {
   // Used to trigger a refresh of the pending orders list when a new order arrives
   const [pendingRefreshKey, setPendingRefreshKey] = useState(0)
 
+  // Used to trigger a silent refresh of the selected order detail when a line chef updates an item
+  const [itemUpdateKey, setItemUpdateKey] = useState(0)
+
   const { user } = useAuth()
   const branchId = user?.branchId
 
@@ -44,6 +47,18 @@ const KitchenOrdersPage = () => {
 
   useWebSocket(branchId, kitchenOrderTopic, handleNewOrder)
 
+  // Subscribe to item-level updates from line chefs (start/complete)
+  const kitchenItemUpdateTopic = branchId
+    ? `/topic/branch/${branchId}/kitchen-item-update`
+    : null
+
+  const handleItemUpdate = useCallback(() => {
+    setItemUpdateKey((prev) => prev + 1)
+    setPendingRefreshKey((prev) => prev + 1)
+  }, [])
+
+  useWebSocket(branchId, kitchenItemUpdateTopic, handleItemUpdate)
+
   return (
     <div className="flex h-[calc(100vh-80px)] gap-4 p-0">
 
@@ -61,7 +76,7 @@ const KitchenOrdersPage = () => {
       {/* Right panel — full detail of the selected order */}
       <div className="flex-1 overflow-y-auto">
         {selectedOrder ? (
-          <SelectedOrder orderId={selectedOrder} setActiveTab={setActiveTab} />
+          <SelectedOrder orderId={selectedOrder} setActiveTab={setActiveTab} refreshKey={itemUpdateKey} />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 rounded-3xl border border-gray-100 bg-white">
             <div className="rounded-2xl bg-orange-50 p-5 text-orange-300">
