@@ -65,6 +65,7 @@ const SelectedOrder = ({ orderId, setActiveTab, refreshKey }) => {
           qty: item.quantity,
           status: item.status,
           chefName: item.assignedLineChefName || 'Not Assigned',
+          kitchenNotes: item.kitchenNotes || null,
         })),
       })
     }

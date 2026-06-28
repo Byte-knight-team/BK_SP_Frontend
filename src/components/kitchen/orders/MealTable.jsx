@@ -28,6 +28,9 @@ const MealTable = ({ mealsData, orderStatus, onAssignChef }) => {
             <tr key={meal.id} className="transition-colors hover:bg-gray-50/50">
               <td className="px-3 py-3">
                 <span className="font-bold text-gray-800">{meal.name}</span>
+                {meal.kitchenNotes && (
+                  <p className="mt-0.5 text-[10px] text-orange-500 font-medium">📝 {meal.kitchenNotes}</p>
+                )}
               </td>
 
               <td className="px-3 py-3 text-center">
