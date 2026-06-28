@@ -90,7 +90,7 @@ const OrderManagementPage = () => {
 
     // Notify receptionist whenever any order in the kitchen is completed
     if (msg.orderStatus === 'COMPLETED') {
-      toast.success('✅ An order is ready! Kitchen has completed all items.', { autoClose: 6000 })
+      toast.success(`Order ${msg.orderNumber} is ready — kitchen has completed all items.`, { autoClose: 6000 })
     }
 
     // Tab switch + detail refresh only for the currently selected order
@@ -112,7 +112,7 @@ const OrderManagementPage = () => {
 
     // Notify receptionist whenever any order is put on hold by the kitchen
     if (msg.newStatus === 'ON_HOLD') {
-      toast.warning('⚠️ Kitchen has put an order on hold. Please check the Hold tab.', { autoClose: 8000 })
+      toast.warning(`Kitchen put Order ${msg.orderNumber} on hold. Please check the Hold tab.`, { autoClose: 8000 })
     }
 
     // Tab switch + detail refresh only for the currently selected order
