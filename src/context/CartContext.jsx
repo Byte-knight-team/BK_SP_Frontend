@@ -45,6 +45,12 @@ export function CartProvider({ children }) {
     );
   };
 
+  const updateItemNote = (id, note) => {
+    setCartItems((prev) =>
+      prev.map((ci) => (ci.id === id ? { ...ci, kitchenNote: note } : ci))
+    );
+  };
+
   const cartCount = cartItems.reduce((sum, ci) => sum + ci.quantity, 0);
   const cartTotal = cartItems.reduce((sum, ci) => sum + ci.price * ci.quantity, 0);
 
@@ -56,7 +62,7 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, updateQuantity, cartCount, cartTotal, clearCart }}
+      value={{ cartItems, addToCart, removeFromCart, updateQuantity, updateItemNote, cartCount, cartTotal, clearCart }}
     >
       {children}
     </CartContext.Provider>
