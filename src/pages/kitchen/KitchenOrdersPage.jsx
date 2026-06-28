@@ -69,7 +69,8 @@ const KitchenOrdersPage = () => {
           selectedOrderId={selectedOrder}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          pendingRefreshKey={pendingRefreshKey} // Passed to trigger re-fetch when a new order arrives
+          pendingRefreshKey={pendingRefreshKey}
+          itemUpdateKey={itemUpdateKey}
         />
       </div>
 
