@@ -261,7 +261,9 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
               <p className={`text-sm font-bold ${isCancelled ? 'text-gray-400' : 'text-gray-800'}`}>
                 {order.contactName || order.customerName}
               </p>
-              <p className="text-xs text-gray-400">Customer will collect in person</p>
+              <p className="text-xs text-gray-400">
+                {order.status === 'COMPLETED' ? 'Customer has collected' : 'Customer will collect in person'}
+              </p>
             </>
           )}
         </div>
@@ -375,7 +377,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
       </div>
 
       {/* KITCHEN NOTES */}
-      {order.kitchenNotes && !isCancelled && (
+      {order.kitchenNotes && !isCancelled && order.status !== 'COMPLETED' && order.status !== 'SERVED' && (
         <div className="rounded-2xl border border-orange-100 bg-orange-50 p-3">
           <p className="text-[10px] font-bold uppercase tracking-wide text-orange-500 mb-1">Kitchen Note</p>
           <p className="text-xs text-orange-800">{order.kitchenNotes}</p>
