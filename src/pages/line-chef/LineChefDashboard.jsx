@@ -27,7 +27,7 @@ export default function LineChefDashboard() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('PENDING')
-  const [actionLoading, setActionLoading] = useState(false)
+  const [loadingItemId, setLoadingItemId] = useState(null)
 
   useEffect(() => {
     setHeaderInfo({
@@ -78,7 +78,7 @@ export default function LineChefDashboard() {
   })
 
   const handleStart = async (itemId) => {
-    setActionLoading(true)
+    setLoadingItemId(itemId)
     const { error } = await startItemAPI(itemId)
     if (error) {
       toast.error('Failed to start item.')
@@ -87,11 +87,11 @@ export default function LineChefDashboard() {
       fetchItems(false)
       setActiveTab('PREPARING')
     }
-    setActionLoading(false)
+    setLoadingItemId(null)
   }
 
   const handleComplete = async (itemId) => {
-    setActionLoading(true)
+    setLoadingItemId(itemId)
     const { error } = await completeItemAPI(itemId)
     if (error) {
       toast.error('Failed to mark item as ready.')
@@ -100,7 +100,7 @@ export default function LineChefDashboard() {
       fetchItems(false)
       setActiveTab('READY')
     }
-    setActionLoading(false)
+    setLoadingItemId(null)
   }
 
   const filteredItems = sortItems(
@@ -161,7 +161,7 @@ export default function LineChefDashboard() {
               item={item}
               onStart={handleStart}
               onComplete={handleComplete}
-              isLoading={actionLoading}
+              isLoading={loadingItemId === item.itemId}
             />
           ))}
         </div>
