@@ -5,12 +5,14 @@ import {
   submitCustomerReview,
   uploadFileToPresignedUrl,
 } from '../../../apis/customer/orders';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Maximum images allowed per review section (order-level or per item)
 const MAX_IMAGES_PER_REVIEW = 5;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export default function ReviewModal({ order, onClose, onSuccess }) {
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -234,6 +236,7 @@ export default function ReviewModal({ order, onClose, onSuccess }) {
 
       const json = await res.json().catch(() => ({}));
       if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ['menuItems'] });
         onSuccess();
       } else {
         setError(json.message || 'Failed to submit review.');
