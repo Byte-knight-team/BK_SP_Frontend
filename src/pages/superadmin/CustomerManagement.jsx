@@ -1,87 +1,125 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import {
-  RiBuilding2Line,
-  RiAddLine,
+  RiUserHeartLine,
   RiSearchLine,
-  RiErrorWarningLine,
   RiCloseLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
   RiEyeLine,
-  RiEditLine,
-  RiShieldUserLine,
-  RiRefreshLine,
+  RiErrorWarningLine,
+  RiCheckboxCircleLine,
 } from "@remixicon/react";
 
 import {
-  getAllBranchesAPI,
-  activateBranchAPI,
-  deactivateBranchAPI,
-} from "../../apis/staff/branches";
+  getAllCustomersAPI,
+  activateCustomerAPI,
+  deactivateCustomerAPI,
+} from "../../apis/staff/customers";
 
 import { useAuth } from "../../context/AuthContext";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
-export default function BranchListPage() {
-  const location = useLocation();
+export default function CustomerManagement() {
   const { setHeaderInfo } = useOutletContext();
+  const { user: authUser } = useAuth();
 
-  const branchBasePath = location.pathname.startsWith("/admin")
-    ? "/admin/branches"
-    : "/staff/branches";
+  const loggedInRole = normalizeRole(authUser?.roleName || authUser?.role);
+  const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
 
-  const [branchList, setBranchList] = useState([]);
+  const [customerList, setCustomerList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
   const [loadError, setLoadError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [verifiedFilter, setVerifiedFilter] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const [branchToConfirm, setBranchToConfirm] = useState(null);
+  const [customerToConfirm, setCustomerToConfirm] = useState(null);
 
-  const { user } = useAuth();
+  useEffect(() => {
+    setHeaderInfo({
+      title: "Customer Management",
+      description:
+        "View customer accounts and control customer account access.",
+      Icon: RiUserHeartLine,
+    });
 
-  const loggedInRole = normalizeRole(user?.roleName || user?.role);
-  const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
+    return () => setHeaderInfo(null);
+  }, [setHeaderInfo]);
 
-  const filteredBranchList = useMemo(() => {
+  const loadCustomers = async () => {
+    setLoading(true);
+    setLoadError("");
+
+    const { data, error } = await getAllCustomersAPI();
+
+    if (error) {
+      setLoadError(error);
+      setCustomerList([]);
+      showErrorToast(error);
+    } else {
+      setCustomerList(Array.isArray(data) ? data : []);
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  const filteredCustomerList = useMemo(() => {
     const cleanSearch = normalizeForSearch(searchTerm);
 
-    return branchList.filter((branch) => {
-      const branchId = getBranchId(branch);
-      const branchStatus = getBranchStatus(branch);
+    return customerList.filter((customer) => {
+      const customerId = getCustomerId(customer);
+      const active = isCustomerActive(customer);
 
       const searchableText = normalizeForSearch(
         [
-          branchId,
-          branch.name,
-          branch.email,
-          branch.contactNumber,
-          branch.phone,
-          branch.address,
+          customerId,
+          customer.userId,
+          customer.fullName,
+          customer.username,
+          customer.email,
+          customer.phone,
+          customer.address,
         ].join(" ")
       );
 
       const matchesSearch =
         !cleanSearch || searchableText.includes(cleanSearch);
 
-      const matchesStatus = !statusFilter || branchStatus === statusFilter;
+      const matchesStatus =
+        !statusFilter ||
+        (statusFilter === "ACTIVE" && active) ||
+        (statusFilter === "INACTIVE" && !active);
 
-      return matchesSearch && matchesStatus;
+      const emailVerified = Boolean(customer.emailVerified);
+      const phoneVerified = Boolean(customer.phoneVerified);
+
+      const matchesVerified =
+        !verifiedFilter ||
+        (verifiedFilter === "EMAIL_VERIFIED" && emailVerified) ||
+        (verifiedFilter === "PHONE_VERIFIED" && phoneVerified) ||
+        (verifiedFilter === "BOTH_VERIFIED" && emailVerified && phoneVerified) ||
+        (verifiedFilter === "NOT_VERIFIED" && !emailVerified && !phoneVerified);
+
+      return matchesSearch && matchesStatus && matchesVerified;
     });
-  }, [branchList, searchTerm, statusFilter]);
+  }, [customerList, searchTerm, statusFilter, verifiedFilter]);
 
   const totalPages =
-    filteredBranchList.length === 0
+    filteredCustomerList.length === 0
       ? 0
-      : Math.ceil(filteredBranchList.length / pageSize);
+      : Math.ceil(filteredCustomerList.length / pageSize);
 
   const safeCurrentPage =
     totalPages === 0 ? 1 : Math.min(currentPage, totalPages);
@@ -89,16 +127,16 @@ export default function BranchListPage() {
   const startIndex = (safeCurrentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
 
-  const paginatedBranchList = useMemo(() => {
-    return filteredBranchList.slice(startIndex, endIndex);
-  }, [filteredBranchList, startIndex, endIndex]);
+  const paginatedCustomerList = useMemo(() => {
+    return filteredCustomerList.slice(startIndex, endIndex);
+  }, [filteredCustomerList, startIndex, endIndex]);
 
-  const firstVisibleBranchNumber =
-    filteredBranchList.length === 0 ? 0 : startIndex + 1;
+  const firstVisibleCustomerNumber =
+    filteredCustomerList.length === 0 ? 0 : startIndex + 1;
 
-  const lastVisibleBranchNumber = Math.min(
+  const lastVisibleCustomerNumber = Math.min(
     endIndex,
-    filteredBranchList.length
+    filteredCustomerList.length
   );
 
   const visiblePageNumbers = getVisiblePageNumbers(
@@ -106,11 +144,12 @@ export default function BranchListPage() {
     totalPages
   );
 
-  const hasActiveFilters = searchTerm.trim() !== "" || statusFilter;
+  const hasActiveFilters =
+    searchTerm.trim() !== "" || statusFilter || verifiedFilter;
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, pageSize]);
+  }, [searchTerm, statusFilter, verifiedFilter, pageSize]);
 
   useEffect(() => {
     if (totalPages > 0 && currentPage > totalPages) {
@@ -122,83 +161,19 @@ export default function BranchListPage() {
     }
   }, [currentPage, totalPages]);
 
-  /*
-    If another page redirects here with a success message,
-    show it as a toast instead of an inline green box.
-  */
-  useEffect(() => {
-    if (location.state?.successMessage) {
-      showSuccessToast(location.state.successMessage);
-    }
-  }, [location.state]);
-
-  /*
-    Set the header information for this page.
-  */
-  useEffect(() => {
-    setHeaderInfo({
-      title: "Branch Management",
-      description:
-        "Create, view, activate, deactivate, and manage restaurant branches.",
-      Icon: RiBuilding2Line,
-    });
-
-    return () => setHeaderInfo(null);
-  }, [setHeaderInfo]);
-
-  /*
-    Load all branches from the backend.
-  */
-  const loadBranches = async () => {
-    setLoading(true);
-    setLoadError("");
-
-    const { data, error } = await getAllBranchesAPI();
-
-    if (error) {
-      setLoadError(error);
-      setBranchList([]);
-      showErrorToast(error);
-      setLoading(false);
-      return false;
-    }
-
-    setBranchList(Array.isArray(data) ? data : []);
-    setLoading(false);
-    return true;
-  };
-
-  /*
-    Load branches when the page opens.
-  */
-  useEffect(() => {
-    if (isSuperAdmin) {
-      loadBranches();
-    } else {
-      setLoading(false);
-    }
-  }, [isSuperAdmin]);
-
-  const handleRefreshBranches = async () => {
-    const success = await loadBranches();
-
-    if (success) {
-      showSuccessToast("Branches refreshed successfully.");
-    }
-  };
-
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("");
+    setVerifiedFilter("");
   };
 
-  const openStatusConfirmModal = (branch) => {
-    setBranchToConfirm(branch);
+  const openStatusConfirmModal = (customer) => {
+    setCustomerToConfirm(customer);
   };
 
   const closeStatusConfirmModal = () => {
-    if (actionLoadingId) return;
-    setBranchToConfirm(null);
+    if (actionLoading) return;
+    setCustomerToConfirm(null);
   };
 
   const goToPreviousPage = () => {
@@ -209,106 +184,74 @@ export default function BranchListPage() {
     setCurrentPage((page) => Math.min(page + 1, totalPages));
   };
 
-  /*
-    Activate or deactivate a branch.
-  */
-  const handleToggleStatus = async (branch) => {
-    const branchId = getBranchId(branch);
-    const active = isBranchActive(branch);
+  const handleToggleStatus = async (customer) => {
+    const customerId = getCustomerId(customer);
+    const isActive = isCustomerActive(customer);
 
-    if (!branchId) {
-      showErrorToast("Branch ID not found in response.");
+    if (!customerId) {
+      showErrorToast("Customer ID not found in response.");
       return;
     }
 
-    setActionLoadingId(branchId);
+    setActionLoading({ id: customerId, type: "status" });
 
-    const result = active
-      ? await deactivateBranchAPI(branchId)
-      : await activateBranchAPI(branchId);
+    const result = isActive
+      ? await deactivateCustomerAPI(customerId)
+      : await activateCustomerAPI(customerId);
 
     if (result.error) {
       showErrorToast(result.error);
     } else {
       showSuccessToast(
-        active
-          ? "Branch deactivated successfully."
-          : "Branch activated successfully."
+        isActive
+          ? "Customer deactivated successfully."
+          : "Customer activated successfully."
       );
 
-      await loadBranches();
+      await loadCustomers();
     }
 
-    setActionLoadingId(null);
-    setBranchToConfirm(null);
+    setActionLoading(null);
+    setCustomerToConfirm(null);
   };
 
   if (!isSuperAdmin) {
     return (
-      <div className="max-w-5xl">
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
-          <BranchTableState
-            Icon={RiShieldUserLine}
-            title="No Access"
-            description="Branch Management is only available for SUPER_ADMIN users."
-            iconClassName="bg-red-50 text-red-600"
-          />
-        </div>
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+        <CustomerTableState
+          Icon={RiErrorWarningLine}
+          title="No Access"
+          description="Only Super Admin can manage customer accounts."
+          iconClassName="bg-red-50 text-red-600"
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-5">
-      {/* Top card */}
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h3 className="text-lg font-bold text-gray-900">
-              Restaurant Branches
+              Customer Accounts
             </h3>
 
             <p className="mt-1 text-sm text-gray-500">
-              Manage restaurant branches used by staff and branch-level
-              operations.
+              View customer account details and control active/inactive access.
             </p>
 
             <p className="mt-2 text-sm text-gray-500">
-              Total branches:{" "}
+              Total customers:{" "}
               <span className="font-semibold text-gray-800">
-                {branchList.length}
+                {customerList.length}
               </span>
             </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleRefreshBranches}
-              disabled={loading}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? (
-                <Spinner className="h-4 w-4 border-gray-300 border-t-orange-500" />
-              ) : (
-                <RiRefreshLine size={18} />
-              )}
-
-              {loading ? "Refreshing..." : "Refresh"}
-            </button>
-
-            <Link
-              to={`${branchBasePath}/create`}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
-            >
-              <RiAddLine size={18} />
-              Create Branch
-            </Link>
           </div>
         </div>
 
         <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
-          <div className="grid gap-3 lg:grid-cols-[1fr_220px_auto]">
+          <div className="grid gap-3 xl:grid-cols-[1.5fr_0.8fr_0.9fr_auto]">
             <div className="relative">
               <RiSearchLine
                 size={18}
@@ -319,7 +262,7 @@ export default function BranchListPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search branch name, email, contact number, address, or ID..."
+                placeholder="Search name, username, email, phone, address, or ID..."
                 className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 pl-11 pr-4 text-sm text-gray-800 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
               />
             </div>
@@ -332,6 +275,18 @@ export default function BranchListPage() {
               <option value="">All Status</option>
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
+            </select>
+
+            <select
+              value={verifiedFilter}
+              onChange={(event) => setVerifiedFilter(event.target.value)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+            >
+              <option value="">All Verification</option>
+              <option value="EMAIL_VERIFIED">Email verified</option>
+              <option value="PHONE_VERIFIED">Phone verified</option>
+              <option value="BOTH_VERIFIED">Both verified</option>
+              <option value="NOT_VERIFIED">Not verified</option>
             </select>
 
             <button
@@ -348,18 +303,18 @@ export default function BranchListPage() {
             <p>
               Matching{" "}
               <span className="font-bold text-gray-800">
-                {filteredBranchList.length}
+                {filteredCustomerList.length}
               </span>{" "}
               of{" "}
               <span className="font-bold text-gray-800">
-                {branchList.length}
+                {customerList.length}
               </span>{" "}
-              branches
+              customers
             </p>
 
             {hasActiveFilters && (
               <p className="text-xs font-medium text-orange-600">
-                Filters are applied to the loaded branch list.
+                Filters are applied to the loaded customer list.
               </p>
             )}
           </div>
@@ -372,144 +327,155 @@ export default function BranchListPage() {
         )}
       </div>
 
-      {/* Branch table card */}
       <div className="rounded-[1.5rem] border border-gray-100 bg-white p-3 shadow-sm">
         {loading ? (
-          <BranchTableState
-            Icon={RiBuilding2Line}
-            title="Loading branches"
-            description="Please wait while restaurant branches are loaded."
+          <CustomerTableState
+            Icon={RiUserHeartLine}
+            title="Loading customers"
+            description="Please wait while customer accounts are loaded."
             iconClassName="bg-gray-100 text-gray-600"
             loading
           />
-        ) : branchList.length === 0 ? (
-          <BranchTableState
-            Icon={RiBuilding2Line}
-            title="No branches found"
-            description="Create your first branch to start managing restaurant locations."
+        ) : customerList.length === 0 ? (
+          <CustomerTableState
+            Icon={RiUserHeartLine}
+            title="No customers found"
+            description="Customer accounts will appear here after customers register or use the QR flow."
             iconClassName="bg-gray-100 text-gray-600"
           />
-        ) : filteredBranchList.length === 0 ? (
-          <BranchTableState
+        ) : filteredCustomerList.length === 0 ? (
+          <CustomerTableState
             Icon={RiSearchLine}
-            title="No matching branches found"
-            description="Try changing the search text or filters to find the branch you need."
+            title="No matching customers found"
+            description="Try changing the search text or filters to find the customer you need."
             iconClassName="bg-orange-50 text-orange-600"
           />
         ) : (
           <div className="overflow-x-auto rounded-xl">
-            <table className="w-full min-w-[1180px] text-left">
+            <table className="w-full min-w-[1120px] text-left">
               <thead className="border-b border-gray-100 bg-gray-50">
                 <tr>
-                  <th className="w-[220px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Branch
+                  <th className="w-[260px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Customer
                   </th>
 
-                  <th className="w-[250px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[280px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
                     Contact
                   </th>
 
-                  <th className="w-[320px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Address
+                  <th className="w-[170px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Loyalty
                   </th>
 
-                  <th className="w-[140px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Created
+                  <th className="w-[170px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Verification
                   </th>
 
                   <th className="w-[120px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
                     Status
                   </th>
 
-                  <th className="w-[280px] px-5 py-3.5 pr-6 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[230px] px-5 py-3.5 pr-6 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
                     Actions
                   </th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {paginatedBranchList.map((branch) => {
-                  const branchId = getBranchId(branch);
-                  const active = isBranchActive(branch);
-                  const isActionLoading =
-                    String(actionLoadingId) === String(branchId);
-                  const anyActionLoading = Boolean(actionLoadingId);
+                {paginatedCustomerList.map((customer) => {
+                  const customerId = getCustomerId(customer);
+                  const isActive = isCustomerActive(customer);
+
+                  const isStatusLoading =
+                    String(actionLoading?.id) === String(customerId) &&
+                    actionLoading?.type === "status";
+
+                  const anyActionLoading = Boolean(actionLoading);
 
                   return (
                     <tr
-                      key={branchId || branch.email}
+                      key={customerId || customer.email || customer.phone}
                       className="hover:bg-gray-50/70"
                     >
                       <td className="px-5 py-4 align-middle">
                         <div className="font-semibold text-gray-900">
-                          {branch.name || "No branch name"}
+                          {customer.fullName ||
+                            customer.username ||
+                            "No customer name"}
                         </div>
 
                         <div className="mt-1 text-xs text-gray-500">
-                          ID: {branchId || "N/A"}
+                          @{customer.username || "no-username"} • ID #
+                          {customerId || "N/A"}
                         </div>
                       </td>
 
                       <td className="px-5 py-4 align-middle">
                         <div className="text-sm text-gray-800">
-                          {branch.email || "No email"}
+                          {customer.email || "No email"}
                         </div>
 
                         <div className="mt-1 text-xs text-gray-500">
-                          {branch.contactNumber ||
-                            branch.phone ||
-                            "No contact number"}
+                          {customer.phone || "No phone"}
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 align-middle text-sm text-gray-700">
-                        <div className="max-w-[300px]">
-                          {branch.address || "No address"}
+                      <td className="px-5 py-4 align-middle">
+                        <div className="text-sm font-semibold text-gray-800">
+                          {customer.loyaltyPoints ?? 0} points
+                        </div>
+
+                        <div className="mt-1 text-xs text-gray-500">
+                          {formatMoney(customer.totalSpent)}
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 align-middle text-sm text-gray-700">
-                        {formatDate(branch.createdAt || branch.createdDate)}
+                      <td className="px-5 py-4 align-middle">
+                        <div className="flex flex-wrap gap-2">
+                          <VerificationBadge
+                            label="Email"
+                            verified={customer.emailVerified}
+                          />
+
+                          <VerificationBadge
+                            label="Phone"
+                            verified={customer.phoneVerified}
+                          />
+                        </div>
                       </td>
 
                       <td className="px-5 py-4 align-middle">
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                            active
+                            isActive
                               ? "bg-green-50 text-green-700"
                               : "bg-gray-100 text-gray-500"
                           }`}
                         >
-                          {active ? "Active" : "Inactive"}
+                          {isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
 
                       <td className="px-5 py-4 pr-6 align-middle text-right">
                         <div className="inline-flex items-center justify-end gap-2 whitespace-nowrap">
                           <ActionLink
-                            to={`${branchBasePath}/${branchId}`}
+                            to={`/staff/customers/${customerId}`}
                             Icon={RiEyeLine}
                             label="View"
                           />
 
-                          <ActionLink
-                            to={`${branchBasePath}/${branchId}/edit`}
-                            Icon={RiEditLine}
-                            label="Edit"
-                          />
-
                           <ActionButton
                             label={
-                              isActionLoading
+                              isStatusLoading
                                 ? "Updating..."
-                                : active
+                                : isActive
                                   ? "Deactivate"
                                   : "Activate"
                             }
-                            loading={isActionLoading}
+                            loading={isStatusLoading}
                             disabled={anyActionLoading}
-                            onClick={() => openStatusConfirmModal(branch)}
-                            variant={active ? "danger" : "success"}
+                            onClick={() => openStatusConfirmModal(customer)}
+                            variant={isActive ? "danger" : "success"}
                           />
                         </div>
                       </td>
@@ -521,7 +487,7 @@ export default function BranchListPage() {
           </div>
         )}
 
-        {!loading && filteredBranchList.length > 0 && (
+        {!loading && filteredCustomerList.length > 0 && (
           <div className="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <p className="text-sm text-gray-500">
@@ -535,17 +501,17 @@ export default function BranchListPage() {
                 </span>{" "}
                 • Showing{" "}
                 <span className="font-semibold text-gray-800">
-                  {firstVisibleBranchNumber}
+                  {firstVisibleCustomerNumber}
                 </span>
                 -
                 <span className="font-semibold text-gray-800">
-                  {lastVisibleBranchNumber}
+                  {lastVisibleCustomerNumber}
                 </span>{" "}
                 of{" "}
                 <span className="font-semibold text-gray-800">
-                  {filteredBranchList.length}
+                  {filteredCustomerList.length}
                 </span>{" "}
-                branches
+                customers
               </p>
 
               <label className="flex items-center gap-2 text-sm text-gray-500">
@@ -604,14 +570,16 @@ export default function BranchListPage() {
         )}
       </div>
 
-      {branchToConfirm && (
-        <BranchStatusConfirmModal
-          branch={branchToConfirm}
+      {customerToConfirm && (
+        <CustomerStatusConfirmModal
+          customer={customerToConfirm}
           isLoading={
-            String(actionLoadingId) === String(getBranchId(branchToConfirm))
+            String(actionLoading?.id) ===
+              String(getCustomerId(customerToConfirm)) &&
+            actionLoading?.type === "status"
           }
           onClose={closeStatusConfirmModal}
-          onConfirm={() => handleToggleStatus(branchToConfirm)}
+          onConfirm={() => handleToggleStatus(customerToConfirm)}
         />
       )}
     </div>
@@ -630,13 +598,7 @@ function ActionLink({ to, Icon, label }) {
   );
 }
 
-function ActionButton({
-  label,
-  loading,
-  disabled,
-  onClick,
-  variant = "neutral",
-}) {
+function ActionButton({ label, loading, disabled, onClick, variant = "neutral" }) {
   const variantClassNames = {
     neutral:
       "border border-gray-200 bg-white text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600",
@@ -666,7 +628,7 @@ function ActionButton({
   );
 }
 
-function BranchTableState({
+function CustomerTableState({
   Icon,
   title,
   description,
@@ -694,14 +656,12 @@ function BranchTableState({
   );
 }
 
-function BranchStatusConfirmModal({ branch, isLoading, onClose, onConfirm }) {
-  const branchId = getBranchId(branch);
-  const branchName = branch.name || "this branch";
-  const branchEmail = branch.email || "No email";
-  const branchContact =
-    branch.contactNumber || branch.phone || "No contact number";
-  const branchAddress = branch.address || "No address";
-  const active = isBranchActive(branch);
+function CustomerStatusConfirmModal({ customer, isLoading, onClose, onConfirm }) {
+  const customerName =
+    customer.fullName || customer.username || "this customer account";
+  const customerEmail = customer.email || "No email";
+  const customerPhone = customer.phone || "No phone";
+  const active = isCustomerActive(customer);
 
   const actionLabel = active ? "Deactivate" : "Activate";
   const actionText = active ? "deactivate" : "activate";
@@ -721,11 +681,11 @@ function BranchStatusConfirmModal({ branch, isLoading, onClose, onConfirm }) {
 
             <div>
               <h3 className="text-base font-bold text-gray-900">
-                {actionLabel} Branch?
+                {actionLabel} Customer Account?
               </h3>
 
               <p className="mt-1 text-sm leading-6 text-gray-500">
-                Please confirm before you {actionText} this restaurant branch.
+                Please confirm before you {actionText} this customer account.
               </p>
             </div>
           </div>
@@ -741,34 +701,17 @@ function BranchStatusConfirmModal({ branch, isLoading, onClose, onConfirm }) {
         </div>
 
         <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-          <div className="text-sm font-bold text-gray-900">{branchName}</div>
+          <div className="text-sm font-bold text-gray-900">{customerName}</div>
 
-          <div className="mt-1 text-xs text-gray-500">
-            ID: {branchId || "N/A"}
-          </div>
+          <div className="mt-1 text-xs text-gray-500">{customerEmail}</div>
 
-          <div className="mt-3 grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
-            <div>
-              <span className="font-semibold text-gray-800">Email:</span>{" "}
-              {branchEmail}
-            </div>
-
-            <div>
-              <span className="font-semibold text-gray-800">Contact:</span>{" "}
-              {branchContact}
-            </div>
-          </div>
-
-          <div className="mt-3 text-xs text-gray-600">
-            <span className="font-semibold text-gray-800">Address:</span>{" "}
-            {branchAddress}
-          </div>
+          <div className="mt-1 text-xs text-gray-500">{customerPhone}</div>
         </div>
 
         <div className="mt-5 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm leading-6 text-orange-800">
           {active
-            ? "Deactivating this branch will mark it as inactive. Staff and branch-related operations may be affected."
-            : "Activating this branch will make it available again for branch-level operations."}
+            ? "Deactivating this account will prevent the customer from logging in, using OTP login, resetting password, and accessing protected customer features."
+            : "Activating this account will allow the customer to use their account again."}
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -809,6 +752,18 @@ function BranchStatusConfirmModal({ branch, isLoading, onClose, onConfirm }) {
   );
 }
 
+function VerificationBadge({ label, verified }) {
+  return (
+    <span
+      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+        verified ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
+      }`}
+    >
+      {label}: {verified ? "Yes" : "No"}
+    </span>
+  );
+}
+
 function normalizeRole(role) {
   return String(role || "")
     .trim()
@@ -820,40 +775,31 @@ function normalizeForSearch(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-function getBranchId(branch) {
-  return branch?.id || branch?.branchId;
+function getCustomerId(customer) {
+  return customer?.customerId || customer?.id;
 }
 
-function getBranchStatus(branch) {
-  if (branch?.status) {
-    return String(branch.status).trim().toUpperCase();
-  }
+function isCustomerActive(customer) {
+  if (typeof customer?.active === "boolean") return customer.active;
+  if (typeof customer?.isActive === "boolean") return customer.isActive;
+  if (typeof customer?.enabled === "boolean") return customer.enabled;
 
-  if (typeof branch?.active === "boolean") {
-    return branch.active ? "ACTIVE" : "INACTIVE";
-  }
+  const status = String(customer?.status || customer?.accountStatus || "")
+    .trim()
+    .toUpperCase();
 
-  if (typeof branch?.isActive === "boolean") {
-    return branch.isActive ? "ACTIVE" : "INACTIVE";
-  }
+  if (status === "ACTIVE") return true;
+  if (status === "INACTIVE") return false;
 
-  return "UNKNOWN";
+  return false;
 }
 
-function isBranchActive(branch) {
-  return getBranchStatus(branch) === "ACTIVE";
-}
-
-function formatDate(dateValue) {
-  if (!dateValue) return "N/A";
-
-  const date = new Date(dateValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return "N/A";
+function formatMoney(value) {
+  if (value === null || value === undefined || value === "") {
+    return "LKR 0";
   }
 
-  return date.toLocaleDateString();
+  return `LKR ${Number(value).toLocaleString()}`;
 }
 
 function getVisiblePageNumbers(currentPage, totalPages) {

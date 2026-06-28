@@ -3,6 +3,7 @@ import {
   Search, Bell, HelpCircle, Settings, ArrowLeft, CircleDot
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import CloudinaryImageUpload from '../../components/admin/CloudinaryImageUpload';
 import {
   createMenuItemAPI,
@@ -26,6 +27,7 @@ const normalizeSubCategory = (value) => {
 // Admin page for adding a new menu item and its metadata.
 export default function AddMenuItemPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const subCategoryWrapperRef = useRef(null);
 
   const [itemName, setItemName] = useState('');
@@ -183,6 +185,7 @@ export default function AddMenuItemPage() {
         imageUrl: imageData.secure_url,
       });
 
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       navigate('/admin/menu');
     } catch (error) {
       setApiError(error.message || 'Unable to create menu item.');

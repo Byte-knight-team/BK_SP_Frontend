@@ -40,7 +40,7 @@ import ProfilePage from './pages/ProfilePage'
 // Common protected route component
 import ProtectedRoute from './components/common/ProtectedRoute'
 
-// Super Admin / Member 01 pages
+// Super Admin
 import SuperAdminDashboardPage from './pages/superadmin/DashboardPage'
 import StaffListPage from './pages/superadmin/StaffListPage'
 import CreateStaffPage from './pages/superadmin/CreateStaffPage'
@@ -54,8 +54,8 @@ import SystemConfigPage from './pages/superadmin/SystemConfigPage'
 import AuditLogsPage from './pages/superadmin/AuditLogsPage'
 import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
-import CustomerListPage from './pages/superadmin/CustomerListPage'
-import CustomerDetailsPage from './pages/superadmin/CustomerDetailsPage'
+import CustomerManagement from "./pages/superadmin/CustomerManagement";
+import CustomerDetailsPage from "./pages/superadmin/CustomerDetailsPage";
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
@@ -90,6 +90,8 @@ import CheckoutPage from './pages/customer/CheckoutPage'
 import CardPaymentPage from './pages/customer/CardPaymentPage'
 import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'
 import CustomerLoginPage from './pages/customer/LoginPage'
+import ForgotPasswordPage from './pages/customer/ForgotPasswordPage'
+import ResetPasswordPage from './pages/customer/ResetPasswordPage'
 import SignupPersonalPage from './pages/customer/SignupPersonalPage'
 import SignupAddressPage from './pages/customer/SignupAddressPage'
 import MobileVerificationPage from './pages/customer/MobileVerificationPage'
@@ -164,9 +166,20 @@ function CustomerLayout() {
   )
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
         <Route path="/staff/login" element={<StaffLoginPage />} />
@@ -208,8 +221,8 @@ export default function App() {
           <Route path="branches/:id" element={<BranchDetailsPage />} />
           <Route path="branches/:id/edit" element={<EditBranchPage />} />
 
-          <Route path="customers" element={<CustomerListPage />} />
-          <Route path="customers/:id" element={<CustomerDetailsPage />} />
+          <Route path="/staff/customers" element={<CustomerManagement />} />
+          <Route path="/staff/customers/:id" element={<CustomerDetailsPage />} />
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
@@ -331,7 +344,10 @@ export default function App() {
               </CustomerProtectedRoute>
             }
           />
+          {/* Customer Auth Pages */}
           <Route path="/login" element={<CustomerLoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/signup" element={<SignupPersonalPage />} />
           <Route path="/signup/address" element={<SignupAddressPage />} />
           <Route path="/signup/qr" element={<MobileVerificationPage />} />
@@ -455,8 +471,12 @@ export default function App() {
         position="bottom-right"
         autoClose={4000}
         hideProgressBar={false} // Show the timer bar
+        newestOnTop
+        closeOnClick
         theme="colored" // Keep this for vibrant colors
         pauseOnHover={true} // Stop the timer if the mouse is over it
+        draggable
+        limit={3}
       />
     </>
   )

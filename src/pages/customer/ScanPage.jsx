@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { decodeJwtPayload } from '../../utils/authToken';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
@@ -60,7 +61,7 @@ export default function ScanPage() {
 
       // Store ONLY the token
       localStorage.setItem('qr_session_token', data.session_token);
-      
+
       // Remove legacy keys if they exist
       localStorage.removeItem('qr_session');
       localStorage.removeItem('qr_branch_id');
@@ -74,6 +75,10 @@ export default function ScanPage() {
 
   useEffect(() => {
     if (isSuccess) {
+      toast('Table session started successfully!', {
+        className: 'toast-orange-auth font-semibold shadow-lg',
+        icon: '🍽️',
+      });
       navigate('/menu', { replace: true });
     }
   }, [isSuccess, navigate]);
