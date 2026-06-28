@@ -9,7 +9,7 @@ const statusConfig = {
   PENDING: { label: 'To Cook', style: 'bg-orange-50 text-orange-500 border border-orange-100' },
   PREPARING: { label: 'Cooking', style: 'bg-blue-50 text-blue-500 border border-blue-100' },
   READY: { label: 'Done', style: 'bg-green-50 text-green-500 border border-green-100' },
-  SERVED: { label: 'Served', style: 'bg-gray-100 text-gray-500 border border-gray-200' },
+  SERVED: { label: 'Done', style: 'bg-green-50 text-green-500 border border-green-100' },
 }
 
 const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
@@ -69,8 +69,8 @@ const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
           </div>
         )}
         {item.status === 'SERVED' && (
-          <div className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 py-2.5 text-sm font-bold text-gray-400">
-            <CheckCircle2 size={14} /> Served to Customer
+          <div className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-50 py-2.5 text-sm font-bold text-green-500">
+            <CheckCircle2 size={14} /> Completed
           </div>
         )}
       </div>
