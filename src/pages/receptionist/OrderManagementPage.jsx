@@ -43,6 +43,7 @@ const OrderManagementPage = () => {
   const [isLoading, setIsLoading]             = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [detailRefreshKey, setDetailRefreshKey] = useState(0)
+  const [listRefreshKey, setListRefreshKey] = useState(0)
 
   // Refs so the stable WebSocket callback can read latest values
   const activeTabRef = useRef(activeTab)
@@ -60,7 +61,7 @@ const OrderManagementPage = () => {
 
   useEffect(() => {
     fetchOrders()
-  }, [activeTab])
+  }, [activeTab, listRefreshKey])
 
   const fetchOrders = async () => {
     setIsLoading(true)
@@ -68,13 +69,15 @@ const OrderManagementPage = () => {
     const results  = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
     const combined = results.flatMap((r) => r.data || [])
 
-    // Oldest first for action tabs — process longest-waiting orders first.
-    // Newest first for reference tabs — most recent entry is most relevant to look up.
-    const ascTabs = ['PLACED', 'KITCHEN', 'ON_HOLD', 'COMPLETED']
-    if (ascTabs.includes(activeTab)) {
+    // New tab: sort by when the customer placed the order (oldest first = longest waiting).
+    // Kitchen/Hold/Ready: sort by when the order moved into that status (oldest first = FIFO queue).
+    // Served/Cancelled: newest status change first — most recent is most relevant to look up.
+    if (activeTab === 'PLACED') {
       combined.sort((a, b) => new Date(a.placedAt) - new Date(b.placedAt))
+    } else if (['KITCHEN', 'ON_HOLD', 'COMPLETED'].includes(activeTab)) {
+      combined.sort((a, b) => new Date(a.statusUpdatedAt) - new Date(b.statusUpdatedAt))
     } else {
-      combined.sort((a, b) => new Date(b.placedAt) - new Date(a.placedAt))
+      combined.sort((a, b) => new Date(b.statusUpdatedAt) - new Date(a.statusUpdatedAt))
     }
 
     setOrders(combined)
@@ -88,7 +91,18 @@ const OrderManagementPage = () => {
   const handleKitchenItemUpdate = useCallback((msg) => {
     if (!msg?.orderId) return
 
-    // Notify receptionist whenever any order in the kitchen is completed
+    // QR item ready: auto-switch selected order to Ready tab, or notify if viewing a different order
+    if (msg.newStatus === 'READY' && msg.orderType === 'QR') {
+      if (activeTabRef.current === 'COMPLETED') {
+        setListRefreshKey((prev) => prev + 1)
+      } else if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
+        setActiveTab('COMPLETED')
+      } else {
+        toast.info(`Item ready in Order ${msg.orderNumber} — check the Ready tab.`, { autoClose: 5000 })
+      }
+    }
+
+    // Notify receptionist whenever all items in any order are completed
     if (msg.orderStatus === 'COMPLETED') {
       toast.success(`Order ${msg.orderNumber} is ready — kitchen has completed all items.`, { autoClose: 6000 })
     }

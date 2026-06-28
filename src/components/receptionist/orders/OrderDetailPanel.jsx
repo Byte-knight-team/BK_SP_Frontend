@@ -30,6 +30,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
   const [isActing, setIsActing] = useState(false)
 
   const [servingItemId, setServingItemId] = useState(null)
+  const [cashCollected, setCashCollected] = useState(false)
 
   const [isKitchenOpen, setIsKitchenOpen] = useState(false)
   const [isHoldOpen, setIsHoldOpen]       = useState(false)
@@ -37,7 +38,10 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
   useEffect(() => {
-    if (orderId) fetchDetail()
+    if (orderId) {
+      fetchDetail()
+      setCashCollected(false)
+    }
   }, [orderId])
 
   useEffect(() => {
@@ -98,6 +102,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
     else {
       toast.success('Payment collected!')
       setIsPaymentOpen(false)
+      setCashCollected(true)
       fetchDetail(false)
     }
     setIsActing(false)
@@ -187,7 +192,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
               Collect Cash — Rs. {order.finalAmount.toFixed(2)}
             </button>
           )}
-          {!isCashDue && !isCancelled && (
+          {cashCollected && !isCancelled && (
             ((!isQR && !isDelivery && order.status === 'COMPLETED') ||
             (isQR && order.status === 'SERVED'))
           ) && (
