@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import { getQrSessionClaims } from '../../utils/authToken';
+import { toast } from 'react-toastify';
 import { verifyCustomerOtp } from '../../apis/customer/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
@@ -56,7 +57,7 @@ export default function OtpVerificationPage() {
   const handleVerify = async (e) => {
     e.preventDefault();
     const code = otp.join('');
-    
+
     if (code.length !== 4) return;
 
     setIsLoading(true);
@@ -68,7 +69,7 @@ export default function OtpVerificationPage() {
       const qrSessionToken = localStorage.getItem('qr_session_token');
       const qrClaims = qrSessionToken ? getQrSessionClaims(qrSessionToken) : null;
       const sessionId = qrClaims?.session_id || null;
-      
+
       const res = await verifyCustomerOtp({ phone, code, sessionId });
 
       const payload = await res.json().catch(() => ({}));
@@ -83,9 +84,13 @@ export default function OtpVerificationPage() {
       if (data.username) localStorage.setItem('customer_name', data.username);
       if (data.profilePictureUrl) localStorage.setItem('customer_profile_pic', data.profilePictureUrl);
 
+      toast('Verified successfully!', {
+        className: 'toast-orange-auth font-semibold shadow-lg',
+        icon: '✅',
+      });
       // Redirect directly to checkout to complete their meal!
       navigate(redirectTo, { replace: true });
-      
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -122,7 +127,7 @@ export default function OtpVerificationPage() {
                 {error}
               </div>
             )}
-            
+
             <div className="flex justify-center gap-3">
               {otp.map((data, index) => (
                 <input
