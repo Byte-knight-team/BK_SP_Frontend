@@ -35,6 +35,8 @@ const TableCard = ({ table, onClick }) => {
     return new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
   }
 
+  const todayRes = table.todayReservation
+
   return (
     <div
       onClick={() => onClick(table)}
@@ -68,6 +70,20 @@ const TableCard = ({ table, onClick }) => {
           </span>
         )}
       </div>
+
+      {/* Today's reservation badge */}
+      {todayRes && (
+        <div className="flex items-center gap-2 rounded-2xl border border-purple-100 bg-purple-50 px-4 py-2.5">
+          <Lock size={12} className="shrink-0 text-purple-500" />
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-purple-500">Reserved today</p>
+            <p className="truncate text-[11px] font-bold text-purple-700">
+              {formatTime(todayRes.reservationTime)} – {formatTime(todayRes.endTime)}
+            </p>
+            <p className="truncate text-[10px] text-purple-500">{todayRes.customerName}</p>
+          </div>
+        </div>
+      )}
 
       {/* Active orders */}
       <div>
