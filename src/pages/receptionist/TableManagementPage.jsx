@@ -43,15 +43,25 @@ const TableManagementPage = () => {
     fetchTables(true)
   }, [])
 
-  // WebSocket: silent refresh when any table changes (occupy, clear, new QR order)
   const branchId = user?.branchId
+
+  // WebSocket: silent refresh when any table changes (occupy, clear, new QR order)
   const tableUpdateTopic = branchId ? `/topic/branch/${branchId}/table-update` : null
-
-  const handleTableUpdate = useCallback(() => {
-    fetchTables(false)
-  }, [])
-
+  const handleTableUpdate = useCallback(() => { fetchTables(false) }, [])
   useWebSocket(branchId, tableUpdateTopic, handleTableUpdate)
+
+  // WebSocket: reservation reminders (1hr and 15min before)
+  const reminderTopic = branchId ? `/topic/branch/${branchId}/reservation-reminder` : null
+  const handleReservationReminder = useCallback((msg) => {
+    const tableNo = msg.tableNumber
+    const time = msg.reservationTime
+    if (msg.type === 'REMINDER_1HR') {
+      toast.info(`Reminder: Table ${tableNo} has a reservation at ${time} (1 hour away)`, { autoClose: 10000 })
+    } else if (msg.type === 'REMINDER_15MIN') {
+      toast.warning(`Heads up! Table ${tableNo} reservation at ${time} is in 15 minutes — table is now locked.`, { autoClose: 15000 })
+    }
+  }, [])
+  useWebSocket(branchId, reminderTopic, handleReservationReminder)
 
   if (loading) {
     return (
