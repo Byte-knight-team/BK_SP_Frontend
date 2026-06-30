@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { LayoutGrid, CalendarPlus } from 'lucide-react'
+import { LayoutGrid, CalendarPlus, CalendarDays } from 'lucide-react'
 import TableCard from '../../components/receptionist/table management/TableCard'
 import TableActionModal from '../../components/receptionist/table management/TableActionModal'
 import ReservationModal from '../../components/receptionist/table management/ReservationModal'
+import ReservationsListModal from '../../components/receptionist/table management/ReservationsListModal'
 import { getBranchTablesAPI } from '../../apis/receptionist/tables'
 import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
@@ -15,6 +16,7 @@ const TableManagementPage = () => {
   const [selectedTable, setSelectedTable] = useState(null)
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
+  const [isReservationsListOpen, setIsReservationsListOpen] = useState(false)
   const [tables, setTables] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -65,7 +67,14 @@ const TableManagementPage = () => {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 p-4">
       {/* Top bar */}
-      <div className="mb-6 flex items-center justify-end">
+      <div className="mb-6 flex items-center justify-end gap-3">
+        <button
+          onClick={() => setIsReservationsListOpen(true)}
+          className="flex items-center gap-2 rounded-2xl border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-bold text-purple-700 hover:bg-purple-100 transition-colors"
+        >
+          <CalendarDays size={16} />
+          See Reservations
+        </button>
         <button
           onClick={() => setIsReservationModalOpen(true)}
           className="flex items-center gap-2 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-orange-200"
@@ -100,6 +109,11 @@ const TableManagementPage = () => {
         onClose={() => setIsReservationModalOpen(false)}
         tables={tables}
         onSuccess={() => fetchTables(false)}
+      />
+
+      <ReservationsListModal
+        isOpen={isReservationsListOpen}
+        onClose={() => setIsReservationsListOpen(false)}
       />
     </div>
   )
