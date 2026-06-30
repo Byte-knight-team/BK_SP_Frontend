@@ -268,7 +268,7 @@ export default function CheckoutPage() {
 
   const handleApplyPoints = async () => {
     const points = Number.parseInt(loyaltyDraft, 10);
-    
+
     //series of validation
     if (!Number.isInteger(points) || points <= 0) {
       setError('Enter a valid loyalty points amount.');
@@ -456,7 +456,7 @@ export default function CheckoutPage() {
   // Dynamic button styles for Delivery/Pickup and Card/Cash selection
   const selectBtnCls = (active) => `flex h-full flex-col items-center gap-2 rounded-[16px] border-2 px-4 py-5 text-left transition-all duration-300 ${active ? 'border-orange bg-[#FFF7F2]' : 'border-gray-200 bg-white hover:border-gray-300'}`;
   const panelCls = 'rounded-[18px] border border-gray-200 bg-white p-6 shadow-sm max-md:p-5';
-  
+
   const summaryTotal = receipt ? Number(receipt.finalTotal || 0) : 0;
   // Conditional text rendering for the loyalty points helper message
   const loyaltyHint = receipt && receipt.availableLoyaltyPoints > 0 && receipt.minPointsToRedeem > 0
@@ -467,7 +467,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-white">
-    {/* HEADER SECTION */}
+      {/* HEADER SECTION */}
       <header className="sticky top-0 z-[100] border-b border-black/5 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-[74px] w-full max-w-[1120px] items-center px-6 max-md:px-4">
           <div className="flex items-center gap-3.5">
@@ -507,11 +507,10 @@ export default function CheckoutPage() {
           </button>
           <button
             type="button"
-            onClick={handlePlaceOrder}
-            disabled={isSubmitting || isCalculating || !receipt}
-            className="flex-1 rounded-[10px] bg-orange-500 py-2 text-[0.8rem] font-semibold text-white disabled:opacity-70"
+            onClick={() => scrollToSection('details-section')}
+            className="flex-1 rounded-[10px] border border-gray-200 bg-white py-2 text-[0.8rem] font-semibold text-gray-700"
           >
-            Order
+            Details
           </button>
         </div>
       </div>
@@ -571,7 +570,7 @@ export default function CheckoutPage() {
             </div>
           </section>
           {/*user section*/}
-          <section className={panelCls}>
+          <section id="details-section" className={panelCls}>
             <div className="mb-5 flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF4E8] text-[#EA580C]">
                 <User size={16} />
@@ -746,7 +745,7 @@ export default function CheckoutPage() {
                   </div>
                 )}
               </div>
-                {/* LOYALTY POINTS BLOCK */}
+              {/* LOYALTY POINTS BLOCK */}
               <div className="border-t border-gray-100 pt-5">
                 <label className="mb-1 block text-[0.85rem] font-semibold text-navy">Loyalty Points</label>
                 <div className="mb-3 flex flex-wrap items-center gap-2 text-[0.8rem] text-gray-500">
@@ -951,6 +950,7 @@ export default function CheckoutPage() {
         onConfirm={(loc) => {
           setSelectedLocation(loc);
           setShowLocationPicker(false);
+          toast.success('Location confirmed successfully!');
         }}
         initialCenter={selectedLocation.lat ? { lat: selectedLocation.lat, lng: selectedLocation.lng } : null}
       />
