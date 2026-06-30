@@ -1,15 +1,26 @@
 import { RiClipboardLine } from "@remixicon/react";
 import OrderTabs from "../../components/kitchen/orders/OrderTabs";
 import SelectedOrder from "../../components/kitchen/orders/SelectedOrder";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { ClipboardList } from "lucide-react";
+import { toast } from "react-toastify";
+import useWebSocket from "../../hooks/useWebSocket";
 
 const KitchenOrdersPage = () => {
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null); // Tracks which order is currently selected in the left panel
   const { setHeaderInfo } = useOutletContext();
-  //when the page loads first time it will active the pending tab
-  const [activeTab, setActiveTab] = useState(1); 
+  const [activeTab, setActiveTab] = useState(1); // When the page loads, the Pending tab (id: 1) is active by default
+
+  // Used to trigger a refresh of the pending orders list when a new order arrives
+  const [pendingRefreshKey, setPendingRefreshKey] = useState(0)
+
+  // Used to trigger a silent refresh of the selected order detail when a line chef updates an item
+  const [itemUpdateKey, setItemUpdateKey] = useState(0)
+
+  const { user } = useAuth()
+  const branchId = user?.branchId
 
   useEffect(() => {
     setHeaderInfo({
@@ -19,43 +30,75 @@ const KitchenOrdersPage = () => {
     });
   }, []);
 
-  const handleOrderClick = (orderId) => {
-    setSelectedOrder(orderId);
-  };
+  // Called when a new order notification arrives from the receptionist via WebSocket
+  const handleNewOrder = useCallback((message) => {
+    // Show a toast notification so the chef is alerted immediately
+    toast.success(`🍽️ ${message.message}`, { autoClose: 5000 })
+
+    // Silently refresh the pending list in the background — do NOT switch tabs,
+    // as the chef may be actively working on a different section
+    setPendingRefreshKey((prev) => prev + 1)
+  }, [])
+
+  // Subscribe to the kitchen-orders topic for this branch
+  const kitchenOrderTopic = branchId
+    ? `/topic/branch/${branchId}/kitchen-orders`
+    : null
+
+  useWebSocket(branchId, kitchenOrderTopic, handleNewOrder)
+
+  // Subscribe to item-level updates from line chefs (start/complete)
+  const kitchenItemUpdateTopic = branchId
+    ? `/topic/branch/${branchId}/kitchen-item-update`
+    : null
+
+  const handleItemUpdate = useCallback((msg) => {
+    setItemUpdateKey((prev) => prev + 1)
+    setPendingRefreshKey((prev) => prev + 1)
+
+    if (!msg?.itemName) return
+    if (msg.orderStatus === 'COMPLETED') {
+      toast.success(`✅ Order ready! All items completed.`, { autoClose: 5000 })
+    } else if (msg.newStatus === 'PREPARING') {
+      toast.info(`👨‍🍳 ${msg.itemName} started cooking`, { autoClose: 3000 })
+    } else if (msg.newStatus === 'READY') {
+      toast.success(`✅ ${msg.itemName} is ready`, { autoClose: 3000 })
+    }
+  }, [])
+
+  useWebSocket(branchId, kitchenItemUpdateTopic, handleItemUpdate)
+
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="flex flex-row gap-4">
-        {/* Order List */}
-        <div className="w-[30%] rounded-3xl border border-gray-100 bg-white p-4 shadow-sm h-[88vh] overflow-y-auto">
-          
-          {/* Pass the selection handler and the current selected ID down to the tabs for highlighting */}
-          <OrderTabs
-            handleOrderClick={handleOrderClick}
-            selectedOrderId={selectedOrder}
-            // activeTab tells the sidebar which tab is currently selected to highlight it
-            activeTab={activeTab}
-            // setActiveTab allows the sidebar buttons to change the tabs when clicked
-            setActiveTab={setActiveTab}
-          />
-        </div>
-        {/* Order Details */}
-        <div className="w-[70%] rounded-3xl border border-gray-100 bg-white p-4 shadow-sm h-[88vh] overflow-y-auto">
-          {selectedOrder ? (
-            <SelectedOrder
-              orderId={selectedOrder}
-              // Allows the SelectedOrder component to automatically switch the sidebar tabs whenever an order status changes
-              setActiveTab={setActiveTab}
-            />
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-4 text-gray-300">
-              <ClipboardList size={64} strokeWidth={1} />
-              <p className="text-lg font-bold">Select an order to view details</p>
-              <p className="text-sm text-gray-300">Click on any order from the left panel</p>
-            </div>
-          )}
-        </div>
+    <div className="flex h-[calc(100vh-80px)] gap-4 p-0">
+
+      {/* Left panel — order list with tab switcher */}
+      <div className="flex w-80 shrink-0 flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+        <OrderTabs
+          handleOrderClick={(id) => setSelectedOrder(id)}
+          selectedOrderId={selectedOrder}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          pendingRefreshKey={pendingRefreshKey}
+          itemUpdateKey={itemUpdateKey}
+        />
       </div>
+
+      {/* Right panel — full detail of the selected order */}
+      <div className="flex-1 overflow-y-auto">
+        {selectedOrder ? (
+          <SelectedOrder orderId={selectedOrder} setActiveTab={setActiveTab} refreshKey={itemUpdateKey} />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-3 rounded-3xl border border-gray-100 bg-white">
+            <div className="rounded-2xl bg-orange-50 p-5 text-orange-300">
+              <ClipboardList size={32} />
+            </div>
+            <p className="text-sm font-bold text-gray-400">Select an order to view details</p>
+            <p className="text-xs text-gray-300">Click any order from the list on the left</p>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };

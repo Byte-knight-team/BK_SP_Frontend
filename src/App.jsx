@@ -23,6 +23,9 @@ import ManagerHeader from './components/manager/ManagerHeader'
 import KitchenSidebar from './components/kitchen/KitchenSidebar'
 import KitchenHeader from './components/kitchen/KitchenHeader'
 
+import LineChefSidebar from './components/line-chef/LineChefSidebar'
+import LineChefHeader from './components/line-chef/LineChefHeader'
+
 import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
 
@@ -37,7 +40,7 @@ import ProfilePage from './pages/ProfilePage'
 // Common protected route component
 import ProtectedRoute from './components/common/ProtectedRoute'
 
-// Super Admin / Member 01 pages
+// Super Admin
 import SuperAdminDashboardPage from './pages/superadmin/DashboardPage'
 import StaffListPage from './pages/superadmin/StaffListPage'
 import CreateStaffPage from './pages/superadmin/CreateStaffPage'
@@ -51,8 +54,8 @@ import SystemConfigPage from './pages/superadmin/SystemConfigPage'
 import AuditLogsPage from './pages/superadmin/AuditLogsPage'
 import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
-import CustomerListPage from './pages/superadmin/CustomerListPage'
-import CustomerDetailsPage from './pages/superadmin/CustomerDetailsPage'
+import CustomerManagement from "./pages/superadmin/CustomerManagement";
+import CustomerDetailsPage from "./pages/superadmin/CustomerDetailsPage";
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
@@ -104,8 +107,11 @@ import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
 import ChefsPage from './pages/kitchen/ChefsPage'
 import InventoryPage from './pages/kitchen/InventoryPage'
-import MenuAndRecipesPage from './pages/kitchen/MenuAndRecipesPage'
+import MenuItemPage from './pages/kitchen/MenuItemPage'
 import ApprovalsPage from './pages/kitchen/ApprovalsPage'
+
+// Line Chef pages
+import LineChefDashboard from './pages/line-chef/LineChefDashboard'
 
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
@@ -222,8 +228,8 @@ export default function App() {
           <Route path="branches/:id" element={<BranchDetailsPage />} />
           <Route path="branches/:id/edit" element={<EditBranchPage />} />
 
-          <Route path="customers" element={<CustomerListPage />} />
-          <Route path="customers/:id" element={<CustomerDetailsPage />} />
+          <Route path="/staff/customers" element={<CustomerManagement />} />
+          <Route path="/staff/customers/:id" element={<CustomerDetailsPage />} />
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
@@ -424,7 +430,7 @@ export default function App() {
           <Route path="orders" element={<KitchenOrdersPage />} />
           <Route path="chefs" element={<ChefsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
-          <Route path="menu" element={<MenuAndRecipesPage />} />
+          <Route path="menu" element={<MenuItemPage />} />
           <Route path="approvals" element={<ApprovalsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
@@ -450,6 +456,21 @@ export default function App() {
           <Route path="*" element={<Navigate to="/receptionist" replace />} />
         </Route>
 
+        {/* LINE_CHEF area */}
+        <Route
+          path="/line-chef"
+          element={
+            <ProtectedRoute allowedRoles={['LINE_CHEF']}>
+              <MainLayout Sidebar={LineChefSidebar} Header={LineChefHeader} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<LineChefDashboard />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/line-chef" replace />} />
+        </Route>
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -457,8 +478,12 @@ export default function App() {
         position="bottom-right"
         autoClose={4000}
         hideProgressBar={false} // Show the timer bar
+        newestOnTop
+        closeOnClick
         theme="colored" // Keep this for vibrant colors
         pauseOnHover={true} // Stop the timer if the mouse is over it
+        draggable
+        limit={3}
       />
     </>
   )

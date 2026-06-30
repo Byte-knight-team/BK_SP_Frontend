@@ -56,7 +56,7 @@ const PendingOrders = () => {
             key={order.id}
             status={order.status}
             time={order.time}
-            id={`#ORD-${order.id}`} // Hardcoded prefix
+            id={order.orderNumber}
             numberOfItems={order.itemCount}
             //by default order card is clickable, but here we are making it unclickable
             isClickable={false}

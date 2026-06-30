@@ -1,698 +1,1125 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
 import {
-    RiTeamLine,
-    RiAddLine,
-    RiRefreshLine,
-    RiMailSendLine,
+  RiTeamLine,
+  RiAddLine,
+  RiMailSendLine,
+  RiCheckboxCircleLine,
+  RiErrorWarningLine,
+  RiFileCopyLine,
+  RiSearchLine,
+  RiCloseLine,
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
+  RiEyeLine,
+  RiEditLine,
+  RiRefreshLine,
 } from "@remixicon/react";
 
 import {
-    getAllStaffAPI,
-    activateStaffAPI,
-    deactivateStaffAPI,
-    resendStaffInviteAPI,
+  getAllStaffAPI,
+  activateStaffAPI,
+  deactivateStaffAPI,
+  resendStaffInviteAPI,
 } from "../../apis/staff/staff";
 
 import { useAuth } from "../../context/AuthContext";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showWarningToast,
+} from "../../utils/toast";
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 /*
-    StaffListPage
+  StaffListPage
 
-    Purpose:
-    - Shows all staff accounts.
-    - Allows searching and filtering staff.
-    - Allows activate/deactivate staff.
-    - Allows resending staff invite email.
-    - Shared by both SUPER_ADMIN and ADMIN.
-
-    Routes:
-    SUPER_ADMIN:
-    /staff/staff
-
-    ADMIN:
-    /admin/staff
-
-    Important:
-    - This page should not read authUser from localStorage.
-    - Logged-in user data comes from AuthContext/JWT.
+  - Shows all staff accounts.
+  - Keeps View, Edit, Invite, Activate/Deactivate actions.
+  - Uses toast notifications for action feedback.
+  - Adds frontend-only search and filters using loaded staff data.
+  - Adds frontend-only pagination after search/filter.
+  - Adds confirmation modal before activate/deactivate actions.
+  - Adds refresh button to reload staff list manually.
+  - Uses visual loading, empty, and no-match table states.
+  - Keeps actions aligned horizontally.
 */
 export default function StaffListPage() {
-    /*
-        Used to read:
-        - current route path
-        - success messages sent from CreateStaffPage after redirect
-    */
-    const location = useLocation();
+  const location = useLocation();
+  const { setHeaderInfo } = useOutletContext();
 
-    /*
-        This page is shared by SUPER_ADMIN and ADMIN.
+  const staffBasePath = location.pathname.startsWith("/admin")
+    ? "/admin/staff"
+    : "/staff/staff";
 
-        If current route starts with /admin,
-        links should stay inside /admin/staff.
+  const [staffList, setStaffList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [loadError, setLoadError] = useState("");
+  const [noticeMessage, setNoticeMessage] = useState("");
 
-        Otherwise, links should use Super Admin route /staff/staff.
-    */
-    const staffBasePath = location.pathname.startsWith("/admin")
-        ? "/admin/staff"
-        : "/staff/staff";
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-    /*
-        setHeaderInfo comes from MainLayout through Outlet context.
-        It updates the shared page header.
-    */
-    const { setHeaderInfo } = useOutletContext();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-    /*
-        Main staff data and UI states.
-    */
-    const [staffList, setStaffList] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [actionLoadingId, setActionLoadingId] = useState(null);
-    const [error, setError] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
+  const [staffToConfirm, setStaffToConfirm] = useState(null);
 
-    /*
-        Search and filter states.
+  const { user: authUser } = useAuth();
 
-        These filters are frontend-side only.
-        No backend change is needed.
-    */
-    const [searchText, setSearchText] = useState(""); //To Search a staff
-    const [roleFilter, setRoleFilter] = useState("ALL"); //To Filter by role
-    const [branchFilter, setBranchFilter] = useState("ALL"); //To Filter by branch
-    const [statusFilter, setStatusFilter] = useState("ALL"); //To Filter by status
+  const loggedInRole = normalizeRole(authUser?.roleName || authUser?.role);
+  const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
+  const isAdmin = loggedInRole === "ADMIN";
 
-    /*
-        Read logged-in user from AuthContext.
+  const LOWER_ROLES_FOR_ADMIN = ["MANAGER", "CHEF", "RECEPTIONIST", "DELIVERY"];
 
-        AuthContext gets user data from the decoded JWT token.
-        We no longer read authUser from localStorage.
-    */
-    const { user: authUser } = useAuth(); //Get User Role and permissions
+  const canManageStaffStatus = (staff) => {
+    const targetRole = normalizeRole(getStaffRole(staff));
 
-    const loggedInRole = authUser?.roleName || authUser?.role || "";
+    if (isSuperAdmin) {
+      return true;
+    }
 
-    const isSuperAdmin = loggedInRole === "SUPER_ADMIN"; //Check if user is super admin
-    const isAdmin = loggedInRole === "ADMIN"; //Check if user is admin
+    if (isAdmin) {
+      return LOWER_ROLES_FOR_ADMIN.includes(targetRole);
+    }
 
-    /*
-        ADMIN can manage only lower branch-level roles.
-        SUPER_ADMIN can manage all staff statuses.
-    */
-    const LOWER_ROLES_FOR_ADMIN = ["MANAGER", "CHEF", "RECEPTIONIST", "DELIVERY"];
+    return false;
+  };
 
-    /*
-        Check whether logged-in user can activate/deactivate a staff member.
-    */
-    const canManageStaffStatus = (staff) => {
-        const targetRole = staff.roleName || staff.role;
+  const availableRoles = useMemo(() => {
+    return getUniqueSortedValues(staffList.map((staff) => getStaffRole(staff)));
+  }, [staffList]);
 
-        if (isSuperAdmin) {
-            return true;
-        }
+  const availableBranches = useMemo(() => {
+    return getUniqueSortedValues(
+      staffList.map((staff) => getStaffBranchName(staff))
+    );
+  }, [staffList]);
 
-        if (isAdmin) {
-            return LOWER_ROLES_FOR_ADMIN.includes(targetRole);
-        }
+  const filteredStaffList = useMemo(() => {
+    const cleanSearch = normalizeForSearch(searchTerm);
 
-        return false;
-    };
+    return staffList.filter((staff) => {
+      const staffId = getStaffId(staff);
+      const roleName = getStaffRole(staff);
+      const branchName = getStaffBranchName(staff);
+      const active = isStaffActive(staff);
 
-    /*
-        Show success message if another page redirected here with a message.
+      const searchableText = normalizeForSearch(
+        [
+          staffId,
+          staff.fullName,
+          staff.name,
+          staff.username,
+          staff.email,
+          staff.phone,
+          roleName,
+          branchName,
+        ].join(" ")
+      );
 
-        CreateStaffPage redirects here after staff creation.
+      const matchesSearch =
+        !cleanSearch || searchableText.includes(cleanSearch);
 
-        If CreateStaffPage sends createdStaffSearch,
-        automatically search for the newly-created staff row.
-    */
-    useEffect(() => {
-        if (location.state?.successMessage) {
-            setSuccessMessage(location.state.successMessage);
-        }
+      const matchesRole = !roleFilter || roleName === roleFilter;
 
-        if (location.state?.createdStaffSearch) {
-            setSearchText(location.state.createdStaffSearch);
-        }
-    }, [location.state]);
+      const matchesBranch = !branchFilter || branchName === branchFilter;
 
-    /*
-        Set shared page header.
-    */
-    useEffect(() => {
-        setHeaderInfo({
-            title: "Staff Management",
-            description: "View, activate, deactivate, and manage internal staff accounts.",
-            Icon: RiTeamLine,
-        });
+      const matchesStatus =
+        !statusFilter ||
+        (statusFilter === "ACTIVE" && active) ||
+        (statusFilter === "INACTIVE" && !active);
 
-        return () => setHeaderInfo(null);
-    }, [setHeaderInfo]);
+      return matchesSearch && matchesRole && matchesBranch && matchesStatus;
+    });
+  }, [staffList, searchTerm, roleFilter, branchFilter, statusFilter]);
 
-    /*
-        Load all staff from backend.
-    */
-    const loadStaff = async () => {
-        setLoading(true);
-        setError("");
+  const totalPages =
+    filteredStaffList.length === 0
+      ? 0
+      : Math.ceil(filteredStaffList.length / pageSize);
 
-        /*
-            Do not clear successMessage here.
-            Otherwise messages from create/activate/deactivate/resend
-            can disappear too quickly.
-        */
-        const { data, error } = await getAllStaffAPI();
+  const safeCurrentPage =
+    totalPages === 0 ? 1 : Math.min(currentPage, totalPages);
 
-        if (error) {
-            setError(error);
-            setStaffList([]);
-        } else {
-            setStaffList(Array.isArray(data) ? data : []);
-        }
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
 
-        setLoading(false);
-    };
+  const paginatedStaffList = useMemo(() => {
+    return filteredStaffList.slice(startIndex, endIndex);
+  }, [filteredStaffList, startIndex, endIndex]);
 
-    /*
-        Load staff once when page opens.
-    */
-    useEffect(() => {
-        loadStaff();
-    }, []);
+  const firstVisibleStaffNumber =
+    filteredStaffList.length === 0 ? 0 : startIndex + 1;
 
-    /*
-        Backend responses may use id, userId, or staffId.
-        This helper keeps the table safe.
-    */
-    const getStaffId = (staff) => {
-        return staff.id || staff.userId || staff.staffId;
-    };
+  const lastVisibleStaffNumber = Math.min(endIndex, filteredStaffList.length);
 
-    /*
-        Backend responses may use active or isActive.
-    */
-    const getActiveStatus = (staff) => {
-        if (typeof staff.active === "boolean") return staff.active;
-        if (typeof staff.isActive === "boolean") return staff.isActive;
-        return false;
-    };
+  const visiblePageNumbers = getVisiblePageNumbers(
+    safeCurrentPage,
+    totalPages
+  );
 
-    /*
-        Role name helper.
-    */
-    const getRoleName = (staff) => {
-        return staff.roleName || staff.role || "N/A";
-    };
+  const hasActiveFilters =
+    searchTerm.trim() !== "" || roleFilter || branchFilter || statusFilter;
 
-    /*
-        Branch name helper.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, roleFilter, branchFilter, statusFilter, pageSize]);
 
-        SUPER_ADMIN or global staff will show as Global.
-    */
-    const getBranchName = (staff) => {
-        return staff.branchName || staff.branch?.name || "Global";
-    };
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
 
-    /*
-        Build unique role options from loaded staff data.
-        This allows custom roles like LINE_CHEF to appear automatically.
-    */
-    const roleOptions = Array.from(
-        new Set(staffList.map((staff) => getRoleName(staff)).filter(Boolean))
-    ).sort();
+    if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
 
-    /*
-        Build unique branch options from loaded staff data.
-    */
-    const branchOptions = Array.from(
-        new Set(staffList.map((staff) => getBranchName(staff)).filter(Boolean))
-    ).sort();
+  useEffect(() => {
+    if (location.state?.successMessage) {
+      setNoticeMessage(location.state.successMessage);
+    }
+  }, [location.state]);
 
-    /*
-        Main frontend-side search and filtering logic.
-    */
-    const filteredStaffList = staffList.filter((staff) => {
-        const normalizedSearch = searchText.trim().toLowerCase();
-
-        const fullName = staff.fullName || staff.name || "";
-        const username = staff.username || "";
-        const email = staff.email || "";
-        const phone = staff.phone || "";
-        const roleName = getRoleName(staff);
-        const branchName = getBranchName(staff);
-        const isActive = getActiveStatus(staff);
-
-        /*
-            Search checks name, username, email, phone, role, and branch.
-        */
-        const matchesSearch =
-            normalizedSearch === "" ||
-            fullName.toLowerCase().includes(normalizedSearch) ||
-            username.toLowerCase().includes(normalizedSearch) ||
-            email.toLowerCase().includes(normalizedSearch) ||
-            phone.toLowerCase().includes(normalizedSearch) ||
-            roleName.toLowerCase().includes(normalizedSearch) ||
-            branchName.toLowerCase().includes(normalizedSearch);
-
-        /*
-            Role dropdown filter.
-        */
-        const matchesRole = roleFilter === "ALL" || roleName === roleFilter;
-
-        /*
-            Branch dropdown filter.
-        */
-        const matchesBranch = branchFilter === "ALL" || branchName === branchFilter;
-
-        /*
-            Status dropdown filter.
-        */
-        const matchesStatus =
-            statusFilter === "ALL" ||
-            (statusFilter === "ACTIVE" && isActive) ||
-            (statusFilter === "INACTIVE" && !isActive);
-
-        return matchesSearch && matchesRole && matchesBranch && matchesStatus;
+  useEffect(() => {
+    setHeaderInfo({
+      title: "Staff Management",
+      description:
+        "View, activate, deactivate, and manage internal staff accounts.",
+      Icon: RiTeamLine,
     });
 
-    /*
-        Checks whether at least one filter is active.
-    */
-    const hasActiveFilters =
-        searchText.trim() !== "" ||
-        roleFilter !== "ALL" ||
-        branchFilter !== "ALL" ||
-        statusFilter !== "ALL";
+    return () => setHeaderInfo(null);
+  }, [setHeaderInfo]);
 
-    /*
-        Reset all search/filter inputs.
-    */
-    const clearFilters = () => {
-        setSearchText("");
-        setRoleFilter("ALL");
-        setBranchFilter("ALL");
-        setStatusFilter("ALL");
-    };
+  const loadStaff = async () => {
+    setLoading(true);
+    setLoadError("");
 
-    /*
-        Activate/deactivate staff.
-    */
-    const handleToggleStatus = async (staff) => {
-        const staffId = getStaffId(staff);
-        const isActive = getActiveStatus(staff);
+    const { data, error } = await getAllStaffAPI();
 
-        if (!staffId) {
-            setError("Staff ID not found in response.");
-            return;
-        }
+    if (error) {
+      setLoadError(error);
+      setStaffList([]);
+      showErrorToast(error);
+      setLoading(false);
+      return false;
+    }
 
-        setActionLoadingId(staffId);
-        setError("");
-        setSuccessMessage("");
+    setStaffList(Array.isArray(data) ? data : []);
+    setLoading(false);
+    return true;
+  };
 
-        const result = isActive
-            ? await deactivateStaffAPI(staffId)
-            : await activateStaffAPI(staffId);
+  useEffect(() => {
+    loadStaff();
+  }, []);
 
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccessMessage(
-                isActive
-                    ? "Staff deactivated successfully."
-                    : "Staff activated successfully."
-            );
+  const handleRefreshStaff = async () => {
+    setNoticeMessage("");
 
-            await loadStaff();
-        }
+    const success = await loadStaff();
 
-        setActionLoadingId(null);
-    };
+    if (success) {
+      showSuccessToast("Staff accounts refreshed successfully.");
+    }
+  };
 
-    /*
-        Resend staff invite.
+  const clearFilters = () => {
+    setSearchTerm("");
+    setRoleFilter("");
+    setBranchFilter("");
+    setStatusFilter("");
+  };
 
-        Backend can generate a new temporary password even when SMTP fails.
-        So frontend must check data.emailSent before showing the message.
-    */
-    const handleResendInvite = async (staff) => {
-        const staffId = getStaffId(staff);
+  const openStatusConfirmModal = (staff) => {
+    setNoticeMessage("");
+    setStaffToConfirm(staff);
+  };
 
-        if (!staffId) {
-            setError("Staff ID not found in response.");
-            return;
-        }
+  const closeStatusConfirmModal = () => {
+    if (actionLoading) return;
+    setStaffToConfirm(null);
+  };
 
-        setActionLoadingId(staffId);
-        setError("");
-        setSuccessMessage("");
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(page - 1, 1));
+  };
 
-        const { data, error } = await resendStaffInviteAPI(staffId);
+  const goToNextPage = () => {
+    setCurrentPage((page) => Math.min(page + 1, totalPages));
+  };
 
-        if (error) {
-            setError(error);
-            setActionLoadingId(null);
-            return;
-        }
+  const handleToggleStatus = async (staff) => {
+    const staffId = getStaffId(staff);
+    const isActive = isStaffActive(staff);
 
-        const staffName = staff.fullName || staff.name || "Selected staff";
-        const staffUsername = staff.username || "no-username";
-        const staffEmail = staff.email || "No email";
-        const staffRole = getRoleName(staff);
-        const staffBranch = getBranchName(staff);
+    if (!staffId) {
+      showErrorToast("Staff ID not found in response.");
+      return;
+    }
 
-        if (data?.emailSent === true) {
-            setSuccessMessage(
-                `Invite email resent successfully.
+    setActionLoading({ id: staffId, type: "status" });
+    setNoticeMessage("");
 
-                Staff: ${staffName}
-                Username: @${staffUsername}
-                Email: ${staffEmail}
-                Role: ${staffRole}
-                Branch: ${staffBranch}`
-                            );
-                        } else {
-                            setSuccessMessage(
-                                `Invite email failed.
+    const result = isActive
+      ? await deactivateStaffAPI(staffId)
+      : await activateStaffAPI(staffId);
 
-                Staff: ${staffName}
-                Username: @${staffUsername}
-                Email: ${staffEmail}
-                Role: ${staffRole}
-                Branch: ${staffBranch}
-                Temporary password: ${data?.temporaryPassword || "Not returned"}
+    if (result.error) {
+      showErrorToast(result.error);
+    } else {
+      showSuccessToast(
+        isActive
+          ? "Staff deactivated successfully."
+          : "Staff activated successfully."
+      );
 
-                Please manually share this temporary password with the staff member.`
-            );
-        }
+      await loadStaff();
+    }
 
-        /*
-            Automatically search the staff row after resend action.
-        */
-        setSearchText(
-            staffEmail !== "No email" ? staffEmail : staffUsername || staffName
-        );
+    setActionLoading(null);
+    setStaffToConfirm(null);
+  };
 
-        setActionLoadingId(null);
-    };
+  const handleResendInvite = async (staff) => {
+    const staffId = getStaffId(staff);
 
-    return (
-        <div className="space-y-6">
-            <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                            Staff Accounts
-                        </h3>
+    if (!staffId) {
+      showErrorToast("Staff ID not found in response.");
+      return;
+    }
 
-                        <p className="text-sm text-gray-500 mt-1">
-                            Manage staff users created for branches and internal operations.
-                        </p>
-                    </div>
+    setActionLoading({ id: staffId, type: "invite" });
+    setNoticeMessage("");
 
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={loadStaff}
-                            className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                        >
-                            <RiRefreshLine size={18} />
-                            Refresh
-                        </button>
+    const { data, error } = await resendStaffInviteAPI(staffId);
 
-                        <Link
-                            to={`${staffBasePath}/create`}
-                            className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
-                        >
-                            <RiAddLine size={18} />
-                            Create Staff
-                        </Link>
-                    </div>
-                </div>
+    if (error) {
+      showErrorToast(error);
+      setActionLoading(null);
+      return;
+    }
 
-                {/* Search and filter section */}
-                <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+    const staffName = staff.fullName || staff.name || "Selected staff";
+    const staffUsername = staff.username || "no-username";
+    const staffEmail = staff.email || "No email";
+    const staffRole = getStaffRole(staff);
+    const staffBranch = getStaffBranchName(staff);
 
-                {/*Search bar*/}
-                    <div className="xl:col-span-2">
-                        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                            Search
-                        </label>
+    if (data?.emailSent === true) {
+      setNoticeMessage(
+        `Invite email resent successfully.
 
-                        <input
-                            type="search"
-                            value={searchText}
-                            onChange={(event) => setSearchText(event.target.value)}
-                            placeholder="Search name, username, email, phone..."
-                            className="w-full rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                        />
-                    </div>
+Staff: ${staffName}
+Username: @${staffUsername}
+Email: ${staffEmail}
+Role: ${staffRole}
+Branch: ${staffBranch}`
+      );
 
-                    {/*Role filter*/}
-                    <div>
-                        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                            Role
-                        </label>
+      showSuccessToast("Invite email resent successfully.");
+    } else {
+      setNoticeMessage(
+        `Invite email failed.
 
-                        <select
-                            value={roleFilter}
-                            onChange={(event) => setRoleFilter(event.target.value)}
-                            className="w-full rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                        >
-                            <option value="ALL">All roles</option>
+Staff: ${staffName}
+Username: @${staffUsername}
+Email: ${staffEmail}
+Role: ${staffRole}
+Branch: ${staffBranch}
+Temporary password: ${data?.temporaryPassword || "Not returned"}
 
-                            {roleOptions.map((roleName) => (
-                                <option key={roleName} value={roleName}>
-                                    {roleName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    {/*Branch filter*/}
-                    <div>
-                        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                            Branch
-                        </label>
+Please manually share this temporary password with the staff member.`
+      );
 
-                        <select
-                            value={branchFilter}
-                            onChange={(event) => setBranchFilter(event.target.value)}
-                            className="w-full rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                        >
-                            <option value="ALL">All branches</option>
+      showWarningToast(
+        "Invite email failed. Temporary password is shown on this page."
+      );
+    }
 
-                            {branchOptions.map((branchName) => (
-                                <option key={branchName} value={branchName}>
-                                    {branchName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    {/*Branch Status filter*/}
-                    <div>
-                        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                            Status
-                        </label>
+    setActionLoading(null);
+  };
 
-                        <select
-                            value={statusFilter}
-                            onChange={(event) => setStatusFilter(event.target.value)}
-                            className="w-full rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                        >
-                            <option value="ALL">All statuses</option>
-                            <option value="ACTIVE">Active</option>
-                            <option value="INACTIVE">Inactive</option>
-                        </select>
-                    </div>
-                </div>
+  return (
+    <div className="space-y-5">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Staff Accounts</h3>
 
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-gray-500">
-                        Showing{" "}
-                        <span className="font-semibold text-gray-800">
-                            {filteredStaffList.length}
-                        </span>{" "}
-                        of{" "}
-                        <span className="font-semibold text-gray-800">
-                            {staffList.length}
-                        </span>{" "}
-                        staff members
-                    </p>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage staff users created for branches and internal operations.
+            </p>
 
-                    {hasActiveFilters && (
-                        <button
-                            type="button"
-                            onClick={clearFilters}
-                            className="w-fit rounded-2xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                        >
-                            Clear filters
-                        </button>
-                    )}
-                </div>
+            <p className="mt-2 text-sm text-gray-500">
+              Total staff:{" "}
+              <span className="font-semibold text-gray-800">
+                {staffList.length}
+              </span>
+            </p>
+          </div>
 
-                {error && (
-                    <div className="mt-5 rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-medium text-red-600">
-                        {error}
-                    </div>
-                )}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleRefreshStaff}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <Spinner className="h-4 w-4 border-gray-300 border-t-orange-500" />
+              ) : (
+                <RiRefreshLine size={18} />
+              )}
 
-                {successMessage && (
-                    <div className="mt-5 rounded-2xl bg-green-50 border border-green-100 px-4 py-3 text-sm font-medium text-green-700 whitespace-pre-line leading-6">
-                        {successMessage}
-                    </div>
-                )}
-            </div>
+              {loading ? "Refreshing..." : "Refresh"}
+            </button>
 
-            <div className="bg-white border border-gray-100 rounded-[1.5rem] shadow-sm overflow-hidden">
-                {loading ? (
-                    <div className="p-8 text-sm text-gray-500">Loading staff...</div>
-                ) : staffList.length === 0 ? (
-                    <div className="p-8 text-sm text-gray-500">
-                        No staff members found.
-                    </div>
-                ) : filteredStaffList.length === 0 ? (
-                    <div className="p-8 text-sm text-gray-500">
-                        No staff members match the selected search or filters.
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
-                                        Staff
-                                    </th>
-
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
-                                        Contact
-                                    </th>
-
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
-                                        Role
-                                    </th>
-
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
-                                        Branch
-                                    </th>
-
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
-                                        Status
-                                    </th>
-
-                                    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody className="divide-y divide-gray-100">
-                                {filteredStaffList.map((staff) => {
-                                    const staffId = getStaffId(staff);
-                                    const isActive = getActiveStatus(staff);
-                                    const isActionLoading = actionLoadingId === staffId;
-
-                                    return (
-                                        <tr
-                                            key={staffId || staff.email}
-                                            className="hover:bg-gray-50/70"
-                                        >
-                                            <td className="px-6 py-4">
-                                                <div className="font-semibold text-gray-900">
-                                                    {staff.fullName || staff.name || "No name"}
-                                                </div>
-
-                                                <div className="text-xs text-gray-500 mt-1">
-                                                    @{staff.username || "no-username"}
-                                                </div>
-                                            </td>
-
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-800">
-                                                    {staff.email}
-                                                </div>
-
-                                                <div className="text-xs text-gray-500 mt-1">
-                                                    {staff.phone || "No phone"}
-                                                </div>
-                                            </td>
-
-                                            <td className="px-6 py-4">
-                                                <span className="inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
-                                                    {getRoleName(staff)}
-                                                </span>
-                                            </td>
-
-                                            <td className="px-6 py-4 text-sm text-gray-700">
-                                                {getBranchName(staff)}
-                                            </td>
-
-                                            <td className="px-6 py-4">
-                                                <span
-                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isActive
-                                                        ? "bg-green-50 text-green-700"
-                                                        : "bg-gray-100 text-gray-500"
-                                                        }`}
-                                                >
-                                                    {isActive ? "Active" : "Inactive"}
-                                                </span>
-                                            </td>
-
-                                            <td className="px-6 py-4">
-                                                <div className="flex justify-end gap-2">
-                                                    <Link
-                                                        to={`${staffBasePath}/${staffId}`}
-                                                        className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                                                    >
-                                                        View
-                                                    </Link>
-
-                                                    <Link
-                                                        to={`${staffBasePath}/${staffId}/edit`}
-                                                        className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                                                    >
-                                                        Edit
-                                                    </Link>
-
-                                                    <button
-                                                        type="button"
-                                                        disabled={isActionLoading}
-                                                        onClick={() => handleResendInvite(staff)}
-                                                        className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                                                    >
-                                                        <RiMailSendLine size={15} />
-                                                        {isActionLoading ? "Sending..." : "Invite"}
-                                                    </button>
-
-                                                    {canManageStaffStatus(staff) ? (
-                                                        <button
-                                                            type="button"
-                                                            disabled={isActionLoading}
-                                                            onClick={() => handleToggleStatus(staff)}
-                                                            className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${isActive
-                                                                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                                                : "bg-green-50 text-green-700 hover:bg-green-100"
-                                                                }`}
-                                                        >
-                                                            {isActive ? "Deactivate" : "Activate"}
-                                                        </button>
-                                                    ) : (
-                                                        <span className="rounded-xl bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-400">
-                                                            No access
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+            <Link
+              to={`${staffBasePath}/create`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
+            >
+              <RiAddLine size={18} />
+              Create Staff
+            </Link>
+          </div>
         </div>
-    );
+
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
+          <div className="grid gap-3 xl:grid-cols-[1.4fr_0.8fr_0.9fr_0.7fr_auto]">
+            <div className="relative">
+              <RiSearchLine
+                size={18}
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search name, username, email, phone, role, branch, or ID..."
+                className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 pl-11 pr-4 text-sm text-gray-800 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+              />
+            </div>
+
+            <select
+              value={roleFilter}
+              onChange={(event) => setRoleFilter(event.target.value)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+            >
+              <option value="">All Roles</option>
+              {availableRoles.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={branchFilter}
+              onChange={(event) => setBranchFilter(event.target.value)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+            >
+              <option value="">All Branches</option>
+              {availableBranches.map((branch) => (
+                <option key={branch} value={branch}>
+                  {branch}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+            >
+              <option value="">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-200 disabled:hover:bg-white disabled:hover:text-gray-700"
+            >
+              Clear filters
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              Matching{" "}
+              <span className="font-bold text-gray-800">
+                {filteredStaffList.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-bold text-gray-800">
+                {staffList.length}
+              </span>{" "}
+              staff
+            </p>
+
+            {hasActiveFilters && (
+              <p className="text-xs font-medium text-orange-600">
+                Filters are applied to the loaded staff list.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {loadError && (
+          <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+            {loadError}
+          </div>
+        )}
+
+        {noticeMessage && (
+          <StaffNoticeCard
+            message={noticeMessage}
+            onClose={() => setNoticeMessage("")}
+          />
+        )}
+      </div>
+
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-3 shadow-sm">
+        {loading ? (
+          <StaffTableState
+            Icon={RiTeamLine}
+            title="Loading staff"
+            description="Please wait while staff accounts are loaded."
+            iconClassName="bg-gray-100 text-gray-600"
+            loading
+          />
+        ) : staffList.length === 0 ? (
+          <StaffTableState
+            Icon={RiTeamLine}
+            title="No staff members found"
+            description="Create your first staff account to start managing internal users."
+            iconClassName="bg-gray-100 text-gray-600"
+          />
+        ) : filteredStaffList.length === 0 ? (
+          <StaffTableState
+            Icon={RiSearchLine}
+            title="No matching staff found"
+            description="Try changing the search text or filters to find the staff member you need."
+            iconClassName="bg-orange-50 text-orange-600"
+          />
+        ) : (
+          <div className="overflow-x-auto rounded-xl">
+            <table className="w-full min-w-[1220px] text-left">
+              <thead className="border-b border-gray-100 bg-gray-50">
+                <tr>
+                  <th className="w-[260px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Staff
+                  </th>
+
+                  <th className="w-[280px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Contact
+                  </th>
+
+                  <th className="w-[160px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Role
+                  </th>
+
+                  <th className="w-[190px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Branch
+                  </th>
+
+                  <th className="w-[120px] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Status
+                  </th>
+
+                  <th className="w-[360px] px-5 py-3.5 pr-6 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-100">
+                {paginatedStaffList.map((staff) => {
+                  const staffId = getStaffId(staff);
+                  const isActive = isStaffActive(staff);
+                  const canToggleStatus = canManageStaffStatus(staff);
+
+                  const isInviteLoading =
+                    String(actionLoading?.id) === String(staffId) &&
+                    actionLoading?.type === "invite";
+
+                  const isStatusLoading =
+                    String(actionLoading?.id) === String(staffId) &&
+                    actionLoading?.type === "status";
+
+                  const anyActionLoading = Boolean(actionLoading);
+
+                  return (
+                    <tr
+                      key={staffId || staff.email}
+                      className="hover:bg-gray-50/70"
+                    >
+                      <td className="px-5 py-4 align-middle">
+                        <div className="font-semibold text-gray-900">
+                          {staff.fullName || staff.name || "No name"}
+                        </div>
+
+                        <div className="mt-1 text-xs text-gray-500">
+                          @{staff.username || "no-username"}
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 align-middle">
+                        <div className="text-sm text-gray-800">
+                          {staff.email}
+                        </div>
+
+                        <div className="mt-1 text-xs text-gray-500">
+                          {staff.phone || "No phone"}
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 align-middle">
+                        <span className="inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
+                          {getStaffRole(staff)}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 align-middle text-sm text-gray-700">
+                        {getStaffBranchName(staff)}
+                      </td>
+
+                      <td className="px-5 py-4 align-middle">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                            isActive
+                              ? "bg-green-50 text-green-700"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          {isActive ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 pr-6 align-middle text-right">
+                        <div className="inline-flex items-center justify-end gap-2 whitespace-nowrap">
+                          <ActionLink
+                            to={`${staffBasePath}/${staffId}`}
+                            Icon={RiEyeLine}
+                            label="View"
+                          />
+
+                          <ActionLink
+                            to={`${staffBasePath}/${staffId}/edit`}
+                            Icon={RiEditLine}
+                            label="Edit"
+                          />
+
+                          <ActionButton
+                            Icon={RiMailSendLine}
+                            label={isInviteLoading ? "Sending..." : "Invite"}
+                            loading={isInviteLoading}
+                            disabled={anyActionLoading}
+                            onClick={() => handleResendInvite(staff)}
+                            variant="neutral"
+                          />
+
+                          {canToggleStatus ? (
+                            <ActionButton
+                              label={
+                                isStatusLoading
+                                  ? "Updating..."
+                                  : isActive
+                                    ? "Deactivate"
+                                    : "Activate"
+                              }
+                              loading={isStatusLoading}
+                              disabled={anyActionLoading}
+                              onClick={() => openStatusConfirmModal(staff)}
+                              variant={isActive ? "danger" : "success"}
+                            />
+                          ) : (
+                            <span className="rounded-xl bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-400">
+                              No access
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!loading && filteredStaffList.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <p className="text-sm text-gray-500">
+                Page{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalPages === 0 ? 0 : safeCurrentPage}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalPages}
+                </span>{" "}
+                • Showing{" "}
+                <span className="font-semibold text-gray-800">
+                  {firstVisibleStaffNumber}
+                </span>
+                -
+                <span className="font-semibold text-gray-800">
+                  {lastVisibleStaffNumber}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-800">
+                  {filteredStaffList.length}
+                </span>{" "}
+                staff
+              </p>
+
+              <label className="flex items-center gap-2 text-sm text-gray-500">
+                Rows:
+                <select
+                  value={pageSize}
+                  onChange={(event) => setPageSize(Number(event.target.value))}
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-50"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={goToPreviousPage}
+                disabled={safeCurrentPage <= 1}
+                className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <RiArrowLeftSLine size={18} />
+                Previous
+              </button>
+
+              {visiblePageNumbers.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`h-9 min-w-9 rounded-xl px-3 text-sm font-bold transition-colors ${
+                    pageNumber === safeCurrentPage
+                      ? "bg-orange-500 text-white shadow-sm shadow-orange-100"
+                      : "border border-gray-200 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={goToNextPage}
+                disabled={safeCurrentPage >= totalPages}
+                className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+                <RiArrowRightSLine size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {staffToConfirm && (
+        <StaffStatusConfirmModal
+          staff={staffToConfirm}
+          isLoading={
+            String(actionLoading?.id) === String(getStaffId(staffToConfirm)) &&
+            actionLoading?.type === "status"
+          }
+          onClose={closeStatusConfirmModal}
+          onConfirm={() => handleToggleStatus(staffToConfirm)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ActionLink({ to, Icon, label }) {
+  return (
+    <Link
+      to={to}
+      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
+    >
+      <Icon size={15} />
+      {label}
+    </Link>
+  );
+}
+
+function ActionButton({
+  Icon,
+  label,
+  loading,
+  disabled,
+  onClick,
+  variant = "neutral",
+}) {
+  const variantClassNames = {
+    neutral:
+      "border border-gray-200 bg-white text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600",
+    danger: "bg-red-50 text-red-600 hover:bg-red-100",
+    success: "bg-green-50 text-green-700 hover:bg-green-100",
+  };
+
+  const spinnerClassNames = {
+    neutral: "border-gray-300 border-t-orange-500",
+    danger: "border-red-200 border-t-red-600",
+    success: "border-green-200 border-t-green-700",
+  };
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${variantClassNames[variant]}`}
+    >
+      {loading ? (
+        <Spinner className={`h-3.5 w-3.5 ${spinnerClassNames[variant]}`} />
+      ) : Icon ? (
+        <Icon size={15} />
+      ) : null}
+
+      {label}
+    </button>
+  );
+}
+
+function StaffTableState({
+  Icon,
+  title,
+  description,
+  iconClassName,
+  loading = false,
+}) {
+  return (
+    <div className="p-8 text-center">
+      <div
+        className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${iconClassName}`}
+      >
+        {loading ? (
+          <Spinner className="h-6 w-6 border-gray-300 border-t-orange-500" />
+        ) : (
+          <Icon size={24} />
+        )}
+      </div>
+
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function StaffStatusConfirmModal({ staff, isLoading, onClose, onConfirm }) {
+  const staffName = staff.fullName || staff.name || "this staff member";
+  const staffEmail = staff.email || "No email";
+  const staffRole = getStaffRole(staff);
+  const staffBranch = getStaffBranchName(staff);
+  const active = isStaffActive(staff);
+
+  const actionLabel = active ? "Deactivate" : "Activate";
+  const actionText = active ? "deactivate" : "activate";
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/40 px-4">
+      <div className="w-full max-w-lg rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                active ? "bg-red-50 text-red-600" : "bg-green-50 text-green-700"
+              }`}
+            >
+              <RiErrorWarningLine size={22} />
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-gray-900">
+                {actionLabel} Staff Account?
+              </h3>
+
+              <p className="mt-1 text-sm leading-6 text-gray-500">
+                Please confirm before you {actionText} this staff account.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RiCloseLine size={18} />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+          <div className="text-sm font-bold text-gray-900">{staffName}</div>
+
+          <div className="mt-1 text-xs text-gray-500">{staffEmail}</div>
+
+          <div className="mt-3 grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
+            <div>
+              <span className="font-semibold text-gray-800">Role:</span>{" "}
+              {staffRole}
+            </div>
+
+            <div>
+              <span className="font-semibold text-gray-800">Branch:</span>{" "}
+              {staffBranch}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm leading-6 text-orange-800">
+          {active
+            ? "Deactivating this account will prevent the staff member from using their account until it is activated again."
+            : "Activating this account will allow the staff member to use their account again."}
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
+            className="inline-flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isLoading}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+              active
+                ? "bg-red-500 shadow-red-100 hover:bg-red-600"
+                : "bg-green-600 shadow-green-100 hover:bg-green-700"
+            }`}
+          >
+            {isLoading && (
+              <Spinner
+                className={`h-4 w-4 ${
+                  active
+                    ? "border-red-200 border-t-white"
+                    : "border-green-200 border-t-white"
+                }`}
+              />
+            )}
+
+            {isLoading ? "Updating..." : `Yes, ${actionLabel}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function normalizeRole(role) {
+  return String(role || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .toUpperCase();
+}
+
+function normalizeForSearch(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getStaffId(staff) {
+  return staff?.id || staff?.userId || staff?.staffId;
+}
+
+function getStaffRole(staff) {
+  return staff?.roleName || staff?.role || "N/A";
+}
+
+function getStaffBranchName(staff) {
+  const branchName = staff?.branchName || staff?.branch?.name;
+
+  if (branchName) {
+    return branchName;
+  }
+
+  if (staff?.branchId) {
+    return `Branch #${staff.branchId}`;
+  }
+
+  return "Global Access";
+}
+
+function isStaffActive(staff) {
+  if (typeof staff?.active === "boolean") return staff.active;
+  if (typeof staff?.isActive === "boolean") return staff.isActive;
+  if (typeof staff?.enabled === "boolean") return staff.enabled;
+
+  const status = String(staff?.status || staff?.accountStatus || "")
+    .trim()
+    .toUpperCase();
+
+  if (status === "ACTIVE") return true;
+  if (status === "INACTIVE") return false;
+
+  return false;
+}
+
+function getUniqueSortedValues(values) {
+  return Array.from(
+    new Set(
+      values.map((value) => String(value || "").trim()).filter(Boolean)
+    )
+  ).sort((firstValue, secondValue) =>
+    firstValue.localeCompare(secondValue, undefined, { sensitivity: "base" })
+  );
+}
+
+function getVisiblePageNumbers(currentPage, totalPages) {
+  if (totalPages <= 0) {
+    return [];
+  }
+
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  let startPage = Math.max(currentPage - 2, 1);
+  let endPage = Math.min(startPage + 4, totalPages);
+
+  if (endPage - startPage < 4) {
+    startPage = Math.max(endPage - 4, 1);
+  }
+
+  return Array.from(
+    { length: endPage - startPage + 1 },
+    (_, index) => startPage + index
+  );
+}
+
+function StaffNoticeCard({ message, onClose }) {
+  const isWarning =
+    message.toLowerCase().includes("failed") ||
+    message.toLowerCase().includes("temporary password");
+
+  const temporaryPassword = getTemporaryPasswordFromMessage(message);
+
+  const handleCopyPassword = async () => {
+    if (!temporaryPassword) {
+      showWarningToast("No temporary password found to copy.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(temporaryPassword);
+      showSuccessToast("Temporary password copied.");
+    } catch {
+      showErrorToast("Could not copy temporary password.");
+    }
+  };
+
+  return (
+    <div
+      className={`mt-5 rounded-2xl border px-4 py-4 ${
+        isWarning
+          ? "border-amber-100 bg-amber-50 text-amber-800"
+          : "border-emerald-100 bg-emerald-50 text-emerald-800"
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+            isWarning
+              ? "bg-amber-100 text-amber-700"
+              : "bg-emerald-100 text-emerald-700"
+          }`}
+        >
+          {isWarning ? (
+            <RiErrorWarningLine size={19} />
+          ) : (
+            <RiCheckboxCircleLine size={19} />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h4 className="text-sm font-bold">
+                {isWarning
+                  ? "Action completed with warning"
+                  : "Action completed"}
+              </h4>
+
+              <p className="mt-2 whitespace-pre-line text-sm font-medium leading-6">
+                {message}
+              </p>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              {temporaryPassword && (
+                <button
+                  type="button"
+                  onClick={handleCopyPassword}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-100"
+                >
+                  <RiFileCopyLine size={15} />
+                  Copy Password
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={onClose}
+                className={`rounded-xl px-3 py-2 text-xs font-bold ${
+                  isWarning
+                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                    : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                }`}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getTemporaryPasswordFromMessage(message) {
+  const match = message.match(/Temporary password:\s*(.+)/i);
+  return match?.[1]?.trim() || "";
+}
+
+function Spinner({ className }) {
+  return (
+    <span
+      className={`inline-flex animate-spin rounded-full border-2 ${className}`}
+    />
+  );
 }
