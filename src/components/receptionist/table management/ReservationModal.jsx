@@ -8,8 +8,9 @@ const ReservationModal = ({ isOpen, onClose, tables, onSuccess }) => {
     tableId: '',
     customerName: '',
     customerPhone: '',
-    reservationTime: '',
-    endTime: '',
+    date: '',
+    arriveTime: '',
+    leaveTime: '',
     guestCount: '',
   })
   const [loading, setLoading] = useState(false)
@@ -21,23 +22,26 @@ const ReservationModal = ({ isOpen, onClose, tables, onSuccess }) => {
   }
 
   const handleClose = () => {
-    setForm({ tableId: '', customerName: '', customerPhone: '', reservationTime: '', endTime: '', guestCount: '' })
+    setForm({ tableId: '', customerName: '', customerPhone: '', date: '', arriveTime: '', leaveTime: '', guestCount: '' })
     onClose()
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (new Date(form.endTime) <= new Date(form.reservationTime)) {
+    if (form.leaveTime <= form.arriveTime) {
       toast.error('Leave time must be after arrive time')
       return
     }
+    const reservationTime = `${form.date}T${form.arriveTime}:00`
+    const endTime = `${form.date}T${form.leaveTime}:00`
+
     setLoading(true)
     const { data, error } = await createReservationAPI({
       tableId: Number(form.tableId),
       customerName: form.customerName,
       customerPhone: form.customerPhone,
-      reservationTime: form.reservationTime,
-      endTime: form.endTime,
+      reservationTime,
+      endTime,
       guestCount: Number(form.guestCount),
     })
     setLoading(false)
@@ -106,30 +110,45 @@ const ReservationModal = ({ isOpen, onClose, tables, onSuccess }) => {
 
           <div>
             <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">
-              Arrive time
+              Date
             </label>
             <input
-              type="datetime-local"
-              name="reservationTime"
-              value={form.reservationTime}
+              type="date"
+              name="date"
+              value={form.date}
               onChange={handleChange}
               required
               className="w-full rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">
-              Leave time
-            </label>
-            <input
-              type="datetime-local"
-              name="endTime"
-              value={form.endTime}
-              onChange={handleChange}
-              required
-              className="w-full rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-orange-500/20"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">
+                Arrive time
+              </label>
+              <input
+                type="time"
+                name="arriveTime"
+                value={form.arriveTime}
+                onChange={handleChange}
+                required
+                className="w-full rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-orange-500/20"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">
+                Leave time
+              </label>
+              <input
+                type="time"
+                name="leaveTime"
+                value={form.leaveTime}
+                onChange={handleChange}
+                required
+                className="w-full rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-orange-500/20"
+              />
+            </div>
           </div>
 
           <input
