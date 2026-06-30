@@ -1,4 +1,4 @@
-import { Users, Armchair, Clock, CookingPot } from 'lucide-react'
+import { Armchair, Clock, CookingPot, Lock } from 'lucide-react'
 
 const STATUS_CONFIG = {
   AVAILABLE: {
@@ -14,6 +14,13 @@ const STATUS_CONFIG = {
     text: 'text-red-700',
     dot: 'bg-red-500',
     label: 'Occupied',
+  },
+  RESERVED: {
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
+    text: 'text-purple-700',
+    dot: 'bg-purple-500',
+    label: 'Reserved',
   },
 }
 
@@ -40,7 +47,9 @@ const TableCard = ({ table, onClick }) => {
           <h3 className={`text-3xl font-black ${config.text}`}>{table.tableNumber}</h3>
         </div>
         <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-tight ${config.text} bg-white/70`}>
-          <span className={`h-2 w-2 rounded-full ${config.dot}`} />
+          {table.status?.toUpperCase() === 'RESERVED'
+            ? <Lock size={10} />
+            : <span className={`h-2 w-2 rounded-full ${config.dot}`} />}
           {config.label}
         </span>
       </div>
