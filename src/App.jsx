@@ -87,6 +87,8 @@ import CheckoutPage from './pages/customer/CheckoutPage'
 import CardPaymentPage from './pages/customer/CardPaymentPage'
 import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'
 import CustomerLoginPage from './pages/customer/LoginPage'
+import ForgotPasswordPage from './pages/customer/ForgotPasswordPage'
+import ResetPasswordPage from './pages/customer/ResetPasswordPage'
 import SignupPersonalPage from './pages/customer/SignupPersonalPage'
 import SignupAddressPage from './pages/customer/SignupAddressPage'
 import MobileVerificationPage from './pages/customer/MobileVerificationPage'
@@ -132,6 +134,13 @@ function AuthGuard() {
       localStorage.removeItem('qr_session_token')
       localStorage.removeItem('qr_branch_id')
       localStorage.removeItem('qr_table_id')
+      
+      // Auto-logout customer when QR session drops
+      localStorage.removeItem('customer_jwt')
+      localStorage.removeItem('customer_role')
+      localStorage.removeItem('customer_user_id')
+      localStorage.removeItem('customer_name')
+      localStorage.removeItem('customer_profile_pic')
     }
   }, [location.pathname])
 
@@ -158,9 +167,20 @@ function CustomerLayout() {
   )
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
         <Route path="/staff/login" element={<StaffLoginPage />} />
@@ -325,7 +345,10 @@ export default function App() {
               </CustomerProtectedRoute>
             }
           />
+          {/* Customer Auth Pages */}
           <Route path="/login" element={<CustomerLoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/signup" element={<SignupPersonalPage />} />
           <Route path="/signup/address" element={<SignupAddressPage />} />
           <Route path="/signup/qr" element={<MobileVerificationPage />} />
