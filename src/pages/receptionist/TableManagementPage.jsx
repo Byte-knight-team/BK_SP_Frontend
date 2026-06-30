@@ -56,9 +56,11 @@ const TableManagementPage = () => {
     const tableNo = msg.tableNumber
     const time = msg.reservationTime
     if (msg.type === 'REMINDER_1HR') {
-      toast.info(`Reminder: Table ${tableNo} has a reservation at ${time} (1 hour away)`, { autoClose: 10000 })
+      toast.info(`Table ${tableNo} has a reservation at ${time} — 1 hour away.`, { autoClose: 10000 })
+    } else if (msg.type === 'REMINDER_30MIN') {
+      toast.info(`Table ${tableNo} reservation at ${time} is in 30 minutes.`, { autoClose: 10000 })
     } else if (msg.type === 'REMINDER_15MIN') {
-      toast.warning(`Heads up! Table ${tableNo} reservation at ${time} is in 15 minutes — table is now locked.`, { autoClose: 15000 })
+      toast.warning(`Table ${tableNo} reservation at ${time} is in 15 minutes — table is now locked!`, { autoClose: 15000 })
     }
   }, [])
   useWebSocket(branchId, reminderTopic, handleReservationReminder)
