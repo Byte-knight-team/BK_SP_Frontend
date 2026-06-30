@@ -268,6 +268,10 @@ function StaffDetailsState({
   );
 }
 
+
+
+
+//This is for showing the details in cards style 
 function DetailCard({ icon: Icon, label, value, wide = false }) {
   return (
     <div
