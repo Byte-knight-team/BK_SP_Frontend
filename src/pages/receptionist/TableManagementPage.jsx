@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, CalendarPlus } from 'lucide-react'
 import TableCard from '../../components/receptionist/table management/TableCard'
 import TableActionModal from '../../components/receptionist/table management/TableActionModal'
+import ReservationModal from '../../components/receptionist/table management/ReservationModal'
 import { getBranchTablesAPI } from '../../apis/receptionist/tables'
 import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
@@ -13,6 +14,7 @@ const TableManagementPage = () => {
   const { user } = useAuth()
   const [selectedTable, setSelectedTable] = useState(null)
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
   const [tables, setTables] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -62,6 +64,17 @@ const TableManagementPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 p-4">
+      {/* Top bar */}
+      <div className="mb-6 flex items-center justify-end">
+        <button
+          onClick={() => setIsReservationModalOpen(true)}
+          className="flex items-center gap-2 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-orange-200"
+        >
+          <CalendarPlus size={16} />
+          Reserve
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {tables.map((table) => (
           <TableCard
@@ -80,6 +93,13 @@ const TableManagementPage = () => {
         onClose={() => setIsActionModalOpen(false)}
         table={selectedTable}
         onUpdate={() => fetchTables(false)}
+      />
+
+      <ReservationModal
+        isOpen={isReservationModalOpen}
+        onClose={() => setIsReservationModalOpen(false)}
+        tables={tables}
+        onSuccess={() => fetchTables(false)}
       />
     </div>
   )
