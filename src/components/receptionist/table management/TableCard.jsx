@@ -62,21 +62,35 @@ const TableCard = ({ table, onClick }) => {
 
       {/* Active orders */}
       <div>
-        {table.activeOrderIds && table.activeOrderIds.length > 0 ? (
+        {table.activeOrders && table.activeOrders.length > 0 ? (
           <div>
             <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-orange-500">
               <CookingPot size={12} />
               Active Orders
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {table.activeOrderIds.map((orderNumber, idx) => (
-                <span
-                  key={idx}
-                  className="rounded-xl bg-white px-2.5 py-1 text-[11px] font-black text-orange-600 border border-orange-100 shadow-sm"
-                >
-                  {orderNumber}
-                </span>
-              ))}
+            <div className="flex flex-col gap-2">
+              {table.activeOrders.map((order, idx) => {
+                const isPaid = order.paymentStatus === 'PAID'
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between rounded-xl bg-white px-3 py-1.5 border border-orange-100 shadow-sm"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-black text-orange-600">{order.orderNumber}</span>
+                      {order.contactName && (
+                        <span className="text-[10px] text-gray-400">{order.contactName}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-2 w-2 rounded-full ${isPaid ? 'bg-green-500' : 'bg-orange-400'}`} />
+                      <span className={`text-[10px] font-black uppercase ${isPaid ? 'text-green-600' : 'text-orange-500'}`}>
+                        {isPaid ? 'Paid' : 'Pending'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         ) : (
