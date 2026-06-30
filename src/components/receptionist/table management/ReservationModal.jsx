@@ -11,7 +11,6 @@ const ReservationModal = ({ isOpen, onClose, tables, onSuccess }) => {
     date: '',
     arriveTime: '',
     leaveTime: '',
-    guestCount: '',
   })
   const [loading, setLoading] = useState(false)
 
@@ -22,7 +21,7 @@ const ReservationModal = ({ isOpen, onClose, tables, onSuccess }) => {
   }
 
   const handleClose = () => {
-    setForm({ tableId: '', customerName: '', customerPhone: '', date: '', arriveTime: '', leaveTime: '', guestCount: '' })
+    setForm({ tableId: '', customerName: '', customerPhone: '', date: '', arriveTime: '', leaveTime: '' })
     onClose()
   }
 
@@ -42,7 +41,6 @@ const ReservationModal = ({ isOpen, onClose, tables, onSuccess }) => {
       customerPhone: form.customerPhone,
       reservationTime,
       endTime,
-      guestCount: Number(form.guestCount),
     })
     setLoading(false)
     if (error) {
@@ -150,17 +148,6 @@ const ReservationModal = ({ isOpen, onClose, tables, onSuccess }) => {
               />
             </div>
           </div>
-
-          <input
-            type="number"
-            name="guestCount"
-            value={form.guestCount}
-            onChange={handleChange}
-            placeholder="Guest count"
-            min={1}
-            required
-            className="w-full rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-orange-500/20"
-          />
 
           <div className="flex gap-3 pt-2">
             <button
