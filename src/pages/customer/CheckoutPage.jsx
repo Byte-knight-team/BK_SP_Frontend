@@ -6,6 +6,7 @@ import { getQrSessionClaims } from '../../utils/authToken';
 import { calculateCheckout, placeCustomerOrder } from '../../apis/customer/checkout';
 import { getCustomerProfile } from '../../apis/customer/profile';
 import { toast } from 'react-toastify';
+import LocationPickerModal from '../../components/customer/LocationPickerModal';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 //checkout state savings
@@ -56,6 +57,7 @@ function readCheckoutSeed() {
     loyaltyDraft: saved.loyaltyDraft || '',
     appliedLoyaltyPoints: Number(saved.appliedLoyaltyPoints || 0),
     kitchenNotes: saved.kitchenNotes || '',
+    selectedLocation: saved.selectedLocation || { lat: null, lng: null, address: '' },
   };
 }
 
@@ -75,6 +77,10 @@ export default function CheckoutPage() {
   const [loyaltyDraft, setLoyaltyDraft] = useState(seed.loyaltyDraft);
   const [appliedLoyaltyPoints, setAppliedLoyaltyPoints] = useState(seed.appliedLoyaltyPoints);
   const [kitchenNotes, setKitchenNotes] = useState(seed.kitchenNotes);
+  // Location picker state
+  const [selectedLocation, setSelectedLocation] = useState(seed.selectedLocation);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const hasGoogleMapsKey = Boolean(import.meta.env.VITE_GOOGLE_MAPS_CUSTOMER_API_KEY);
   // Holds the math calulations of order returned by the backend
   const [receipt, setReceipt] = useState(null);
 
@@ -137,9 +143,10 @@ export default function CheckoutPage() {
       loyaltyDraft,
       appliedLoyaltyPoints,
       kitchenNotes,
+      selectedLocation,
     };
     localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(state));
-  }, [orderType, paymentMethod, branchId, tableId, contact, couponDraft, appliedCouponCode, loyaltyDraft, appliedLoyaltyPoints, kitchenNotes]);
+  }, [orderType, paymentMethod, branchId, tableId, contact, couponDraft, appliedCouponCode, loyaltyDraft, appliedLoyaltyPoints, kitchenNotes, selectedLocation]);
 
   // Reusable function to ask the backend to calculate the receipt
   const calculateTotals = useCallback(async (overrides = {}) => {
@@ -327,6 +334,7 @@ export default function CheckoutPage() {
       const qrToken = localStorage.getItem('qr_session_token');
       if (!qrToken || isTokenExpired(qrToken)) {
         setError('Your table session has expired. Please close this tab and rescan the QR code.');
+        toast.warning('Table session expired. Please rescan the QR code.');
         return;
       }
     }
@@ -334,26 +342,37 @@ export default function CheckoutPage() {
 
     if (!contact.username.trim()) {
       setError('Username is required.');
+      toast.warning('Please enter your username.');
       return;
     }
 
     if (!contact.phone.trim()) {
       setError('Mobile number is required.');
+      toast.warning('Please enter your mobile number.');
       return;
     }
 
     if (!isQrCustomer && isDelivery && !contact.address.trim()) {
       setError('Delivery address is required.');
+      toast.warning('Please provide your delivery address.');
+      return;
+    }
+
+    if (!isQrCustomer && isDelivery && hasGoogleMapsKey && (!selectedLocation.lat || !selectedLocation.lng)) {
+      setError('Please select your delivery location on the map.');
+      toast.warning('Please select your delivery location on the map.');
       return;
     }
 
     if (cartItems.length === 0) {
       setError('Your cart is empty.');
+      toast.warning('Your cart is empty.');
       return;
     }
 
     if (!receipt) {
       setError('Please wait for totals to load.');
+      toast.warning('Please wait for totals to calculate.');
       return;
     }
 
@@ -379,6 +398,8 @@ export default function CheckoutPage() {
         contactPhone: contact.phone.trim(),
         contactEmail: isQrCustomer ? null : contact.email.trim(),
         deliveryAddress: !isQrCustomer && isDelivery ? contact.address.trim() : null,
+        latitude: !isQrCustomer && isDelivery && selectedLocation.lat ? selectedLocation.lat : null,
+        longitude: !isQrCustomer && isDelivery && selectedLocation.lng ? selectedLocation.lng : null,
         kitchenNotes: kitchenNotes.trim() || null,
         paymentMethod,
       };
@@ -610,12 +631,31 @@ export default function CheckoutPage() {
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-[0.85rem] font-semibold text-navy">Delivery Address</label>
                   <textarea
-                    className={`${inputCls} min-h-[104px] resize-y`}
-                    placeholder="Enter your delivery address"
+                    className={`${inputCls} min-h-[80px] resize-y`}
+                    placeholder="Enter your delivery address (e.g. apartment, gate code)"
                     value={contact.address}
                     onChange={(event) => setContact((current) => ({ ...current, address: event.target.value }))}
-                    rows={4}
+                    rows={3}
                   />
+                  {/* Map location picker - only renders if API key is configured */}
+                  {hasGoogleMapsKey && (
+                    <div className="mt-2.5 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowLocationPicker(true)}
+                        className="flex items-center gap-2 rounded-[12px] border border-orange-200 bg-[#FFF7F2] px-4 py-2.5 text-[0.85rem] font-semibold text-[#EA580C] transition-all hover:bg-orange-100"
+                      >
+                        <MapPin size={15} />
+                        {selectedLocation.lat ? 'Change Pin' : 'Pin on Map'}
+                      </button>
+                      {selectedLocation.lat && (
+                        <span className="flex items-center gap-1.5 text-[0.8rem] text-green-600">
+                          <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                          Location pinned
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               {/* Contextual Branch Details - Only show if Pickup */}
@@ -903,6 +943,17 @@ export default function CheckoutPage() {
           )}
         </button>
       </div>
+
+      {/* Location Picker Modal */}
+      <LocationPickerModal
+        isOpen={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onConfirm={(loc) => {
+          setSelectedLocation(loc);
+          setShowLocationPicker(false);
+        }}
+        initialCenter={selectedLocation.lat ? { lat: selectedLocation.lat, lng: selectedLocation.lng } : null}
+      />
     </div>
   );
 }
