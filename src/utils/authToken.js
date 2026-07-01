@@ -217,6 +217,9 @@ export function getDashboardPathByRole(roleName) {
     case "CHEF":
       return "/kitchen";
 
+    case "LINE_CHEF":
+      return "/line-chef";
+
     case "DELIVERY":
       return "/delivery";
 

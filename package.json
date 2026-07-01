@@ -20,6 +20,7 @@
     "@vis.gl/react-google-maps": "^1.8.3",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.564.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
