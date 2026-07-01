@@ -399,6 +399,10 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
               className="rounded-2xl border border-orange-200 px-4 py-2.5 text-sm font-bold text-orange-500 hover:bg-orange-50">
               Hold
             </button>
+            <button onClick={() => setIsCancelOpen(true)}
+              className="rounded-2xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">
+              Cancel
+            </button>
             <button onClick={() => setIsKitchenOpen(true)}
               className="ml-auto rounded-2xl bg-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-200 hover:bg-orange-600">
               Send to Kitchen →
