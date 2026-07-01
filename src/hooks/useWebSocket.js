@@ -7,28 +7,29 @@ import { getAuthToken } from '../utils/authToken'
  * useWebSocket hook
  *
  * Connects to the Spring Boot WebSocket/STOMP endpoint and subscribes
- * to a branch-scoped topic for real-time kitchen alerts.
+ * to any branch-scoped topic for real-time notifications.
  *
  * Usage:
- *   useWebSocket(branchId, (alert) => {
- *     // handle incoming alert
+ *   useWebSocket(branchId, '/topic/branch/{branchId}/kitchen-orders', (msg) => {
+ *     // handle incoming message
  *   })
  *
  * @param {number|string} branchId - The branch ID from the JWT (user.branchId)
- * @param {function}      onAlert  - Callback fired whenever a new alert arrives
+ * @param {string}        topic    - The full STOMP topic to subscribe to
+ * @param {function}      onMessage - Callback fired whenever a new message arrives
  */
-export default function useWebSocket(branchId, onAlert) {
+export default function useWebSocket(branchId, topic, onMessage) {
   const clientRef = useRef(null)
 
-  // Wrap onAlert in a ref so we never need to recreate the STOMP connection
-  // when the callback identity changes (e.g., from a parent re-render)
-  const onAlertRef = useRef(onAlert)
+  // Wrap onMessage in a ref so we never need to recreate the STOMP connection
+  // when the callback identity changes (e.g. from a parent re-render)
+  const onMessageRef = useRef(onMessage)
   useEffect(() => {
-    onAlertRef.current = onAlert
-  }, [onAlert])
+    onMessageRef.current = onMessage
+  }, [onMessage])
 
   const connect = useCallback(() => {
-    if (!branchId) return // Don't connect if we don't know the branch yet
+    if (!branchId || !topic) return // Don't connect if branch or topic is unknown
 
     const token = getAuthToken()
 
@@ -45,21 +46,21 @@ export default function useWebSocket(branchId, onAlert) {
       reconnectDelay: 5000,
 
       onConnect: () => {
-        console.log('[WebSocket] Connected to branch', branchId)
+        console.log('[WebSocket] Connected — subscribing to', topic)
 
-        // Subscribe to the branch-specific kitchen alerts topic
-        client.subscribe(`/topic/branch/${branchId}/alerts`, (message) => {
+        // Subscribe to the given topic and fire the callback on each message
+        client.subscribe(topic, (message) => {
           try {
-            const alert = JSON.parse(message.body)
-            onAlertRef.current?.(alert)
+            const parsed = JSON.parse(message.body)
+            onMessageRef.current?.(parsed)
           } catch (e) {
-            console.error('[WebSocket] Failed to parse alert:', e)
+            console.error('[WebSocket] Failed to parse message:', e)
           }
         })
       },
 
       onDisconnect: () => {
-        console.log('[WebSocket] Disconnected')
+        console.log('[WebSocket] Disconnected from', topic)
       },
 
       onStompError: (frame) => {
@@ -69,16 +70,16 @@ export default function useWebSocket(branchId, onAlert) {
 
     client.activate()
     clientRef.current = client
-  }, [branchId])
+  }, [branchId, topic])
 
   useEffect(() => {
     connect()
 
-    // Cleanup: deactivate the client when the component unmounts or branchId changes
+    // Cleanup: deactivate the client when the component unmounts or topic changes
     return () => {
       if (clientRef.current?.active) {
         clientRef.current.deactivate()
-        console.log('[WebSocket] Cleaned up connection')
+        console.log('[WebSocket] Cleaned up connection for', topic)
       }
     }
   }, [connect])

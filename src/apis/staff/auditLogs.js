@@ -7,73 +7,12 @@ import { authFetch, API_BASE_URL } from "../apiHelper";
 const AUDIT_LOGS_BASE_URL = `${API_BASE_URL}/api/admin/audit-logs`;
 
 /*
-  Dropdown options for Audit Logs filters.
-*/
-export const AUDIT_MODULE_OPTIONS = ["AUTH", "STAFF", "RBAC", "BRANCH", "CONFIG"];
-
-export const AUDIT_STATUS_OPTIONS = ["SUCCESS", "FAILURE"];
-
-export const AUDIT_EVENT_TYPE_OPTIONS = [
-  "LOGIN_SUCCESS",
-  "LOGIN_FAILED",
-  "PASSWORD_CHANGED",
-  "STAFF_CREATED",
-  "STAFF_UPDATED",
-  "STAFF_ACTIVATED",
-  "STAFF_DEACTIVATED",
-  "BRANCH_CREATED",
-  "BRANCH_UPDATED",
-  "BRANCH_ACTIVATED",
-  "BRANCH_DEACTIVATED",
-  "GLOBAL_CONFIG_UPDATED",
-  "BRANCH_CONFIG_UPDATED",
-];
-
-/*
-  Converts filter object into query string.
-
-  Example:
-  {
-    module: "AUTH",
-    status: "SUCCESS",
-    page: 0,
-    size: 20
-  }
-
-  becomes:
-  ?module=AUTH&status=SUCCESS&page=0&size=20
-*/
-const buildQueryString = (params = {}) => {
-  const queryParams = new URLSearchParams();
-
-  Object.entries(params).forEach(([key, value]) => {
-    // Do not send empty filters to the backend
-    if (value === undefined || value === null || value === "") {
-      return;
-    }
-
-    queryParams.append(key, String(value));
-  });
-
-  const queryString = queryParams.toString();
-
-  return queryString ? `?${queryString}` : "";
-};
-
-/*
-  Reads backend response safely.
-
-  This version also catches the problem where the frontend receives HTML
-  instead of JSON. That usually means the frontend called the wrong URL.
+  Safely read JSON response from backend.
 */
 const parseResponse = async (response) => {
   const contentType = response.headers.get("content-type") || "";
 
-  let data = null;
-
-  if (contentType.includes("application/json")) {
-    data = await response.json();
-  } else {
+  if (!contentType.includes("application/json")) {
     const text = await response.text();
 
     throw new Error(
@@ -83,6 +22,8 @@ const parseResponse = async (response) => {
       )}`
     );
   }
+
+  const data = await response.json();
 
   if (!response.ok) {
     const errorMessage =
@@ -97,33 +38,74 @@ const parseResponse = async (response) => {
 };
 
 /*
+  Add a query parameter only when it has a real value.
+  This avoids sending empty values like module=ALL or status=.
+*/
+const appendQueryParam = (queryParams, key, value) => {
+  if (value === undefined || value === null) {
+    return;
+  }
+
+  const cleanValue = String(value).trim();
+
+  if (!cleanValue || cleanValue === "ALL") {
+    return;
+  }
+
+  queryParams.append(key, cleanValue);
+};
+
+/*
   Get paginated audit logs.
 
-  Backend response shape:
-  {
-    content: [...],
-    totalElements: 165,
-    totalPages: 9,
-    number: 0,
-    first: true,
-    last: false
-  }
+  Backend supported filters:
+  - module
+  - eventType
+  - status
+  - branchId
+  - actorUserId
+  - from
+  - to
+  - page
+  - size
 */
-export const getAuditLogsAPI = async (params = {}) => {
-  const queryString = buildQueryString(params);
+export const getAuditLogsAPI = async ({
+  page = 0,
+  size = 20,
+  module = "",
+  eventType = "",
+  status = "",
+  branchId = "",
+  actorUserId = "",
+  from = "",
+  to = "",
+} = {}) => {
+  const queryParams = new URLSearchParams();
 
-  const response = await authFetch(`${AUDIT_LOGS_BASE_URL}${queryString}`, {
-    method: "GET",
-  });
+  appendQueryParam(queryParams, "module", module);
+  appendQueryParam(queryParams, "eventType", eventType);
+  appendQueryParam(queryParams, "status", status);
+  appendQueryParam(queryParams, "branchId", branchId);
+  appendQueryParam(queryParams, "actorUserId", actorUserId);
+  appendQueryParam(queryParams, "from", from);
+  appendQueryParam(queryParams, "to", to);
+
+  queryParams.append("page", String(page));
+  queryParams.append("size", String(size));
+
+  const response = await authFetch(
+    `${AUDIT_LOGS_BASE_URL}?${queryParams.toString()}`,
+    {
+      method: "GET",
+    }
+  );
 
   return parseResponse(response);
 };
 
 /*
   Get one audit log by ID.
-
-  Example:
-  GET http://localhost:8080/api/admin/audit-logs/1
+  Used by the Audit Log Details modal.
 */
 export const getAuditLogByIdAPI = async (id) => {
   if (!id) {

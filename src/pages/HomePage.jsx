@@ -1,4 +1,4 @@
-import Navbar from '../components/Customer/Navbar';
+import Navbar from '../components/customer/Navbar';
 import HeroSection from '../components/customer/HeroSection';
 import FlowSection from '../components/customer/FlowSection';
 import TestimonialsSection from '../components/customer/TestimonialsSection';
