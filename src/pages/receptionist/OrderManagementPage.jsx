@@ -46,6 +46,7 @@ const OrderManagementPage = () => {
   const [detailRefreshKey, setDetailRefreshKey] = useState(0)
   const [listRefreshKey, setListRefreshKey] = useState(0)
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false)
+  const [alertsRefreshKey, setAlertsRefreshKey] = useState(0)
 
   // Refs so the stable WebSocket callback can read latest values
   const activeTabRef = useRef(activeTab)
@@ -141,6 +142,24 @@ const OrderManagementPage = () => {
   }, [])
 
   useWebSocket(branchId, orderStatusTopic, handleOrderStatusUpdate)
+
+  // Real-time kitchen alerts
+  const kitchenAlertTopic = branchId ? `/topic/branch/${branchId}/alerts` : null
+
+  const handleKitchenAlert = useCallback((msg) => {
+    if (!msg?.message) return
+    const label = msg.type === 'CRITICAL' ? '🔴 CRITICAL' : msg.type === 'WARNING' ? '⚠️ WARNING' : 'ℹ️ INFO'
+    if (msg.type === 'CRITICAL') {
+      toast.error(`${label}: ${msg.message}`, { autoClose: 10000 })
+    } else if (msg.type === 'WARNING') {
+      toast.warning(`${label}: ${msg.message}`, { autoClose: 8000 })
+    } else {
+      toast.info(`Kitchen: ${msg.message}`, { autoClose: 6000 })
+    }
+    setAlertsRefreshKey((prev) => prev + 1)
+  }, [])
+
+  useWebSocket(branchId, kitchenAlertTopic, handleKitchenAlert)
 
   const filtered = typeFilter === 'ALL'
     ? orders
@@ -256,7 +275,7 @@ const OrderManagementPage = () => {
         )}
       </div>
 
-      <KitchenAlertsModal isOpen={isAlertsModalOpen} onClose={() => setIsAlertsModalOpen(false)} />
+      <KitchenAlertsModal isOpen={isAlertsModalOpen} onClose={() => setIsAlertsModalOpen(false)} refreshKey={alertsRefreshKey} />
     </div>
   )
 }

@@ -23,7 +23,7 @@ const TYPE_CONFIG = {
   },
 }
 
-const KitchenAlertsModal = ({ isOpen, onClose }) => {
+const KitchenAlertsModal = ({ isOpen, onClose, refreshKey }) => {
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(false)
 
@@ -34,7 +34,7 @@ const KitchenAlertsModal = ({ isOpen, onClose }) => {
       setAlerts(data || [])
       setLoading(false)
     })
-  }, [isOpen])
+  }, [isOpen, refreshKey])
 
   if (!isOpen) return null
 
