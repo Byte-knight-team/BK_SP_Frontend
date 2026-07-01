@@ -148,11 +148,10 @@ const OrderManagementPage = () => {
 
   const handleKitchenAlert = useCallback((msg) => {
     if (!msg?.message) return
-    const label = msg.type === 'CRITICAL' ? '🔴 CRITICAL' : msg.type === 'WARNING' ? '⚠️ WARNING' : 'ℹ️ INFO'
     if (msg.type === 'CRITICAL') {
-      toast.error(`${label}: ${msg.message}`, { autoClose: 10000 })
+      toast.error(`Kitchen CRITICAL: ${msg.message}`, { autoClose: 10000 })
     } else if (msg.type === 'WARNING') {
-      toast.warning(`${label}: ${msg.message}`, { autoClose: 8000 })
+      toast.warning(`Kitchen WARNING: ${msg.message}`, { autoClose: 8000 })
     } else {
       toast.info(`Kitchen: ${msg.message}`, { autoClose: 6000 })
     }
