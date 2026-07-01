@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, AlertTriangle } from 'lucide-react'
 import { getReceptionistOrdersAPI } from '../../apis/receptionist/orders'
 import { toast } from 'react-toastify'
 import OrderCard from '../../components/receptionist/orders/OrderCard'
 import OrderDetailPanel from '../../components/receptionist/orders/OrderDetailPanel'
+import KitchenAlertsModal from '../../components/receptionist/orders/KitchenAlertsModal'
 import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
 
@@ -44,6 +45,7 @@ const OrderManagementPage = () => {
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [detailRefreshKey, setDetailRefreshKey] = useState(0)
   const [listRefreshKey, setListRefreshKey] = useState(0)
+  const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false)
 
   // Refs so the stable WebSocket callback can read latest values
   const activeTabRef = useRef(activeTab)
@@ -154,11 +156,20 @@ const OrderManagementPage = () => {
         <div className="px-5 pt-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-base font-bold text-gray-800">Orders</h3>
-            {!isLoading && (
-              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-bold text-gray-500">
-                {filtered.length}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {!isLoading && (
+                <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-bold text-gray-500">
+                  {filtered.length}
+                </span>
+              )}
+              <button
+                onClick={() => setIsAlertsModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-100 hover:bg-red-100 transition-colors"
+              >
+                <AlertTriangle size={13} />
+                Kitchen Alerts
+              </button>
+            </div>
           </div>
 
           {/* Tabs — underline style */}
@@ -245,6 +256,7 @@ const OrderManagementPage = () => {
         )}
       </div>
 
+      <KitchenAlertsModal isOpen={isAlertsModalOpen} onClose={() => setIsAlertsModalOpen(false)} />
     </div>
   )
 }
