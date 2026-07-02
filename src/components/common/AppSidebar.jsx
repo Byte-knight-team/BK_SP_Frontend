@@ -5,11 +5,6 @@ import { RiLogoutBoxRLine } from "@remixicon/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import LogoutConfirmModal from "./LogoutConfirmModal";
 
-/*
-  AppSidebar
-  - Common sidebar UI used by all staff role panels.
-  - Shows logo, branch name, navigation links, profile card, and logout button.
-*/
 export default function AppSidebar({
   navItems = [],
   branchName = "Global Access",
@@ -168,14 +163,11 @@ export default function AppSidebar({
 
           {/* Toggle button */}
           <button
-            type="button"
-            onClick={handleOpenLogoutConfirm}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-[13px] font-semibold text-red-600 transition-all hover:border-red-200 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200"
-            title="Logout"
-            aria-label="Logout"
+            onClick={() => setCollapsed(!collapsed)}
+            className="mt-3 flex w-full items-center justify-center rounded-2xl py-2 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <RiLogoutBoxRLine size={17} />
-            <span>Logout</span>
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
         </div>
       </aside>
