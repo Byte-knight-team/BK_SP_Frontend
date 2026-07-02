@@ -33,7 +33,7 @@ const KitchenOrdersPage = () => {
   // Called when a new order notification arrives from the receptionist via WebSocket
   const handleNewOrder = useCallback((message) => {
     // Show a toast notification so the chef is alerted immediately
-    toast.success(`🍽️ ${message.message}`, { autoClose: 5000 })
+    toast.success(`New order received: ${message.orderNumber}`, { autoClose: 5000 })
 
     // Silently refresh the pending list in the background — do NOT switch tabs,
     // as the chef may be actively working on a different section
@@ -58,11 +58,11 @@ const KitchenOrdersPage = () => {
 
     if (!msg?.itemName) return
     if (msg.orderStatus === 'COMPLETED') {
-      toast.success(`✅ Order ready! All items completed.`, { autoClose: 5000 })
+      toast.success(`Order ${msg.orderNumber} — all items completed!`, { autoClose: 5000 })
     } else if (msg.newStatus === 'PREPARING') {
-      toast.info(`👨‍🍳 ${msg.itemName} started cooking`, { autoClose: 3000 })
+      toast.info(`${msg.itemName} started cooking (Order ${msg.orderNumber})`, { autoClose: 3000 })
     } else if (msg.newStatus === 'READY') {
-      toast.success(`✅ ${msg.itemName} is ready`, { autoClose: 3000 })
+      toast.success(`${msg.itemName} is ready (Order ${msg.orderNumber})`, { autoClose: 3000 })
     }
   }, [])
 

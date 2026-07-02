@@ -1,35 +1,36 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, AlertTriangle } from 'lucide-react'
 import { getReceptionistOrdersAPI } from '../../apis/receptionist/orders'
 import { toast } from 'react-toastify'
 import OrderCard from '../../components/receptionist/orders/OrderCard'
 import OrderDetailPanel from '../../components/receptionist/orders/OrderDetailPanel'
+import KitchenAlertsModal from '../../components/receptionist/orders/KitchenAlertsModal'
 import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
 
 const TABS = [
-  { key: 'PLACED',     label: 'New' },
-  { key: 'KITCHEN',    label: 'Kitchen' },
-  { key: 'ON_HOLD',    label: 'Hold' },
-  { key: 'COMPLETED',  label: 'Ready' },
-  { key: 'SERVED',     label: 'Served' },
-  { key: 'CANCELLED',  label: 'Cancelled' },
+  { key: 'PLACED', label: 'New' },
+  { key: 'KITCHEN', label: 'Kitchen' },
+  { key: 'ON_HOLD', label: 'Hold' },
+  { key: 'COMPLETED', label: 'Ready' },
+  { key: 'SERVED', label: 'Served' },
+  { key: 'CANCELLED', label: 'Cancelled' },
 ]
 
 const STATUS_MAP = {
-  PLACED:     ['PLACED'],
-  KITCHEN:    ['PENDING', 'PREPARING'],
-  ON_HOLD:    ['ON_HOLD'],
-  COMPLETED:  ['COMPLETED'],
-  SERVED:     ['SERVED'],
-  CANCELLED:  ['CANCELLED'],
+  PLACED: ['PLACED'],
+  KITCHEN: ['PENDING', 'PREPARING'],
+  ON_HOLD: ['ON_HOLD'],
+  COMPLETED: ['COMPLETED'],
+  SERVED: ['SERVED'],
+  CANCELLED: ['CANCELLED'],
 }
 
 const TYPE_FILTERS = [
-  { key: 'ALL',             label: 'All' },
-  { key: 'QR',             label: 'QR' },
-  { key: 'ONLINE_PICKUP',  label: 'Pickup' },
+  { key: 'ALL', label: 'All' },
+  { key: 'QR', label: 'QR' },
+  { key: 'ONLINE_PICKUP', label: 'Pickup' },
   { key: 'ONLINE_DELIVERY', label: 'Delivery' },
 ]
 
@@ -37,12 +38,15 @@ const OrderManagementPage = () => {
   const { setHeaderInfo } = useOutletContext()
   const { user } = useAuth()
 
-  const [activeTab, setActiveTab]             = useState('PLACED')
-  const [typeFilter, setTypeFilter]           = useState('ALL')
-  const [orders, setOrders]                   = useState([])
-  const [isLoading, setIsLoading]             = useState(false)
+  const [activeTab, setActiveTab] = useState('PLACED')
+  const [typeFilter, setTypeFilter] = useState('ALL')
+  const [orders, setOrders] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [detailRefreshKey, setDetailRefreshKey] = useState(0)
+  const [listRefreshKey, setListRefreshKey] = useState(0)
+  const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false)
+  const [alertsRefreshKey, setAlertsRefreshKey] = useState(0)
 
   // Refs so the stable WebSocket callback can read latest values
   const activeTabRef = useRef(activeTab)
@@ -60,21 +64,23 @@ const OrderManagementPage = () => {
 
   useEffect(() => {
     fetchOrders()
-  }, [activeTab])
+  }, [activeTab, listRefreshKey])
 
   const fetchOrders = async () => {
     setIsLoading(true)
     const statuses = STATUS_MAP[activeTab]
-    const results  = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
+    const results = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
     const combined = results.flatMap((r) => r.data || [])
 
-    // Oldest first for action tabs — process longest-waiting orders first.
-    // Newest first for reference tabs — most recent entry is most relevant to look up.
-    const ascTabs = ['PLACED', 'KITCHEN', 'ON_HOLD', 'COMPLETED']
-    if (ascTabs.includes(activeTab)) {
+    // New tab: sort by when the customer placed the order (oldest first = longest waiting).
+    // Kitchen/Hold/Ready: sort by when the order moved into that status (oldest first = FIFO queue).
+    // Served/Cancelled: newest status change first — most recent is most relevant to look up.
+    if (activeTab === 'PLACED') {
       combined.sort((a, b) => new Date(a.placedAt) - new Date(b.placedAt))
+    } else if (['KITCHEN', 'ON_HOLD', 'COMPLETED'].includes(activeTab)) {
+      combined.sort((a, b) => new Date(a.statusUpdatedAt) - new Date(b.statusUpdatedAt))
     } else {
-      combined.sort((a, b) => new Date(b.placedAt) - new Date(a.placedAt))
+      combined.sort((a, b) => new Date(b.statusUpdatedAt) - new Date(a.statusUpdatedAt))
     }
 
     setOrders(combined)
@@ -88,9 +94,20 @@ const OrderManagementPage = () => {
   const handleKitchenItemUpdate = useCallback((msg) => {
     if (!msg?.orderId) return
 
-    // Notify receptionist whenever any order in the kitchen is completed
+    // QR item ready: auto-switch selected order to Ready tab, or notify if viewing a different order
+    if (msg.newStatus === 'READY' && msg.orderType === 'QR') {
+      if (activeTabRef.current === 'COMPLETED') {
+        setListRefreshKey((prev) => prev + 1)
+      } else if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
+        setActiveTab('COMPLETED')
+      } else {
+        toast.info(`Item ready in Order ${msg.orderNumber} — check the Ready tab.`, { autoClose: 5000 })
+      }
+    }
+
+    // Notify receptionist whenever all items in any order are completed
     if (msg.orderStatus === 'COMPLETED') {
-      toast.success('✅ An order is ready! Kitchen has completed all items.', { autoClose: 6000 })
+      toast.success(`Order ${msg.orderNumber} is ready — kitchen has completed all items.`, { autoClose: 6000 })
     }
 
     // Tab switch + detail refresh only for the currently selected order
@@ -112,7 +129,7 @@ const OrderManagementPage = () => {
 
     // Notify receptionist whenever any order is put on hold by the kitchen
     if (msg.newStatus === 'ON_HOLD') {
-      toast.warning('⚠️ Kitchen has put an order on hold. Please check the Hold tab.', { autoClose: 8000 })
+      toast.warning(`Kitchen put Order ${msg.orderNumber} on hold. Please check the Hold tab.`, { autoClose: 8000 })
     }
 
     // Tab switch + detail refresh only for the currently selected order
@@ -125,6 +142,23 @@ const OrderManagementPage = () => {
   }, [])
 
   useWebSocket(branchId, orderStatusTopic, handleOrderStatusUpdate)
+
+  // Real-time kitchen alerts
+  const kitchenAlertTopic = branchId ? `/topic/branch/${branchId}/alerts` : null
+
+  const handleKitchenAlert = useCallback((msg) => {
+    if (!msg?.message) return
+    if (msg.type === 'CRITICAL') {
+      toast.error(`Kitchen CRITICAL: ${msg.message}`, { autoClose: 10000 })
+    } else if (msg.type === 'WARNING') {
+      toast.warning(`Kitchen WARNING: ${msg.message}`, { autoClose: 8000 })
+    } else {
+      toast.info(`Kitchen: ${msg.message}`, { autoClose: 6000 })
+    }
+    setAlertsRefreshKey((prev) => prev + 1)
+  }, [])
+
+  useWebSocket(branchId, kitchenAlertTopic, handleKitchenAlert)
 
   const filtered = typeFilter === 'ALL'
     ? orders
@@ -140,11 +174,20 @@ const OrderManagementPage = () => {
         <div className="px-5 pt-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-base font-bold text-gray-800">Orders</h3>
-            {!isLoading && (
-              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-bold text-gray-500">
-                {filtered.length}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {!isLoading && (
+                <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-bold text-gray-500">
+                  {filtered.length}
+                </span>
+              )}
+              <button
+                onClick={() => setIsAlertsModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-100 hover:bg-red-100 transition-colors"
+              >
+                <AlertTriangle size={13} />
+                Kitchen Alerts
+              </button>
+            </div>
           </div>
 
           {/* Tabs — underline style */}
@@ -153,11 +196,10 @@ const OrderManagementPage = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 pb-3 pt-1 text-xs font-bold transition-all ${
-                  activeTab === tab.key
+                className={`flex-1 pb-3 pt-1 text-xs font-bold transition-all ${activeTab === tab.key
                     ? 'border-b-2 border-orange-500 text-orange-500'
                     : 'text-gray-400 hover:text-gray-600'
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -171,11 +213,10 @@ const OrderManagementPage = () => {
             <button
               key={f.key}
               onClick={() => setTypeFilter(f.key)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-                typeFilter === f.key
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${typeFilter === f.key
                   ? 'bg-orange-100 text-orange-600'
                   : 'bg-gray-50 text-gray-400 hover:text-gray-600'
-              }`}
+                }`}
             >
               {f.label}
             </button>
@@ -231,6 +272,7 @@ const OrderManagementPage = () => {
         )}
       </div>
 
+      <KitchenAlertsModal isOpen={isAlertsModalOpen} onClose={() => setIsAlertsModalOpen(false)} refreshKey={alertsRefreshKey} />
     </div>
   )
 }
