@@ -1,14 +1,10 @@
 import { useState } from "react";
 import craveHouseLogo from "../../assets/Crave House logo.png";
 import { Link, useLocation } from "react-router-dom";
-import { RiUser3Line, RiLogoutBoxRLine } from "@remixicon/react";
+import { RiLogoutBoxRLine } from "@remixicon/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import LogoutConfirmModal from "./LogoutConfirmModal";
 
-/*
-  AppSidebar
-  - Common sidebar UI used by all staff role panels.
-  - Shows logo, branch name, navigation links, profile card, and logout button.
-*/
 export default function AppSidebar({
   navItems = [],
   branchName = "Global Access",
@@ -18,13 +14,11 @@ export default function AppSidebar({
   onLogout,
 }) {
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const isActive = (item) => {
-    if (item.exact) {
-      return location.pathname === item.path;
-    }
-
+    if (item.exact) return location.pathname === item.path;
     return location.pathname.startsWith(item.path);
   };
 
@@ -35,52 +29,45 @@ export default function AppSidebar({
 
   const formattedRoleLabel = roleLabel.replace(/_/g, " ");
 
-  const handleOpenLogoutConfirm = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const handleCancelLogout = () => {
-    setShowLogoutConfirm(false);
-  };
-
   const handleConfirmLogout = () => {
     setShowLogoutConfirm(false);
-
-    if (typeof onLogout === "function") {
-      onLogout();
-    }
+    if (typeof onLogout === "function") onLogout();
   };
 
   return (
     <>
-      <aside className="flex h-screen w-[270px] shrink-0 flex-col justify-between border-r border-gray-100 bg-white">
-        <div className="min-h-0 flex-1">
-          {/* Logo and branch section */}
-          <div className="border-b border-gray-100 px-4 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-50">
-                <img
-                  src={craveHouseLogo}
-                  alt="Crave House Logo"
-                  className="h-8 w-8 object-contain"
-                />
-              </div>
-
-              <div className="min-w-0">
-                <div className="text-[15px] font-black leading-tight tracking-tight">
+      <aside
+        className={`${
+          collapsed ? "w-20" : "w-67.5"
+        } relative flex h-screen flex-col justify-between border-r border-gray-100 bg-white transition-all duration-300 ease-in-out`}
+      >
+        <div>
+          {/* Logo and branch */}
+          <div
+            className={`flex items-center border-b border-gray-100 px-4 py-6 ${
+              collapsed ? "justify-center" : "gap-3"
+            }`}
+          >
+            <img
+              src={craveHouseLogo}
+              alt="Crave House Logo"
+              className="h-10 w-10 shrink-0 object-contain"
+            />
+            {!collapsed && (
+              <div>
+                <div className="text-lg font-bold tracking-tight">
                   <span className="text-black">CRAVE</span>
                   <span className="text-orange-500">HOUSE</span>
                 </div>
-
-                <div className="mt-0.5 truncate text-[11px] font-medium text-gray-500">
+                <div className="text-xs text-gray-500">
                   {branchName || "Global Access"}
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Sidebar navigation links */}
-          <nav className="custom-scrollbar max-h-[calc(100vh-190px)] space-y-1 overflow-y-auto px-3 py-4">
+          {/* Nav links */}
+          <nav className={`space-y-1 py-4 ${collapsed ? "px-3" : "px-4"}`}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item);
@@ -89,28 +76,25 @@ export default function AppSidebar({
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`group flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all ${
+                  title={collapsed ? item.label : undefined}
+                  className={`flex items-center rounded-2xl py-3 transition-all ${
+                    collapsed ? "justify-center px-2" : "gap-3 px-4"
+                  } ${
                     active
-                      ? "bg-orange-500 text-white shadow-sm shadow-orange-200"
+                      ? "bg-orange-500 text-white shadow-md shadow-orange-200"
                       : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
                   }`}
                 >
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                      active
-                        ? "bg-white/15 text-white"
-                        : "text-gray-500 group-hover:bg-white group-hover:text-orange-600"
-                    }`}
-                  >
-                    <Icon size={17} />
-                  </span>
-
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-snug">
-                    {item.label}
-                  </span>
-
-                  {active && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                  <Icon size={20} />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1 text-sm font-medium">
+                        {item.label}
+                      </span>
+                      {active && (
+                        <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                      )}
+                    </>
                   )}
                 </Link>
               );
@@ -118,58 +102,79 @@ export default function AppSidebar({
           </nav>
         </div>
 
-        {/* Bottom profile and logout section */}
-        <div className="border-t border-gray-100 p-3">
-          <Link
-            to={profilePath}
-            className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all ${
-              isProfileActive
-                ? "bg-orange-500 text-white shadow-sm shadow-orange-200"
-                : "bg-gray-50 text-gray-900 hover:bg-orange-50 hover:text-orange-600"
-            }`}
-            aria-label="Open profile"
-          >
-            <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+        {/* Profile + logout */}
+        <div className="border-t border-gray-100 p-4">
+          {collapsed ? (
+            <div className="flex flex-col items-center gap-3">
+              <Link to={profilePath} title={displayUserName}>
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black transition-all ${
+                    isProfileActive
+                      ? "bg-orange-500 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-orange-50 hover:text-orange-500"
+                  }`}
+                >
+                  {displayUserName?.[0]?.toUpperCase()}
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(true)}
+                className="text-gray-400 transition-all hover:text-red-500"
+                title="Logout"
+                aria-label="Logout"
+              >
+                <RiLogoutBoxRLine size={18} />
+              </button>
+            </div>
+          ) : (
+            <div
+              className={`flex items-center justify-between gap-3 rounded-2xl px-4 py-3 ${
                 isProfileActive
-                  ? "bg-white/20 text-white"
-                  : "bg-white text-orange-500 ring-1 ring-orange-100"
+                  ? "bg-orange-500 text-white shadow-md shadow-orange-200"
+                  : "bg-gray-50 text-gray-900"
               }`}
             >
-              <RiUser3Line size={17} />
-            </span>
-
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-bold leading-tight">
-                {displayUserName}
-              </span>
-
-              <span
-                className={`mt-0.5 block truncate text-[11px] font-bold uppercase tracking-wide ${
-                  isProfileActive ? "text-white/90" : "text-gray-500"
+              <Link to={profilePath} className="min-w-0 flex-1">
+                <div className="truncate text-sm font-bold">{displayUserName}</div>
+                <div
+                  className={`text-[10px] font-bold tracking-wider ${
+                    isProfileActive ? "text-white/90" : "text-orange-500"
+                  }`}
+                >
+                  {formattedRoleLabel}
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(true)}
+                className={`shrink-0 ${
+                  isProfileActive
+                    ? "text-white"
+                    : "text-gray-500 hover:text-red-500"
                 }`}
+                title="Logout"
+                aria-label="Logout"
               >
-                {formattedRoleLabel}
-              </span>
-            </span>
-          </Link>
+                <RiLogoutBoxRLine size={18} />
+              </button>
+            </div>
+          )}
 
+          {/* Toggle button */}
           <button
-            type="button"
-            onClick={handleOpenLogoutConfirm}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-[13px] font-semibold text-red-600 transition-all hover:border-red-200 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200"
-            title="Logout"
-            aria-label="Logout"
+            onClick={() => setCollapsed(!collapsed)}
+            className="mt-3 flex w-full items-center justify-center rounded-2xl py-2 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <RiLogoutBoxRLine size={17} />
-            <span>Logout</span>
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
         </div>
       </aside>
 
       {showLogoutConfirm && (
         <LogoutConfirmModal
-          onCancel={handleCancelLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
           onConfirm={handleConfirmLogout}
         />
       )}

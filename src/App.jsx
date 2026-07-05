@@ -23,6 +23,9 @@ import ManagerHeader from './components/manager/ManagerHeader'
 import KitchenSidebar from './components/kitchen/KitchenSidebar'
 import KitchenHeader from './components/kitchen/KitchenHeader'
 
+import LineChefSidebar from './components/line-chef/LineChefSidebar'
+import LineChefHeader from './components/line-chef/LineChefHeader'
+
 import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
 
@@ -104,8 +107,11 @@ import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
 import ChefsPage from './pages/kitchen/ChefsPage'
 import InventoryPage from './pages/kitchen/InventoryPage'
-import MenuAndRecipesPage from './pages/kitchen/MenuAndRecipesPage'
+import MenuItemPage from './pages/kitchen/MenuItemPage'
 import ApprovalsPage from './pages/kitchen/ApprovalsPage'
+
+// Line Chef pages
+import LineChefDashboard from './pages/line-chef/LineChefDashboard'
 
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
@@ -134,6 +140,13 @@ function AuthGuard() {
       localStorage.removeItem('qr_session_token')
       localStorage.removeItem('qr_branch_id')
       localStorage.removeItem('qr_table_id')
+      
+      // Auto-logout customer when QR session drops
+      localStorage.removeItem('customer_jwt')
+      localStorage.removeItem('customer_role')
+      localStorage.removeItem('customer_user_id')
+      localStorage.removeItem('customer_name')
+      localStorage.removeItem('customer_profile_pic')
     }
   }, [location.pathname])
 
@@ -417,7 +430,7 @@ export default function App() {
           <Route path="orders" element={<KitchenOrdersPage />} />
           <Route path="chefs" element={<ChefsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
-          <Route path="menu" element={<MenuAndRecipesPage />} />
+          <Route path="menu" element={<MenuItemPage />} />
           <Route path="approvals" element={<ApprovalsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
@@ -441,6 +454,21 @@ export default function App() {
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/receptionist" replace />} />
+        </Route>
+
+        {/* LINE_CHEF area */}
+        <Route
+          path="/line-chef"
+          element={
+            <ProtectedRoute allowedRoles={['LINE_CHEF']}>
+              <MainLayout Sidebar={LineChefSidebar} Header={LineChefHeader} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<LineChefDashboard />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/line-chef" replace />} />
         </Route>
 
         {/* Fallback */}

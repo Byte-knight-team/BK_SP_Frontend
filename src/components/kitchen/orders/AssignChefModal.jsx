@@ -61,33 +61,30 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
         </div>
 
         <h3 className="mb-2 text-left text-xl font-bold text-gray-900">
-          Assign Chef
+          Assign Line Chef
         </h3>
         <p className="mb-6 text-left text-sm text-gray-400">
-          {/* putting a space between text and the meal name */}
-          Select a chef for{' '}
+          Select a line chef for{' '}
           <span className="font-bold text-gray-900">"{mealName}"</span>
         </p>
 
-        {/* Chef Selection Dropdown */}
+        {/* Line Chef Selection Dropdown */}
         <select
           className="mb-8 w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
-          value={selectedChefId}  
-          onChange={(e) => setSelectedChefId(e.target.value)} //that value set as the selectedChefId state
+          value={selectedChefId}
+          onChange={(e) => setSelectedChefId(e.target.value)}
         >
-          {/* default option */}
-          {isFetchingChefs ? ( // Check if currently fetching
-            <option value="">Loading chefs...</option>
+          {isFetchingChefs ? (
+            <option value="">Loading line chefs...</option>
           ) : availableChefs.length > 0 ? (
-            <option value="">Select a chef</option>
+            <option value="">Select a line chef</option>
           ) : (
-            <option value="">No chefs available</option>
+            <option value="">No line chefs available</option>
           )}
 
-          {/* map all available chefs. Loop through the chefs array to create dropdown options */}
           {availableChefs.map((chef) => (
             <option key={chef.staffId} value={chef.staffId}>
-              {chef.chefName} - ({chef.workStatus})
+              {chef.chefName} — {chef.activeItemCount > 0 ? `${chef.activeItemCount} active item${chef.activeItemCount > 1 ? 's' : ''}` : 'Available'}
             </option>
           ))}
         </select>
