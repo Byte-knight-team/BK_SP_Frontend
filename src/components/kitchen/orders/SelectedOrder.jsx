@@ -144,9 +144,8 @@ const SelectedOrder = ({ orderId, setActiveTab, refreshKey }) => {
 
         <div className="flex items-center gap-3">
           <span
-            className={`rounded-full px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase ${
-              statusColors[order.status] || 'bg-gray-50 text-gray-500'
-            }`}
+            className={`rounded-full px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase ${statusColors[order.status] || 'bg-gray-50 text-gray-500'
+              }`}
           >
             {order.status.replace('_', ' ').toUpperCase()}
           </span>

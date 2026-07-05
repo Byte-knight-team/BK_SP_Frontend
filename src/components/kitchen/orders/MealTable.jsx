@@ -1,10 +1,10 @@
 import { UserPlus, MessageSquare } from 'lucide-react'
 
 const statusStyles = {
-  PENDING:   'bg-orange-50 text-orange-500',
+  PENDING: 'bg-orange-50 text-orange-500',
   PREPARING: 'bg-blue-50 text-blue-500',
-  READY:     'bg-green-50 text-green-500',
-  ON_HOLD:   'bg-red-50 text-red-500',
+  READY: 'bg-green-50 text-green-500',
+  ON_HOLD: 'bg-red-50 text-red-500',
 }
 
 const MealTable = ({ mealsData, orderStatus, onAssignChef }) => {
@@ -48,9 +48,8 @@ const MealTable = ({ mealsData, orderStatus, onAssignChef }) => {
               </td>
 
               <td className="px-3 py-3 text-center">
-                <p className={`text-xs font-bold tracking-tight ${
-                  meal.chefName === 'Not Assigned' ? 'italic text-gray-300' : 'text-gray-800'
-                }`}>
+                <p className={`text-xs font-bold tracking-tight ${meal.chefName === 'Not Assigned' ? 'italic text-gray-300' : 'text-gray-800'
+                  }`}>
                   {meal.chefName}
                 </p>
               </td>

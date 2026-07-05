@@ -10,27 +10,27 @@ import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
 
 const TABS = [
-  { key: 'PLACED',     label: 'New' },
-  { key: 'KITCHEN',    label: 'Kitchen' },
-  { key: 'ON_HOLD',    label: 'Hold' },
-  { key: 'COMPLETED',  label: 'Ready' },
-  { key: 'SERVED',     label: 'Served' },
-  { key: 'CANCELLED',  label: 'Cancelled' },
+  { key: 'PLACED', label: 'New' },
+  { key: 'KITCHEN', label: 'Kitchen' },
+  { key: 'ON_HOLD', label: 'Hold' },
+  { key: 'COMPLETED', label: 'Ready' },
+  { key: 'SERVED', label: 'Served' },
+  { key: 'CANCELLED', label: 'Cancelled' },
 ]
 
 const STATUS_MAP = {
-  PLACED:     ['PLACED'],
-  KITCHEN:    ['PENDING', 'PREPARING'],
-  ON_HOLD:    ['ON_HOLD'],
-  COMPLETED:  ['COMPLETED'],
-  SERVED:     ['SERVED'],
-  CANCELLED:  ['CANCELLED'],
+  PLACED: ['PLACED'],
+  KITCHEN: ['PENDING', 'PREPARING'],
+  ON_HOLD: ['ON_HOLD'],
+  COMPLETED: ['COMPLETED'],
+  SERVED: ['SERVED'],
+  CANCELLED: ['CANCELLED'],
 }
 
 const TYPE_FILTERS = [
-  { key: 'ALL',             label: 'All' },
-  { key: 'QR',             label: 'QR' },
-  { key: 'ONLINE_PICKUP',  label: 'Pickup' },
+  { key: 'ALL', label: 'All' },
+  { key: 'QR', label: 'QR' },
+  { key: 'ONLINE_PICKUP', label: 'Pickup' },
   { key: 'ONLINE_DELIVERY', label: 'Delivery' },
 ]
 
@@ -38,10 +38,10 @@ const OrderManagementPage = () => {
   const { setHeaderInfo } = useOutletContext()
   const { user } = useAuth()
 
-  const [activeTab, setActiveTab]             = useState('PLACED')
-  const [typeFilter, setTypeFilter]           = useState('ALL')
-  const [orders, setOrders]                   = useState([])
-  const [isLoading, setIsLoading]             = useState(false)
+  const [activeTab, setActiveTab] = useState('PLACED')
+  const [typeFilter, setTypeFilter] = useState('ALL')
+  const [orders, setOrders] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [detailRefreshKey, setDetailRefreshKey] = useState(0)
   const [listRefreshKey, setListRefreshKey] = useState(0)
@@ -69,7 +69,7 @@ const OrderManagementPage = () => {
   const fetchOrders = async () => {
     setIsLoading(true)
     const statuses = STATUS_MAP[activeTab]
-    const results  = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
+    const results = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
     const combined = results.flatMap((r) => r.data || [])
 
     // New tab: sort by when the customer placed the order (oldest first = longest waiting).
@@ -196,11 +196,10 @@ const OrderManagementPage = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 pb-3 pt-1 text-xs font-bold transition-all ${
-                  activeTab === tab.key
+                className={`flex-1 pb-3 pt-1 text-xs font-bold transition-all ${activeTab === tab.key
                     ? 'border-b-2 border-orange-500 text-orange-500'
                     : 'text-gray-400 hover:text-gray-600'
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -214,11 +213,10 @@ const OrderManagementPage = () => {
             <button
               key={f.key}
               onClick={() => setTypeFilter(f.key)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-                typeFilter === f.key
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${typeFilter === f.key
                   ? 'bg-orange-100 text-orange-600'
                   : 'bg-gray-50 text-gray-400 hover:text-gray-600'
-              }`}
+                }`}
             >
               {f.label}
             </button>
