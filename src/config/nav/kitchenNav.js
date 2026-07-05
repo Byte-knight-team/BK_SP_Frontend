@@ -4,7 +4,6 @@ import {
   ChefHat,
   Package,
   UtensilsCrossed,
-  CheckCircle2,
 } from "lucide-react";
 
 export const kitchenNav = [
@@ -13,5 +12,4 @@ export const kitchenNav = [
   { label: "Chefs", path: "/kitchen/chefs", icon: ChefHat },
   { label: "Inventory", path: "/kitchen/inventory", icon: Package },
   { label: "Menu Items", path: "/kitchen/menu", icon: UtensilsCrossed },
-  { label: "Approvals", path: "/kitchen/approvals", icon: CheckCircle2 },
 ];
