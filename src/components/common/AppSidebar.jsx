@@ -42,27 +42,45 @@ export default function AppSidebar({
         } relative flex h-screen flex-col justify-between border-r border-gray-100 bg-white transition-all duration-300 ease-in-out`}
       >
         <div>
-          {/* Logo and branch */}
+          {/* Logo, branch and collapse toggle */}
           <div
-            className={`flex items-center border-b border-gray-100 px-4 py-6 ${
-              collapsed ? "justify-center" : "gap-3"
+            className={`flex items-center border-b border-gray-100 px-4 py-5 ${
+              collapsed ? "flex-col gap-3" : "gap-3"
             }`}
           >
+            {collapsed && (
+              <button
+                onClick={() => setCollapsed(false)}
+                className="flex items-center justify-center rounded-xl border border-gray-200 p-1.5 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
+                title="Expand sidebar"
+              >
+                <ChevronRight size={18} />
+              </button>
+            )}
             <img
               src={craveHouseLogo}
               alt="Crave House Logo"
               className="h-10 w-10 shrink-0 object-contain"
             />
             {!collapsed && (
-              <div>
-                <div className="text-lg font-bold tracking-tight">
-                  <span className="text-black">CRAVE</span>
-                  <span className="text-orange-500">HOUSE</span>
+              <>
+                <div>
+                  <div className="text-lg font-bold tracking-tight">
+                    <span className="text-black">CRAVE</span>
+                    <span className="text-orange-500">HOUSE</span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {branchName || "Global Access"}
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500">
-                  {branchName || "Global Access"}
-                </div>
-              </div>
+                <button
+                  onClick={() => setCollapsed(true)}
+                  className="ml-auto flex items-center justify-center rounded-xl border border-gray-200 p-1.5 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
+                  title="Collapse sidebar"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+              </>
             )}
           </div>
 
@@ -161,14 +179,6 @@ export default function AppSidebar({
             </div>
           )}
 
-          {/* Toggle button */}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="mt-3 flex w-full items-center justify-center rounded-2xl py-2 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          </button>
         </div>
       </aside>
 
