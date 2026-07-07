@@ -1,10 +1,10 @@
-import { UserPlus } from 'lucide-react'
+import { UserPlus, MessageSquare } from 'lucide-react'
 
 const statusStyles = {
-  PENDING:   'bg-orange-50 text-orange-500',
+  PENDING: 'bg-orange-50 text-orange-500',
   PREPARING: 'bg-blue-50 text-blue-500',
-  READY:     'bg-green-50 text-green-500',
-  ON_HOLD:   'bg-red-50 text-red-500',
+  READY: 'bg-green-50 text-green-500',
+  ON_HOLD: 'bg-red-50 text-red-500',
 }
 
 const MealTable = ({ mealsData, orderStatus, onAssignChef }) => {
@@ -28,6 +28,11 @@ const MealTable = ({ mealsData, orderStatus, onAssignChef }) => {
             <tr key={meal.id} className="transition-colors hover:bg-gray-50/50">
               <td className="px-3 py-3">
                 <span className="font-bold text-gray-800">{meal.name}</span>
+                {meal.kitchenNotes && (
+                  <p className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-orange-500">
+                    <MessageSquare size={9} /> {meal.kitchenNotes}
+                  </p>
+                )}
               </td>
 
               <td className="px-3 py-3 text-center">
@@ -43,9 +48,8 @@ const MealTable = ({ mealsData, orderStatus, onAssignChef }) => {
               </td>
 
               <td className="px-3 py-3 text-center">
-                <p className={`text-xs font-bold tracking-tight ${
-                  meal.chefName === 'Not Assigned' ? 'italic text-gray-300' : 'text-gray-800'
-                }`}>
+                <p className={`text-xs font-bold tracking-tight ${meal.chefName === 'Not Assigned' ? 'italic text-gray-300' : 'text-gray-800'
+                  }`}>
                   {meal.chefName}
                 </p>
               </td>

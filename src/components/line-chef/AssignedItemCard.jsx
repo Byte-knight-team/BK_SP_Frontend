@@ -1,9 +1,4 @@
-import { Play, CheckCircle2, Utensils, Monitor } from 'lucide-react'
-
-const orderTypeConfig = {
-  QR: { label: 'Dine In', icon: Utensils, color: 'text-orange-500 bg-orange-50' },
-  PICKUP: { label: 'Pickup', icon: Monitor, color: 'text-blue-500 bg-blue-50' },
-}
+import { Play, CheckCircle2, MessageSquare } from 'lucide-react'
 
 const statusConfig = {
   PENDING: { label: 'To Cook', style: 'bg-orange-50 text-orange-500 border border-orange-100' },
@@ -13,8 +8,6 @@ const statusConfig = {
 }
 
 const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
-  const typeConf = orderTypeConfig[item.orderType] || orderTypeConfig.PICKUP
-  const TypeIcon = typeConf.icon
   const statusConf = statusConfig[item.status] || { label: item.status, style: 'bg-gray-50 text-gray-500' }
 
   return (
@@ -27,21 +20,25 @@ const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
         </span>
       </div>
 
-      {/* quantity */}
+      {/* quantity + order number */}
       <p className="mt-1 text-xs font-bold text-gray-400">
         Qty: <span className="text-gray-700">{item.quantity}</span>
       </p>
+      <p className="mt-0.5 text-xs font-bold text-gray-400">
+        Order: <span className="text-gray-600">#{item.orderNumber}</span>
+      </p>
 
-      {/* order info row */}
-      <div className="mt-3 flex items-center gap-3">
-        <span className={`flex items-center gap-1 rounded-xl px-2.5 py-1 text-[11px] font-bold ${typeConf.color}`}>
-          <TypeIcon size={12} /> {typeConf.label}
-        </span>
-        <span className="text-xs font-bold text-gray-500">#{item.orderNumber}</span>
-        {item.tableNumber && (
-          <span className="text-xs font-medium text-gray-400">Table {item.tableNumber}</span>
-        )}
-      </div>
+      {/* kitchen notes */}
+      {item.itemKitchenNotes && (
+        <p className="mt-2 flex items-center gap-1 text-[11px] font-medium text-orange-500">
+          <MessageSquare size={10} /> {item.itemKitchenNotes}
+        </p>
+      )}
+      {item.orderKitchenNotes && (
+        <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-orange-400">
+          <MessageSquare size={10} /> Order: {item.orderKitchenNotes}
+        </p>
+      )}
 
       {/* action button */}
       <div className="mt-4">
