@@ -151,17 +151,7 @@ export default function OrderConfirmationPage() {
         };
       });
 
-      // Trigger toast if it's a new status
-      if (lastKnownStatus.current && lastKnownStatus.current !== update.orderStatus) {
-        const friendlyStatus = update.orderStatus.replace(/_/g, ' ');
-        if (update.orderStatus === 'COMPLETED' || update.orderStatus === 'SERVED') {
-          toast.success(`Your order is ${friendlyStatus}! 🎉`);
-        } else if (update.orderStatus === 'CANCELLED') {
-          toast.error(`Your order has been ${friendlyStatus}.`);
-        } else {
-          toast.info(`Your order is now ${friendlyStatus}.`);
-        }
-      }
+
       lastKnownStatus.current = update.orderStatus;
     }
   });

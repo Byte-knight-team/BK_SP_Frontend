@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
+import GlobalNotificationProvider from './context/GlobalNotificationProvider'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import './index.css'
@@ -166,6 +167,7 @@ function CustomerLayout() {
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <AuthGuard />
+        <GlobalNotificationProvider />
         <Outlet />
       </CartProvider>
     </QueryClientProvider>
