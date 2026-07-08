@@ -123,21 +123,18 @@ function StatCard({ card, stats, loading }) {
   )
 }
 
-const ReceptionistStats = () => {
+const ReceptionistStats = ({ refreshKey = 0 }) => {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
-      setLoading(true)
       const { data } = await getDashboardStatsAPI()
       if (data) setStats(data)
       setLoading(false)
     }
     fetchStats()
-    const interval = setInterval(() => fetchStats(), 60000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [refreshKey])
 
   return (
     <>

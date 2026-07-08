@@ -8,21 +8,18 @@ const STATUS_CONFIG = {
   RESERVED:  { bg: 'bg-purple-500',label: 'Reserved'  },
 }
 
-const TableGridCard = () => {
+const TableGridCard = ({ refreshKey = 0 }) => {
   const [tables, setTables] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchTables = async () => {
-      setLoading(true)
       const { data } = await getBranchTablesAPI()
       if (data) setTables(data)
       setLoading(false)
     }
     fetchTables()
-    const interval = setInterval(fetchTables, 30000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [refreshKey])
 
   const counts = {
     AVAILABLE: tables.filter(t => t.status?.toUpperCase() === 'AVAILABLE').length,

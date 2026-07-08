@@ -47,7 +47,7 @@ function PipelineColumn({ icon: Icon, label, color, bg, orders }) {
   )
 }
 
-const OrderPipelineCard = () => {
+const OrderPipelineCard = ({ refreshKey = 0 }) => {
   const [newOrders, setNewOrders] = useState([])
   const [kitchenOrders, setKitchenOrders] = useState([])
   const [readyOrders, setReadyOrders] = useState([])
@@ -55,7 +55,6 @@ const OrderPipelineCard = () => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      setLoading(true)
       const [newRes, pendingRes, preparingRes, readyRes] = await Promise.all([
         getReceptionistOrdersAPI('NEW'),
         getReceptionistOrdersAPI('KITCHEN'),
@@ -68,9 +67,7 @@ const OrderPipelineCard = () => {
       setLoading(false)
     }
     fetchAll()
-    const interval = setInterval(fetchAll, 30000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [refreshKey])
 
   return (
     <div className="flex h-full flex-col">
