@@ -29,7 +29,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
   const [loading, setLoading] = useState(false)
   const [isActing, setIsActing] = useState(false)
 
-  const [servingItemId, setServingItemId] = useState(null)
+  const [servingItemIds, setServingItemIds] = useState(new Set())
   const [cashCollected, setCashCollected] = useState(false)
 
   const [isKitchenOpen, setIsKitchenOpen] = useState(false)
@@ -95,9 +95,9 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
     setIsActing(false)
   }
 
-  const handleCollectPayment = async () => {
+  const handleCollectPayment = async (cashReceived) => {
     setIsActing(true)
-    const { error } = await collectPaymentAPI(orderId)
+    const { error } = await collectPaymentAPI(orderId, cashReceived)
     if (error) toast.error(error)
     else {
       toast.success('Payment collected!')
@@ -121,11 +121,11 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
   }
 
   const handleServeItem = async (itemId) => {
-    setServingItemId(itemId)
+    setServingItemIds(prev => new Set([...prev, itemId]))
     const { error } = await serveOrderItemAPI(itemId)
     if (error) {
       toast.error(error)
-      setServingItemId(null)
+      setServingItemIds(prev => { const s = new Set(prev); s.delete(itemId); return s })
       return
     }
     toast.success('Item served!')
@@ -134,7 +134,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
       setOrder(data)
       if (data.status === 'SERVED' && activeTab === 'COMPLETED') onTabChange('SERVED')
     }
-    setServingItemId(null)
+    setServingItemIds(prev => { const s = new Set(prev); s.delete(itemId); return s })
   }
 
   if (loading) return (
@@ -321,7 +321,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
                       {item.status === 'READY' ? (
                         <button
                           onClick={() => handleServeItem(item.id)}
-                          disabled={servingItemId === item.id}
+                          disabled={servingItemIds.has(item.id)}
                           className="rounded-xl bg-green-500 px-3 py-1 text-xs font-bold text-white hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed">
                           Serve
                         </button>
@@ -378,6 +378,18 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
                 : '✓ Paid'}
           </span>
         </div>
+        {order.cashReceived != null && (
+          <>
+            <div className="flex justify-between text-xs text-gray-500 border-t border-gray-200 pt-1.5 mt-1">
+              <span>Cash Received</span>
+              <span className="font-bold">Rs. {order.cashReceived.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-500">Change Returned</span>
+              <span className="font-bold text-green-600">Rs. {order.changeReturned?.toFixed(2) ?? '0.00'}</span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* KITCHEN NOTES */}

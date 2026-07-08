@@ -29,15 +29,15 @@ function PipelineColumn({ icon: Icon, label, color, bg, orders }) {
           <p className="py-4 text-center text-[10px] font-semibold text-gray-300">Empty</p>
         ) : (
           orders.map(o => (
-            <div key={o.id} className="rounded-xl border border-gray-100 bg-gray-50 p-2.5">
+            <div key={o.id} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <div className="flex items-center justify-between gap-1">
-                <span className="text-xs font-black text-gray-800">{o.orderNumber || `#${o.id}`}</span>
-                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${TYPE_BADGE[o.orderType] || ''}`}>
+                <span className="text-sm font-black text-gray-800">{o.orderNumber || `#${o.id}`}</span>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${TYPE_BADGE[o.orderType] || ''}`}>
                   {TYPE_LABEL[o.orderType] || o.orderType}
                 </span>
               </div>
-              {o.customerName && (
-                <p className="mt-0.5 truncate text-[10px] text-gray-400 font-medium">{o.customerName}</p>
+              {o.orderType === 'QR' && o.tableNumber != null && (
+                <p className="mt-1 text-xs font-bold text-gray-400">Table #{o.tableNumber}</p>
               )}
             </div>
           ))

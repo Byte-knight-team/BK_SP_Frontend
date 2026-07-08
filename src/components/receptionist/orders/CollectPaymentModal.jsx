@@ -11,9 +11,10 @@ const CollectPaymentModal = ({ isOpen, onClose, onConfirm, orderNumber, finalAmo
     onClose()
   }
 
-  const cash = parseFloat(cashReceived)
-  const isEnough = cashReceived && cash >= finalAmount
+  const cash = parseFloat(cashReceived) || 0
+  const isEnough = cashReceived !== '' && cash >= finalAmount
   const change = isEnough ? (cash - finalAmount).toFixed(2) : null
+  const shortBy = cashReceived !== '' && cash > 0 && cash < finalAmount ? (finalAmount - cash).toFixed(2) : null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -46,14 +47,15 @@ const CollectPaymentModal = ({ isOpen, onClose, onConfirm, orderNumber, finalAmo
         </div>
 
         {isEnough && (
-          <div className="rounded-2xl bg-green-50 border border-green-100 p-4 mb-6 flex justify-between">
-            <span className="text-sm font-semibold text-green-700">Change</span>
-            <span className="text-sm font-black text-green-700">Rs. {change}</span>
+          <div className="rounded-2xl bg-green-50 border border-green-100 p-4 mb-6 flex justify-between items-center">
+            <span className="text-sm font-semibold text-green-700">Change to Return</span>
+            <span className="text-lg font-black text-green-700">Rs. {change}</span>
           </div>
         )}
-        {cashReceived && !isEnough && (
-          <div className="rounded-2xl bg-red-50 border border-red-100 p-4 mb-6">
-            <p className="text-xs font-semibold text-red-500">Amount is less than total due.</p>
+        {shortBy && (
+          <div className="rounded-2xl bg-red-50 border border-red-100 p-4 mb-6 flex justify-between items-center">
+            <span className="text-sm font-semibold text-red-500">Short By</span>
+            <span className="text-lg font-black text-red-500">Rs. {shortBy}</span>
           </div>
         )}
 
@@ -62,7 +64,7 @@ const CollectPaymentModal = ({ isOpen, onClose, onConfirm, orderNumber, finalAmo
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={() => onConfirm(cash)}
             disabled={isLoading || !isEnough}
             className="flex-1 rounded-2xl bg-green-500 py-3 text-sm font-bold text-white disabled:bg-gray-300"
           >

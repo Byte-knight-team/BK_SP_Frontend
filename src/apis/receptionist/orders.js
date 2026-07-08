@@ -66,10 +66,12 @@ export const cancelReceptionistOrderAPI = async (orderId, cancelReason) => {
   }
 }
 
-export const collectPaymentAPI = async (orderId) => {
+export const collectPaymentAPI = async (orderId, cashReceived) => {
   try {
     const response = await authFetch(buildApiUrl(`${BASE}/${orderId}/collect-payment`), {
       method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cashReceived }),
     })
     const result = await response.json()
     if (!response.ok) return { data: null, error: result.message || 'Failed' }
