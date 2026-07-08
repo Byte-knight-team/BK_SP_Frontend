@@ -285,6 +285,7 @@ const OrderManagementPage = () => {
             activeTab={activeTab}
             onTabChange={(targetTab) => {
               setActiveTab(targetTab)
+              fetchCounts()
             }}
             refreshKey={detailRefreshKey}
           />

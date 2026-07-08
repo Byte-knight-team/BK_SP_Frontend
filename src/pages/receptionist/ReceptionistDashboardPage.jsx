@@ -80,11 +80,11 @@ const ReceptionistDashboardPage = () => {
 
       {/* MIDDLE — revenue chart (2/3) + pie chart (1/3) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="h-[340px] overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-2">
+        <div className="h-[420px] overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-2">
           <RevenueLineChart />
         </div>
 
-        <div className="h-[340px] overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="h-[420px] overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <OrderTypePieChart />
         </div>
       </div>

@@ -14,12 +14,7 @@ const TYPE_LABEL = {
   ONLINE_DELIVERY: 'Delivery',
 }
 
-const MAX_VISIBLE = 4
-
 function PipelineColumn({ icon: Icon, label, color, bg, orders }) {
-  const visible = orders.slice(0, MAX_VISIBLE)
-  const extra = orders.length - MAX_VISIBLE
-
   return (
     <div className="flex flex-1 flex-col gap-2">
       <div className={`flex items-center gap-1.5 rounded-xl ${bg} px-3 py-2`}>
@@ -29,28 +24,23 @@ function PipelineColumn({ icon: Icon, label, color, bg, orders }) {
           {orders.length}
         </span>
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[220px] pr-0.5">
         {orders.length === 0 ? (
           <p className="py-4 text-center text-[10px] font-semibold text-gray-300">Empty</p>
         ) : (
-          <>
-            {visible.map(o => (
-              <div key={o.id} className="rounded-xl border border-gray-100 bg-gray-50 p-2.5">
-                <div className="flex items-center justify-between gap-1">
-                  <span className="text-xs font-black text-gray-800">#{o.orderNumber || o.id}</span>
-                  <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${TYPE_BADGE[o.orderType] || ''}`}>
-                    {TYPE_LABEL[o.orderType] || o.orderType}
-                  </span>
-                </div>
-                {o.customerName && (
-                  <p className="mt-0.5 truncate text-[10px] text-gray-400 font-medium">{o.customerName}</p>
-                )}
+          orders.map(o => (
+            <div key={o.id} className="rounded-xl border border-gray-100 bg-gray-50 p-2.5">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-black text-gray-800">{o.orderNumber || `#${o.id}`}</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${TYPE_BADGE[o.orderType] || ''}`}>
+                  {TYPE_LABEL[o.orderType] || o.orderType}
+                </span>
               </div>
-            ))}
-            {extra > 0 && (
-              <p className={`text-center text-[10px] font-black ${color}`}>+{extra} more</p>
-            )}
-          </>
+              {o.customerName && (
+                <p className="mt-0.5 truncate text-[10px] text-gray-400 font-medium">{o.customerName}</p>
+              )}
+            </div>
+          ))
         )}
       </div>
     </div>
