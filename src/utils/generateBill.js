@@ -28,7 +28,7 @@ export const generateBill = (order) => {
 
   doc.setFontSize(11)
   doc.setFont('helvetica', 'bold')
-  doc.text(`#${order.orderNumber}`, pageW - margin, 14, { align: 'right' })
+  doc.text(order.orderNumber, pageW - margin, 14, { align: 'right' })
 
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
@@ -195,8 +195,25 @@ export const generateBill = (order) => {
   doc.text('Payment Method:', summaryX, y)
   doc.setFont('helvetica', 'bold')
   doc.text(paymentText, pageW - margin, y, { align: 'right' })
+  y += 6
 
-  y += 16
+  if (order.cashReceived != null) {
+    doc.setFont('helvetica', 'normal')
+    doc.text('Cash Received:', summaryX, y)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Rs. ${Number(order.cashReceived).toFixed(2)}`, pageW - margin, y, { align: 'right' })
+    y += 6
+
+    doc.setFont('helvetica', 'normal')
+    doc.text('Change Returned:', summaryX, y)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(22, 163, 74)
+    doc.text(`Rs. ${Number(order.changeReturned ?? 0).toFixed(2)}`, pageW - margin, y, { align: 'right' })
+    doc.setTextColor(...darkText)
+    y += 6
+  }
+
+  y += 10
 
   // ── Footer ──
   doc.setDrawColor(...midGray)

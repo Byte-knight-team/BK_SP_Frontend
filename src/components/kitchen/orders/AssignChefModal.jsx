@@ -97,14 +97,16 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           >
             Cancel
           </button>
-          <button
-            // Trigger the assignment (save to backend) and close the modal simultaneously
-            onClick={handleAssign}
-            disabled={isAssigning || !selectedChefId} //button disables when loading or no chef is selected
-            className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg transition-all hover:bg-orange-600 disabled:bg-gray-300"
-          >
-            {isAssigning ? 'Assigning...' : 'Assign'}
-          </button>
+          <span className={`flex-1 ${(isAssigning || !selectedChefId) ? 'cursor-not-allowed' : ''}`}>
+            <button
+              // Trigger the assignment (save to backend) and close the modal simultaneously
+              onClick={handleAssign}
+              disabled={isAssigning || !selectedChefId} //button disables when loading or no chef is selected
+              className="w-full rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg transition-all hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:pointer-events-none"
+            >
+              {isAssigning ? 'Assigning...' : 'Assign'}
+            </button>
+          </span>
         </div>
       </div>
     </div>

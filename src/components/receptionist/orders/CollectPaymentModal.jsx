@@ -66,7 +66,7 @@ const CollectPaymentModal = ({ isOpen, onClose, onConfirm, orderNumber, finalAmo
           <button
             onClick={() => onConfirm(cash)}
             disabled={isLoading || !isEnough}
-            className="flex-1 rounded-2xl bg-green-500 py-3 text-sm font-bold text-white disabled:bg-gray-300"
+            className="flex-1 rounded-2xl bg-green-500 py-3 text-sm font-bold text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Confirming...' : 'Confirm Payment'}
           </button>
