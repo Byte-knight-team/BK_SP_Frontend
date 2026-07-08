@@ -16,7 +16,12 @@ import OrderPipelineCard from '../../components/receptionist/dashboard/OrderPipe
 const ReceptionistDashboardPage = () => {
   const { setHeaderInfo } = useOutletContext()
   const { user } = useAuth()
+
   const [alertsRefreshKey, setAlertsRefreshKey] = useState(0)
+  const [ordersRefreshKey, setOrdersRefreshKey] = useState(0)
+  const [tablesRefreshKey, setTablesRefreshKey] = useState(0)
+  const [statsRefreshKey, setStatsRefreshKey] = useState(0)
+  const [reservationsRefreshKey, setReservationsRefreshKey] = useState(0)
 
   useEffect(() => {
     setHeaderInfo({
@@ -27,33 +32,56 @@ const ReceptionistDashboardPage = () => {
   }, [setHeaderInfo])
 
   const branchId = user?.branchId
-  const alertTopic = branchId ? `/topic/branch/${branchId}/alerts` : null
 
-  const handleKitchenAlert = useCallback((alert) => {
-    setAlertsRefreshKey(k => k + 1)
-    if (alert.type === 'CRITICAL') {
-      toast.error(`Kitchen CRITICAL: ${alert.message}`, { autoClose: 8000 })
-    } else if (alert.type === 'WARNING') {
-      toast.warning(`Kitchen WARNING: ${alert.message}`, { autoClose: 6000 })
-    } else {
-      toast.info(`Kitchen INFO: ${alert.message}`, { autoClose: 5000 })
+  // Single WebSocket connection — all branch-scoped topics
+  const topics = branchId ? [
+    `/topic/branch/${branchId}/alerts`,
+    `/topic/branch/${branchId}/order-status-update`,
+    `/topic/branch/${branchId}/kitchen-orders`,
+    `/topic/branch/${branchId}/table-update`,
+    `/topic/branch/${branchId}/reservation-update`,
+  ] : null
+
+  const handleMessage = useCallback((message, topic) => {
+    if (topic.endsWith('/alerts')) {
+      setAlertsRefreshKey(k => k + 1)
+      if (message.type === 'CRITICAL') {
+        toast.error(`Kitchen CRITICAL: ${message.message}`, { autoClose: 8000 })
+      } else if (message.type === 'WARNING') {
+        toast.warning(`Kitchen WARNING: ${message.message}`, { autoClose: 6000 })
+      } else {
+        toast.info(`Kitchen INFO: ${message.message}`, { autoClose: 5000 })
+      }
+    }
+
+    if (topic.endsWith('/order-status-update') || topic.endsWith('/kitchen-orders')) {
+      setOrdersRefreshKey(k => k + 1)
+      setStatsRefreshKey(k => k + 1)
+    }
+
+    if (topic.endsWith('/table-update')) {
+      setTablesRefreshKey(k => k + 1)
+    }
+
+    if (topic.endsWith('/reservation-update')) {
+      setReservationsRefreshKey(k => k + 1)
     }
   }, [])
 
-  useWebSocket(branchId, alertTopic, handleKitchenAlert)
+  useWebSocket(branchId, topics, handleMessage)
 
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50 p-4">
 
       {/* TOP — 6 KPI cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
-        <ReceptionistStats />
+        <ReceptionistStats refreshKey={statsRefreshKey} />
       </div>
 
       {/* MIDDLE — pipeline + revenue chart + pie chart */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <OrderPipelineCard />
+          <OrderPipelineCard refreshKey={ordersRefreshKey} />
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -72,11 +100,11 @@ const ReceptionistDashboardPage = () => {
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <TableGridCard />
+          <TableGridCard refreshKey={tablesRefreshKey} />
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <UpcomingReservationsCard />
+          <UpcomingReservationsCard refreshKey={reservationsRefreshKey} />
         </div>
       </div>
 
