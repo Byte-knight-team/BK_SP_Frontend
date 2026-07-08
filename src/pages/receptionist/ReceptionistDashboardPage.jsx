@@ -63,23 +63,23 @@ const ReceptionistDashboardPage = () => {
         </div>
       </div>
 
-      {/* TABLE GRID */}
+      {/* ORDER PIPELINE — full width */}
       <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <TableGridCard />
+        <OrderPipelineCard />
       </div>
 
-      {/* BOTTOM — alerts + reservations + pipeline */}
+      {/* BOTTOM — alerts + table grid + reservations */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <AlertsCard refreshKey={alertsRefreshKey} />
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <UpcomingReservationsCard />
+          <TableGridCard />
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <OrderPipelineCard />
+          <UpcomingReservationsCard />
         </div>
       </div>
 
