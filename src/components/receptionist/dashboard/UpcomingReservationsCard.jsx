@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react'
 import { CalendarDays, Clock, Users, CalendarOff } from 'lucide-react'
 import { getReservationsAPI } from '../../../apis/receptionist/reservations'
 
-const UpcomingReservationsCard = () => {
+const UpcomingReservationsCard = ({ refreshKey = 0 }) => {
   const [reservations, setReservations] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchReservations = async () => {
-      setLoading(true)
       const { data } = await getReservationsAPI()
       if (data) {
         const now = new Date()
@@ -21,9 +20,7 @@ const UpcomingReservationsCard = () => {
       setLoading(false)
     }
     fetchReservations()
-    const interval = setInterval(fetchReservations, 60000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [refreshKey])
 
   const formatTime = (dt) => {
     const d = new Date(dt)
