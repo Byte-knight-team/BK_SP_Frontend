@@ -47,6 +47,8 @@ const OrderManagementPage = () => {
   const [listRefreshKey, setListRefreshKey] = useState(0)
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false)
   const [alertsRefreshKey, setAlertsRefreshKey] = useState(0)
+  const [readyCount, setReadyCount] = useState(0)
+  const [holdCount, setHoldCount] = useState(0)
 
   // Refs so the stable WebSocket callback can read latest values
   const activeTabRef = useRef(activeTab)
@@ -65,6 +67,19 @@ const OrderManagementPage = () => {
   useEffect(() => {
     fetchOrders()
   }, [activeTab, listRefreshKey])
+
+  const fetchCounts = useCallback(async () => {
+    const [{ data: readyData }, { data: holdData }] = await Promise.all([
+      getReceptionistOrdersAPI('COMPLETED'),
+      getReceptionistOrdersAPI('ON_HOLD'),
+    ])
+    setReadyCount(readyData?.length ?? 0)
+    setHoldCount(holdData?.length ?? 0)
+  }, [])
+
+  useEffect(() => {
+    fetchCounts()
+  }, [])
 
   const fetchOrders = async () => {
     setIsLoading(true)
@@ -110,6 +125,8 @@ const OrderManagementPage = () => {
       toast.success(`Order ${msg.orderNumber} is ready — kitchen has completed all items.`, { autoClose: 6000 })
     }
 
+    fetchCounts()
+
     // Tab switch + detail refresh only for the currently selected order
     if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
       setDetailRefreshKey((prev) => prev + 1)
@@ -117,7 +134,7 @@ const OrderManagementPage = () => {
         setActiveTab('COMPLETED')
       }
     }
-  }, [])
+  }, [fetchCounts])
 
   useWebSocket(branchId, kitchenItemTopic, handleKitchenItemUpdate)
 
@@ -132,6 +149,8 @@ const OrderManagementPage = () => {
       toast.warning(`Kitchen put Order ${msg.orderNumber} on hold. Please check the Hold tab.`, { autoClose: 8000 })
     }
 
+    fetchCounts()
+
     // Tab switch + detail refresh only for the currently selected order
     if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
       setDetailRefreshKey((prev) => prev + 1)
@@ -139,7 +158,7 @@ const OrderManagementPage = () => {
         setActiveTab('ON_HOLD')
       }
     }
-  }, [])
+  }, [fetchCounts])
 
   useWebSocket(branchId, orderStatusTopic, handleOrderStatusUpdate)
 
@@ -201,7 +220,15 @@ const OrderManagementPage = () => {
                     : 'text-gray-400 hover:text-gray-600'
                   }`}
               >
-                {tab.label}
+                <span className="flex items-center justify-center gap-1">
+                  {tab.label}
+                  {tab.key === 'COMPLETED' && readyCount > 0 && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                  )}
+                  {tab.key === 'ON_HOLD' && holdCount > 0 && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  )}
+                </span>
               </button>
             ))}
           </div>

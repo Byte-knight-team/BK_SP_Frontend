@@ -78,19 +78,20 @@ const ReceptionistDashboardPage = () => {
         <ReceptionistStats refreshKey={statsRefreshKey} />
       </div>
 
-      {/* MIDDLE — pipeline + revenue chart + pie chart */}
+      {/* MIDDLE — revenue chart (2/3) + pie chart (1/3) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <OrderPipelineCard refreshKey={ordersRefreshKey} />
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="h-[340px] overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-2">
           <RevenueLineChart />
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="h-[340px] overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <OrderTypePieChart />
         </div>
+      </div>
+
+      {/* PIPELINE — full width */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <OrderPipelineCard refreshKey={ordersRefreshKey} />
       </div>
 
       {/* BOTTOM — alerts + table grid + reservations */}
