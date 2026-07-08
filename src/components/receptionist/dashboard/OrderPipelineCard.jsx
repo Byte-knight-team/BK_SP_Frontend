@@ -24,7 +24,7 @@ function PipelineColumn({ icon: Icon, label, color, bg, orders }) {
           {orders.length}
         </span>
       </div>
-      <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[180px] pr-0.5">
+      <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[280px] pr-0.5">
         {orders.length === 0 ? (
           <p className="py-3 text-center text-[10px] font-semibold text-gray-300">Empty</p>
         ) : (

@@ -50,22 +50,19 @@ const ReceptionistDashboardPage = () => {
         <ReceptionistStats />
       </div>
 
-      {/* MIDDLE — charts + table grid */}
+      {/* MIDDLE — pipeline + revenue chart + pie chart */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Revenue line chart — takes 2 cols */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-2">
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <OrderPipelineCard />
+        </div>
+
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <RevenueLineChart />
         </div>
 
-        {/* Pie chart */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <OrderTypePieChart />
         </div>
-      </div>
-
-      {/* ORDER PIPELINE — full width */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <OrderPipelineCard />
       </div>
 
       {/* BOTTOM — alerts + table grid + reservations */}
