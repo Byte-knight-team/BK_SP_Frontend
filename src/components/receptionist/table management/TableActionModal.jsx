@@ -154,7 +154,10 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
         {/* Guest count — available, reserved, or occupied */}
         {!showCancelSection && (isAvailable || isReserved || isOccupied) && (
           <div className="mb-5">
-            <label className="mb-3 block text-[10px] font-black uppercase tracking-widest text-gray-400">Number of Guests</label>
+            <div className="mb-3 flex items-center justify-between">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Number of Guests</label>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Max {table.capacity}</span>
+            </div>
             <div className="flex items-center justify-between rounded-2xl bg-gray-50 p-4">
               <button
                 onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
@@ -162,10 +165,14 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
               >
                 <ChevronDown size={20} />
               </button>
-              <span className="text-3xl font-black text-gray-800">{guestCount}</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-black text-gray-800">{guestCount}</span>
+                <span className="text-sm font-bold text-gray-400">/ {table.capacity}</span>
+              </div>
               <button
                 onClick={() => setGuestCount(Math.min(table.capacity, guestCount + 1))}
-                className="rounded-xl bg-white p-2 shadow-sm active:scale-90"
+                disabled={guestCount >= table.capacity}
+                className="rounded-xl bg-white p-2 shadow-sm active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 <ChevronUp size={20} />
               </button>
