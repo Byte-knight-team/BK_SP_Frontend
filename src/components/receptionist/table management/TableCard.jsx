@@ -113,8 +113,10 @@ const TableCard = ({ table, onClick }) => {
                         </span>
                       ) : isServed ? (
                         <span className="text-[10px] font-black uppercase text-gray-400">Served</span>
-                      ) : (
+                      ) : order.orderStatus === 'PREPARING' ? (
                         <span className="text-[10px] font-black uppercase text-amber-500">Preparing</span>
+                      ) : (
+                        <span className="text-[10px] font-black uppercase text-blue-400">Pending</span>
                       )}
                     </div>
                     {/* payment state */}

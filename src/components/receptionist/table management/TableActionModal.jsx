@@ -202,8 +202,10 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
                         </span>
                       ) : isServed ? (
                         <span className="font-black uppercase text-gray-400">Served</span>
-                      ) : (
+                      ) : o.orderStatus === 'PREPARING' ? (
                         <span className="font-black uppercase text-amber-500">Preparing</span>
+                      ) : (
+                        <span className="font-black uppercase text-blue-400">Pending</span>
                       )}
                     </div>
                     <div className="mt-1 flex items-center gap-1.5">
