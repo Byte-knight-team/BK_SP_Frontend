@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, LogOut, ChevronUp, ChevronDown, LayoutGrid, ClipboardList, Loader2, Lock, CalendarDays, Phone, Clock, XCircle } from 'lucide-react'
-import { occupyTableAPI, clearTableAPI } from '../../../apis/receptionist/tables'
+import { occupyTableAPI, updateGuestCountAPI, clearTableAPI } from '../../../apis/receptionist/tables'
 import { getTableReservationAPI, cancelReservationAPI } from '../../../apis/receptionist/reservations'
 import { toast } from 'react-toastify'
 
@@ -43,6 +43,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
     setLoading(true)
     let response
     if (actionType === 'OCCUPY') response = await occupyTableAPI(table.id, guestCount)
+    if (actionType === 'UPDATE_GUESTS') response = await updateGuestCountAPI(table.id, guestCount)
     if (actionType === 'CLEAR') response = await clearTableAPI(table.id)
     setLoading(false)
     if (response?.error) {
@@ -236,7 +237,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
             {isOccupied && (
               <>
                 <button
-                  onClick={() => handleAction('OCCUPY')}
+                  onClick={() => handleAction('UPDATE_GUESTS')}
                   disabled={loading}
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 disabled:opacity-50"
                 >
