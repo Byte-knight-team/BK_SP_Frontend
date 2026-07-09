@@ -1,37 +1,33 @@
 import OrderCard from "../OrderCard";
 import { useState, useEffect } from "react";
 import { getOrderCardsAPI } from "../../../apis/kitchen/orders";
+import { toast } from "react-toastify";
 
-const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
+const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId, refreshKey }) => {
   const [completedOrdersDetails, setCompletedOrdersDetails] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchCompletedOrdersDetails = async () => {
-      //enable loading
-      setLoading(true);
-      //api call
-      const { data, error } = await getOrderCardsAPI("COMPLETED");
-      //handle error
-      if (error) {
-        console.error("Error fetching stats details:", error);
-        return;
-      }
-      //handle success
-      if (data) {
-        setCompletedOrdersDetails(data);
-      }
-      //disable loading
-      setLoading(false);
-    };
+  const fetchCompletedOrders = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    const { data, error } = await getOrderCardsAPI("COMPLETED");
+    if (error) toast.error("Error fetching completed orders");
+    else if (data) setCompletedOrdersDetails(data);
+    if (showLoading) setLoading(false);
+  };
 
-    fetchCompletedOrdersDetails();
+  useEffect(() => {
+    fetchCompletedOrders(true);
   }, []);
+
+  // Silent background refresh — no loading flash, list stays visible while updating
+  useEffect(() => {
+    if (refreshKey > 0) fetchCompletedOrders(false);
+  }, [refreshKey]);
 
   if (loading) {
     return (
       <p className="animate-pulse py-8 text-center text-sm font-bold text-orange-400">
-        Loading...
+        Loading Completed Orders...
       </p>
     );
   }
@@ -45,13 +41,13 @@ const CompletedOrdersTab = ({ handleOrderClick, selectedOrderId }) => {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-2">
       {completedOrdersDetails.map((order) => (
         <OrderCard
           key={order.id}
           status={order.status}
           time={order.time}
-          id={`#ORD-${order.id}`}
+          id={order.orderNumber}
           numberOfItems={order.itemCount}
           onClick={() => handleOrderClick(order.id)}
           isSelected={order.id === selectedOrderId}

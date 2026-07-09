@@ -1,6 +1,7 @@
 import KitchenStatBar from "../KitchenStatBar";
 import { useState, useEffect } from "react";
 import { getInventoryAlertsAPI } from "../../../apis/kitchen/dashboard";
+import { toast } from "react-toastify";
 
 // BAR_COLORS Object
 const BAR_COLORS = {
@@ -33,7 +34,7 @@ const InventoryAlerts = () => {
       const { data, error } = await getInventoryAlertsAPI();
       //handle error
       if (error) {
-        console.error("Error fetching stats details:", error);
+        toast.error("Error fetching stats details:", error);
         return;
       }
       //handle success
@@ -80,7 +81,7 @@ const InventoryAlerts = () => {
           style={{
             color: "#4CAF50",
             backgroundColor: "lightgreen",
-            borderRadius: "30px",
+            borderRadius: "10px",
             padding: "5px",
           }}
         >

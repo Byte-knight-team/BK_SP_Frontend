@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
+import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2, Camera, Trash2, BarChart3 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import { useCart } from '../../context/CartContext';
-import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile } from '../../apis/customer/profile';
+import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile, createProfilePicturePresignUrl, updateProfilePictureKey, removeProfilePicture } from '../../apis/customer/profile';
+import { uploadFileToPresignedUrl } from '../../apis/customer/orders';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -15,42 +18,113 @@ export default function AccountPage() {
   const [editingSection, setEditingSection] = useState(null);
   const { clearCart } = useCart();
   
-  const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({});
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  
+  const fileInputRef = useRef(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  // 1. Fetch Profile on Load
+  const { data: profile, isLoading, error: queryError, refetch } = useQuery({
+    queryKey: ['customerProfile'],
+    queryFn: async () => {
+      const res = await getCustomerProfile();
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload?.message || 'Failed to load profile.');
+      return payload.data;
+    }
+  });
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await getCustomerProfile();
-        
-        const payload = await res.json().catch(() => ({}));
-        
-        if (!res.ok) {
-          throw new Error(payload?.message || 'Failed to load profile.');
-        }
-
-        setProfile(payload.data);
-        setFormData(payload.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
+    if (queryError) {
+      setError(queryError.message);
+    }
+    if (profile) {
+      setFormData(profile);
+      if (profile.profilePictureUrl) {
+        localStorage.setItem('customer_profile_pic', profile.profilePictureUrl);
+      } else {
+        localStorage.removeItem('customer_profile_pic');
       }
-    };
+      window.dispatchEvent(new Event('profile_picture_updated'));
+    }
+  }, [profile, queryError]);
 
-    fetchProfile();
-  }, []);
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validation
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('Profile picture must be under 5MB');
+      return;
+    }
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only JPG, PNG, and WEBP formats are supported');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      // 1. Get presigned URL
+      const presignRes = await createProfilePicturePresignUrl(file.name, file.type);
+      const presignPayload = await presignRes.json().catch(() => ({}));
+      if (!presignRes.ok) throw new Error(presignPayload?.message || 'Failed to get upload URL');
+
+      const { uploadUrl, objectKey } = presignPayload.data;
+
+      // 2. Upload to S3 directly
+      const uploadRes = await uploadFileToPresignedUrl(uploadUrl, file);
+      if (!uploadRes.ok) throw new Error('Failed to upload image to S3');
+
+      // 3. Update backend
+      const updateRes = await updateProfilePictureKey(objectKey);
+      const updatePayload = await updateRes.json().catch(() => ({}));
+      if (!updateRes.ok) throw new Error(updatePayload?.message || 'Failed to update profile picture');
+
+      // 4. Reload profile to get the new GET URL
+      await refetch();
+      toast.success('Profile picture updated successfully!');
+    } catch (err) {
+      toast.error(err.message || 'Failed to upload profile picture');
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemovePicture = async () => {
+    if (!profile?.profilePictureUrl) return;
+    
+    setIsUploadingImage(true);
+    try {
+      const res = await removeProfilePicture();
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.message || 'Failed to remove picture');
+      }
+      
+      await refetch();
+      toast.success('Profile picture removed');
+    } catch (err) {
+      toast.error(err.message || 'Failed to remove picture');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleEdit = (section) => {
     setError('');
-    setSuccessMsg('');
     setFormData(profile);
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     setEditingSection(section);
@@ -89,9 +163,9 @@ export default function AccountPage() {
         throw new Error(payload?.message || 'Failed to update profile.');
       }
 
-      setProfile(payload.data);
+      await refetch();
       setEditingSection(null);
-      setSuccessMsg('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       
       // If they changed their username, update local storage so the Navbar reflects it
       localStorage.setItem('customer_name', payload.data.username);
@@ -127,7 +201,7 @@ export default function AccountPage() {
       }
 
       setEditingSection(null);
-      setSuccessMsg('Password changed successfully!');
+      toast.success('Password changed successfully!');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -176,11 +250,6 @@ export default function AccountPage() {
             {error}
           </div>
         )}
-        {successMsg && (
-          <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {successMsg}
-          </div>
-        )}
 
         {/* Profile Card */}
         {profile && (
@@ -197,8 +266,45 @@ export default function AccountPage() {
                   <p className="text-xl font-bold text-slate-900">{profile.username}</p>
                   <p className="mt-1 text-xs text-slate-400">Member since {profile.memberSince}</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
-                  <User size={24} className="text-orange-500" />
+                <div className="flex flex-col items-end">
+                  <div 
+                    className="relative group cursor-pointer" 
+                    onClick={handleAvatarClick}
+                    title="Change profile picture"
+                  >
+                    <div className="flex h-16 w-16 overflow-hidden items-center justify-center rounded-full bg-orange-100 border-2 border-transparent group-hover:border-orange-300 transition-all shadow-sm">
+                      {isUploadingImage ? (
+                         <Loader2 size={24} className="text-orange-500 animate-spin" />
+                      ) : profile.profilePictureUrl ? (
+                         <img src={profile.profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
+                      ) : (
+                         <User size={28} className="text-orange-500" />
+                      )}
+                    </div>
+                    
+                    {/* Camera Icon Overlay on Hover */}
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera size={20} className="text-white" />
+                    </div>
+
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                  
+                  {/* Remove button if picture exists */}
+                  {profile.profilePictureUrl && !isUploadingImage && (
+                    <button 
+                      onClick={handleRemovePicture}
+                      className="flex items-center gap-1 mt-1 mr-2 text-[10px] font-medium text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 size={10} /> Remove
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -219,6 +325,14 @@ export default function AccountPage() {
                   Active
                 </span>
               </div>
+              
+              <button 
+                onClick={() => navigate('/statistics')}
+                className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              >
+                <BarChart3 size={18} className="text-slate-500" />
+                View Advanced Statistics
+              </button>
             </div>
 
             {/* Static Email Section*/}
@@ -235,9 +349,6 @@ export default function AccountPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="ml-3 flex-shrink-0 rounded-lg bg-slate-50 px-3 py-1.5 text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider border border-slate-200">
-                    Read Only
-                  </span>
                 </div>
               </div>
 

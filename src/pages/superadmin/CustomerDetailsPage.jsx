@@ -1,262 +1,308 @@
-// src/pages/superadmin/CustomerDetailsPage.jsx
-
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import {
   RiArrowLeftLine,
-  RiUserLine,
-  RiForbid2Line,
-  RiCheckboxCircleLine,
+  RiUserHeartLine,
+  RiMailLine,
+  RiPhoneLine,
   RiMapPinLine,
+  RiShieldCheckLine,
+  RiMoneyDollarCircleLine,
+  RiStarLine,
+  RiCalendarLine,
+  RiErrorWarningLine,
 } from "@remixicon/react";
 
-import { useAuth } from "../../context/AuthContext";
-import {
-  getCustomerByIdAPI,
-  activateCustomerAPI,
-  deactivateCustomerAPI,
-} from "../../apis/staff/customers";
+import { getCustomerByIdAPI } from "../../apis/staff/customers";
+import { showErrorToast } from "../../utils/toast";
 
 export default function CustomerDetailsPage() {
   const { id } = useParams();
-  const { user } = useAuth();
-
-  const userRole = user?.role || user?.roleName;
-  const isSuperAdmin = userRole === "SUPER_ADMIN";
-
-  const outletContext = useOutletContext() || {};
-  const { setPageTitle } = outletContext;
+  const { setHeaderInfo } = useOutletContext();
 
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [pageError, setPageError] = useState("");
 
   useEffect(() => {
-    setPageTitle?.("Customer Details");
-  }, [setPageTitle]);
-
-  useEffect(() => {
-    if (!isSuperAdmin) {
-      setLoading(false);
-      return;
-    }
-
-    loadCustomer();
-  }, [id, isSuperAdmin]);
-
-  async function loadCustomer() {
-    try {
-      setLoading(true);
-      setError("");
-
-      const data = await getCustomerByIdAPI(id);
-      setCustomer(data);
-    } catch (err) {
-      setError(err.message || "Failed to load customer details.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleToggleStatus() {
-    if (!customer) return;
-
-    const actionText = customer.active ? "deactivate" : "activate";
-
-    const confirmed = window.confirm(
-      `Are you sure you want to ${actionText} ${customer.fullName}?`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      setActionLoading(true);
-
-      if (customer.active) {
-        await deactivateCustomerAPI(customer.id);
-      } else {
-        await activateCustomerAPI(customer.id);
-      }
-
-      setCustomer((previousCustomer) => ({
-        ...previousCustomer,
-        active: !previousCustomer.active,
-      }));
-    } catch (err) {
-      alert(err.message || "Failed to update customer status.");
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  function formatDate(value) {
-    if (!value) return "-";
-
-    return new Date(value).toLocaleString("en-GB", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
+    setHeaderInfo({
+      title: "Customer Details",
+      description: "View customer account information.",
+      Icon: RiUserHeartLine,
     });
-  }
 
-  if (!isSuperAdmin) {
-    return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900">Access Denied</h2>
-        <p className="text-sm text-gray-500 mt-2">
-          Customer details are restricted to SUPER_ADMIN users.
-        </p>
-      </div>
-    );
-  }
+    return () => setHeaderInfo(null);
+  }, [setHeaderInfo]);
+
+  const loadCustomer = useCallback(async () => {
+    setLoading(true);
+    setPageError("");
+
+    const { data, error } = await getCustomerByIdAPI(id);
+
+    if (error) {
+      setPageError(error);
+      setCustomer(null);
+      showErrorToast(error);
+    } else {
+      setCustomer(data);
+    }
+
+    setLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    loadCustomer();
+  }, [loadCustomer]);
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm text-sm text-gray-500">
-        Loading customer details...
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          <CustomerDetailsState
+            Icon={RiUserHeartLine}
+            title="Loading customer details"
+            description="Please wait while the customer account information is loaded."
+            iconClassName="bg-gray-100 text-gray-600"
+            loading
+          />
+        </div>
       </div>
     );
   }
 
-  if (error) {
+  if (pageError) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm">
-        <p className="text-sm text-red-600">{error}</p>
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+          <BackToCustomerListLink />
 
-        <Link
-          to="/staff/customers"
-          className="inline-flex items-center gap-2 mt-4 text-sm font-medium text-gray-700 hover:text-gray-900"
-        >
-          <RiArrowLeftLine className="h-4 w-4" />
-          Back to Customers
-        </Link>
+          <CustomerDetailsState
+            Icon={RiErrorWarningLine}
+            title="Could not load customer details"
+            description={pageError}
+            iconClassName="bg-red-50 text-red-600"
+          />
+        </div>
       </div>
     );
   }
 
   if (!customer) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm text-sm text-gray-500">
-        Customer not found.
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+          <BackToCustomerListLink />
+
+          <CustomerDetailsState
+            Icon={RiUserHeartLine}
+            title="Customer not found"
+            description="The selected customer account could not be found."
+            iconClassName="bg-gray-100 text-gray-600"
+          />
+        </div>
       </div>
     );
   }
 
+  const isActive = isCustomerActive(customer);
+
   return (
-    <div className="space-y-6">
-      <Link
-        to="/staff/customers"
-        className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-      >
-        <RiArrowLeftLine className="h-4 w-4" />
-        Back to Customers
-      </Link>
+    <div className="max-w-5xl">
+      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <BackToCustomerListLink />
 
-      <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center">
-              <RiUserLine className="h-7 w-7 text-gray-700" />
+        <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h3 className="text-xl font-bold text-gray-900">
+                {customer.fullName || customer.username || "No customer name"}
+              </h3>
+
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  isActive
+                    ? "bg-green-50 text-green-700"
+                    : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {isActive ? "Active" : "Inactive"}
+              </span>
             </div>
 
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {customer.fullName}
-              </h1>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Customer ID: {customer.id}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            disabled={actionLoading}
-            onClick={handleToggleStatus}
-            className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-60 ${
-              customer.active
-                ? "bg-red-50 text-red-700 hover:bg-red-100"
-                : "bg-green-50 text-green-700 hover:bg-green-100"
-            }`}
-          >
-            {customer.active ? (
-              <RiForbid2Line className="h-4 w-4" />
-            ) : (
-              <RiCheckboxCircleLine className="h-4 w-4" />
-            )}
-
-            {customer.active ? "Deactivate Customer" : "Activate Customer"}
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-gray-900">
-            Customer Information
-          </h2>
-
-          <div className="mt-5 space-y-4">
-            <InfoRow label="Full Name" value={customer.fullName} />
-            <InfoRow label="Email" value={customer.email} />
-            <InfoRow label="Phone" value={customer.phone || "-"} />
-            <InfoRow
-              label="Status"
-              value={customer.active ? "Active" : "Inactive"}
-            />
-            <InfoRow label="Created At" value={formatDate(customer.createdAt)} />
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm">
-          <div className="flex items-center gap-2">
-            <RiMapPinLine className="h-5 w-5 text-gray-700" />
-            <h2 className="text-lg font-bold text-gray-900">
-              Saved Addresses
-            </h2>
-          </div>
-
-          {customer.addresses?.length > 0 ? (
-            <div className="mt-5 space-y-3">
-              {customer.addresses.map((address) => (
-                <div
-                  key={address.id}
-                  className="border border-gray-100 rounded-2xl p-4"
-                >
-                  <p className="text-sm font-semibold text-gray-900">
-                    {address.label || "Address"}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {address.addressLine}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {address.city}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500 mt-5">
-              No saved addresses available.
+            <p className="mt-1 text-sm text-gray-500">
+              @{customer.username || "no-username"} • Customer ID #
+              {customer.customerId || customer.id || "N/A"}
             </p>
-          )}
+          </div>
+
+          <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm font-medium text-orange-800">
+            View only. Customer details cannot be edited by Super Admin.
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <DetailCard
+            icon={RiMailLine}
+            label="Email"
+            value={customer.email || "No email"}
+          />
+
+          <DetailCard
+            icon={RiPhoneLine}
+            label="Phone"
+            value={customer.phone || "No phone"}
+          />
+
+          <DetailCard
+            icon={RiShieldCheckLine}
+            label="Email Verified"
+            value={customer.emailVerified ? "Yes" : "No"}
+          />
+
+          <DetailCard
+            icon={RiShieldCheckLine}
+            label="Phone Verified"
+            value={customer.phoneVerified ? "Yes" : "No"}
+          />
+
+          <DetailCard
+            icon={RiStarLine}
+            label="Loyalty Points"
+            value={`${customer.loyaltyPoints ?? 0} points`}
+          />
+
+          <DetailCard
+            icon={RiMoneyDollarCircleLine}
+            label="Total Spent"
+            value={formatMoney(customer.totalSpent)}
+          />
+
+          <DetailCard
+            icon={RiCalendarLine}
+            label="Created At"
+            value={formatDateTime(customer.createdAt)}
+          />
+
+          <DetailCard
+            icon={RiCalendarLine}
+            label="Updated At"
+            value={formatDateTime(customer.updatedAt)}
+          />
+
+          <DetailCard
+            icon={RiMapPinLine}
+            label="Address"
+            value={customer.address || "No address"}
+            wide
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function InfoRow({ label, value }) {
+function BackToCustomerListLink() {
   return (
-    <div className="flex flex-col gap-1 border-b border-gray-100 pb-3 last:border-b-0">
-      <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-        {label}
-      </span>
-      <span className="text-sm font-medium text-gray-800">{value}</span>
+    <div className="mb-6">
+      <Link
+        to="/staff/customers"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
+      >
+        <RiArrowLeftLine size={18} />
+        Back to customer list
+      </Link>
     </div>
   );
+}
+
+function CustomerDetailsState({
+  Icon,
+  title,
+  description,
+  iconClassName,
+  loading = false,
+}) {
+  return (
+    <div className="text-center">
+      <div
+        className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${iconClassName}`}
+      >
+        {loading ? (
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+        ) : (
+          <Icon size={24} />
+        )}
+      </div>
+
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function DetailCard({ icon: Icon, label, value, wide = false }) {
+  return (
+    <div
+      className={`rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 ${
+        wide ? "md:col-span-2" : ""
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
+          <Icon size={20} />
+        </div>
+
+        <div className="min-w-0">
+          <div className="text-xs font-bold uppercase tracking-wider text-gray-400">
+            {label}
+          </div>
+
+          <div className="mt-1 break-words text-sm font-semibold text-gray-900">
+            {value}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function isCustomerActive(customer) {
+  if (typeof customer?.active === "boolean") return customer.active;
+  if (typeof customer?.isActive === "boolean") return customer.isActive;
+  if (typeof customer?.enabled === "boolean") return customer.enabled;
+
+  const status = String(customer?.status || customer?.accountStatus || "")
+    .trim()
+    .toUpperCase();
+
+  if (status === "ACTIVE") return true;
+  if (status === "INACTIVE") return false;
+
+  return false;
+}
+
+function formatMoney(value) {
+  if (value === null || value === undefined || value === "") {
+    return "LKR 0";
+  }
+
+  return `LKR ${Number(value).toLocaleString()}`;
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return "Not available";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not available";
+  }
+
+  return date.toLocaleString();
 }

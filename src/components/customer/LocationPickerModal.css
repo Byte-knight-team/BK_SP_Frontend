@@ -1,0 +1,232 @@
+/* ══════════════════════════════════════════════
+   LocationPickerModal Styles
+   ══════════════════════════════════════════════ */
+
+/* ── Overlay ── */
+.location-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  animation: lpm-fade-in 0.2s ease-out;
+}
+
+@keyframes lpm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal Container ── */
+.location-picker-modal {
+  display: flex;
+  flex-direction: column;
+  width: 94vw;
+  max-width: 640px;
+  height: 85vh;
+  max-height: 700px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  animation: lpm-slide-up 0.25s ease-out;
+}
+
+@keyframes lpm-slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ── */
+.location-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.location-picker-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.location-picker-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #f5f5f5;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.location-picker-close-btn:hover {
+  background: #e8e8e8;
+}
+
+/* ── Map Wrapper ── */
+.location-picker-map-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Center Pin (fixed in the middle of the map) ── */
+.location-picker-center-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
+  transition: transform 0.15s ease;
+}
+
+/* ── Search Bar ── */
+.location-picker-search {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e5e7eb;
+}
+
+.location-picker-search-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.location-picker-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 12px 0;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.location-picker-search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* ── Locate Me Button ── */
+.location-picker-locate-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #ea580c;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.location-picker-locate-btn:hover {
+  background: #fff7f2;
+  transform: scale(1.06);
+}
+
+.location-picker-locate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Footer ── */
+.location-picker-footer {
+  padding: 14px 16px;
+  border-top: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.location-picker-address-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.location-picker-confirm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 0;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.location-picker-confirm-btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.location-picker-confirm-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Google Places dropdown styling ── */
+.pac-container {
+  border-radius: 12px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  margin-top: 4px !important;
+  font-family: 'Outfit', sans-serif !important;
+  z-index: 9999 !important; /* Ensure it floats above everything */
+}
+
+.pac-item {
+  padding: 10px 14px !important;
+  font-size: 0.88rem !important;
+  cursor: pointer !important;
+}
+
+.pac-item:hover {
+  background: #fff7f2 !important;
+}
+
+.pac-item-query {
+  font-size: 0.88rem !important;
+  color: #0f172a !important;
+}

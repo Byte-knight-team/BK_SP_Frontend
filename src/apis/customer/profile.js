@@ -17,3 +17,23 @@ export const updateCustomerPassword = async (payload) => {
     body: JSON.stringify(payload),
   });
 };
+
+export const createProfilePicturePresignUrl = async (fileName, contentType) => {
+  return customerAuthFetch('/api/v1/customer/profile/picture/presign', {
+    method: 'POST',
+    body: JSON.stringify({ fileName, contentType }),
+  });
+};
+
+export const updateProfilePictureKey = async (objectKey) => {
+  return customerAuthFetch('/api/v1/customer/profile/picture', {
+    method: 'PUT',
+    body: JSON.stringify({ objectKey }),
+  });
+};
+
+export const removeProfilePicture = async () => {
+  return customerAuthFetch('/api/v1/customer/profile/picture', {
+    method: 'DELETE',
+  });
+};

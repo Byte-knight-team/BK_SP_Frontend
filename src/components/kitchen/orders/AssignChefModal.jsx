@@ -1,28 +1,31 @@
 import { useState, useEffect } from 'react'
 import { UserPlus, X } from 'lucide-react'
 import { getAvailableChefsAPI } from '../../../apis/kitchen/orders'
+import { toast } from "react-toastify";
 
 const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
   // State to store the ID of the chef currently selected in the dropdown
-  const [selectedChefId, setSelectedChefId] = useState('')
+  const [selectedChefId, setSelectedChefId] = useState('');
 
-  const [loading, setLoading] = useState(false)
+  const [isFetchingChefs, setIsFetchingChefs] = useState(false);
+
+  const [isAssigning, setIsAssigning] = useState(false);
 
   // State to store the list of chefs fetched from the database
-  const [availableChefs, setAvailableChefs] = useState([])
+  const [availableChefs, setAvailableChefs] = useState([]);
 
   // Triggered whenever the modal opens to ensure we have the latest list of chefs
   useEffect(() => {
     if (isOpen) {
       const fetchChefs = async () => {
-        setLoading(true)
+        setIsFetchingChefs(true)
         const { data, error } = await getAvailableChefsAPI()
         if (data) {
           setAvailableChefs(data) // Store fetched chefs in state
         } else {
-          console.error('Failed to load chefs', error)
+          toast.error("Failed to load chefs");
         }
-        setLoading(false)
+        setIsFetchingChefs(false)
       }
       fetchChefs()
     }
@@ -31,10 +34,10 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
   // Function called when the "Assign" button is clicked
   const handleAssign = async () => {
     if (selectedChefId) {
-      setLoading(true)
+      setIsAssigning(true)
       // Passes the selected ID back to the parent component (SelectedOrder)
       await onAssign(selectedChefId)
-      setLoading(false)
+      setIsAssigning(false)
     }
   }
 
@@ -58,29 +61,30 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
         </div>
 
         <h3 className="mb-2 text-left text-xl font-bold text-gray-900">
-          Assign Chef
+          Assign Line Chef
         </h3>
         <p className="mb-6 text-left text-sm text-gray-400">
-          Select a chef for{' '}
+          Select a line chef for{' '}
           <span className="font-bold text-gray-900">"{mealName}"</span>
         </p>
 
-        {/* Chef Selection Dropdown */}
+        {/* Line Chef Selection Dropdown */}
         <select
           className="mb-8 w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
-          value={selectedChefId} // value = chef.staffId in each option tag
-          onChange={(e) => setSelectedChefId(e.target.value)} //that value set as the selectedChefId state
+          value={selectedChefId}
+          onChange={(e) => setSelectedChefId(e.target.value)}
         >
-          {/* default option */}
-          {availableChefs.length > 0 ? (
-            <option value="">Select a chef</option>
+          {isFetchingChefs ? (
+            <option value="">Loading line chefs...</option>
+          ) : availableChefs.length > 0 ? (
+            <option value="">Select a line chef</option>
           ) : (
-            <option value="">No chefs available</option>
+            <option value="">No line chefs available</option>
           )}
-          {/* map all available chefs. Loop through the chefs array to create dropdown options */}
+
           {availableChefs.map((chef) => (
             <option key={chef.staffId} value={chef.staffId}>
-              {chef.chefName} - ({chef.workStatus})
+              {chef.chefName} — {chef.activeItemCount > 0 ? `${chef.activeItemCount} active item${chef.activeItemCount > 1 ? 's' : ''}` : 'Available'}
             </option>
           ))}
         </select>
@@ -96,10 +100,10 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           <button
             // Trigger the assignment (save to backend) and close the modal simultaneously
             onClick={handleAssign}
-            disabled={loading || !selectedChefId} //button disables when loading or no chef is selected
-            className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 disabled:bg-gray-300"
+            disabled={isAssigning || !selectedChefId} //button disables when loading or no chef is selected
+            className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg transition-all hover:bg-orange-600 disabled:bg-gray-300"
           >
-            {loading ? 'Assigning...' : 'Assign'}
+            {isAssigning ? 'Assigning...' : 'Assign'}
           </button>
         </div>
       </div>
