@@ -96,21 +96,32 @@ const TableCard = ({ table, onClick }) => {
             <div className="flex flex-col gap-2">
               {table.activeOrders.map((order, idx) => {
                 const isPaid = order.paymentStatus === 'PAID'
+                const isServed = order.orderStatus === 'SERVED'
+                const readyCount = order.readyItemCount || 0
                 return (
                   <div
                     key={idx}
-                    className="flex items-center justify-between rounded-xl bg-white px-3 py-1.5 border border-orange-100 shadow-sm"
+                    className="rounded-xl bg-white px-3 py-2 border border-orange-100 shadow-sm"
                   >
-                    <div className="flex flex-col">
+                    {/* order number + serve state */}
+                    <div className="flex items-center justify-between gap-2">
                       <span className="text-[11px] font-black text-orange-600">{order.orderNumber}</span>
-                      {order.contactName && (
-                        <span className="text-[10px] text-gray-400">{order.contactName}</span>
+                      {readyCount > 0 ? (
+                        <span className="flex items-center gap-1 text-[10px] font-black uppercase text-green-600">
+                          <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                          {readyCount === 1 ? 'Ready to serve' : `${readyCount} items ready to serve`}
+                        </span>
+                      ) : isServed ? (
+                        <span className="text-[10px] font-black uppercase text-gray-400">Served</span>
+                      ) : (
+                        <span className="text-[10px] font-black uppercase text-amber-500">Preparing</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`h-2 w-2 rounded-full ${isPaid ? 'bg-green-500' : 'bg-orange-400'}`} />
-                      <span className={`text-[10px] font-black uppercase ${isPaid ? 'text-green-600' : 'text-orange-500'}`}>
-                        {isPaid ? 'Paid' : 'Pending'}
+                    {/* payment state */}
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full ${isPaid ? 'bg-green-500' : 'bg-amber-400'}`} />
+                      <span className={`text-[10px] font-bold ${isPaid ? 'text-green-600' : 'text-amber-600'}`}>
+                        {isPaid ? 'Paid' : `Rs. ${Number(order.finalAmount || 0).toFixed(2)} due`}
                       </span>
                     </div>
                   </div>

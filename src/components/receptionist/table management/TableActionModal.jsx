@@ -187,18 +187,34 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
               <ClipboardList size={14} /> Active Orders
             </div>
             <div className="flex flex-col gap-1.5">
-              {table.activeOrders.map((o, idx) => (
-                <div key={idx} className="flex items-center justify-between rounded-xl bg-white px-3 py-1.5 text-[11px]">
-                  <span className="font-black text-orange-600">{o.orderNumber}</span>
-                  {o.contactName && <span className="text-gray-400">{o.contactName}</span>}
-                  <div className="flex items-center gap-1">
-                    <span className={`h-1.5 w-1.5 rounded-full ${o.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-orange-400'}`} />
-                    <span className={`font-bold ${o.paymentStatus === 'PAID' ? 'text-green-600' : 'text-orange-500'}`}>
-                      {o.paymentStatus === 'PAID' ? 'Paid' : 'Pending'}
-                    </span>
+              {table.activeOrders.map((o, idx) => {
+                const isPaid = o.paymentStatus === 'PAID'
+                const isServed = o.orderStatus === 'SERVED'
+                const readyCount = o.readyItemCount || 0
+                return (
+                  <div key={idx} className="rounded-xl bg-white px-3 py-2 text-[11px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-black text-orange-600">{o.orderNumber}</span>
+                      {readyCount > 0 ? (
+                        <span className="flex items-center gap-1 font-black uppercase text-green-600">
+                          <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                          {readyCount === 1 ? 'Ready to serve' : `${readyCount} ready to serve`}
+                        </span>
+                      ) : isServed ? (
+                        <span className="font-black uppercase text-gray-400">Served</span>
+                      ) : (
+                        <span className="font-black uppercase text-amber-500">Preparing</span>
+                      )}
+                    </div>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full ${isPaid ? 'bg-green-500' : 'bg-amber-400'}`} />
+                      <span className={`font-bold ${isPaid ? 'text-green-600' : 'text-amber-600'}`}>
+                        {isPaid ? 'Paid' : `Rs. ${Number(o.finalAmount || 0).toFixed(2)} due`}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
