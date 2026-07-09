@@ -3,25 +3,13 @@ import { X, CalendarCheck, Search, AlertTriangle, Users, Clock } from 'lucide-re
 import { toast } from 'react-toastify'
 import { checkAvailabilityAPI, createReservationAPI } from '../../../apis/receptionist/reservations'
 
-const DURATION_OPTIONS = [
-  { value: 30, label: '30 min' },
-  { value: 60, label: '1 hour' },
-  { value: 90, label: '1.5 hours' },
-  { value: 120, label: '2 hours' },
-  { value: 150, label: '2.5 hours' },
-  { value: 180, label: '3 hours' },
-]
-
-const pad = (n) => String(n).padStart(2, '0')
-const toLocalIso = (d) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
 const fmtTime = (iso) =>
   iso ? new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
 
 const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
   const maxGuests = tables.length ? Math.max(...tables.map((t) => t.capacity || 0)) : 11
 
-  const [check, setCheck] = useState({ date: '', startTime: '', durationMinutes: 90, guestCount: 2 })
+  const [check, setCheck] = useState({ date: '', startTime: '', endTime: '', guestCount: 2 })
   const [checking, setChecking] = useState(false)
   const [result, setResult] = useState(null) // { possible, reason, earliestAllowed, tables }
 
@@ -36,18 +24,18 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
   const onCheckChange = (e) => setCheck((p) => ({ ...p, [e.target.name]: e.target.value }))
   const onReserveChange = (e) => setReserve((p) => ({ ...p, [e.target.name]: e.target.value }))
 
-  const buildSlot = () => {
-    const startDt = new Date(`${check.date}T${check.startTime}:00`)
-    const endDt = new Date(startDt.getTime() + Number(check.durationMinutes) * 60000)
-    return {
-      reservationTime: toLocalIso(startDt),
-      endTime: toLocalIso(endDt),
-      guestCount: Number(check.guestCount),
-    }
-  }
+  const buildSlot = () => ({
+    reservationTime: `${check.date}T${check.startTime}:00`,
+    endTime: `${check.date}T${check.endTime}:00`,
+    guestCount: Number(check.guestCount),
+  })
 
   const handleCheck = async (e) => {
     e.preventDefault()
+    if (check.endTime <= check.startTime) {
+      toast.error('End time must be after start time')
+      return
+    }
     setSelectedTableId(null)
     setBookError(null)
     const slot = buildSlot()
@@ -124,12 +112,8 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
               <input type="time" name="startTime" value={check.startTime} onChange={onCheckChange} required className={inputCls} />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">Duration</label>
-              <select name="durationMinutes" value={check.durationMinutes} onChange={onCheckChange} className={inputCls}>
-                {DURATION_OPTIONS.map((d) => (
-                  <option key={d.value} value={d.value}>{d.label}</option>
-                ))}
-              </select>
+              <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">End time</label>
+              <input type="time" name="endTime" value={check.endTime} onChange={onCheckChange} required className={inputCls} />
             </div>
           </div>
           <div>
