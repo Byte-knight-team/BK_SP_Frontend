@@ -34,6 +34,12 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   const isAvailable = table.status === 'AVAILABLE'
   const isOccupied = table.status === 'OCCUPIED'
 
+  // A table can only be cleared once every active order is served AND paid.
+  // (Held orders aren't in activeOrders — they're excluded, same as the backend rule.)
+  const canClear = (table.activeOrders || []).every(
+    (o) => o.orderStatus === 'SERVED' && o.paymentStatus === 'PAID'
+  )
+
   const formatTime = (dt) => {
     if (!dt) return ''
     return new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
@@ -245,11 +251,16 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
                 </button>
                 <button
                   onClick={() => handleAction('CLEAR')}
-                  disabled={loading}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 py-4 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  disabled={loading || !canClear}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 py-4 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
                 >
                   {loading ? <Loader2 className="animate-spin" size={18} /> : <><LogOut size={18} /> CLEAR TABLE</>}
                 </button>
+                {!canClear && (
+                  <p className="text-center text-[11px] font-semibold text-gray-400">
+                    Serve and collect payment for all orders before clearing.
+                  </p>
+                )}
               </>
             )}
           </div>
