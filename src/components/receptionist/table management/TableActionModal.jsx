@@ -6,7 +6,7 @@ import { toast } from 'react-toastify'
 
 const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   const [guestCount, setGuestCount] = useState(1)
-  const [loading, setLoading] = useState(false)
+  const [loadingAction, setLoadingAction] = useState(null) // which action is running: OCCUPY | UPDATE_GUESTS | CLEAR
   const [reservation, setReservation] = useState(null)
   const [showCancelSection, setShowCancelSection] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
@@ -46,12 +46,12 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   }
 
   const handleAction = async (actionType) => {
-    setLoading(true)
+    setLoadingAction(actionType)
     let response
     if (actionType === 'OCCUPY') response = await occupyTableAPI(table.id, guestCount)
     if (actionType === 'UPDATE_GUESTS') response = await updateGuestCountAPI(table.id, guestCount)
     if (actionType === 'CLEAR') response = await clearTableAPI(table.id)
-    setLoading(false)
+    setLoadingAction(null)
     if (response?.error) {
       toast.error(response.error)
     } else {
@@ -234,27 +234,27 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
             {(isAvailable || isReserved) && (
               <button
                 onClick={() => handleAction('OCCUPY')}
-                disabled={loading}
+                disabled={!!loadingAction}
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 hover:bg-orange-600 disabled:opacity-50"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : 'CONFIRM SEATING'}
+                {loadingAction === 'OCCUPY' ? <Loader2 className="animate-spin" size={18} /> : 'CONFIRM SEATING'}
               </button>
             )}
             {isOccupied && (
               <>
                 <button
                   onClick={() => handleAction('UPDATE_GUESTS')}
-                  disabled={loading}
+                  disabled={!!loadingAction}
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 disabled:opacity-50"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={18} /> : 'UPDATE GUEST COUNT'}
+                  {loadingAction === 'UPDATE_GUESTS' ? <Loader2 className="animate-spin" size={18} /> : 'UPDATE GUEST COUNT'}
                 </button>
                 <button
                   onClick={() => handleAction('CLEAR')}
-                  disabled={loading || !canClear}
+                  disabled={!!loadingAction || !canClear}
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 py-4 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={18} /> : <><LogOut size={18} /> CLEAR TABLE</>}
+                  {loadingAction === 'CLEAR' ? <Loader2 className="animate-spin" size={18} /> : <><LogOut size={18} /> CLEAR TABLE</>}
                 </button>
                 {!canClear && (
                   <p className="text-center text-[11px] font-semibold text-gray-400">
