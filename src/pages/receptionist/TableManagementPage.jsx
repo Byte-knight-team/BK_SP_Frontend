@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import { LayoutGrid, CalendarPlus, CalendarDays } from 'lucide-react'
 import TableCard from '../../components/receptionist/table management/TableCard'
 import TableActionModal from '../../components/receptionist/table management/TableActionModal'
-import ReservationModal from '../../components/receptionist/table management/ReservationModal'
+import ReservationBookingPanel from '../../components/receptionist/table management/ReservationBookingPanel'
 import ReservationsListModal from '../../components/receptionist/table management/ReservationsListModal'
 import { getBranchTablesAPI } from '../../apis/receptionist/tables'
 import { useAuth } from '../../context/AuthContext'
@@ -15,7 +15,7 @@ const TableManagementPage = () => {
   const { user } = useAuth()
   const [selectedTable, setSelectedTable] = useState(null)
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
-  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
+  const [isBookingOpen, setIsBookingOpen] = useState(false)
   const [isReservationsListOpen, setIsReservationsListOpen] = useState(false)
   const [tables, setTables] = useState([])
   const [loading, setLoading] = useState(true)
@@ -88,25 +88,47 @@ const TableManagementPage = () => {
           See Reservations
         </button>
         <button
-          onClick={() => setIsReservationModalOpen(true)}
-          className="flex items-center gap-2 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-orange-200"
+          onClick={() => setIsBookingOpen((v) => !v)}
+          className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-bold shadow-lg transition-colors ${
+            isBookingOpen
+              ? 'bg-orange-100 text-orange-700 shadow-orange-100'
+              : 'bg-orange-600 text-white shadow-orange-200'
+          }`}
         >
           <CalendarPlus size={16} />
-          Reserve
+          {isBookingOpen ? 'Close Booking' : 'Reserve'}
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {tables.map((table) => (
-          <TableCard
-            key={table.id}
-            table={table}
-            onClick={(t) => {
-              setSelectedTable(t)
-              setIsActionModalOpen(true)
-            }}
-          />
-        ))}
+      <div className="flex gap-4">
+        {/* Table grid — reflows from 4 cols to 3 when the booking panel is open */}
+        <div
+          className={`grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2 ${
+            isBookingOpen ? 'lg:grid-cols-2 xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'
+          }`}
+        >
+          {tables.map((table) => (
+            <TableCard
+              key={table.id}
+              table={table}
+              onClick={(t) => {
+                setSelectedTable(t)
+                setIsActionModalOpen(true)
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Inline booking panel — no blur, tables stay visible */}
+        {isBookingOpen && (
+          <div className="sticky top-4 self-start">
+            <ReservationBookingPanel
+              tables={tables}
+              onClose={() => setIsBookingOpen(false)}
+              onSuccess={() => fetchTables(false)}
+            />
+          </div>
+        )}
       </div>
 
       <TableActionModal
@@ -114,13 +136,6 @@ const TableManagementPage = () => {
         onClose={() => setIsActionModalOpen(false)}
         table={selectedTable}
         onUpdate={() => fetchTables(false)}
-      />
-
-      <ReservationModal
-        isOpen={isReservationModalOpen}
-        onClose={() => setIsReservationModalOpen(false)}
-        tables={tables}
-        onSuccess={() => fetchTables(false)}
       />
 
       <ReservationsListModal
