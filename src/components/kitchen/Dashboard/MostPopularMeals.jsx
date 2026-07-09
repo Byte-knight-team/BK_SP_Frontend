@@ -89,7 +89,7 @@ const MostPopularMeals = () => {
           //if backend pass empty dto array
           <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-8 text-center">
             <p className="text-sm font-medium text-gray-400">
-              No popular meals found in the last 24 hours.
+              No popular meals found in the last 7 days.
             </p>
           </div>
         )}
