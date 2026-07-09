@@ -17,6 +17,21 @@ export const createReservationAPI = async (data) => {
   }
 }
 
+export const checkAvailabilityAPI = async (data) => {
+  try {
+    const response = await authFetch(`${API_BASE}/check-availability`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    const result = await response.json()
+    if (!response.ok) return { data: null, error: result.message || 'Failed to check availability' }
+    return { data: result.data, error: null }
+  } catch (error) {
+    return { data: null, error: error.message }
+  }
+}
+
 export const getReservationsAPI = async () => {
   try {
     const response = await authFetch(API_BASE)
