@@ -1,118 +1,125 @@
-import React from 'react'
-import { Users, Armchair, Clock, CookingPot } from 'lucide-react'
+import { Armchair, Clock, CookingPot, Lock } from 'lucide-react'
+
+const STATUS_CONFIG = {
+  AVAILABLE: {
+    bg: 'bg-green-50',
+    border: 'border-green-200',
+    text: 'text-green-700',
+    dot: 'bg-green-500',
+    label: 'Available',
+  },
+  OCCUPIED: {
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    text: 'text-red-700',
+    dot: 'bg-red-500',
+    label: 'Occupied',
+  },
+  RESERVED: {
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
+    text: 'text-purple-700',
+    dot: 'bg-purple-500',
+    label: 'Reserved',
+  },
+}
 
 const TableCard = ({ table, onClick }) => {
-
-  // helper to format status colors and labels
-  const getStatusConfig = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'AVAILABLE':
-        return {
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          textColor: 'text-green-700',
-          badgeColor: 'bg-green-500',
-          label: 'Available',
-        }
-      case 'OCCUPIED':
-        return {
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200',
-          textColor: 'text-red-700',
-          badgeColor: 'bg-red-500',
-          label: 'Occupied',
-        }
-
-      default:
-        return {
-          bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200',
-          textColor: 'text-gray-700',
-          badgeColor: 'bg-gray-500',
-          label: 'Unknown',
-        }
-    }
+  const config = STATUS_CONFIG[table.status?.toUpperCase()] || {
+    bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700',
+    dot: 'bg-gray-400', label: 'Unknown',
   }
 
-  const config = getStatusConfig(table.status);
+  const formatTime = (dt) => {
+    if (!dt) return null
+    return new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+  }
 
-  // Simple helper to format the backend time string (e.g., '8:30 PM')
-  const formatTime = (dateTimeString) => {
-    if (!dateTimeString) return null;
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
+  const todayRes = table.todayReservation
 
   return (
     <div
       onClick={() => onClick(table)}
-      className={`cursor-pointer rounded-3xl border-2 ${config.borderColor} ${config.bgColor} p-4 transition-all hover:shadow-md`}
+      className={`cursor-pointer rounded-3xl border-2 ${config.border} ${config.bg} p-5 transition-all hover:shadow-md space-y-4`}
     >
-      {/* Top Row: Table Number & ID */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black tracking-widest text-gray-400 uppercase">
-            Table ID: #{table.id}
-          </span>
-          <h3 className={`text-2xl font-black ${config.textColor}`}>
-            Table {table.tableNumber}
-          </h3>
+      {/* Table number + status badge */}
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Table</p>
+          <h3 className={`text-3xl font-black ${config.text}`}>{table.tableNumber}</h3>
         </div>
-
-        {/* Current Guest Count / Capacity */}
-        <div className="flex items-center gap-2 rounded-xl bg-white/80 px-3 py-2 text-sm font-black text-gray-700 shadow-sm">
-          <Armchair size={18} />
-          <span>
-            {table.currentGuestCount} / {table.capacity}
-          </span>
-        </div>
-      </div>
-
-      {/* Main Status Badge */}
-      <div className="my-6 flex items-center gap-2">
-        <div className={`h-3 w-3 rounded-full ${config.badgeColor}`} />
-        <span
-          className={`text-base font-black tracking-tight uppercase ${config.textColor}`}
-        >
+        <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-tight ${config.text} bg-white/70`}>
+          {table.status?.toUpperCase() === 'RESERVED'
+            ? <Lock size={10} />
+            : <span className={`h-2 w-2 rounded-full ${config.dot}`} />}
           {config.label}
         </span>
       </div>
 
-      {/* Info Section: Shows Seating Details or Upcoming Bookings */}
-      <div className="space-y-4">
-
-        {/* Details for AVAILABLE tables */}
-        {table.status === 'AVAILABLE' && (
-          <div className="text-sm font-bold text-green-600 italic">
-            Ready to Seat
-          </div>
-        )}
-
-        {/* Details for OCCUPIED tables */}
-        {table.status === 'OCCUPIED' && (
-          <>
-            <div className="flex items-center gap-3 text-base font-bold text-gray-700">
-              <Users size={20} className="text-red-400" />
-              <span>{table.currentGuestCount} Guests Seated</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm font-bold text-gray-500">
-              <Clock size={18} />
-              {/* Show when the status was last changed */}
-              <span>Seated Since: {formatTime(table.statusUpdatedAt)}</span>
-            </div>
-          </>
+      {/* Guest count / capacity */}
+      <div className="flex items-center gap-2 rounded-2xl bg-white/70 px-4 py-3">
+        <Armchair size={16} className="text-gray-400" />
+        <span className="text-sm font-black text-gray-700">
+          {table.currentGuestCount}
+          <span className="font-medium text-gray-400"> / {table.capacity}</span>
+        </span>
+        <span className="ml-1 text-xs text-gray-400">guests</span>
+        {table.status === 'OCCUPIED' && table.statusUpdatedAt && (
+          <span className="ml-auto flex items-center gap-1 text-[10px] text-gray-400">
+            <Clock size={10} /> {formatTime(table.statusUpdatedAt)}
+          </span>
         )}
       </div>
 
-      {/* Footer: Order Indicator (if active orders exist) */}
-      <div className="mt-6 flex items-center">
-        {table.activeOrderCount > 0 && (
-          <div className="flex items-center gap-2">
-            <CookingPot size={20} className="text-orange-500" />
-            <span className="text-sm font-black text-orange-600">
-              {table.activeOrderCount} Active Orders
-            </span>
+      {/* Today's reservation badge */}
+      {todayRes && (
+        <div className="flex items-center gap-2 rounded-2xl border border-purple-100 bg-purple-50 px-4 py-2.5">
+          <Lock size={12} className="shrink-0 text-purple-500" />
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-purple-500">Reserved today</p>
+            <p className="truncate text-[11px] font-bold text-purple-700">
+              {formatTime(todayRes.reservationTime)} – {formatTime(todayRes.endTime)}
+            </p>
+            <p className="truncate text-[10px] text-purple-500">{todayRes.customerName}</p>
           </div>
+        </div>
+      )}
+
+      {/* Active orders */}
+      <div>
+        {table.activeOrders && table.activeOrders.length > 0 ? (
+          <div>
+            <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-orange-500">
+              <CookingPot size={12} />
+              Active Orders
+            </div>
+            <div className="flex flex-col gap-2">
+              {table.activeOrders.map((order, idx) => {
+                const isPaid = order.paymentStatus === 'PAID'
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between rounded-xl bg-white px-3 py-1.5 border border-orange-100 shadow-sm"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-black text-orange-600">{order.orderNumber}</span>
+                      {order.contactName && (
+                        <span className="text-[10px] text-gray-400">{order.contactName}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-2 w-2 rounded-full ${isPaid ? 'bg-green-500' : 'bg-orange-400'}`} />
+                      <span className={`text-[10px] font-black uppercase ${isPaid ? 'text-green-600' : 'text-orange-500'}`}>
+                        {isPaid ? 'Paid' : 'Pending'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs italic text-gray-300">No active orders</p>
         )}
       </div>
     </div>

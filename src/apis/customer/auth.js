@@ -29,3 +29,17 @@ export const registerCustomer = async (payload) => {
     body: JSON.stringify(payload),
   });
 };
+
+export const forgotPasswordCustomer = async (email) => {
+  return customerApiFetch('/api/v1/auth/customer/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+};
+
+export const resetPasswordCustomer = async (token, newPassword) => {
+  return customerApiFetch('/api/v1/auth/customer/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword }),
+  });
+};

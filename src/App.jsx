@@ -1,6 +1,9 @@
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
+import GlobalNotificationProvider from './context/GlobalNotificationProvider'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import './index.css'
@@ -21,6 +24,9 @@ import ManagerHeader from './components/manager/ManagerHeader'
 import KitchenSidebar from './components/kitchen/KitchenSidebar'
 import KitchenHeader from './components/kitchen/KitchenHeader'
 
+import LineChefSidebar from './components/line-chef/LineChefSidebar'
+import LineChefHeader from './components/line-chef/LineChefHeader'
+
 import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
 
@@ -35,7 +41,7 @@ import ProfilePage from './pages/ProfilePage'
 // Common protected route component
 import ProtectedRoute from './components/common/ProtectedRoute'
 
-// Super Admin / Member 01 pages
+// Super Admin
 import SuperAdminDashboardPage from './pages/superadmin/DashboardPage'
 import StaffListPage from './pages/superadmin/StaffListPage'
 import CreateStaffPage from './pages/superadmin/CreateStaffPage'
@@ -49,8 +55,8 @@ import SystemConfigPage from './pages/superadmin/SystemConfigPage'
 import AuditLogsPage from './pages/superadmin/AuditLogsPage'
 import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
-import CustomerListPage from './pages/superadmin/CustomerListPage'
-import CustomerDetailsPage from './pages/superadmin/CustomerDetailsPage'
+import CustomerManagement from "./pages/superadmin/CustomerManagement";
+import CustomerDetailsPage from "./pages/superadmin/CustomerDetailsPage";
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
@@ -85,12 +91,15 @@ import CheckoutPage from './pages/customer/CheckoutPage'
 import CardPaymentPage from './pages/customer/CardPaymentPage'
 import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'
 import CustomerLoginPage from './pages/customer/LoginPage'
+import ForgotPasswordPage from './pages/customer/ForgotPasswordPage'
+import ResetPasswordPage from './pages/customer/ResetPasswordPage'
 import SignupPersonalPage from './pages/customer/SignupPersonalPage'
 import SignupAddressPage from './pages/customer/SignupAddressPage'
 import MobileVerificationPage from './pages/customer/MobileVerificationPage'
 import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
+import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
 
@@ -99,24 +108,17 @@ import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
 import ChefsPage from './pages/kitchen/ChefsPage'
 import InventoryPage from './pages/kitchen/InventoryPage'
-import MenuAndRecipesPage from './pages/kitchen/MenuAndRecipesPage'
-import ApprovalsPage from './pages/kitchen/ApprovalsPage'
+import MenuItemPage from './pages/kitchen/MenuItemPage'
+
+// Line Chef pages
+import LineChefDashboard from './pages/line-chef/LineChefDashboard'
 
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
 import OrderManagementPage from './pages/receptionist/OrderManagementPage'
 
-function isTokenExpired(token) {
-  if (!token) return true
 
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
 
 // Customer / QR token cleanup only.
 function AuthGuard() {
@@ -138,24 +140,54 @@ function AuthGuard() {
       localStorage.removeItem('qr_session_token')
       localStorage.removeItem('qr_branch_id')
       localStorage.removeItem('qr_table_id')
+      
+      // Auto-logout customer when QR session drops
+      localStorage.removeItem('customer_jwt')
+      localStorage.removeItem('customer_role')
+      localStorage.removeItem('customer_user_id')
+      localStorage.removeItem('customer_name')
+      localStorage.removeItem('customer_profile_pic')
     }
   }, [location.pathname])
 
   return null
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+})
+
 function CustomerLayout() {
   return (
-    <CartProvider>
-      <AuthGuard />
-      <Outlet />
-    </CartProvider>
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <AuthGuard />
+        <GlobalNotificationProvider />
+        <Outlet />
+      </CartProvider>
+    </QueryClientProvider>
   )
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
 }
 
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
         <Route path="/staff/login" element={<StaffLoginPage />} />
@@ -197,8 +229,8 @@ export default function App() {
           <Route path="branches/:id" element={<BranchDetailsPage />} />
           <Route path="branches/:id/edit" element={<EditBranchPage />} />
 
-          <Route path="customers" element={<CustomerListPage />} />
-          <Route path="customers/:id" element={<CustomerDetailsPage />} />
+          <Route path="/staff/customers" element={<CustomerManagement />} />
+          <Route path="/staff/customers/:id" element={<CustomerDetailsPage />} />
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
@@ -320,7 +352,10 @@ export default function App() {
               </CustomerProtectedRoute>
             }
           />
+          {/* Customer Auth Pages */}
           <Route path="/login" element={<CustomerLoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/signup" element={<SignupPersonalPage />} />
           <Route path="/signup/address" element={<SignupAddressPage />} />
           <Route path="/signup/qr" element={<MobileVerificationPage />} />
@@ -336,6 +371,18 @@ export default function App() {
                 unauthenticatedRedirect="/login?redirect=/account"
               >
                 <AccountPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/statistics"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/statistics"
+                unauthenticatedRedirect="/login?redirect=/statistics"
+              >
+                <StatisticsPage />
               </CustomerProtectedRoute>
             }
           />
@@ -384,8 +431,7 @@ export default function App() {
           <Route path="orders" element={<KitchenOrdersPage />} />
           <Route path="chefs" element={<ChefsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
-          <Route path="menu" element={<MenuAndRecipesPage />} />
-          <Route path="approvals" element={<ApprovalsPage />} />
+          <Route path="menu" element={<MenuItemPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/kitchen" replace />} />
@@ -410,6 +456,21 @@ export default function App() {
           <Route path="*" element={<Navigate to="/receptionist" replace />} />
         </Route>
 
+        {/* LINE_CHEF area */}
+        <Route
+          path="/line-chef"
+          element={
+            <ProtectedRoute allowedRoles={['LINE_CHEF']}>
+              <MainLayout Sidebar={LineChefSidebar} Header={LineChefHeader} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<LineChefDashboard />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          <Route path="*" element={<Navigate to="/line-chef" replace />} />
+        </Route>
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -417,8 +478,12 @@ export default function App() {
         position="bottom-right"
         autoClose={4000}
         hideProgressBar={false} // Show the timer bar
+        newestOnTop
+        closeOnClick
         theme="colored" // Keep this for vibrant colors
         pauseOnHover={true} // Stop the timer if the mouse is over it
+        draggable
+        limit={3}
       />
     </>
   )

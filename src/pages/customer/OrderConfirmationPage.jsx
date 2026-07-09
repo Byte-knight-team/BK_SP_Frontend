@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -22,27 +23,31 @@ import {
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import ReviewModal from '../../components/customer/modal/ReviewModal';
+import { toast } from 'react-toastify';
 import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
+import useOrderStatusWebSocket from '../../hooks/useOrderStatusWebSocket';
 
 const BASE_STATUS_FLOW = [
-  { key: 'PLACED', label: 'Order Placed', icon: HandCoins, description: 'Order received' },
-  { key: 'PENDING', label: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
-  { key: 'PREPARING', label: 'Preparing', icon: ChefHat, description: 'At the kitchen' },
-  { key: 'COMPLETED', label: 'Order Prepared', icon: Soup, description: 'Finished preparing' },
+  { key: 'PLACED', label: 'Order Placed', shortLabel: 'Placed', icon: HandCoins, description: 'Order received' },
+  { key: 'PENDING', label: 'Confirmed', shortLabel: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
+  { key: 'PREPARING', label: 'Preparing', shortLabel: 'Preparing', icon: ChefHat, description: 'At the kitchen' },
+  { key: 'COMPLETED', label: 'Order Prepared', shortLabel: 'Prepared', icon: Soup, description: 'Finished preparing' },
 ];
 
 const DELIVERY_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck, description: 'On the way' },
-  { key: 'ARRIVED', label: 'Arrived', icon: MapPin, description: 'Reached location' },
-  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Delivered' },
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', shortLabel: 'Delivery', icon: Truck, description: 'On the way' },
+  { key: 'ARRIVED', label: 'Arrived', shortLabel: 'Arrived', icon: MapPin, description: 'Reached location' },
+  { key: 'SERVED', label: 'Served', shortLabel: 'Served', icon: Handshake, description: 'Delivered' },
 ];
 
 const PICKUP_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
-  { key: 'SERVED', label: 'Served', icon: Handshake, description: 'Ready for pickup' },
+  { key: 'SERVED', label: 'Served', shortLabel: 'Served', icon: Handshake, description: 'Ready for pickup' },
 ];
+
+
 
 function normalizeOrderType(orderType) {
   return String(orderType || '').toUpperCase();
@@ -54,6 +59,11 @@ function getStatusFlow(orderType) {
   }
 
   return PICKUP_STATUS_FLOW;
+}
+
+function isTerminalOrderStatus(status) {
+  const normalized = String(status || '').toUpperCase();
+  return ['SERVED', 'CANCELLED', 'REJECTED'].includes(normalized);
 }
 
 export default function OrderConfirmationPage() {
@@ -78,6 +88,7 @@ export default function OrderConfirmationPage() {
 
     let isMounted = true;
 
+    // Fetch latest order from backend and update local state
     const fetchOrder = async () => {
       try {
         const res = await getCustomerOrder(orderId);
@@ -89,11 +100,15 @@ export default function OrderConfirmationPage() {
 
         if (isMounted) {
           setOrder(payload.data || null);
+          setError('');
         }
+
+        return payload.data || null;
       } catch (err) {
         if (isMounted) {
           setError(err.message || 'Failed to load order details.');
         }
+        return null;
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -101,12 +116,52 @@ export default function OrderConfirmationPage() {
       }
     };
 
+    // When user focuses the tab or the page becomes visible, refresh once
+    const handleFocusRefresh = () => {
+      if (!document.hidden) {
+        fetchOrder();
+      }
+    };
+
     fetchOrder();
+
+    window.addEventListener('focus', handleFocusRefresh);
+    document.addEventListener('visibilitychange', handleFocusRefresh);
 
     return () => {
       isMounted = false;
+      window.removeEventListener('focus', handleFocusRefresh);
+      document.removeEventListener('visibilitychange', handleFocusRefresh);
     };
   }, [orderId]);
+
+  // Keep track of the last known status so we can trigger toasts reliably
+  const lastKnownStatus = useRef(null);
+
+  // Subscribe to real-time status updates via WebSocket
+  useOrderStatusWebSocket(orderId, (update) => {
+    if (update && update.orderStatus) {
+      setOrder((prev) => {
+        if (!prev) return prev;
+        // Don't update if the status is the same
+        if (prev.orderStatus === update.orderStatus) return prev;
+        return {
+          ...prev,
+          orderStatus: update.orderStatus,
+        };
+      });
+
+
+      lastKnownStatus.current = update.orderStatus;
+    }
+  });
+
+  // Also update the ref when the initial fetch completes so we don't toast on first load
+  useEffect(() => {
+    if (order?.orderStatus) {
+      lastKnownStatus.current = order.orderStatus;
+    }
+  }, [order?.orderStatus]);
 
   const orderType = normalizeOrderType(order?.orderType);
   const isDelivery = orderType === 'DELIVERY' || orderType === 'ONLINE_DELIVERY';
@@ -116,8 +171,10 @@ export default function OrderConfirmationPage() {
   const isReviewable = order?.orderStatus === 'SERVED' && !order?.isReviewed;
   const isCancellable = !isCancelled && ['PLACED', 'PENDING', 'ON_HOLD'].includes(order?.orderStatus);
 
+  // Pick the correct timeline for pickup vs delivery orders.
   const statusFlow = useMemo(() => getStatusFlow(orderType), [orderType]);
 
+  // Map the backend status to the current step in the visible timeline.
   const statusIndex = useMemo(() => {
     if (!order?.orderStatus) return 0;
     const normalizedStatus = String(order.orderStatus).toUpperCase();
@@ -126,6 +183,7 @@ export default function OrderConfirmationPage() {
     return idx === -1 ? 0 : idx;
   }, [order?.orderStatus, statusFlow]);
 
+  // Simple estimated window based on order creation time: +20 and +40 minutes
   const estimatedStart = new Date(order?.createdAt || Date.now());
   estimatedStart.setMinutes(estimatedStart.getMinutes() + 20);
   const estimatedEnd = new Date(order?.createdAt || Date.now());
@@ -205,7 +263,7 @@ export default function OrderConfirmationPage() {
           </button>
           <div>
             <p className="text-sm font-bold text-slate-900">Order #{order.orderNumber || order.orderId}</p>
-            {!isCancelled && <p className="text-xs text-slate-500">Est. delivery: {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}</p>}
+            {/*!isCancelled && <p className="text-xs text-slate-500">Est. delivery: {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}</p>*/}
           </div>
         </div>
         <div className="text-right">
@@ -214,37 +272,87 @@ export default function OrderConfirmationPage() {
               {isCancelled ? <XCircle size={32} /> : <CheckCircle2 size={32} />}
             </div>
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Confirmed'}</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Placed'}</h1>
           <p className="mt-1 text-xs text-slate-600">{isCancelled ? 'Cancelled order' : 'You will be notified of each step'}</p>
         </div>
       </div>
 
       {/* HORIZONTAL TIMELINE - Full Width */}
       {!isCancelled && (
-        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="relative">
-            <div className="absolute left-6 right-6 top-6 h-1 bg-slate-100" />
-            <div className="relative z-10 flex items-start justify-between">
+        <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:p-6 shadow-sm overflow-x-auto custom-scrollbar">
+          <div className="relative min-w-max sm:min-w-0 w-full">
+
+            {/* The Animated Timeline Icons & Connectors */}
+            <div className="relative z-10 flex items-start w-full">
               {statusFlow.map((step, index) => {
                 const StepIcon = step.icon;
-                const isDone = index < statusIndex;
-                const isActive = index === statusIndex;
+                const isDone = index <= statusIndex;
+                const isNextStep = index === statusIndex + 1;
+                const isLast = index === statusFlow.length - 1;
 
                 return (
-                  <div key={step.key} className="flex w-1/5 flex-col items-center text-center">
-                    <div
-                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full transition ${
-                        isDone ? 'bg-orange-500 text-white shadow-md' : isActive ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' : 'bg-white border border-slate-200 text-slate-300'
-                      }`}
+                  <div key={step.key} className="flex flex-1 flex-col items-center text-center relative min-w-[60px] sm:min-w-0 px-1">
+
+                    {/* Connector line to the next step */}
+                    {!isLast && (
+                      <div className="absolute left-1/2 top-[18px] sm:top-[24px] w-full h-1 bg-slate-100 rounded-full z-[-1] overflow-hidden">
+                        <motion.div
+                          initial={{ width: "0%" }}
+                          animate={{ width: isDone ? "100%" : "0%" }}
+                          transition={{ duration: 0.6, ease: "easeInOut" }}
+                          className="h-full bg-orange-500 rounded-full origin-left"
+                        />
+                      </div>
+                    )}
+
+                    {/* The "Popping" Icon */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{
+                        scale: isDone ? 1 : isNextStep ? 1.15 : 0.9,
+                        opacity: 1
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                        delay: index * 0.1
+                      }}
+                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center shrink-0 rounded-full transition-colors duration-500 ${isDone
+                        ? 'bg-orange-500 text-white shadow-md'
+                        : isNextStep
+                          ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg'
+                          : 'bg-white border border-slate-200 text-slate-300'
+                        }`}
                     >
                       <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
-                    </div>
-                    <p className="mt-2 text-[10px] sm:mt-3 sm:text-xs font-bold text-slate-900 leading-tight">{step.label}</p>
-                    <p className="mt-0.5 text-xs text-slate-500 hidden sm:block">{step.description}</p>
+                    </motion.div>
+
+                    {/* Label text */}
+                    <motion.div
+                      className="w-full"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + (index * 0.1) }}
+                    >
+                      {/* Mobile: slightly larger text, allowed to wrap */}
+                      <p className="mt-2 block sm:hidden w-full text-center text-[10px] font-bold text-slate-900 leading-tight break-words">
+                        {step.shortLabel || step.label}
+                      </p>
+                      {/* Desktop: full label, description */}
+                      <p className="mt-3 hidden sm:block text-xs font-bold text-slate-900 leading-tight">
+                        {step.label}
+                      </p>
+                      <p className="mt-1 text-[10px] text-slate-500 hidden sm:block">
+                        {step.description}
+                      </p>
+                    </motion.div>
+
                   </div>
                 );
               })}
             </div>
+
           </div>
         </div>
       )}
@@ -294,10 +402,10 @@ export default function OrderConfirmationPage() {
         <div className="flex flex-col gap-6">
           {/* Branch Details + Delivery Details */}
           <div className="flex flex-col gap-4">
-            {/* Branch Details */}
+            {/* Branch details show only when the order has a branch attached. */}
             {order.branchDetails && (
               <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-                <h4 className="mb-3 font-bold text-slate-900">Branch Details</h4>
+                <h4 className="mb-3 font-bold text-slate-900">{isPickup ? 'Pickup Details' : 'Branch Details'}</h4>
                 <p className="text-sm font-semibold text-slate-900">{order.branchDetails.name}</p>
                 <p className="mt-1 text-xs text-slate-600">{order.branchDetails.address}</p>
                 <div className="mt-3 space-y-1 text-xs text-slate-500">
@@ -309,7 +417,7 @@ export default function OrderConfirmationPage() {
 
             {/* Delivery/Personal Details */}
             <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-              <h4 className="mb-3 font-bold text-slate-900">{isDelivery ? 'Delivery Details' : isQr ? 'Table Details' : 'Pickup Details'}</h4>
+              <h4 className="mb-3 font-bold text-slate-900">{isDelivery ? 'Delivery Details' : isQr ? 'Table Details' : 'Customer Details'}</h4>
               <div className="space-y-3 text-sm text-slate-600">
                 {isDelivery && (
                   <div>
@@ -351,7 +459,7 @@ export default function OrderConfirmationPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Review is only available after serving; cancel is only available before processing starts. */}
           <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div className="space-y-2">
               <button
@@ -378,7 +486,7 @@ export default function OrderConfirmationPage() {
         </div>
       </div>
 
-      {/* STICKY BOTTOM BAR */}
+      {/* Sticky shortcuts keep the main navigation available */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/96 backdrop-blur-sm shadow-[0_-8px_30px_rgba(15,23,42,0.08)]">
         <div className="mx-auto flex w-full max-w-6xl gap-3 px-4 py-4 sm:px-6">
           <button

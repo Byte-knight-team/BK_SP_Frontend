@@ -1,6 +1,7 @@
 import { BarChart } from '../BarChart'
 import { getPeakHoursAPI } from '../../../apis/kitchen/dashboard'
 import { useState, useEffect } from 'react'
+import { toast } from "react-toastify";
 
 const PeakHoursChart = () => {
   const [graphData, setGraphData] = useState([])
@@ -14,7 +15,7 @@ const PeakHoursChart = () => {
       const { data, error } = await getPeakHoursAPI() //object destructuring
       //handle error
       if (error) {
-        console.error('Error fetching stats details:', error)
+        toast.error('Error fetching stats details:', error)
         return
       }
       //handle success
@@ -59,12 +60,6 @@ const PeakHoursChart = () => {
     )
   }
 
-  // Transform the data so it matches the label the user wants
-  const formattedData = graphData.map((item) => ({
-    ...item,
-    'Orders Count': item.ordersCount,
-  }))
-
   return (
     <>
       <div className="flex items-center justify-between">
@@ -74,13 +69,13 @@ const PeakHoursChart = () => {
 
       <div className="mt-2 w-full">
         <BarChart
-          data={formattedData}
-          index="time"
-          categories={['Orders Count']}
-          colors={['orange']}
-          showLegend={false}
-          showXAxis={false}
-          className="h-[300px]"
+          data={graphData} // array of objects to display as bars
+          index="time" // key used for X-axis labels (bottom of chart)
+          categories={['ordersCount']} // key used for bar heights (Y-axis values)
+          colors={['orange']} // bar color for each category
+          showLegend={false} // hide the legend (only one category, not needed)
+          showXAxis={false} // hide X-axis labels (time slot labels are too long)
+          className="h-[300px]" // chart height
         />
       </div>
     </>

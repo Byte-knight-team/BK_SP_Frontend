@@ -17,6 +17,7 @@ const HoldOrderModal = ({ isOpen, onClose, onConfirm }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+        {/* header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-red-50 p-2 text-red-500">
@@ -30,7 +31,7 @@ const HoldOrderModal = ({ isOpen, onClose, onConfirm }) => {
         </div>
 
         <p className="mt-4 text-sm text-gray-500 leading-relaxed">
-          Please provide a reason for putting this order on hold. This will be visible to the kitchen staff.
+          Please provide a reason for putting this order on hold. This will be visible to the kitchen and receptionist.
         </p>
 
         <div className="mt-6">
