@@ -35,36 +35,59 @@ const TableCard = ({ table, onClick }) => {
     return new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
   }
 
-  const todayReservations = table.todayReservations || []
+  const reservations = table.todayReservations || []
+  const sorted = [...reservations].sort(
+    (a, b) => new Date(a.reservationTime) - new Date(b.reservationTime)
+  )
+  const isReserved = table.status?.toUpperCase() === 'RESERVED'
+  const now = Date.now()
+  // Only reservations whose window hasn't finished yet, soonest first.
+  const liveReservations = sorted.filter((r) => new Date(r.endTime).getTime() >= now)
+  // A reserved table is held for its soonest live reservation ("this slot"); the rest are upcoming.
+  const activeReservation = isReserved ? liveReservations[0] || null : null
+  const upcomingReservations = isReserved ? liveReservations.slice(1) : liveReservations
 
   return (
     <div
       onClick={() => onClick(table)}
       className={`cursor-pointer rounded-3xl border-2 ${config.border} ${config.bg} p-5 transition-all hover:shadow-md space-y-4`}
     >
-      {/* Table number + status badge, with today's reservations directly under the status */}
+      {/* Left: table number + upcoming reservations. Right: status badge + the locked "this slot". */}
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Table</p>
           <h3 className={`text-3xl font-black ${config.text}`}>{table.tableNumber}</h3>
+
+          {upcomingReservations.length > 0 && (
+            <div className="mt-2 flex flex-col gap-0.5 rounded-xl border border-purple-100 bg-purple-50/70 px-2.5 py-1.5">
+              <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-purple-400">
+                <Clock size={9} /> Upcoming
+              </span>
+              {upcomingReservations.map((r) => (
+                <span key={r.reservationId} className="text-[10px] font-bold text-purple-600">
+                  {formatTime(r.reservationTime)} – {formatTime(r.endTime)}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
+
         <div className="flex flex-col items-end gap-1.5">
           <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-tight ${config.text} bg-white/70`}>
-            {table.status?.toUpperCase() === 'RESERVED'
+            {isReserved
               ? <Lock size={10} />
               : <span className={`h-2 w-2 rounded-full ${config.dot}`} />}
             {config.label}
           </span>
-          {todayReservations.length > 0 && (
-            <div className="flex flex-col items-end gap-0.5 rounded-xl border border-purple-100 bg-purple-50 px-2.5 py-1.5">
-              <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-purple-500">
-                <Lock size={9} /> Reserved
+
+          {isReserved && activeReservation && (
+            <div className="flex flex-col items-end gap-0.5 rounded-xl border border-purple-200 bg-purple-100/70 px-2.5 py-1.5 ring-1 ring-purple-200">
+              <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-purple-600">
+                <Lock size={9} /> This Slot
               </span>
-              {todayReservations.map((r) => (
-                <span key={r.reservationId} className="text-[10px] font-bold text-purple-700">
-                  {formatTime(r.reservationTime)} – {formatTime(r.endTime)}
-                </span>
-              ))}
+              <span className="text-[10px] font-black text-purple-800">
+                {formatTime(activeReservation.reservationTime)} – {formatTime(activeReservation.endTime)}
+              </span>
             </div>
           )}
         </div>

@@ -34,13 +34,11 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
     (a, b) => new Date(a.reservationTime) - new Date(b.reservationTime)
   )
   const now = Date.now()
-  const activeReservation =
-    sortedReservations.find((r) => new Date(r.reservationTime).getTime() >= now) ||
-    sortedReservations[0] ||
-    null
-  const upcomingReservations = sortedReservations.filter(
-    (r) => r.reservationId !== activeReservation?.reservationId
-  )
+  // Only reservations whose window hasn't finished yet, soonest first. The soonest live one is
+  // the slot the table is currently held for; anything after it is upcoming.
+  const liveReservations = sortedReservations.filter((r) => new Date(r.endTime).getTime() >= now)
+  const activeReservation = liveReservations[0] || null
+  const upcomingReservations = liveReservations.slice(1)
 
   // A table can only be cleared once every active order is served AND paid.
   // (Held orders aren't in activeOrders — they're excluded, same as the backend rule.)
@@ -49,7 +47,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   )
 
   const hasOrders = isOccupied && (table.activeOrders?.length || 0) > 0
-  const hasReservations = reservations.length > 0
+  const hasReservations = liveReservations.length > 0
   const showBoth = hasOrders && hasReservations
 
   const handleAction = async (actionType) => {
@@ -154,7 +152,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
       <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-purple-500">
         <CalendarClock size={12} /> Today's Reservations
       </p>
-      <div className="flex flex-col gap-2">{sortedReservations.map((r) => reservationCard(r))}</div>
+      <div className="flex flex-col gap-2">{liveReservations.map((r) => reservationCard(r))}</div>
     </div>
   )
 
