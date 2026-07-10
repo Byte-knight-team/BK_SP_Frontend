@@ -43,6 +43,32 @@ export const getReservationsAPI = async () => {
   }
 }
 
+export const getAllReservationsAPI = async () => {
+  try {
+    const response = await authFetch(`${API_BASE}/all`)
+    const result = await response.json()
+    if (!response.ok) return { data: null, error: result.message || 'Failed to fetch reservations' }
+    return { data: result.data, error: null }
+  } catch (error) {
+    return { data: null, error: error.message }
+  }
+}
+
+export const seatReservationAPI = async (reservationId, guestCount) => {
+  try {
+    const response = await authFetch(`${API_BASE}/${reservationId}/seat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guestCount }),
+    })
+    const result = await response.json()
+    if (!response.ok) return { data: null, error: result.message || 'Failed to seat reservation' }
+    return { data: result.data, error: null }
+  } catch (error) {
+    return { data: null, error: error.message }
+  }
+}
+
 export const getTableReservationAPI = async (tableId) => {
   try {
     const response = await authFetch(`${API_BASE}/table/${tableId}`)

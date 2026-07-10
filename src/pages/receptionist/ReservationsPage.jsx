@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, Fragment } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { CalendarCheck, CalendarDays } from 'lucide-react'
 import { toast } from 'react-toastify'
-import { getReservationsAPI, cancelReservationAPI } from '../../apis/receptionist/reservations'
+import { getAllReservationsAPI, cancelReservationAPI } from '../../apis/receptionist/reservations'
 import PremiumSelect from '../../components/receptionist/table management/PremiumSelect'
 
 const pad = (n) => String(n).padStart(2, '0')
@@ -15,6 +15,18 @@ const dateKey = (dt) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
+const STATUS_OPTIONS = [
+  { value: 'ALL', label: 'All statuses' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+]
+const STATUS_STYLES = {
+  PENDING: 'bg-blue-50 text-blue-600',
+  COMPLETED: 'bg-green-50 text-green-600',
+  CANCELLED: 'bg-gray-100 text-gray-400',
+}
+
 export default function ReservationsPage() {
   const { setHeaderInfo } = useOutletContext()
 
@@ -22,6 +34,7 @@ export default function ReservationsPage() {
   const [loading, setLoading] = useState(true)
   const [dateFilter, setDateFilter] = useState('ALL')
   const [tableFilter, setTableFilter] = useState('ALL')
+  const [statusFilter, setStatusFilter] = useState('ALL')
   const [cancelTargetId, setCancelTargetId] = useState(null)
   const [cancelReason, setCancelReason] = useState('')
   const [cancelLoading, setCancelLoading] = useState(false)
@@ -36,7 +49,7 @@ export default function ReservationsPage() {
 
   useEffect(() => {
     setLoading(true)
-    getReservationsAPI().then(({ data }) => {
+    getAllReservationsAPI().then(({ data }) => {
       setReservations(data || [])
       setLoading(false)
     })
@@ -64,10 +77,11 @@ export default function ReservationsPage() {
       .filter(
         (r) =>
           (dateFilter === 'ALL' || dateKey(r.reservationTime) === dateFilter) &&
-          (tableFilter === 'ALL' || r.tableNumber === tableFilter)
+          (tableFilter === 'ALL' || r.tableNumber === tableFilter) &&
+          (statusFilter === 'ALL' || r.status === statusFilter)
       )
       .sort((a, b) => new Date(b.reservationTime) - new Date(a.reservationTime))
-  }, [reservations, dateFilter, tableFilter])
+  }, [reservations, dateFilter, tableFilter, statusFilter])
 
   const handleCancel = async (id) => {
     if (!cancelReason.trim()) {
@@ -82,7 +96,7 @@ export default function ReservationsPage() {
       return
     }
     toast.success('Reservation cancelled')
-    setReservations((prev) => prev.filter((x) => x.id !== id))
+    setReservations((prev) => prev.map((x) => (x.id === id ? { ...x, status: 'CANCELLED' } : x)))
     setCancelTargetId(null)
     setCancelReason('')
   }
@@ -98,6 +112,9 @@ export default function ReservationsPage() {
         </div>
         <div className="w-40">
           <PremiumSelect value={tableFilter} onChange={setTableFilter} options={tableOptions} />
+        </div>
+        <div className="w-40">
+          <PremiumSelect value={statusFilter} onChange={setStatusFilter} options={STATUS_OPTIONS} />
         </div>
         <span className="ml-auto text-sm font-bold text-gray-400">
           {rows.length} reservation{rows.length !== 1 ? 's' : ''}
@@ -125,6 +142,7 @@ export default function ReservationsPage() {
                 <th className={`${th} text-center`}>Start</th>
                 <th className={`${th} text-center`}>End</th>
                 <th className={`${th} text-left`}>Note</th>
+                <th className={`${th} text-center`}>Status</th>
                 <th className={`${th} text-center`}>Actions</th>
               </tr>
             </thead>
@@ -147,18 +165,27 @@ export default function ReservationsPage() {
                     <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.endTime)}</td>
                     <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.notes || '—'}</td>
                     <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => { setCancelTargetId(r.id); setCancelReason('') }}
-                        className="rounded-lg border border-red-100 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-50"
-                      >
-                        Cancel
-                      </button>
+                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${STATUS_STYLES[r.status] || 'bg-gray-100 text-gray-400'}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {r.status === 'PENDING' ? (
+                        <button
+                          onClick={() => { setCancelTargetId(r.id); setCancelReason('') }}
+                          className="rounded-lg border border-red-100 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-50"
+                        >
+                          Cancel
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
                     </td>
                   </tr>
 
                   {cancelTargetId === r.id && (
                     <tr className="bg-red-50/40">
-                      <td colSpan={8} className="px-4 py-3">
+                      <td colSpan={9} className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <input
                             value={cancelReason}

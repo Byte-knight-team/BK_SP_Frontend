@@ -34,6 +34,10 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
 
   const handleCheck = async (e) => {
     e.preventDefault()
+    if (!check.date) {
+      toast.error('Please pick a date')
+      return
+    }
     if (check.endTime <= check.startTime) {
       toast.error('End time must be after start time')
       return
