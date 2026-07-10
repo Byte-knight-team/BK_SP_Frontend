@@ -1,19 +1,24 @@
 import { useState, useEffect } from 'react'
-import { X, LogOut, ChevronUp, ChevronDown, LayoutGrid, ClipboardList, Loader2, Lock, Phone, Clock, CalendarClock } from 'lucide-react'
+import { X, LogOut, ChevronUp, ChevronDown, LayoutGrid, ClipboardList, Loader2, Lock, Phone, Clock, CalendarClock, XCircle } from 'lucide-react'
 import { occupyTableAPI, updateGuestCountAPI, clearTableAPI } from '../../../apis/receptionist/tables'
-import { seatReservationAPI } from '../../../apis/receptionist/reservations'
+import { seatReservationAPI, cancelReservationAPI } from '../../../apis/receptionist/reservations'
 import { toast } from 'react-toastify'
 
 const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   const [guestCount, setGuestCount] = useState(1)
   const [loadingAction, setLoadingAction] = useState(null) // which action is running: OCCUPY | UPDATE_GUESTS | CLEAR | SEAT
   const [reservations, setReservations] = useState([])
+  const [cancelTargetId, setCancelTargetId] = useState(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelLoading, setCancelLoading] = useState(false)
 
   useEffect(() => {
     if (table) {
       setGuestCount(table.currentGuestCount > 0 ? table.currentGuestCount : 1)
       setReservations(table.todayReservations || [])
     }
+    setCancelTargetId(null)
+    setCancelReason('')
   }, [table, isOpen])
 
   if (!isOpen || !table) return null
@@ -80,6 +85,26 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
     }
   }
 
+  const handleCancelReservation = async (reservationId) => {
+    if (!cancelReason.trim()) {
+      toast.error('Please enter a reason')
+      return
+    }
+    setCancelLoading(true)
+    const { error } = await cancelReservationAPI(reservationId, cancelReason.trim())
+    setCancelLoading(false)
+    if (error) {
+      toast.error(error)
+      return
+    }
+    toast.success('Reservation cancelled')
+    // Drop it locally; onUpdate refreshes the grid (backend frees the table if it was the locked slot).
+    setReservations((prev) => prev.filter((r) => r.reservationId !== reservationId))
+    setCancelTargetId(null)
+    setCancelReason('')
+    onUpdate()
+  }
+
   const getTitle = () => {
     if (isReserved) return `Reserved — Table ${table.tableNumber}`
     if (isAvailable) return `Seating Table ${table.tableNumber}`
@@ -103,6 +128,40 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
       <div className="flex items-center gap-1.5 text-[11px] text-purple-600">
         <Clock size={11} /> {formatTime(r.reservationTime)} – {formatTime(r.endTime)}
       </div>
+
+      {cancelTargetId === r.reservationId ? (
+        <div className="space-y-2 pt-1">
+          <textarea
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="Reason for cancellation..."
+            rows={2}
+            className="w-full resize-none rounded-xl bg-white px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-red-300/30"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setCancelTargetId(null); setCancelReason('') }}
+              className="flex-1 rounded-xl border border-gray-200 bg-white py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
+            >
+              Back
+            </button>
+            <button
+              onClick={() => handleCancelReservation(r.reservationId)}
+              disabled={cancelLoading}
+              className="flex-1 rounded-xl bg-red-500 py-2 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+            >
+              {cancelLoading ? <Loader2 className="mx-auto animate-spin" size={14} /> : 'Confirm Cancel'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => { setCancelTargetId(r.reservationId); setCancelReason('') }}
+          className="flex items-center gap-1.5 pt-0.5 text-[11px] font-black uppercase tracking-wide text-red-500 hover:text-red-700"
+        >
+          <XCircle size={12} /> Cancel Reservation
+        </button>
+      )}
     </div>
   )
 
