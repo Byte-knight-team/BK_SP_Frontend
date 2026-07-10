@@ -116,6 +116,7 @@ import LineChefDashboard from './pages/line-chef/LineChefDashboard'
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
 import OrderManagementPage from './pages/receptionist/OrderManagementPage'
+import ReservationsPage from './pages/receptionist/ReservationsPage'
 
 
 
@@ -449,6 +450,7 @@ export default function App() {
           <Route index element={<ReceptionistDashboardPage />} />
           <Route path="tables" element={<ReceptionistTablePage />} />
           <Route path="orders" element={<OrderManagementPage />} />
+          <Route path="reservations" element={<ReservationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/receptionist" replace />} />

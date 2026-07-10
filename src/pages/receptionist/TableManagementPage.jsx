@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { LayoutGrid, CalendarPlus, CalendarDays } from 'lucide-react'
 import TableCard from '../../components/receptionist/table management/TableCard'
 import TableActionModal from '../../components/receptionist/table management/TableActionModal'
 import ReservationBookingPanel from '../../components/receptionist/table management/ReservationBookingPanel'
-import ReservationsListModal from '../../components/receptionist/table management/ReservationsListModal'
 import { getBranchTablesAPI } from '../../apis/receptionist/tables'
 import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
@@ -13,10 +12,10 @@ import useWebSocket from '../../hooks/useWebSocket'
 const TableManagementPage = () => {
   const { setHeaderInfo } = useOutletContext()
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [selectedTable, setSelectedTable] = useState(null)
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
   const [isBookingOpen, setIsBookingOpen] = useState(false)
-  const [isReservationsListOpen, setIsReservationsListOpen] = useState(false)
   const [tables, setTables] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -81,7 +80,7 @@ const TableManagementPage = () => {
       {/* Top bar */}
       <div className="mb-6 flex items-center justify-end gap-3">
         <button
-          onClick={() => setIsReservationsListOpen(true)}
+          onClick={() => navigate('/receptionist/reservations')}
           className="flex items-center gap-2 rounded-2xl border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-bold text-purple-700 hover:bg-purple-100 transition-colors"
         >
           <CalendarDays size={16} />
@@ -136,11 +135,6 @@ const TableManagementPage = () => {
         onClose={() => setIsActionModalOpen(false)}
         table={selectedTable}
         onUpdate={() => fetchTables(false)}
-      />
-
-      <ReservationsListModal
-        isOpen={isReservationsListOpen}
-        onClose={() => setIsReservationsListOpen(false)}
       />
     </div>
   )
