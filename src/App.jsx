@@ -30,8 +30,6 @@ import LineChefHeader from './components/line-chef/LineChefHeader'
 import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
 
-import DeliverySidebar from './components/delivery/DeliverySidebar'
-import DeliveryHeader from './components/delivery/DeliveryHeader'
 
 // Common staff auth pages
 import StaffLoginPage from './pages/auth/StaffLoginPage'
@@ -67,10 +65,6 @@ import ManagerStaffPage from './pages/manager/ManagerStaffPage'
 
 import ManagerReportsPage from './pages/manager/ManagerReportsPage'
 
-// Delivery pages
-import DeliveryLayout from './layouts/delivery/DeliveryLayout'
-import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
-import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -272,23 +266,6 @@ export default function App() {
         </Route>
 
 
-        {/* DELIVERY area */}
-        <Route
-          path="/delivery"
-          element={
-            <ProtectedRoute allowedRoles={['DELIVERY']}>
-              <DeliveryLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<DeliveryDashboardPage />} />
-          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
-          <Route path="history" element={<ComingSoonPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-
-          <Route path="*" element={<Navigate to="/delivery" replace />} />
-        </Route>
 
         {/* MANAGER area */}
         <Route
@@ -400,23 +377,6 @@ export default function App() {
           />
         </Route>
 
-        {/* DELIVERY area */}
-        <Route
-          path="/delivery"
-          element={
-            <ProtectedRoute allowedRoles={['DELIVERY']}>
-              <DeliveryLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<DeliveryDashboardPage />} />
-          <Route path="orders/:id" element={<DeliveryOrderDetailPage />} />
-          <Route path="history" element={<ComingSoonPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-
-          <Route path="*" element={<Navigate to="/delivery" replace />} />
-        </Route>
 
         {/* CHEF / KITCHEN area */}
         <Route
