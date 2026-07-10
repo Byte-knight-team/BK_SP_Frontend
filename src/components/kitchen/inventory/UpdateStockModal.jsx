@@ -24,7 +24,7 @@ const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQu
       return;
     }
     
-    // convert input to a number
+    // convert input to a number. (user can enter float values also)
     const numericQuantity = parseFloat(newQuantity);
 
     // check if it's greater than max stock
@@ -95,7 +95,7 @@ const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQu
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:bg-blue-700 disabled:bg-gray-300"
+            className={`flex-1 rounded-2xl ${loading ? "cursor-not-allowed" : "cursor-pointer"} bg-blue-600 py-4 text-sm font-bold text-white shadow-lg transition-all hover:bg-blue-700 disabled:bg-gray-300`}
           >
             {loading ? "Updating..." : "Update Stock"}
           </button>

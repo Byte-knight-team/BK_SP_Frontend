@@ -13,7 +13,8 @@ const getCompletedSteps = (status) => {
   }
 };
 
-const SimpleOrderStepper = ({ status = "PENDING" }) => {
+//Sets 'PENDING' as the fallback status if the prop is not provided or undefined
+const OrderStepper = ({ status = "PENDING" }) => {
   const completedSteps = getCompletedSteps(status);
 
   return (
@@ -67,4 +68,4 @@ const SimpleOrderStepper = ({ status = "PENDING" }) => {
   );
 };
 
-export default SimpleOrderStepper;
+export default OrderStepper;

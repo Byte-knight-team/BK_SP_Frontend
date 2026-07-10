@@ -1,66 +1,45 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, User, Mail, Phone, Lock } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
+import GlassBackground from '../../components/customer/GlassBackground';
+import { signupPersonalSchema } from '../../lib/validations/auth';
 
 export default function SignupPersonalPage() {
   const navigate = useNavigate();
   const location = useLocation();
-;
   const searchParams = new URLSearchParams(location.search);
   const redirectTo = searchParams.get('redirect') || '/menu';
   
-  //If the user clicked "Back" from the address page, grab their old data!
-  const [form, setForm] = useState(location.state?.personal || {
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(signupPersonalSchema),
+    defaultValues: location.state?.personal || {
+      fullName: '',
+      email: '',
+      phone: '',
+      password: '',
+    },
   });
-  
-  const [error, setError] = useState('');
 
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleNext = (e) => {
-    e.preventDefault();
-    setError('');
-
-    //Frontend Validation (Matches Spring Boot Regex exactly)
-    const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-    const phoneRegex = /^07\d{8}$/;
-
-    if (!emailRegex.test(form.email.trim())) {
-      setError('Please enter a valid email format.');
-      return;
-    }
-
-    if (!phoneRegex.test(form.phone.trim())) {
-      setError('Phone number must be exactly 10 digits and start with 07 (e.g., 0712345678).');
-      return;
-    }
-
-    if (!passwordRegex.test(form.password)) {
-      setError('Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.');
-      return;
-    }
-
-
-    // If it passes, move to stet 2
+  const onSubmit = (data) => {
+    // If it passes Zod validation, move to step 2
     navigate('/signup/address', { 
       state: { 
-        personal: form, 
+        personal: data, 
         redirect: redirectTo // Pass the baton!
       } 
     });
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f1ee] px-4 py-10">
-      <div className="mx-auto w-full max-w-[380px]">
+    <div className="relative min-h-screen bg-[#f3f1ee] px-4 py-10 overflow-hidden">
+      <GlassBackground />
+      <div className="relative z-10 mx-auto w-full max-w-[380px]">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -77,27 +56,19 @@ export default function SignupPersonalPage() {
             <p className="mt-2 text-sm text-orange-100">Step 1 of 2 - Personal Details</p>
           </div>
 
-          <form className="space-y-4 px-6 pb-8 pt-6" onSubmit={handleNext}>
-            {/* Display validation errors */}
-            {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[0.8rem] text-red-700">
-                {error}
-              </div>
-            )}
-
+          <form className="space-y-4 px-6 pb-8 pt-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">Full Name</label>
               <div className="relative">
                 <User size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  value={form.fullName}
-                  onChange={handleChange('fullName')}
+                  {...register('fullName')}
                   placeholder="Enter your full name"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
-                  required
                 />
               </div>
+              {errors.fullName && <p className="mt-1 text-xs text-red-600">{errors.fullName.message}</p>}
             </div>
 
             <div>
@@ -106,13 +77,12 @@ export default function SignupPersonalPage() {
                 <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="email"
-                  value={form.email}
-                  onChange={handleChange('email')}
+                  {...register('email')}
                   placeholder="your.email@example.com"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
-                  required
                 />
               </div>
+              {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -121,13 +91,12 @@ export default function SignupPersonalPage() {
                 <Phone size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="tel"
-                  value={form.phone}
-                  onChange={handleChange('phone')}
+                  {...register('phone')}
                   placeholder="07X XXX XXXX"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
-                  required
                 />
               </div>
+              {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>}
             </div>
 
             <div>
@@ -136,13 +105,12 @@ export default function SignupPersonalPage() {
                 <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="password"
-                  value={form.password}
-                  onChange={handleChange('password')}
+                  {...register('password')}
                   placeholder="Create a password"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
-                  required
                 />
               </div>
+              {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
             </div>
 
             <button

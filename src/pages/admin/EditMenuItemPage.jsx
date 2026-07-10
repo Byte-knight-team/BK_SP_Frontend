@@ -3,6 +3,7 @@ import {
   Search, Bell, HelpCircle, Settings, ArrowLeft, CheckCircle2, CircleDot
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import CloudinaryImageUpload from '../../components/admin/CloudinaryImageUpload';
 import {
   getMenuItemByIdAPI,
@@ -48,6 +49,7 @@ const mapStatusToVisibility = (status) => {
 export default function EditMenuItemPage() {
   const navigate = useNavigate();
   const { id: itemId } = useParams();
+  const queryClient = useQueryClient();
   const subCategoryWrapperRef = useRef(null);
 
   const [itemName, setItemName] = useState('');
@@ -250,6 +252,7 @@ export default function EditMenuItemPage() {
         imagePublicId: imageData.public_id,
       });
 
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       navigate('/admin/menu');
     } catch (error) {
       setApiError(error.message || 'Unable to update menu item.');
