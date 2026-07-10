@@ -216,7 +216,12 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
                         )}
                         {t.status === 'OCCUPIED' && (
                           <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-600">
-                            <Users size={10} /> Seated since {fmtTime(t.occupiedSince)} · {t.activeOrderCount} active order{t.activeOrderCount === 1 ? '' : 's'} — confirm they'll be done
+                            <Users size={10} /> Seated since {fmtTime(t.occupiedSince)} · {t.activeOrderCount} active order{t.activeOrderCount === 1 ? '' : 's'}
+                          </p>
+                        )}
+                        {t.status === 'OCCUPIED' && t.occupiedReservationEnd && (
+                          <p className="mt-0.5 flex items-center gap-1 text-[11px] text-amber-500">
+                            <Clock size={10} /> Reserved for {fmtTime(t.occupiedReservationStart)}–{fmtTime(t.occupiedReservationEnd)}
                           </p>
                         )}
                       </button>

@@ -52,8 +52,8 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   )
 
   const hasOrders = isOccupied && (table.activeOrders?.length || 0) > 0
-  const hasReservations = liveReservations.length > 0
-  const showBoth = hasOrders && hasReservations
+  const hasReservations = liveReservations.length > 0 // upcoming (PENDING) bookings today
+  const hasOngoing = !!table.seatedReservation        // the reservation this table is seated for
 
   const handleAction = async (actionType) => {
     setLoadingAction(actionType)
@@ -205,20 +205,45 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
     </div>
   )
 
-  // Generic "today's reservations" list — used for OCCUPIED tables that also have bookings later today.
-  const reservationsBlock = hasReservations && (
-    <div className="space-y-3">
+  // Today's upcoming (PENDING) bookings — each cancellable.
+  const upcomingBlock = hasReservations && (
+    <div className="space-y-2">
       <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-purple-500">
-        <CalendarClock size={12} /> Today's Reservations
+        <CalendarClock size={12} /> Upcoming Today
       </p>
       <div className="flex flex-col gap-2">{liveReservations.map((r) => reservationCard(r))}</div>
     </div>
   )
 
+  // The reservation this table is currently seated for (COMPLETED, so not in the upcoming list).
+  const ongoingBlock = hasOngoing && (
+    <div className="space-y-2">
+      <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-600">
+        <CalendarClock size={12} /> Ongoing
+      </p>
+      <div className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-bold text-amber-800">{table.seatedReservation.customerName}</p>
+        <div className="flex items-center gap-1.5 text-[11px] text-amber-600">
+          <Phone size={11} /> {table.seatedReservation.customerPhone}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-amber-600">
+          <Clock size={11} /> {formatTime(table.seatedReservation.reservationTime)} – {formatTime(table.seatedReservation.endTime)}
+        </div>
+      </div>
+    </div>
+  )
+
   // ---- Render ------------------------------------------------------------
 
-  // Reserved tables get their own split: the slot the table is locked for vs. the rest of today.
-  const useWideModal = showBoth || (isReserved && upcomingReservations.length > 0)
+  // Occupied layout uses two columns when there's content on two sides:
+  //  - orders + any reservation  → orders | reservations
+  //  - no orders, but ongoing + upcoming → upcoming | ongoing
+  // Otherwise a single centered column. Reserved tables split when there are later bookings too.
+  const hasAnyReservation = hasOngoing || hasReservations
+  const occupiedHasContent = isOccupied && (hasOrders || hasAnyReservation)
+  const occupiedTwoCol = isOccupied
+    && ((hasOrders && hasAnyReservation) || (!hasOrders && hasOngoing && hasReservations))
+  const useWideModal = occupiedTwoCol || (isReserved && upcomingReservations.length > 0)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
@@ -262,18 +287,34 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
               {activeReservation && reservationCard(activeReservation, true)}
             </div>
           )
-        ) : showBoth ? (
-          <div className="mb-5 grid grid-cols-2 gap-5">
-            <div>{ordersBlock}</div>
-            <div>{reservationsBlock}</div>
-          </div>
-        ) : (
-          (hasOrders || hasReservations) && (
-            <div className="mb-5">
-              {ordersBlock}
-              {reservationsBlock}
-            </div>
+        ) : isOccupied ? (
+          occupiedHasContent && (
+            hasOrders && hasAnyReservation ? (
+              // orders (left) | reservations: ongoing + upcoming (right)
+              <div className="mb-5 grid grid-cols-2 gap-5">
+                <div>{ordersBlock}</div>
+                <div className="space-y-4">
+                  {ongoingBlock}
+                  {upcomingBlock}
+                </div>
+              </div>
+            ) : !hasOrders && hasOngoing && hasReservations ? (
+              // no orders, but both: upcoming (left) | ongoing (right)
+              <div className="mb-5 grid grid-cols-2 gap-5">
+                <div>{upcomingBlock}</div>
+                <div>{ongoingBlock}</div>
+              </div>
+            ) : (
+              // single column — whichever one side has content
+              <div className="mb-5 space-y-4">
+                {hasOrders && ordersBlock}
+                {ongoingBlock}
+                {upcomingBlock}
+              </div>
+            )
           )
+        ) : (
+          hasReservations && <div className="mb-5">{upcomingBlock}</div>
         )}
 
         {/* Guest count — available, reserved, or occupied */}

@@ -1,4 +1,5 @@
-import { Armchair, Clock, CookingPot, Lock } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Armchair, Clock, CookingPot, Lock, CalendarClock } from 'lucide-react'
 
 const STATUS_CONFIG = {
   AVAILABLE: {
@@ -35,22 +36,35 @@ const TableCard = ({ table, onClick }) => {
     return new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
   }
 
+  // Re-render every 30s so "live" filtering and the overdue blink update without a manual refresh.
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000)
+    return () => clearInterval(id)
+  }, [])
+
   const reservations = table.todayReservations || []
   const sorted = [...reservations].sort(
     (a, b) => new Date(a.reservationTime) - new Date(b.reservationTime)
   )
+  const isOccupied = table.status?.toUpperCase() === 'OCCUPIED'
   const isReserved = table.status?.toUpperCase() === 'RESERVED'
-  const now = Date.now()
   // Only reservations whose window hasn't finished yet, soonest first.
   const liveReservations = sorted.filter((r) => new Date(r.endTime).getTime() >= now)
   // A reserved table is held for its soonest live reservation ("this slot"); the rest are upcoming.
   const activeReservation = isReserved ? liveReservations[0] || null : null
   const upcomingReservations = isReserved ? liveReservations.slice(1) : liveReservations
 
+  // Occupied-from-a-reservation: show its window; blink the border once the end time passes.
+  const seated = isOccupied ? table.seatedReservation : null
+  const seatedOverdue = seated && seated.endTime && now >= new Date(seated.endTime).getTime()
+
   return (
     <div
       onClick={() => onClick(table)}
-      className={`cursor-pointer rounded-3xl border-2 ${config.border} ${config.bg} p-5 transition-all hover:shadow-md space-y-4`}
+      className={`cursor-pointer rounded-3xl border-2 ${config.bg} p-5 transition-all hover:shadow-md space-y-4 ${
+        seatedOverdue ? 'border-red-400 ring-4 ring-red-300/60 animate-pulse' : config.border
+      }`}
     >
       {/* Left: table number + upcoming reservations. Right: status badge + the locked "this slot". */}
       <div className="flex items-start justify-between gap-2">
@@ -87,6 +101,21 @@ const TableCard = ({ table, onClick }) => {
               </span>
               <span className="text-[10px] font-black text-purple-800">
                 {formatTime(activeReservation.reservationTime)} – {formatTime(activeReservation.endTime)}
+              </span>
+            </div>
+          )}
+
+          {seated && (
+            <div className={`flex flex-col items-end gap-0.5 rounded-xl border px-2.5 py-1.5 ${
+              seatedOverdue ? 'border-red-300 bg-red-100/70 ring-1 ring-red-200' : 'border-amber-200 bg-amber-50'
+            }`}>
+              <span className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-widest ${
+                seatedOverdue ? 'text-red-600' : 'text-amber-600'
+              }`}>
+                <CalendarClock size={9} /> {seatedOverdue ? "Time's up" : 'For Reservation'}
+              </span>
+              <span className={`text-[10px] font-black ${seatedOverdue ? 'text-red-700' : 'text-amber-700'}`}>
+                {formatTime(seated.reservationTime)} – {formatTime(seated.endTime)}
               </span>
             </div>
           )}
