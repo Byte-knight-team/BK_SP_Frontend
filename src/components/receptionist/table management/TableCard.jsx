@@ -35,25 +35,39 @@ const TableCard = ({ table, onClick }) => {
     return new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
   }
 
-  const todayRes = table.todayReservation
+  const todayReservations = table.todayReservations || []
 
   return (
     <div
       onClick={() => onClick(table)}
       className={`cursor-pointer rounded-3xl border-2 ${config.border} ${config.bg} p-5 transition-all hover:shadow-md space-y-4`}
     >
-      {/* Table number + status badge */}
-      <div className="flex items-start justify-between">
+      {/* Table number + status badge, with today's reservations directly under the status */}
+      <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Table</p>
           <h3 className={`text-3xl font-black ${config.text}`}>{table.tableNumber}</h3>
         </div>
-        <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-tight ${config.text} bg-white/70`}>
-          {table.status?.toUpperCase() === 'RESERVED'
-            ? <Lock size={10} />
-            : <span className={`h-2 w-2 rounded-full ${config.dot}`} />}
-          {config.label}
-        </span>
+        <div className="flex flex-col items-end gap-1.5">
+          <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-tight ${config.text} bg-white/70`}>
+            {table.status?.toUpperCase() === 'RESERVED'
+              ? <Lock size={10} />
+              : <span className={`h-2 w-2 rounded-full ${config.dot}`} />}
+            {config.label}
+          </span>
+          {todayReservations.length > 0 && (
+            <div className="flex flex-col items-end gap-0.5 rounded-xl border border-purple-100 bg-purple-50 px-2.5 py-1.5">
+              <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-purple-500">
+                <Lock size={9} /> Reserved
+              </span>
+              {todayReservations.map((r) => (
+                <span key={r.reservationId} className="text-[10px] font-bold text-purple-700">
+                  {formatTime(r.reservationTime)} – {formatTime(r.endTime)}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Guest count / capacity */}
@@ -70,20 +84,6 @@ const TableCard = ({ table, onClick }) => {
           </span>
         )}
       </div>
-
-      {/* Today's reservation badge */}
-      {todayRes && (
-        <div className="flex items-center gap-2 rounded-2xl border border-purple-100 bg-purple-50 px-4 py-2.5">
-          <Lock size={12} className="shrink-0 text-purple-500" />
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-purple-500">Reserved today</p>
-            <p className="truncate text-[11px] font-bold text-purple-700">
-              {formatTime(todayRes.reservationTime)} – {formatTime(todayRes.endTime)}
-            </p>
-            <p className="truncate text-[10px] text-purple-500">{todayRes.customerName}</p>
-          </div>
-        </div>
-      )}
 
       {/* Active orders */}
       <div>

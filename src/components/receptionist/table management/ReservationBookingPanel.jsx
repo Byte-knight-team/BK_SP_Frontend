@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { X, CalendarCheck, Search, AlertTriangle, Users, Clock } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { checkAvailabilityAPI, createReservationAPI } from '../../../apis/receptionist/reservations'
+import PremiumSelect from './PremiumSelect'
+import PremiumDatePicker from './PremiumDatePicker'
+import TimePicker from './TimePicker'
 
 const fmtTime = (iso) =>
   iso ? new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
@@ -9,7 +12,7 @@ const fmtTime = (iso) =>
 const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
   const maxGuests = tables.length ? Math.max(...tables.map((t) => t.capacity || 0)) : 11
 
-  const [check, setCheck] = useState({ date: '', startTime: '', endTime: '', guestCount: 2 })
+  const [check, setCheck] = useState({ date: '', startTime: '18:00', endTime: '20:00', guestCount: 2 })
   const [checking, setChecking] = useState(false)
   const [result, setResult] = useState(null) // { possible, reason, earliestAllowed, tables }
 
@@ -21,7 +24,6 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
   // the checked slot times, reused when booking so the booking matches what was checked
   const [checkedSlot, setCheckedSlot] = useState(null) // { reservationTime, endTime, guestCount }
 
-  const onCheckChange = (e) => setCheck((p) => ({ ...p, [e.target.name]: e.target.value }))
   const onReserveChange = (e) => setReserve((p) => ({ ...p, [e.target.name]: e.target.value }))
 
   const buildSlot = () => ({
@@ -104,25 +106,29 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
         <form onSubmit={handleCheck} className="space-y-3">
           <div>
             <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">Date</label>
-            <input type="date" name="date" value={check.date} onChange={onCheckChange} required className={inputCls} />
+            <PremiumDatePicker value={check.date} onChange={(v) => setCheck((p) => ({ ...p, date: v }))} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">Start time</label>
-              <input type="time" name="startTime" value={check.startTime} onChange={onCheckChange} required className={inputCls} />
-            </div>
-            <div>
-              <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">End time</label>
-              <input type="time" name="endTime" value={check.endTime} onChange={onCheckChange} required className={inputCls} />
-            </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">Start time</label>
+            <TimePicker value={check.startTime} onChange={(v) => setCheck((p) => ({ ...p, startTime: v }))} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">End time</label>
+            <TimePicker value={check.endTime} onChange={(v) => setCheck((p) => ({ ...p, endTime: v }))} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">Guests</label>
-            <select name="guestCount" value={check.guestCount} onChange={onCheckChange} className={inputCls}>
-              {Array.from({ length: maxGuests }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>
-              ))}
-            </select>
+            <div className="w-32">
+              <PremiumSelect
+                compact
+                value={check.guestCount}
+                onChange={(n) => setCheck((p) => ({ ...p, guestCount: n }))}
+                options={Array.from({ length: maxGuests }, (_, i) => i + 1).map((n) => ({
+                  value: n,
+                  label: `${n} ${n === 1 ? 'guest' : 'guests'}`,
+                }))}
+              />
+            </div>
           </div>
           <button
             type="submit"

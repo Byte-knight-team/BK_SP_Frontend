@@ -1,38 +1,32 @@
 import { useState, useEffect } from 'react'
-import { X, LogOut, ChevronUp, ChevronDown, LayoutGrid, ClipboardList, Loader2, Lock, CalendarDays, Phone, Clock, XCircle } from 'lucide-react'
+import { X, LogOut, ChevronUp, ChevronDown, LayoutGrid, ClipboardList, Loader2, Lock, Phone, Clock, XCircle } from 'lucide-react'
 import { occupyTableAPI, updateGuestCountAPI, clearTableAPI } from '../../../apis/receptionist/tables'
-import { getTableReservationAPI, cancelReservationAPI } from '../../../apis/receptionist/reservations'
+import { cancelReservationAPI } from '../../../apis/receptionist/reservations'
 import { toast } from 'react-toastify'
 
 const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   const [guestCount, setGuestCount] = useState(1)
   const [loadingAction, setLoadingAction] = useState(null) // which action is running: OCCUPY | UPDATE_GUESTS | CLEAR
-  const [reservation, setReservation] = useState(null)
-  const [showCancelSection, setShowCancelSection] = useState(false)
+  const [reservations, setReservations] = useState([])
+  const [cancelTargetId, setCancelTargetId] = useState(null)
   const [cancelReason, setCancelReason] = useState('')
   const [cancelLoading, setCancelLoading] = useState(false)
 
   useEffect(() => {
     if (table) {
       setGuestCount(table.currentGuestCount > 0 ? table.currentGuestCount : 1)
+      setReservations(table.todayReservations || [])
     }
-    setShowCancelSection(false)
+    setCancelTargetId(null)
     setCancelReason('')
-    setReservation(null)
   }, [table, isOpen])
-
-  useEffect(() => {
-    if (!isOpen || !table) return
-    getTableReservationAPI(table.id).then(({ data }) => {
-      setReservation(data || null)
-    })
-  }, [isOpen, table])
 
   if (!isOpen || !table) return null
 
   const isReserved = table.status === 'RESERVED'
   const isAvailable = table.status === 'AVAILABLE'
   const isOccupied = table.status === 'OCCUPIED'
+  const isCancelling = cancelTargetId !== null
 
   // A table can only be cleared once every active order is served AND paid.
   // (Held orders aren't in activeOrders — they're excluded, same as the backend rule.)
@@ -67,14 +61,14 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
       return
     }
     setCancelLoading(true)
-    const { error } = await cancelReservationAPI(reservation.id, cancelReason.trim())
+    const { error } = await cancelReservationAPI(cancelTargetId, cancelReason.trim())
     setCancelLoading(false)
     if (error) {
       toast.error(error)
     } else {
       toast.success('Reservation cancelled')
-      setReservation(null)
-      setShowCancelSection(false)
+      setReservations((prev) => prev.filter((r) => r.reservationId !== cancelTargetId))
+      setCancelTargetId(null)
       setCancelReason('')
       onUpdate()
     }
@@ -104,62 +98,60 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
         <h3 className="text-xl font-bold text-gray-900">{getTitle()}</h3>
         <div className="mb-5 mt-4 h-px w-full bg-gray-100" />
 
-        {/* Reservation section — shown whenever this table has any upcoming reservation */}
-        {reservation && !showCancelSection && (
-          <div className="mb-5 rounded-2xl border border-purple-100 bg-purple-50 p-4 space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-purple-500">Reservation</p>
-            <p className="text-sm font-bold text-purple-800">{reservation.customerName}</p>
-            <div className="flex items-center gap-1.5 text-[11px] text-purple-600">
-              <Phone size={11} /> {reservation.customerPhone}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-purple-600">
-              <Clock size={11} />
-              {formatTime(reservation.reservationTime)} – {formatTime(reservation.endTime)}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-purple-600">
-              <CalendarDays size={11} />
-              {new Date(reservation.reservationTime).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
-            </div>
-            <button
-              onClick={() => setShowCancelSection(true)}
-              className="mt-1 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-red-500 hover:text-red-700"
-            >
-              <XCircle size={12} /> Cancel Reservation
-            </button>
-          </div>
-        )}
-
-        {/* Cancel reason input */}
-        {showCancelSection && (
+        {/* Today's reservations — all of them, full details, cancel per reservation */}
+        {reservations.length > 0 && (
           <div className="mb-5 space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-red-500">Cancel Reservation</p>
-            <textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Enter reason for cancellation..."
-              rows={3}
-              className="w-full rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-red-300/30 resize-none"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowCancelSection(false)}
-                className="flex-1 rounded-2xl border border-gray-200 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleCancelReservation}
-                disabled={cancelLoading}
-                className="flex-1 rounded-2xl bg-red-500 py-2 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
-              >
-                {cancelLoading ? <Loader2 className="mx-auto animate-spin" size={14} /> : 'Confirm Cancel'}
-              </button>
-            </div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-purple-500">Today's Reservations</p>
+            {reservations.map((r) => (
+              <div key={r.reservationId} className="rounded-2xl border border-purple-100 bg-purple-50 p-4 space-y-2">
+                <p className="text-sm font-bold text-purple-800">{r.customerName}</p>
+                <div className="flex items-center gap-1.5 text-[11px] text-purple-600">
+                  <Phone size={11} /> {r.customerPhone}
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] text-purple-600">
+                  <Clock size={11} /> {formatTime(r.reservationTime)} – {formatTime(r.endTime)}
+                </div>
+
+                {cancelTargetId === r.reservationId ? (
+                  <div className="space-y-2 pt-1">
+                    <textarea
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      placeholder="Reason for cancellation..."
+                      rows={2}
+                      className="w-full resize-none rounded-xl bg-white px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-red-300/30"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setCancelTargetId(null); setCancelReason('') }}
+                        className="flex-1 rounded-xl border border-gray-200 bg-white py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
+                      >
+                        Back
+                      </button>
+                      <button
+                        onClick={handleCancelReservation}
+                        disabled={cancelLoading}
+                        className="flex-1 rounded-xl bg-red-500 py-2 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+                      >
+                        {cancelLoading ? <Loader2 className="mx-auto animate-spin" size={14} /> : 'Confirm Cancel'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setCancelTargetId(r.reservationId); setCancelReason('') }}
+                    className="mt-1 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-red-500 hover:text-red-700"
+                  >
+                    <XCircle size={12} /> Cancel Reservation
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         )}
 
         {/* Guest count — available, reserved, or occupied */}
-        {!showCancelSection && (isAvailable || isReserved || isOccupied) && (
+        {!isCancelling && (isAvailable || isReserved || isOccupied) && (
           <div className="mb-5">
             <div className="mb-3 flex items-center justify-between">
               <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Number of Guests</label>
@@ -229,7 +221,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
         )}
 
         {/* Action buttons */}
-        {!showCancelSection && (
+        {!isCancelling && (
           <div className="space-y-3">
             {(isAvailable || isReserved) && (
               <button
