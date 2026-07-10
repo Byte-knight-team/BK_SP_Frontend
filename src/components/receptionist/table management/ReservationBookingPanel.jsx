@@ -203,9 +203,16 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
                           )}
                         </div>
                         {isReserved && (
-                          <p className="mt-1 flex items-center gap-1 text-[11px] text-red-500">
-                            <Clock size={10} /> Clashes with {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}
-                          </p>
+                          <>
+                            <p className="mt-1 flex items-center gap-1 text-[11px] text-red-500">
+                              <Clock size={10} /> Clashes with {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}
+                            </p>
+                            {t.gapConflict && (
+                              <p className="mt-0.5 text-[11px] font-semibold text-red-400">
+                                A 1-hour gap is required between two reservations
+                              </p>
+                            )}
+                          </>
                         )}
                         {t.status === 'OCCUPIED' && (
                           <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-600">
