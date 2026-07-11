@@ -15,6 +15,22 @@ export const getAllInventoryAPI = async () => {
   }
 };
 
+// get the logged-in chef's own inventory requests (with manager status)
+export const getMyInventoryRequestsAPI = async () => {
+  try {
+    const response = await authFetch("http://localhost:8080/api/v1/kitchen/inventory/my-requests");
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { data: null, error: result.message || "Failed to fetch requests" };
+    }
+
+    return { data: result.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
+
 // send a stock refill or new item request
 export const createInventoryRequestAPI = async (requestData) => {
   try {

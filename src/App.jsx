@@ -110,6 +110,7 @@ import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
 import ChefsPage from './pages/kitchen/ChefsPage'
 import InventoryPage from './pages/kitchen/InventoryPage'
+import InventoryRequestsPage from './pages/kitchen/InventoryRequestsPage'
 import MenuItemPage from './pages/kitchen/MenuItemPage'
 
 // Line Chef pages
@@ -435,6 +436,7 @@ export default function App() {
           <Route path="orders" element={<KitchenOrdersPage />} />
           <Route path="chefs" element={<ChefsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
+          <Route path="requests" element={<InventoryRequestsPage />} />
           <Route path="menu" element={<MenuItemPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
