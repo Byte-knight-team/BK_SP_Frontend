@@ -1,6 +1,7 @@
 import OrderCard from '../OrderCard'
 import { getOrderCardsAPI } from '../../../apis/kitchen/dashboard';
 import { useState, useEffect } from "react";
+import { CookingPot } from "lucide-react";
 import { toast } from "react-toastify";
 
 const PreparingOrders = () => {
@@ -48,22 +49,38 @@ const PreparingOrders = () => {
       }
 
   return (
-    <>
-      <h2 className="text-base font-bold text-gray-800">Preparing Orders</h2>
-      <div className="flex flex-col gap-2 h-[300px] overflow-y-auto pr-2">
-        {preparingOrdersDetails.map((order) => (
-          <OrderCard
-            key={order.id}
-            status={order.status}
-            time={order.time}
-            id={order.orderNumber}
-            numberOfItems={order.itemCount}
-            //by default order card is clickable, but here we are making it unclickable
-            isClickable={false}
-          />
-        ))}
+    <div className="flex h-full flex-col">
+      <div className="mb-4 flex items-center gap-2">
+        <div className="flex items-center justify-center rounded-xl bg-blue-50 p-2">
+          <CookingPot size={18} className="text-blue-500" />
+        </div>
+        <div>
+          <h2 className="text-sm font-bold text-gray-800">Preparing Orders</h2>
+          <p className="text-xs text-gray-400">Currently being cooked</p>
+        </div>
       </div>
-    </>
+
+      {preparingOrdersDetails.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-1 py-6 text-gray-300">
+          <CookingPot size={32} strokeWidth={1.2} />
+          <p className="text-xs font-medium">Nothing cooking right now</p>
+        </div>
+      ) : (
+        <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-2 min-h-0">
+          {preparingOrdersDetails.map((order) => (
+            <OrderCard
+              key={order.id}
+              status={order.status}
+              time={order.time}
+              id={order.orderNumber}
+              numberOfItems={order.itemCount}
+              //by default order card is clickable, but here we are making it unclickable
+              isClickable={false}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

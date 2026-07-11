@@ -1,5 +1,6 @@
 import KitchenStatBar from '../KitchenStatBar'
 import { useState, useEffect } from 'react'
+import { UtensilsCrossed } from 'lucide-react'
 import { getDashboardPopularMealsAPI } from '../../../apis/kitchen/dashboard'
 import { toast } from "react-toastify";
 
@@ -62,39 +63,45 @@ const MostPopularMeals = () => {
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold text-gray-800">
-          Most Popular Meals
-        </h2>
-        <span className="text-sm font-medium text-gray-400">Past 7 Days</span>
+    <div className="flex h-full flex-col">
+      <div className="mb-4 flex items-center gap-2">
+        <div className="flex items-center justify-center rounded-xl bg-amber-50 p-2">
+          <UtensilsCrossed size={18} className="text-amber-500" />
+        </div>
+        <div>
+          <h2 className="text-sm font-bold text-gray-800">Most Popular Meals</h2>
+          <p className="text-xs text-gray-400">Popular meals · past 7 days</p>
+        </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-2">
-        {/* 
+      {/*
         if Items available -> map
         else -> show no data available message
       */}
-        {popularMealsDetails.length > 0 ? (
-          popularMealsDetails.map((meal, index) => (
-            <KitchenStatBar
+      {popularMealsDetails.length > 0 ? (
+        <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-1 min-h-0">
+          {popularMealsDetails.map((meal, index) => (
+            <div
               key={index}
-              mealName={meal.mealName}
-              percentage={meal.percentage}
-              color={meal.color}
-              count={meal.count}
-            />
-          ))
-        ) : (
-          //if backend pass empty dto array
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-8 text-center">
-            <p className="text-sm font-medium text-gray-400">
-              No popular meals found in the last 7 days.
-            </p>
-          </div>
-        )}
-      </div>
-    </>
+              className="rounded-2xl border border-gray-100 bg-white p-3 [&>*]:mb-0"
+            >
+              <KitchenStatBar
+                mealName={meal.mealName}
+                percentage={meal.percentage}
+                color={meal.color}
+                count={meal.count}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        //if backend pass empty dto array
+        <div className="flex flex-1 flex-col items-center justify-center gap-1 py-6 text-gray-300">
+          <UtensilsCrossed size={32} strokeWidth={1.2} />
+          <p className="text-xs font-medium">No popular meals in the last 7 days</p>
+        </div>
+      )}
+    </div>
   )
 }
 

@@ -1,6 +1,7 @@
 import DashboardLineChart from '../../common/DashboardLineChart'
 import { getPeakHoursAPI } from '../../../apis/kitchen/dashboard'
 import { useState, useEffect } from 'react'
+import { TrendingUp } from 'lucide-react'
 import { toast } from "react-toastify";
 
 // Single orange line — orders approved (sent to kitchen) per time slot
@@ -64,13 +65,18 @@ const PeakHoursChart = () => {
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold text-gray-800">Peak Hours</h2>
-        <span className="text-sm font-medium text-gray-400">Past 7 Days</span>
+    <div className="flex h-full flex-col">
+      <div className="mb-4 flex items-center gap-2">
+        <div className="flex items-center justify-center rounded-xl bg-orange-50 p-2">
+          <TrendingUp size={18} className="text-orange-500" />
+        </div>
+        <div>
+          <h2 className="text-sm font-bold text-gray-800">Peak Hours</h2>
+          <p className="text-xs text-gray-400">Orders per slot · past 7 days</p>
+        </div>
       </div>
 
-      <div className="mt-2 h-[300px] w-full">
+      <div className="flex-1 min-h-0 w-full">
         <DashboardLineChart
           data={graphData}
           xKey="time" // time-slot labels on the X-axis
@@ -79,7 +85,7 @@ const PeakHoursChart = () => {
           showXAxis={true} // time slots are short enough to show on a line chart
         />
       </div>
-    </>
+    </div>
   )
 }
 
