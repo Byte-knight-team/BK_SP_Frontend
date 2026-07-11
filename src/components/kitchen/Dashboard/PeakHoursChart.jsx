@@ -1,7 +1,10 @@
-import { BarChart } from '../BarChart'
+import DashboardLineChart from '../../common/DashboardLineChart'
 import { getPeakHoursAPI } from '../../../apis/kitchen/dashboard'
 import { useState, useEffect } from 'react'
 import { toast } from "react-toastify";
+
+// Single orange line — orders approved (sent to kitchen) per time slot
+const PEAK_SERIES = [{ dataKey: 'ordersCount', name: 'Orders', color: '#f97316' }]
 
 const PeakHoursChart = () => {
   const [graphData, setGraphData] = useState([])
@@ -67,15 +70,13 @@ const PeakHoursChart = () => {
         <span className="text-sm font-medium text-gray-400">Past 7 Days</span>
       </div>
 
-      <div className="mt-2 w-full">
-        <BarChart
-          data={graphData} // array of objects to display as bars
-          index="time" // key used for X-axis labels (bottom of chart)
-          categories={['ordersCount']} // key used for bar heights (Y-axis values)
-          colors={['orange']} // bar color for each category
-          showLegend={false} // hide the legend (only one category, not needed)
-          showXAxis={false} // hide X-axis labels (time slot labels are too long)
-          className="h-[300px]" // chart height
+      <div className="mt-2 h-[300px] w-full">
+        <DashboardLineChart
+          data={graphData}
+          xKey="time" // time-slot labels on the X-axis
+          series={PEAK_SERIES} // single orders line
+          showLegend={false} // only one line
+          showXAxis={true} // time slots are short enough to show on a line chart
         />
       </div>
     </>
