@@ -3,6 +3,7 @@ import { Pencil, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import IngredientPicker from './IngredientPicker'
 import CloudinaryImageUpload from './CloudinaryImageUpload'
+import Dropdown from '../../common/Dropdown'
 
 // EditMenuItemModal — lets a chef edit their PENDING or REJECTED menu items
 // existingIngredients are pre-loaded by the parent when the chef clicks a card
@@ -117,17 +118,12 @@ const EditMenuItemModal = ({
             rows={2}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
           />
-          <select
-            name="categoryId"
+          <Dropdown
             value={form.categoryId}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-          >
-            <option value="">Select Category *</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setForm((prev) => ({ ...prev, categoryId: val }))}
+            options={categories.map((cat) => ({ value: String(cat.id), label: cat.name }))}
+            placeholder="Select Category *"
+          />
           <input
             type="text"
             name="subCategory"

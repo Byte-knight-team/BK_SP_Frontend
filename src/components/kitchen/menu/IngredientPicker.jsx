@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Trash2, FlaskConical } from 'lucide-react'
+import Dropdown from '../../common/Dropdown'
 
 // IngredientPicker — lets the chef build a recipe by linking inventory items with quantities
 // Props:
@@ -76,18 +77,15 @@ const IngredientPicker = ({ ingredients = [], inventoryItems = [], onChange }) =
       {/* Add new ingredient row */}
       <div className="flex gap-2">
         {/* Inventory item dropdown */}
-        <select
-          value={selectedItemId}
-          onChange={(e) => setSelectedItemId(e.target.value)}
-          className="flex-1 px-3 py-2.5 bg-gray-50 rounded-xl text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-        >
-          <option value="">Select ingredient</option>
-          {inventoryItems.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name} ({item.unit})
-            </option>
-          ))}
-        </select>
+        <div className="min-w-0 flex-1">
+          <Dropdown
+            value={selectedItemId}
+            onChange={setSelectedItemId}
+            options={inventoryItems.map((item) => ({ value: String(item.id), label: `${item.name} (${item.unit})` }))}
+            placeholder="Select ingredient"
+            compact
+          />
+        </div>
 
         {/* Quantity input */}
         <input

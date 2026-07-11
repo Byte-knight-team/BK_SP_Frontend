@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, UtensilsCrossed, Tag, Clock, FlaskConical, Pencil, Trash2, Plus, Check } from 'lucide-react'
 import { saveMenuItemIngredientsAPI, updateMenuItemAPI } from '../../../apis/kitchen/menu'
 import { toast } from 'react-toastify'
+import Dropdown from '../../common/Dropdown'
 
 // Status badge color map
 const STATUS_STYLES = {
@@ -352,18 +353,15 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
         {/* ── Add ingredient row — fixed below scroll, never clipped ──── */}
         <div className="flex gap-2 mb-4">
           {/* Only show inventory items not already in the recipe */}
-          <select
-            value={selectedItemId}
-            onChange={(e) => setSelectedItemId(e.target.value)}
-            className="flex-1 min-w-0 rounded-xl bg-gray-50 px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-          >
-            <option value="">Select ingredient</option>
-            {availableInventoryItems.map((inv) => (
-              <option key={inv.id} value={inv.id}>
-                {inv.name} ({inv.unit})
-              </option>
-            ))}
-          </select>
+          <div className="min-w-0 flex-1">
+            <Dropdown
+              value={selectedItemId}
+              onChange={setSelectedItemId}
+              options={availableInventoryItems.map((inv) => ({ value: String(inv.id), label: `${inv.name} (${inv.unit})` }))}
+              placeholder="Select ingredient"
+              compact
+            />
+          </div>
 
           <input
             type="number"
