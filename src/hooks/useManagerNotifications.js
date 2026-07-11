@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { ManagerNotificationService } from '../apis/manager/ManagerNotificationService'
 import useWebSocket from './useWebSocket'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 export function useManagerNotifications() {
   const [notifications, setNotifications] = useState([])
