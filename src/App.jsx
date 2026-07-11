@@ -170,13 +170,11 @@ const queryClient = new QueryClient({
 
 function CustomerLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <AuthGuard />
-        <GlobalNotificationProvider />
-        <Outlet />
-      </CartProvider>
-    </QueryClientProvider>
+    <CartProvider>
+      <AuthGuard />
+      <GlobalNotificationProvider />
+      <Outlet />
+    </CartProvider>
   )
 }
 
@@ -192,7 +190,7 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
@@ -500,6 +498,6 @@ export default function App() {
         draggable
         limit={3}
       />
-    </>
+    </QueryClientProvider>
   )
 }
