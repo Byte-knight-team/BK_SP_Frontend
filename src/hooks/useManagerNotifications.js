@@ -43,7 +43,11 @@ export function useManagerNotifications() {
     // When a ping comes in from the backend, fetch the latest unread notifications
     // We can also trigger a toast so the manager immediately notices it
     if (payload?.message === 'NEW_NOTIFICATION') {
-       toast.success("New notification received!", { id: 'manager-notification-ping' })
+       const toastMsg = payload.type === 'CHEF_REQUEST' 
+          ? "New chef request received" 
+          : "New completed order ready to dispatch"
+       
+       toast.success(toastMsg, { id: 'manager-notification-ping' })
        fetchNotifications()
     }
   })
