@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Settings,
   Search,
@@ -42,8 +43,14 @@ const normalizeStatus = (status) => {
 export default function MenuManagementPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
 
-  const [menuItems, setMenuItems] = useState([]);
+  const { data: menuItems = [], isLoading, error: queryError } = useQuery({
+    queryKey: ['menuItems'],
+    queryFn: getMenuItemsAPI,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [subCategoryOptions, setSubCategoryOptions] = useState([]);
   const [activeCategory, setActiveCategory] = useState('');
@@ -65,8 +72,6 @@ export default function MenuManagementPage() {
       setStatusFilter('ALL');
     }
   }, [searchParams]);
-
-  const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState('');
   const [togglingItemId, setTogglingItemId] = useState(null);
   const [decisionItemId, setDecisionItemId] = useState(null);
@@ -164,24 +169,7 @@ export default function MenuManagementPage() {
     return () => { isMounted = false; };
   }, [activeCategory, categoryOptions]);
 
-  // Load menu items
-  const loadMenuItems = useCallback(async () => {
-    setIsLoading(true);
-    setApiError('');
-
-    try {
-      const items = await getMenuItemsAPI();
-      setMenuItems(items);
-    } catch (error) {
-      setApiError(error.message || 'Unable to load menu items.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadMenuItems();
-  }, [loadMenuItems]);
+  // Remove manual loadMenuItems since useQuery handles it
 
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter((item) => {
@@ -242,17 +230,18 @@ export default function MenuManagementPage() {
         status: nextStatus,
       });
 
-      setMenuItems((prev) =>
-        prev.map((entry) =>
+      queryClient.setQueryData(['menuItems'], (old) =>
+        old?.map((entry) =>
           entry.id === item.id
             ? {
                 ...entry,
                 ...(updatedItem || {}),
                 status: (updatedItem?.status || nextStatus).toUpperCase(),
               }
-            : entry,
-        ),
+            : entry
+        )
       );
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
     } catch (error) {
       setApiError(error.message || 'Unable to update item status.');
     } finally {
@@ -268,13 +257,14 @@ export default function MenuManagementPage() {
       const action = await approveMenuItemAPI(item.id, {});
       const nextStatus = normalizeStatus(action?.type) || 'ACTIVE';
 
-      setMenuItems((prev) =>
-        prev.map((entry) =>
+      queryClient.setQueryData(['menuItems'], (old) =>
+        old?.map((entry) =>
           entry.id === item.id
             ? { ...entry, status: nextStatus, isAvailable: nextStatus === 'ACTIVE' }
-            : entry,
-        ),
+            : entry
+        )
       );
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
     } catch (error) {
       setApiError(error.message || 'Unable to approve item.');
     } finally {
@@ -301,13 +291,14 @@ export default function MenuManagementPage() {
       const action = await rejectMenuItemAPI(item.id, reason.trim());
       const nextStatus = normalizeStatus(action?.type) || 'REJECTED';
 
-      setMenuItems((prev) =>
-        prev.map((entry) =>
+      queryClient.setQueryData(['menuItems'], (old) =>
+        old?.map((entry) =>
           entry.id === item.id
             ? { ...entry, status: nextStatus, isAvailable: false }
-            : entry,
-        ),
+            : entry
+        )
       );
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
     } catch (error) {
       setApiError(error.message || 'Unable to reject item.');
     } finally {

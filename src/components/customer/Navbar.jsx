@@ -35,7 +35,8 @@ export default function Navbar() {
     isLoggedIn: false,
     isQrCustomer: false,
     userName: '',
-    profilePic: ''
+    profilePic: '',
+    tableId: null
   });
 
   useEffect(() => {
@@ -52,7 +53,8 @@ export default function Navbar() {
       isLoggedIn: Boolean(localStorage.getItem('customer_jwt')),
       isQrCustomer: Boolean(localStorage.getItem('qr_session_token')),
       userName: localStorage.getItem('customer_name') || '',
-      profilePic: localStorage.getItem('customer_profile_pic') || ''
+      profilePic: localStorage.getItem('customer_profile_pic') || '',
+      tableId: getQrSessionClaim('table_id')
     });
     setIsMenuOpen(false);
 
@@ -76,7 +78,7 @@ export default function Navbar() {
     // Wipe the cart memory!
     clearCart();
 
-    setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '', profilePic: '' });
+    setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '', profilePic: '', tableId: auth.tableId });
     navigate('/');
   };
 
@@ -105,7 +107,7 @@ export default function Navbar() {
     localStorage.removeItem('customer_profile_pic');
 
     clearCart();
-    setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '', profilePic: '' });
+    setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '', profilePic: '', tableId: null });
     navigate('/');
   };
 
@@ -143,17 +145,32 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-2.5">
+        
+        <div className="flex items-center gap-6 xl:gap-8">
+          <Link to="/" className="flex items-center gap-2.5">
           <BrandLogo />
           <div className="leading-tight min-w-0">
-            <p className="text-base font-bold text-slate-900 truncate">
-              <span className="text-orange-500">Crave</span>House
+            <p className="text-base font-bold text-slate-900 truncate flex items-center gap-2">
+              <span><span className="text-orange-500">Crave</span>House</span>
+              {auth.isQrCustomer && auth.tableId && (
+                <span className="sm:hidden inline-flex items-center rounded-md bg-orange-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                  Table {auth.tableId}
+                </span>
+              )}
             </p>
             <p className="hidden text-[11px] text-slate-500 sm:block">
               Premium Dining Experience
             </p>
           </div>
-        </Link>
+          </Link>
+
+          {/* Desktop Table Badge (Larger, placed with distance from logo) */}
+          {auth.isQrCustomer && auth.tableId && (
+            <div className="hidden sm:flex items-center justify-center rounded-lg bg-orange-500 px-4 py-1.5 shadow-md transition-transform hover:scale-105">
+              <span className="text-white font-bold text-sm tracking-wide">Table {auth.tableId}</span>
+            </div>
+          )}
+        </div>
 
         {isHomePage && (
           <nav className="hidden items-center gap-7 text-sm font-medium text-slate-500 lg:flex">

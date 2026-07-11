@@ -3,8 +3,8 @@ import {
   ClipboardList,
   ChefHat,
   Package,
-  BookOpen,
-  CheckCircle2,
+  PackageCheck,
+  UtensilsCrossed,
 } from "lucide-react";
 
 export const kitchenNav = [
@@ -12,6 +12,6 @@ export const kitchenNav = [
   { label: "Orders", path: "/kitchen/orders", icon: ClipboardList },
   { label: "Chefs", path: "/kitchen/chefs", icon: ChefHat },
   { label: "Inventory", path: "/kitchen/inventory", icon: Package },
-  { label: "Menu & Recipes", path: "/kitchen/menu", icon: BookOpen },
-  { label: "Approvals", path: "/kitchen/approvals", icon: CheckCircle2 },
+  { label: "My Requests", path: "/kitchen/requests", icon: PackageCheck },
+  { label: "Menu Items", path: "/kitchen/menu", icon: UtensilsCrossed },
 ];

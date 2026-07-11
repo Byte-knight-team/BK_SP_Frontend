@@ -5,6 +5,8 @@ import { useCart } from '../../context/CartContext';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { calculateCheckout, placeCustomerOrder } from '../../apis/customer/checkout';
 import { getCustomerProfile } from '../../apis/customer/profile';
+import { toast } from 'react-toastify';
+import LocationPickerModal from '../../components/customer/LocationPickerModal';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 //checkout state savings
@@ -55,6 +57,7 @@ function readCheckoutSeed() {
     loyaltyDraft: saved.loyaltyDraft || '',
     appliedLoyaltyPoints: Number(saved.appliedLoyaltyPoints || 0),
     kitchenNotes: saved.kitchenNotes || '',
+    selectedLocation: saved.selectedLocation || { lat: null, lng: null, address: '' },
   };
 }
 
@@ -74,6 +77,10 @@ export default function CheckoutPage() {
   const [loyaltyDraft, setLoyaltyDraft] = useState(seed.loyaltyDraft);
   const [appliedLoyaltyPoints, setAppliedLoyaltyPoints] = useState(seed.appliedLoyaltyPoints);
   const [kitchenNotes, setKitchenNotes] = useState(seed.kitchenNotes);
+  // Location picker state
+  const [selectedLocation, setSelectedLocation] = useState(seed.selectedLocation);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const hasGoogleMapsKey = Boolean(import.meta.env.VITE_GOOGLE_MAPS_CUSTOMER_API_KEY);
   // Holds the math calulations of order returned by the backend
   const [receipt, setReceipt] = useState(null);
 
@@ -136,9 +143,10 @@ export default function CheckoutPage() {
       loyaltyDraft,
       appliedLoyaltyPoints,
       kitchenNotes,
+      selectedLocation,
     };
     localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(state));
-  }, [orderType, paymentMethod, branchId, tableId, contact, couponDraft, appliedCouponCode, loyaltyDraft, appliedLoyaltyPoints, kitchenNotes]);
+  }, [orderType, paymentMethod, branchId, tableId, contact, couponDraft, appliedCouponCode, loyaltyDraft, appliedLoyaltyPoints, kitchenNotes, selectedLocation]);
 
   // Reusable function to ask the backend to calculate the receipt
   const calculateTotals = useCallback(async (overrides = {}) => {
@@ -233,9 +241,9 @@ export default function CheckoutPage() {
       const nextReceipt = await calculateTotals({ couponCode: code, redeemLoyaltyPoints: appliedLoyaltyPoints });
       setAppliedCouponCode(code);
       setReceipt(nextReceipt);
-
+      toast.success('Coupon applied successfully!');
     } catch (couponError) {
-      setError(couponError.message || 'Invalid coupon code.');
+      toast.error(couponError.message || 'Invalid coupon code.');
     } finally {
       setIsCalculating(false);
     }
@@ -250,9 +258,9 @@ export default function CheckoutPage() {
     try {
       const nextReceipt = await calculateTotals({ couponCode: null, redeemLoyaltyPoints: appliedLoyaltyPoints });
       setReceipt(nextReceipt);
-
+      toast.info('Coupon removed');
     } catch (clearError) {
-      setError(clearError.message || 'Unable to refresh totals.');
+      toast.error(clearError.message || 'Unable to refresh totals.');
     } finally {
       setIsCalculating(false);
     }
@@ -260,7 +268,7 @@ export default function CheckoutPage() {
 
   const handleApplyPoints = async () => {
     const points = Number.parseInt(loyaltyDraft, 10);
-    
+
     //series of validation
     if (!Number.isInteger(points) || points <= 0) {
       setError('Enter a valid loyalty points amount.');
@@ -294,9 +302,9 @@ export default function CheckoutPage() {
       const nextReceipt = await calculateTotals({ couponCode: appliedCouponCode, redeemLoyaltyPoints: points });
       setAppliedLoyaltyPoints(points);
       setReceipt(nextReceipt);
-
+      toast.success('Loyalty points applied!');
     } catch (loyaltyError) {
-      setError(loyaltyError.message || 'Unable to apply loyalty points.');
+      toast.error(loyaltyError.message || 'Unable to apply loyalty points.');
     } finally {
       setIsCalculating(false);
     }
@@ -311,9 +319,9 @@ export default function CheckoutPage() {
     try {
       const nextReceipt = await calculateTotals({ couponCode: appliedCouponCode, redeemLoyaltyPoints: null });
       setReceipt(nextReceipt);
-
+      toast.info('Loyalty points removed');
     } catch (clearError) {
-      setError(clearError.message || 'Unable to refresh totals.');
+      toast.error(clearError.message || 'Unable to refresh totals.');
     } finally {
       setIsCalculating(false);
     }
@@ -326,6 +334,7 @@ export default function CheckoutPage() {
       const qrToken = localStorage.getItem('qr_session_token');
       if (!qrToken || isTokenExpired(qrToken)) {
         setError('Your table session has expired. Please close this tab and rescan the QR code.');
+        toast.warning('Table session expired. Please rescan the QR code.');
         return;
       }
     }
@@ -333,26 +342,37 @@ export default function CheckoutPage() {
 
     if (!contact.username.trim()) {
       setError('Username is required.');
+      toast.warning('Please enter your username.');
       return;
     }
 
     if (!contact.phone.trim()) {
       setError('Mobile number is required.');
+      toast.warning('Please enter your mobile number.');
       return;
     }
 
     if (!isQrCustomer && isDelivery && !contact.address.trim()) {
       setError('Delivery address is required.');
+      toast.warning('Please provide your delivery address.');
+      return;
+    }
+
+    if (!isQrCustomer && isDelivery && hasGoogleMapsKey && (!selectedLocation.lat || !selectedLocation.lng)) {
+      setError('Please select your delivery location on the map.');
+      toast.warning('Please select your delivery location on the map.');
       return;
     }
 
     if (cartItems.length === 0) {
       setError('Your cart is empty.');
+      toast.warning('Your cart is empty.');
       return;
     }
 
     if (!receipt) {
       setError('Please wait for totals to load.');
+      toast.warning('Please wait for totals to calculate.');
       return;
     }
 
@@ -372,11 +392,14 @@ export default function CheckoutPage() {
         items: cartItems.map((item) => ({
           menuItemId: item.id,
           quantity: item.quantity,
+          kitchenNote: item.kitchenNote || undefined,
         })),
         contactName: contact.username.trim(),
         contactPhone: contact.phone.trim(),
         contactEmail: isQrCustomer ? null : contact.email.trim(),
         deliveryAddress: !isQrCustomer && isDelivery ? contact.address.trim() : null,
+        latitude: !isQrCustomer && isDelivery && selectedLocation.lat ? selectedLocation.lat : null,
+        longitude: !isQrCustomer && isDelivery && selectedLocation.lng ? selectedLocation.lng : null,
         kitchenNotes: kitchenNotes.trim() || null,
         paymentMethod,
       };
@@ -409,12 +432,13 @@ export default function CheckoutPage() {
         return;
       }
 
+      toast.success('Order placed successfully!');
       navigate('/order-confirmation', {
         replace: true,
         state: navState,
       });
     } catch (submitError) {
-      setError(submitError.message || 'Something went wrong. Please try again.');
+      toast.error(submitError.message || 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -432,7 +456,7 @@ export default function CheckoutPage() {
   // Dynamic button styles for Delivery/Pickup and Card/Cash selection
   const selectBtnCls = (active) => `flex h-full flex-col items-center gap-2 rounded-[16px] border-2 px-4 py-5 text-left transition-all duration-300 ${active ? 'border-orange bg-[#FFF7F2]' : 'border-gray-200 bg-white hover:border-gray-300'}`;
   const panelCls = 'rounded-[18px] border border-gray-200 bg-white p-6 shadow-sm max-md:p-5';
-  
+
   const summaryTotal = receipt ? Number(receipt.finalTotal || 0) : 0;
   // Conditional text rendering for the loyalty points helper message
   const loyaltyHint = receipt && receipt.availableLoyaltyPoints > 0 && receipt.minPointsToRedeem > 0
@@ -443,7 +467,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-white">
-    {/* HEADER SECTION */}
+      {/* HEADER SECTION */}
       <header className="sticky top-0 z-[100] border-b border-black/5 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-[74px] w-full max-w-[1120px] items-center px-6 max-md:px-4">
           <div className="flex items-center gap-3.5">
@@ -483,11 +507,10 @@ export default function CheckoutPage() {
           </button>
           <button
             type="button"
-            onClick={handlePlaceOrder}
-            disabled={isSubmitting || isCalculating || !receipt}
-            className="flex-1 rounded-[10px] bg-orange-500 py-2 text-[0.8rem] font-semibold text-white disabled:opacity-70"
+            onClick={() => scrollToSection('details-section')}
+            className="flex-1 rounded-[10px] border border-gray-200 bg-white py-2 text-[0.8rem] font-semibold text-gray-700"
           >
-            Order
+            Details
           </button>
         </div>
       </div>
@@ -547,7 +570,7 @@ export default function CheckoutPage() {
             </div>
           </section>
           {/*user section*/}
-          <section className={panelCls}>
+          <section id="details-section" className={panelCls}>
             <div className="mb-5 flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF4E8] text-[#EA580C]">
                 <User size={16} />
@@ -607,12 +630,31 @@ export default function CheckoutPage() {
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-[0.85rem] font-semibold text-navy">Delivery Address</label>
                   <textarea
-                    className={`${inputCls} min-h-[104px] resize-y`}
-                    placeholder="Enter your delivery address"
+                    className={`${inputCls} min-h-[80px] resize-y`}
+                    placeholder="Enter your delivery address (e.g. apartment, gate code)"
                     value={contact.address}
                     onChange={(event) => setContact((current) => ({ ...current, address: event.target.value }))}
-                    rows={4}
+                    rows={3}
                   />
+                  {/* Map location picker - only renders if API key is configured */}
+                  {hasGoogleMapsKey && (
+                    <div className="mt-2.5 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowLocationPicker(true)}
+                        className="flex items-center gap-2 rounded-[12px] border border-orange-200 bg-[#FFF7F2] px-4 py-2.5 text-[0.85rem] font-semibold text-[#EA580C] transition-all hover:bg-orange-100"
+                      >
+                        <MapPin size={15} />
+                        {selectedLocation.lat ? 'Change Pin' : 'Pin on Map'}
+                      </button>
+                      {selectedLocation.lat && (
+                        <span className="flex items-center gap-1.5 text-[0.8rem] text-green-600">
+                          <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                          Location pinned
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               {/* Contextual Branch Details - Only show if Pickup */}
@@ -703,7 +745,7 @@ export default function CheckoutPage() {
                   </div>
                 )}
               </div>
-                {/* LOYALTY POINTS BLOCK */}
+              {/* LOYALTY POINTS BLOCK */}
               <div className="border-t border-gray-100 pt-5">
                 <label className="mb-1 block text-[0.85rem] font-semibold text-navy">Loyalty Points</label>
                 <div className="mb-3 flex flex-wrap items-center gap-2 text-[0.8rem] text-gray-500">
@@ -900,6 +942,18 @@ export default function CheckoutPage() {
           )}
         </button>
       </div>
+
+      {/* Location Picker Modal */}
+      <LocationPickerModal
+        isOpen={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onConfirm={(loc) => {
+          setSelectedLocation(loc);
+          setShowLocationPicker(false);
+          toast.success('Location confirmed successfully!');
+        }}
+        initialCenter={selectedLocation.lat ? { lat: selectedLocation.lat, lng: selectedLocation.lng } : null}
+      />
     </div>
   );
 }

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, Clock, Megaphone } from 'lucide-react'
-import { getActiveAlertsAPI, resolveAlertAPI } from '../../../apis/kitchen/alerts'
+import {
+  getActiveAlertsAPI,
+  resolveAlertAPI,
+} from '../../../apis/kitchen/alerts'
 import { toast } from 'react-toastify'
 import AlertModal from './AlertModal'
 import ResolveConfirmationModal from './ResolveConfirmationModal'
@@ -32,7 +35,7 @@ const ActiveAlertsCard = () => {
   // Call the API after confirmation
   const handleConfirmResolve = async () => {
     if (!selectedAlert) return
-    
+
     const { error } = await resolveAlertAPI(selectedAlert.id)
     if (error) {
       toast.error(error)
@@ -49,7 +52,10 @@ const ActiveAlertsCard = () => {
     return (
       <div className="flex flex-col gap-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 w-full animate-pulse rounded-2xl border border-gray-100 bg-gray-50/50" />
+          <div
+            key={i}
+            className="h-20 w-full animate-pulse rounded-2xl border border-gray-100 bg-gray-50/50"
+          />
         ))}
       </div>
     )
@@ -58,28 +64,30 @@ const ActiveAlertsCard = () => {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-base font-bold text-gray-800">
-          Operational Alerts
-        </h2>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center rounded-xl bg-red-50 p-2">
+            <Megaphone size={18} className="text-red-500" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-gray-800">Operational Alerts</h2>
+            <p className="text-xs text-gray-400">{alerts.length} active</p>
+          </div>
+        </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-full bg-orange-600 px-4 py-1.5 text-[10px] font-bold text-white shadow-lg transition-all hover:bg-orange-700 active:scale-95"
+          className="flex cursor-pointer items-center gap-1.5 rounded-full bg-orange-600 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg transition-all hover:bg-orange-700 active:scale-95"
         >
-          <Megaphone size={14} /> BROADCAST
+          <Megaphone size={13} /> BROADCAST
         </button>
       </div>
 
       {/* Alerts List */}
-      <div className="custom-scrollbar max-h-[300px] space-y-3 overflow-y-auto pr-2 pb-4">
+      <div className="custom-scrollbar flex-1 min-h-0 space-y-3 overflow-y-auto pr-2">
         {alerts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-gray-300">
-            <CheckCircle
-              size={40}
-              strokeWidth={1}
-              className="mb-2 opacity-20"
-            />
+            <CheckCircle size={40} className="mb-2 opacity-20" />
             <p className="text-sm font-medium">All systems normal</p>
           </div>
         ) : (
@@ -88,6 +96,7 @@ const ActiveAlertsCard = () => {
               key={alert.id}
               className="group relative m-1 flex items-start gap-3 rounded-2xl border border-gray-50 bg-gray-50/50 p-4 transition-all hover:bg-white hover:shadow-md"
             >
+              {/* indicator for alert type */}
               <div
                 className={`mt-1 h-2 w-2 shrink-0 animate-pulse rounded-full ${
                   alert.type === 'CRITICAL' ? 'bg-red-500' : 'bg-orange-400'
@@ -106,7 +115,7 @@ const ActiveAlertsCard = () => {
 
               <button
                 onClick={() => handleResolveClick(alert)}
-                className="flex shrink-0 items-center gap-1 rounded-lg bg-green-500 px-3 py-1.5 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-green-600 active:scale-95"
+                className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-green-500 px-3 py-1.5 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-green-600 active:scale-95"
               >
                 <CheckCircle size={12} /> FIXED
               </button>
@@ -119,14 +128,14 @@ const ActiveAlertsCard = () => {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmResolve}
-        alertMessage={selectedAlert?.message}
+        alertMessage={selectedAlert?.message} // optional chaining
       />
 
       {/* Broadcast Alert Modal */}
-      <AlertModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onAlertSent={() => fetchAlerts(false)} 
+      <AlertModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAlertSent={() => fetchAlerts(false)}
       />
     </div>
   )

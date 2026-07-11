@@ -4,6 +4,7 @@ import { ArrowLeft, Mail, Lock } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import { loginCustomer } from '../../apis/customer/auth';
 import GlassBackground from '../../components/customer/GlassBackground';
+import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -56,6 +57,11 @@ export default function LoginPage() {
 
       const redirectSearchParams = new URLSearchParams(location.search);
       const redirectTo = redirectSearchParams.get('redirect') || '/menu';
+
+      toast('Successfully logged in!', {
+        className: 'toast-orange-auth font-semibold shadow-lg',
+        icon: '👋',
+      });
 
       navigate(redirectTo, { replace: true });
     } catch (err) {
@@ -122,12 +128,12 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/*<div className="flex items-center justify-between text-sm">
-              <button type="button" className="font-medium text-orange-500 hover:text-orange-600">
+            <div className="flex items-center justify-end text-sm">
+              <Link to="/forgot-password" className="font-semibold text-orange-500 hover:text-orange-600 transition-colors">
                 Forgot password?
-              </button>
+              </Link>
             </div>
-            */}
+
             <button
               type="submit"
               disabled={isSubmitting}

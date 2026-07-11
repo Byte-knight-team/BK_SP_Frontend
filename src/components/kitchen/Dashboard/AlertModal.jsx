@@ -2,6 +2,13 @@ import { useState } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { createAlertAPI } from '../../../apis/kitchen/alerts'
+import Dropdown from '../../common/Dropdown'
+
+const SEVERITY_OPTIONS = [
+  { value: 'CRITICAL', label: 'Critical (e.g. Oven broken, No gas)' },
+  { value: 'WARNING', label: 'Warning (e.g. Ingredient over, Item unavailable)' },
+  { value: 'INFO', label: 'Info (e.g. General delays)' },
+]
 
 const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
   const [message, setMessage] = useState('')
@@ -11,6 +18,8 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
   if (!isOpen) return null
 
   const handleSend = async () => {
+    // Check if the message is empty or contains only whitespace.
+    // If so, show a warning toast and stop the function execution.
     if (!message.trim()) return toast.warning('Please type a message');
 
     setLoading(true);
@@ -23,7 +32,7 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
       toast.success('Broadcast alert sent to Receptionist!');
       onAlertSent(false); // Background refresh
       onClose();
-      setMessage('');
+      setMessage(''); // Reset the message after sending
     }
   }
 
@@ -50,19 +59,11 @@ const AlertModal = ({ isOpen, onClose, onAlertSent }) => {
             <label className="mb-1 block text-xs font-bold text-gray-400 uppercase">
               Issue Severity
             </label>
-            <select
+            <Dropdown
               value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none"
-            >
-              <option value="CRITICAL">
-                Critical (e.g. Oven broken, No gas)
-              </option>
-              <option value="WARNING">
-                Warning (e.g. Ingredient over, Item unavailable)
-              </option>
-              <option value="INFO">Info (e.g. General delays)</option>
-            </select>
+              onChange={setType}
+              options={SEVERITY_OPTIONS}
+            />
           </div>
 
           {/* Message Textarea */}

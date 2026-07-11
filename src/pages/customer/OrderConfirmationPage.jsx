@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -23,21 +23,23 @@ import {
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import ReviewModal from '../../components/customer/modal/ReviewModal';
+import { toast } from 'react-toastify';
 import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
+import useOrderStatusWebSocket from '../../hooks/useOrderStatusWebSocket';
 
 const BASE_STATUS_FLOW = [
-  { key: 'PLACED',     label: 'Order Placed',   shortLabel: 'Placed',    icon: HandCoins,  description: 'Order received' },
-  { key: 'PENDING',   label: 'Confirmed',       shortLabel: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
-  { key: 'PREPARING', label: 'Preparing',       shortLabel: 'Preparing', icon: ChefHat,    description: 'At the kitchen' },
-  { key: 'COMPLETED', label: 'Order Prepared',  shortLabel: 'Prepared',  icon: Soup,       description: 'Finished preparing' },
+  { key: 'PLACED', label: 'Order Placed', shortLabel: 'Placed', icon: HandCoins, description: 'Order received' },
+  { key: 'PENDING', label: 'Confirmed', shortLabel: 'Confirmed', icon: BadgeCheck, description: 'Order confirmed' },
+  { key: 'PREPARING', label: 'Preparing', shortLabel: 'Preparing', icon: ChefHat, description: 'At the kitchen' },
+  { key: 'COMPLETED', label: 'Order Prepared', shortLabel: 'Prepared', icon: Soup, description: 'Finished preparing' },
 ];
 
 const DELIVERY_STATUS_FLOW = [
   ...BASE_STATUS_FLOW,
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', shortLabel: 'Delivery', icon: Truck,      description: 'On the way' },
-  { key: 'ARRIVED',         label: 'Arrived',           shortLabel: 'Arrived',  icon: MapPin,     description: 'Reached location' },
-  { key: 'SERVED',          label: 'Served',            shortLabel: 'Served',   icon: Handshake,  description: 'Delivered' },
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', shortLabel: 'Delivery', icon: Truck, description: 'On the way' },
+  { key: 'ARRIVED', label: 'Arrived', shortLabel: 'Arrived', icon: MapPin, description: 'Reached location' },
+  { key: 'SERVED', label: 'Served', shortLabel: 'Served', icon: Handshake, description: 'Delivered' },
 ];
 
 const PICKUP_STATUS_FLOW = [
@@ -45,8 +47,7 @@ const PICKUP_STATUS_FLOW = [
   { key: 'SERVED', label: 'Served', shortLabel: 'Served', icon: Handshake, description: 'Ready for pickup' },
 ];
 
-// Poll interval (milliseconds) to check order status while it's active
-const ORDER_STATUS_POLL_INTERVAL_MS = 5000;
+
 
 function normalizeOrderType(orderType) {
   return String(orderType || '').toUpperCase();
@@ -85,10 +86,7 @@ export default function OrderConfirmationPage() {
       return;
     }
 
-    // Track mounted state to avoid setting state after component unmount
     let isMounted = true;
-    // Interval reference so we can clear it when done/unmounted
-    let pollTimer = null;
 
     // Fetch latest order from backend and update local state
     const fetchOrder = async () => {
@@ -118,22 +116,6 @@ export default function OrderConfirmationPage() {
       }
     };
 
-    // Start repeating poll to refresh order status periodically
-    // Poll stops automatically when order reaches a terminal state
-    const startPolling = () => {
-      if (pollTimer) {
-        clearInterval(pollTimer); // If there's an old timer, kill it first
-      }
-
-      pollTimer = setInterval(async () => { // Start a NEW timer that fires every 5000ms
-        const latestOrder = await fetchOrder();
-        if (latestOrder && isTerminalOrderStatus(latestOrder.orderStatus)) {
-          clearInterval(pollTimer);  // AUTO-STOP polling when order is done
-          pollTimer = null;
-        }
-      }, ORDER_STATUS_POLL_INTERVAL_MS); // Repeat every 5 seconds
-    };
-
     // When user focuses the tab or the page becomes visible, refresh once
     const handleFocusRefresh = () => {
       if (!document.hidden) {
@@ -141,24 +123,45 @@ export default function OrderConfirmationPage() {
       }
     };
 
-    fetchOrder().then((latestOrder) => {
-      if (isMounted && !isTerminalOrderStatus(latestOrder?.orderStatus)) {
-        startPolling();
-      }
-    });
+    fetchOrder();
 
     window.addEventListener('focus', handleFocusRefresh);
     document.addEventListener('visibilitychange', handleFocusRefresh);
 
     return () => {
       isMounted = false;
-      if (pollTimer) {
-        clearInterval(pollTimer);
-      }
       window.removeEventListener('focus', handleFocusRefresh);
       document.removeEventListener('visibilitychange', handleFocusRefresh);
     };
   }, [orderId]);
+
+  // Keep track of the last known status so we can trigger toasts reliably
+  const lastKnownStatus = useRef(null);
+
+  // Subscribe to real-time status updates via WebSocket
+  useOrderStatusWebSocket(orderId, (update) => {
+    if (update && update.orderStatus) {
+      setOrder((prev) => {
+        if (!prev) return prev;
+        // Don't update if the status is the same
+        if (prev.orderStatus === update.orderStatus) return prev;
+        return {
+          ...prev,
+          orderStatus: update.orderStatus,
+        };
+      });
+
+
+      lastKnownStatus.current = update.orderStatus;
+    }
+  });
+
+  // Also update the ref when the initial fetch completes so we don't toast on first load
+  useEffect(() => {
+    if (order?.orderStatus) {
+      lastKnownStatus.current = order.orderStatus;
+    }
+  }, [order?.orderStatus]);
 
   const orderType = normalizeOrderType(order?.orderType);
   const isDelivery = orderType === 'DELIVERY' || orderType === 'ONLINE_DELIVERY';
@@ -269,7 +272,7 @@ export default function OrderConfirmationPage() {
               {isCancelled ? <XCircle size={32} /> : <CheckCircle2 size={32} />}
             </div>
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Confirmed'}</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Placed'}</h1>
           <p className="mt-1 text-xs text-slate-600">{isCancelled ? 'Cancelled order' : 'You will be notified of each step'}</p>
         </div>
       </div>
@@ -278,7 +281,7 @@ export default function OrderConfirmationPage() {
       {!isCancelled && (
         <div className="mb-8 rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:p-6 shadow-sm overflow-x-auto custom-scrollbar">
           <div className="relative min-w-max sm:min-w-0 w-full">
-            
+
             {/* The Animated Timeline Icons & Connectors */}
             <div className="relative z-10 flex items-start w-full">
               {statusFlow.map((step, index) => {
@@ -289,7 +292,7 @@ export default function OrderConfirmationPage() {
 
                 return (
                   <div key={step.key} className="flex flex-1 flex-col items-center text-center relative min-w-[60px] sm:min-w-0 px-1">
-                    
+
                     {/* Connector line to the next step */}
                     {!isLast && (
                       <div className="absolute left-1/2 top-[18px] sm:top-[24px] w-full h-1 bg-slate-100 rounded-full z-[-1] overflow-hidden">
@@ -309,19 +312,18 @@ export default function OrderConfirmationPage() {
                         scale: isDone ? 1 : isNextStep ? 1.15 : 0.9,
                         opacity: 1
                       }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 300, 
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
                         damping: 20,
-                        delay: index * 0.1 
+                        delay: index * 0.1
                       }}
-                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center shrink-0 rounded-full transition-colors duration-500 ${
-                        isDone 
-                          ? 'bg-orange-500 text-white shadow-md' 
-                          : isNextStep 
-                          ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg' 
+                      className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center shrink-0 rounded-full transition-colors duration-500 ${isDone
+                        ? 'bg-orange-500 text-white shadow-md'
+                        : isNextStep
+                          ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg'
                           : 'bg-white border border-slate-200 text-slate-300'
-                      }`}
+                        }`}
                     >
                       <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                     </motion.div>
@@ -350,7 +352,7 @@ export default function OrderConfirmationPage() {
                 );
               })}
             </div>
-            
+
           </div>
         </div>
       )}

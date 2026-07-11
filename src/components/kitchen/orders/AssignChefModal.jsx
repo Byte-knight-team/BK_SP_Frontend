@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { UserPlus, X } from 'lucide-react'
+import { UserPlus, X, ChevronDown, Check } from 'lucide-react'
+import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react'
 import { getAvailableChefsAPI } from '../../../apis/kitchen/orders'
 import { toast } from "react-toastify";
 
@@ -44,6 +45,19 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
   // If the modal is not active, don't render anything (Performance optimization)
   if (!isOpen) return null
 
+  const chefStatusLabel = (chef) =>
+    chef.activeItemCount > 0
+      ? `${chef.activeItemCount} active item${chef.activeItemCount > 1 ? 's' : ''}`
+      : 'Available'
+  const selectedChef = availableChefs.find((c) => String(c.staffId) === String(selectedChefId))
+  const buttonLabel = isFetchingChefs
+    ? 'Loading line chefs...'
+    : selectedChef
+      ? `${selectedChef.chefName} — ${chefStatusLabel(selectedChef)}`
+      : availableChefs.length > 0
+        ? 'Select a line chef'
+        : 'No line chefs available'
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-4xl border border-gray-100 bg-white p-8 shadow-2xl">
@@ -61,36 +75,45 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
         </div>
 
         <h3 className="mb-2 text-left text-xl font-bold text-gray-900">
-          Assign Chef
+          Assign Line Chef
         </h3>
         <p className="mb-6 text-left text-sm text-gray-400">
-          {/* putting a space between text and the meal name */}
-          Select a chef for{' '}
+          Select a line chef for{' '}
           <span className="font-bold text-gray-900">"{mealName}"</span>
         </p>
 
-        {/* Chef Selection Dropdown */}
-        <select
-          className="mb-8 w-full rounded-2xl border-none bg-gray-50 p-4 text-sm font-bold text-gray-700 outline-none"
-          value={selectedChefId}  
-          onChange={(e) => setSelectedChefId(e.target.value)} //that value set as the selectedChefId state
-        >
-          {/* default option */}
-          {isFetchingChefs ? ( // Check if currently fetching
-            <option value="">Loading chefs...</option>
-          ) : availableChefs.length > 0 ? (
-            <option value="">Select a chef</option>
-          ) : (
-            <option value="">No chefs available</option>
-          )}
-
-          {/* map all available chefs. Loop through the chefs array to create dropdown options */}
-          {availableChefs.map((chef) => (
-            <option key={chef.staffId} value={chef.staffId}>
-              {chef.chefName} - ({chef.workStatus})
-            </option>
-          ))}
-        </select>
+        {/* Line Chef Selection — Headless UI Listbox (premium dropdown) */}
+        <Listbox value={selectedChefId} onChange={setSelectedChefId} disabled={isFetchingChefs}>
+          <div className="relative mb-8">
+            <ListboxButton className="flex w-full items-center justify-between rounded-2xl bg-gray-50 p-4 text-left text-sm font-bold outline-none transition-all focus:ring-2 focus:ring-orange-500/20 disabled:opacity-60">
+              <span className={selectedChef ? 'text-gray-700' : 'text-gray-400'}>{buttonLabel}</span>
+              <ChevronDown size={18} className="shrink-0 text-gray-400" />
+            </ListboxButton>
+            <ListboxOptions
+              transition
+              anchor="bottom start"
+              className="z-[60] mt-2 max-h-60 w-[var(--button-width)] overflow-auto rounded-2xl border border-gray-100 bg-white p-1.5 shadow-xl shadow-gray-300/40 outline-none transition duration-150 ease-out [--anchor-gap:0.5rem] data-[closed]:scale-95 data-[closed]:opacity-0"
+            >
+              {availableChefs.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-gray-400">No line chefs available</div>
+              ) : (
+                availableChefs.map((chef) => (
+                  <ListboxOption
+                    key={chef.staffId}
+                    value={String(chef.staffId)}
+                    className="group flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-sm transition-colors data-[focus]:bg-orange-50 data-[selected]:bg-orange-50"
+                  >
+                    <span className="font-bold text-gray-700 group-data-[selected]:text-orange-600">
+                      {chef.chefName}
+                      <span className="ml-1 font-medium text-gray-400">— {chefStatusLabel(chef)}</span>
+                    </span>
+                    <Check size={16} className="shrink-0 text-orange-500 opacity-0 group-data-[selected]:opacity-100" />
+                  </ListboxOption>
+                ))
+              )}
+            </ListboxOptions>
+          </div>
+        </Listbox>
 
         {/* Action Buttons */}
         <div className="flex gap-4">
@@ -100,14 +123,16 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
           >
             Cancel
           </button>
-          <button
-            // Trigger the assignment (save to backend) and close the modal simultaneously
-            onClick={handleAssign}
-            disabled={isAssigning || !selectedChefId} //button disables when loading or no chef is selected
-            className="flex-1 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg transition-all hover:bg-orange-600 disabled:bg-gray-300"
-          >
-            {isAssigning ? 'Assigning...' : 'Assign'}
-          </button>
+          <span className={`flex-1 ${(isAssigning || !selectedChefId) ? 'cursor-not-allowed' : ''}`}>
+            <button
+              // Trigger the assignment (save to backend) and close the modal simultaneously
+              onClick={handleAssign}
+              disabled={isAssigning || !selectedChefId} //button disables when loading or no chef is selected
+              className="w-full rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg transition-all hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:pointer-events-none"
+            >
+              {isAssigning ? 'Assigning...' : 'Assign'}
+            </button>
+          </span>
         </div>
       </div>
     </div>

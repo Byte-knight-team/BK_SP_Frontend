@@ -48,7 +48,7 @@ const ResolveConfirmationModal = ({ isOpen, onClose, onConfirm, alertMessage }) 
           <button 
             onClick={handleConfirm} 
             disabled={loading}
-            className="flex-1 rounded-2xl bg-green-500 py-4 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600 transition-all disabled:bg-gray-300"
+            className="flex-1 rounded-2xl bg-green-500 py-4 text-sm font-bold text-white hover:bg-green-600 transition-all disabled:bg-gray-300"
           >
             {loading ? "Resolving..." : "Yes, it's Fixed"}
           </button>

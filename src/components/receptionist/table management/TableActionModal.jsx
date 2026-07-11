@@ -1,90 +1,346 @@
-import { useState, useEffect } from 'react';
-import { X, LogOut, ChevronUp, ChevronDown, LayoutGrid, ClipboardList, Loader2 } from 'lucide-react';
-import { 
-  occupyTableAPI, 
-  clearTableAPI 
-} from '../../../apis/receptionist/tables';
-import { toast } from 'react-toastify';
+import { useState, useEffect } from 'react'
+import { X, LogOut, ChevronUp, ChevronDown, LayoutGrid, ClipboardList, Loader2, Lock, Phone, Clock, CalendarClock, XCircle } from 'lucide-react'
+import { occupyTableAPI, updateGuestCountAPI, clearTableAPI } from '../../../apis/receptionist/tables'
+import { seatReservationAPI, cancelReservationAPI } from '../../../apis/receptionist/reservations'
+import { toast } from 'react-toastify'
 
 const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
-  const [guestCount, setGuestCount] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [guestCount, setGuestCount] = useState(1)
+  const [loadingAction, setLoadingAction] = useState(null) // which action is running: OCCUPY | UPDATE_GUESTS | CLEAR | SEAT
+  const [reservations, setReservations] = useState([])
+  const [cancelTargetId, setCancelTargetId] = useState(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelLoading, setCancelLoading] = useState(false)
 
-  // Sync state when modal opens
   useEffect(() => {
     if (table) {
-      setGuestCount(table.currentGuestCount > 0 ? table.currentGuestCount : 1);
+      setGuestCount(table.currentGuestCount > 0 ? table.currentGuestCount : 1)
+      setReservations(table.todayReservations || [])
     }
-  }, [table, isOpen]);
-  if (!isOpen || !table) return null;
+    setCancelTargetId(null)
+    setCancelReason('')
+  }, [table, isOpen])
 
-  // This function handles all the different API calls
+  if (!isOpen || !table) return null
+
+  const isReserved = table.status === 'RESERVED'
+  const isAvailable = table.status === 'AVAILABLE'
+  const isOccupied = table.status === 'OCCUPIED'
+
+  const formatTime = (dt) => {
+    if (!dt) return ''
+    return new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+  }
+
+  // Reservations ordered by time. The table auto-locks within 15 min of the soonest one,
+  // so THAT reservation is the slot the table is currently reserved for (the "active" slot);
+  // everything after it is just upcoming later today.
+  const sortedReservations = [...reservations].sort(
+    (a, b) => new Date(a.reservationTime) - new Date(b.reservationTime)
+  )
+  const now = Date.now()
+  // Only reservations whose window hasn't finished yet, soonest first. The soonest live one is
+  // the slot the table is currently held for; anything after it is upcoming.
+  const liveReservations = sortedReservations.filter((r) => new Date(r.endTime).getTime() >= now)
+  const activeReservation = liveReservations[0] || null
+  const upcomingReservations = liveReservations.slice(1)
+
+  // A table can only be cleared once every active order is served AND paid.
+  // (Held orders aren't in activeOrders — they're excluded, same as the backend rule.)
+  const canClear = (table.activeOrders || []).every(
+    (o) => o.orderStatus === 'SERVED' && o.paymentStatus === 'PAID'
+  )
+
+  const hasOrders = isOccupied && (table.activeOrders?.length || 0) > 0
+  const hasReservations = liveReservations.length > 0 // upcoming (PENDING) bookings today
+  const hasOngoing = !!table.seatedReservation        // the reservation this table is seated for
+
   const handleAction = async (actionType) => {
-    setLoading(true);
-    let response;
-
-    switch (actionType) {
-      case 'OCCUPY':
-        response = await occupyTableAPI(table.id, guestCount);
-        break;
-      case 'CLEAR':
-        response = await clearTableAPI(table.id);
-        break;
-      default:
-        break;
-    }
-
+    setLoadingAction(actionType)
+    let response
+    if (actionType === 'OCCUPY') response = await occupyTableAPI(table.id, guestCount)
+    if (actionType === 'UPDATE_GUESTS') response = await updateGuestCountAPI(table.id, guestCount)
+    if (actionType === 'CLEAR') response = await clearTableAPI(table.id)
+    setLoadingAction(null)
     if (response?.error) {
-      toast.error(response.error);
+      toast.error(response.error)
     } else {
-      toast.success("Table status updated!");
-      onUpdate(); // Refresh the floor map
-      onClose();  // Close modal
+      toast.success('Table status updated!')
+      onUpdate()
+      onClose()
     }
-    setLoading(false);
-  };
+  }
 
+  const handleSeatReservation = async () => {
+    if (!activeReservation) return
+    setLoadingAction('SEAT')
+    const { error } = await seatReservationAPI(activeReservation.reservationId, guestCount)
+    setLoadingAction(null)
+    if (error) {
+      toast.error(error)
+    } else {
+      toast.success('Reservation seated!')
+      onUpdate()
+      onClose()
+    }
+  }
 
+  const handleCancelReservation = async (reservationId) => {
+    if (!cancelReason.trim()) {
+      toast.error('Please enter a reason')
+      return
+    }
+    setCancelLoading(true)
+    const { error } = await cancelReservationAPI(reservationId, cancelReason.trim())
+    setCancelLoading(false)
+    if (error) {
+      toast.error(error)
+      return
+    }
+    toast.success('Reservation cancelled')
+    // The table's state may have changed (freed, or re-locked for another slot) and this modal holds a
+    // stale snapshot — refresh the grid and close, so the receptionist sees the accurate state instead
+    // of an empty "reserved for this slot" with a dead Seat button.
+    setCancelTargetId(null)
+    setCancelReason('')
+    onUpdate()
+    onClose()
+  }
 
-  const getModalTitle = () => {
-    if (table.status === 'AVAILABLE') return `Seating Table ${table.tableNumber}`;
-    if (table.status === 'OCCUPIED') return `Manage Table ${table.tableNumber}`;
-    return `Table ${table.tableNumber}`;
-  };
+  const getTitle = () => {
+    if (isReserved) return `Reserved — Table ${table.tableNumber}`
+    if (isAvailable) return `Seating Table ${table.tableNumber}`
+    if (isOccupied) return `Manage Table ${table.tableNumber}`
+    return `Table ${table.tableNumber}`
+  }
+
+  // ---- Reusable content blocks -------------------------------------------
+
+  const reservationCard = (r, highlight = false) => (
+    <div
+      key={r.reservationId}
+      className={`space-y-2 rounded-xl border p-4 ${
+        highlight ? 'border-purple-300 bg-purple-50 ring-2 ring-purple-200' : 'border-purple-100 bg-purple-50'
+      }`}
+    >
+      <p className="text-sm font-bold text-purple-800">{r.customerName}</p>
+      <div className="flex items-center gap-1.5 text-[11px] text-purple-600">
+        <Phone size={11} /> {r.customerPhone}
+      </div>
+      <div className="flex items-center gap-1.5 text-[11px] text-purple-600">
+        <Clock size={11} /> {formatTime(r.reservationTime)} – {formatTime(r.endTime)}
+      </div>
+
+      {cancelTargetId === r.reservationId ? (
+        <div className="space-y-2 pt-1">
+          <textarea
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="Reason for cancellation..."
+            rows={2}
+            className="w-full resize-none rounded-xl bg-white px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-red-300/30"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setCancelTargetId(null); setCancelReason('') }}
+              className="flex-1 rounded-xl border border-gray-200 bg-white py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
+            >
+              Back
+            </button>
+            <button
+              onClick={() => handleCancelReservation(r.reservationId)}
+              disabled={cancelLoading}
+              className="flex-1 rounded-xl bg-red-500 py-2 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+            >
+              {cancelLoading ? <Loader2 className="mx-auto animate-spin" size={14} /> : 'Confirm Cancel'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => { setCancelTargetId(r.reservationId); setCancelReason('') }}
+          className="flex items-center gap-1.5 pt-0.5 text-[11px] font-black uppercase tracking-wide text-red-500 hover:text-red-700"
+        >
+          <XCircle size={12} /> Cancel Reservation
+        </button>
+      )}
+    </div>
+  )
+
+  const ordersBlock = hasOrders && (
+    <div className="space-y-3">
+      <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-orange-500">
+        <ClipboardList size={12} /> Active Orders
+      </p>
+      <div className="flex flex-col gap-2">
+        {table.activeOrders.map((o, idx) => {
+          const isPaid = o.paymentStatus === 'PAID'
+          const isServed = o.orderStatus === 'SERVED'
+          const readyCount = o.readyItemCount || 0
+          return (
+            <div key={idx} className="rounded-xl border border-orange-100 bg-orange-50 px-3 py-2.5 text-[11px]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-black text-orange-600">{o.orderNumber}</span>
+                {readyCount > 0 ? (
+                  <span className="flex items-center gap-1 font-black uppercase text-green-600">
+                    <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    {readyCount === 1 ? 'Ready to serve' : `${readyCount} ready to serve`}
+                  </span>
+                ) : isServed ? (
+                  <span className="font-black uppercase text-gray-400">Served</span>
+                ) : o.orderStatus === 'PREPARING' ? (
+                  <span className="font-black uppercase text-amber-500">Preparing</span>
+                ) : (
+                  <span className="font-black uppercase text-blue-400">Pending</span>
+                )}
+              </div>
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className={`h-1.5 w-1.5 rounded-full ${isPaid ? 'bg-green-500' : 'bg-amber-400'}`} />
+                <span className={`font-bold ${isPaid ? 'text-green-600' : 'text-amber-600'}`}>
+                  {isPaid ? 'Paid' : `Rs. ${Number(o.finalAmount || 0).toFixed(2)} due`}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+
+  // Today's upcoming (PENDING) bookings — each cancellable.
+  const upcomingBlock = hasReservations && (
+    <div className="space-y-2">
+      <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-purple-500">
+        <CalendarClock size={12} /> Upcoming Today
+      </p>
+      <div className="flex flex-col gap-2">{liveReservations.map((r) => reservationCard(r))}</div>
+    </div>
+  )
+
+  // The reservation this table is currently seated for (COMPLETED, so not in the upcoming list).
+  const ongoingBlock = hasOngoing && (
+    <div className="space-y-2">
+      <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-600">
+        <CalendarClock size={12} /> Ongoing
+      </p>
+      <div className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-bold text-amber-800">{table.seatedReservation.customerName}</p>
+        <div className="flex items-center gap-1.5 text-[11px] text-amber-600">
+          <Phone size={11} /> {table.seatedReservation.customerPhone}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-amber-600">
+          <Clock size={11} /> {formatTime(table.seatedReservation.reservationTime)} – {formatTime(table.seatedReservation.endTime)}
+        </div>
+      </div>
+    </div>
+  )
+
+  // ---- Render ------------------------------------------------------------
+
+  // Occupied layout uses two columns when there's content on two sides:
+  //  - orders + any reservation  → orders | reservations
+  //  - no orders, but ongoing + upcoming → upcoming | ongoing
+  // Otherwise a single centered column. Reserved tables split when there are later bookings too.
+  const hasAnyReservation = hasOngoing || hasReservations
+  const occupiedHasContent = isOccupied && (hasOrders || hasAnyReservation)
+  const occupiedTwoCol = isOccupied
+    && ((hasOrders && hasAnyReservation) || (!hasOrders && hasOngoing && hasReservations))
+  const useWideModal = occupiedTwoCol || (isReserved && upcomingReservations.length > 0)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-4xl bg-white p-8 shadow-2xl">
-        
-        {/* Header Section */}
+      <div className={`w-full rounded-4xl bg-white p-8 shadow-2xl ${useWideModal ? 'max-w-2xl' : 'max-w-sm'}`}>
+
+        {/* Header */}
         <div className="mb-6 flex items-start justify-between">
-          <div className="rounded-2xl bg-orange-100 p-3 text-orange-600">
-            <LayoutGrid size={24} />
+          <div className={`rounded-2xl p-3 ${isReserved ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
+            {isReserved ? <Lock size={24} /> : <LayoutGrid size={24} />}
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
           </button>
         </div>
 
-        {/* Title */}
-        <h3 className="text-xl font-bold text-gray-900">{getModalTitle()}</h3>
-        <div className="mb-6 mt-4 h-px w-full bg-gray-100" />
+        <h3 className="text-xl font-bold text-gray-900">{getTitle()}</h3>
+        <div className="mb-5 mt-4 h-px w-full bg-gray-100" />
 
-        {/* --- CASE 1: AVAILABLE or OCCUPIED (Manage Guests) --- */}
-        {(table.status === 'AVAILABLE' || table.status === 'OCCUPIED') && (
-          <div className="mb-6">
-            <label className="mb-3 block text-[10px] font-black uppercase tracking-widest text-gray-400">Number of Guests</label>
+        {/* Reserved table: left = upcoming today, right = the slot this table is reserved for */}
+        {isReserved ? (
+          upcomingReservations.length > 0 ? (
+            <div className="mb-5 grid grid-cols-2 gap-5">
+              <div className="space-y-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <CalendarClock size={12} /> Upcoming Today
+                </p>
+                <div className="flex flex-col gap-2">{upcomingReservations.map((r) => reservationCard(r))}</div>
+              </div>
+              <div className="space-y-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-purple-500">
+                  <Lock size={12} /> Reserved For This Slot
+                </p>
+                {activeReservation && reservationCard(activeReservation, true)}
+              </div>
+            </div>
+          ) : (
+            <div className="mb-5 space-y-3">
+              <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-purple-500">
+                <Lock size={12} /> Reserved For This Slot
+              </p>
+              {activeReservation && reservationCard(activeReservation, true)}
+            </div>
+          )
+        ) : isOccupied ? (
+          occupiedHasContent && (
+            hasOrders && hasAnyReservation ? (
+              // orders (left) | reservations: ongoing + upcoming (right)
+              <div className="mb-5 grid grid-cols-2 gap-5">
+                <div>{ordersBlock}</div>
+                <div className="space-y-4">
+                  {ongoingBlock}
+                  {upcomingBlock}
+                </div>
+              </div>
+            ) : !hasOrders && hasOngoing && hasReservations ? (
+              // no orders, but both: upcoming (left) | ongoing (right)
+              <div className="mb-5 grid grid-cols-2 gap-5">
+                <div>{upcomingBlock}</div>
+                <div>{ongoingBlock}</div>
+              </div>
+            ) : (
+              // single column — whichever one side has content
+              <div className="mb-5 space-y-4">
+                {hasOrders && ordersBlock}
+                {ongoingBlock}
+                {upcomingBlock}
+              </div>
+            )
+          )
+        ) : (
+          hasReservations && <div className="mb-5">{upcomingBlock}</div>
+        )}
+
+        {/* Guest count — available, reserved, or occupied */}
+        {(isAvailable || isReserved || isOccupied) && (
+          <div className="mb-5">
+            <div className="mb-3 flex items-center justify-between">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Number of Guests</label>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Max {table.capacity}</span>
+            </div>
             <div className="flex items-center justify-between rounded-2xl bg-gray-50 p-4">
-              <button 
+              <button
                 onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
                 className="rounded-xl bg-white p-2 shadow-sm active:scale-90"
               >
                 <ChevronDown size={20} />
               </button>
-              <span className="text-3xl font-black text-gray-800">{guestCount}</span>
-              <button 
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-black text-gray-800">{guestCount}</span>
+                <span className="text-sm font-bold text-gray-400">/ {table.capacity}</span>
+              </div>
+              <button
                 onClick={() => setGuestCount(Math.min(table.capacity, guestCount + 1))}
-                className="rounded-xl bg-white p-2 shadow-sm active:scale-90"
+                disabled={guestCount >= table.capacity}
+                className="rounded-xl bg-white p-2 shadow-sm active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 <ChevronUp size={20} />
               </button>
@@ -92,70 +348,61 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
           </div>
         )}
 
-        {/* --- CASE: OCCUPIED (Order List) --- */}
-        {table.status === 'OCCUPIED' && table.activeOrderCount > 0 && (
-          <div className="mb-6 rounded-2xl bg-orange-50 p-4">
-            <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-orange-600">
-              <ClipboardList size={14} />
-              Active Orders
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {table.activeOrderIds && table.activeOrderIds.length > 0 ? (
-                table.activeOrderIds.map((orderId, idx) => (
-                  <span key={idx} className="rounded-lg bg-white px-2 py-1 text-[10px] font-bold text-gray-600 shadow-sm">
-                    {orderId}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs font-bold text-gray-400 italic">Orders syncing...</span>
-              )}
-            </div>
-          </div>
-        )}
-
-
-
-        {/* --- ACTION BUTTONS --- */}
+        {/* Action buttons */}
         <div className="space-y-3">
-          
-          {/* AVAILABLE: Confirm seating */}
-          {table.status === 'AVAILABLE' && (
+          {isAvailable && (
+            <button
+              onClick={() => handleAction('OCCUPY')}
+              disabled={!!loadingAction}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 hover:bg-orange-600 disabled:opacity-50"
+            >
+              {loadingAction === 'OCCUPY' ? <Loader2 className="animate-spin" size={18} /> : 'CONFIRM SEATING'}
+            </button>
+          )}
+          {isReserved && (
             <>
-              <button 
-                onClick={() => handleAction('OCCUPY')}
-                disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/30 hover:bg-orange-600 disabled:opacity-50"
+              <button
+                onClick={handleSeatReservation}
+                disabled={!!loadingAction || !activeReservation}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-500 py-4 text-sm font-bold text-white shadow-lg shadow-green-500/30 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : "CONFIRM SEATING"}
+                {loadingAction === 'SEAT' ? <Loader2 className="animate-spin" size={18} /> : 'SEAT THIS RESERVATION'}
               </button>
+              {activeReservation && (
+                <p className="text-center text-[11px] font-semibold text-gray-400">
+                  Seating {activeReservation.customerName} · {formatTime(activeReservation.reservationTime)} – {formatTime(activeReservation.endTime)}
+                </p>
+              )}
             </>
           )}
-
-          {/* OCCUPIED: Change guest count or Clear table */}
-          {table.status === 'OCCUPIED' && (
+          {isOccupied && (
             <>
-              <button 
-                onClick={() => handleAction('OCCUPY')}
-                disabled={loading}
+              <button
+                onClick={() => handleAction('UPDATE_GUESTS')}
+                disabled={!!loadingAction}
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 disabled:opacity-50"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : "UPDATE GUEST COUNT"}
+                {loadingAction === 'UPDATE_GUESTS' ? <Loader2 className="animate-spin" size={18} /> : 'UPDATE GUEST COUNT'}
               </button>
-              <button 
+              <button
                 onClick={() => handleAction('CLEAR')}
-                disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 py-4 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                disabled={!!loadingAction || !canClear}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 py-4 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <><LogOut size={18} /> CLEAR TABLE</>}
+                {loadingAction === 'CLEAR' ? <Loader2 className="animate-spin" size={18} /> : <><LogOut size={18} /> CLEAR TABLE</>}
               </button>
+              {!canClear && (
+                <p className="text-center text-[11px] font-semibold text-gray-400">
+                  Serve and collect payment for all orders before clearing.
+                </p>
+              )}
             </>
           )}
-
         </div>
 
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TableActionModal;
+export default TableActionModal
