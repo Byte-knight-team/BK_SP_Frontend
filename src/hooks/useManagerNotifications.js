@@ -42,7 +42,7 @@ export function useManagerNotifications() {
   useWebSocket(branchId, topic, (payload) => {
     // When a ping comes in from the backend, fetch the latest unread notifications
     // We can also trigger a toast so the manager immediately notices it
-    if (payload === 'NEW_NOTIFICATION') {
+    if (payload?.message === 'NEW_NOTIFICATION') {
        toast.success("New notification received!", { id: 'manager-notification-ping' })
        fetchNotifications()
     }
