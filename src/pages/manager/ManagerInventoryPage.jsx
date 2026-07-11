@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useInventoryData } from '../../hooks/useInventoryData'
 import { InventoryService } from '../../apis/manager/InventoryService'
@@ -10,17 +11,11 @@ import ChefRequestsSection from '../../components/manager/inventory/ChefRequests
 import AddInventoryItemModal from '../../components/manager/inventory/AddInventoryItemModal'
 import UpdateInventoryItemModal from '../../components/manager/inventory/UpdateInventoryItemModal'
 
-function LoadingSkeleton() {
+function LoadingSpinner() {
   return (
-    <div className="space-y-5 animate-pulse">
-      <div className="h-10 bg-gray-200 rounded w-72" />
-      <div className="grid grid-cols-3 gap-5">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-32 bg-gray-200 rounded-2xl" />
-        ))}
-      </div>
-      <div className="h-64 bg-gray-200 rounded-2xl" />
-      <div className="h-48 bg-gray-200 rounded-2xl" />
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <Loader2 className="w-10 h-10 text-brand animate-spin" />
+      <p className="text-gray-500 font-medium animate-pulse">Loading inventory records...</p>
     </div>
   )
 }
@@ -44,7 +39,7 @@ export default function ManagerInventoryPage() {
     chefRequestsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  if (loading) return <LoadingSkeleton />
+  if (loading) return <LoadingSpinner />
 
   if (error || !data) {
     return (

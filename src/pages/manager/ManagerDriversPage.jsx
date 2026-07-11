@@ -1,5 +1,6 @@
 // React hooks for managing state, side effects, and direct DOM references
 import { useState, useEffect, useRef } from 'react'
+import { Loader2 } from 'lucide-react'
 
 // React Router hook to access the current URL and router state
 import { useLocation } from 'react-router-dom'
@@ -19,23 +20,14 @@ import DeliveryHistoryTable from '../../components/manager/drivers/DeliveryHisto
 import AssignDriverModal from '../../components/manager/drivers/AssignDriverModal'
 
 /**
- * LoadingSkeleton Component
- * Displays a pulsing placeholder layout while the data is being fetched.
- * Enhances user experience by providing immediate visual feedback.
+ * LoadingSpinner Component
+ * Displays a spinning loader while the data is being fetched.
  */
-function LoadingSkeleton() {
+function LoadingSpinner() {
   return (
-    <div className="animate-pulse space-y-5">
-      <div className="h-10 w-72 rounded bg-gray-200" />
-      <div className="grid grid-cols-3 gap-5">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-32 rounded-2xl bg-gray-200" />
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-5">
-        <div className="h-64 rounded-2xl bg-gray-200" />
-        <div className="h-64 rounded-2xl bg-gray-200" />
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <Loader2 className="w-10 h-10 text-brand animate-spin" />
+      <p className="text-gray-500 font-medium animate-pulse">Loading driver information...</p>
     </div>
   )
 }
@@ -75,8 +67,8 @@ export default function ManagerDriversPage() {
       window.history.replaceState({}, document.title)
     }
   }, [location])
-  // 1. Loading State: Display the skeleton UI while waiting for the API
-  if (loading) return <LoadingSkeleton />
+  // 1. Loading State: Display the spinner while waiting for the API
+  if (loading) return <LoadingSpinner />
 
   // 2. Error State: Display an error message and a retry button if the API fails
   if (error || !data) {

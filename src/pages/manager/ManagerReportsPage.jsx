@@ -7,8 +7,20 @@ import ChannelDistributionChart from '../../components/manager/reports/ChannelDi
 import PeakHoursChart from '../../components/manager/reports/PeakHoursChart'
 import TopSellingItemsTable from '../../components/manager/reports/TopSellingItemsTable'
 import InventoryHealthChart from '../../components/manager/reports/InventoryHealthChart'
-import ReportsSkeleton from '../../components/manager/reports/ReportsSkeleton'
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import { AlertCircle, RefreshCw, Loader2 } from 'lucide-react'
+
+/**
+ * LoadingSpinner Component
+ * Displays a spinning loader while the data is being fetched.
+ */
+function LoadingSpinner() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <Loader2 className="w-10 h-10 text-brand animate-spin" />
+      <p className="text-gray-500 font-medium animate-pulse">Generating reports...</p>
+    </div>
+  )
+}
 
 /**
  * Main Reports & Analytics Page.
@@ -32,7 +44,7 @@ export default function ManagerReportsPage() {
   }
 
   if (loading && !data) {
-    return <ReportsSkeleton />
+    return <LoadingSpinner />
   }
 
   if (error) {

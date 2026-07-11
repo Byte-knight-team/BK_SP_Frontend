@@ -9,14 +9,9 @@ export default function ManagerStaffPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 max-w-7xl mx-auto animate-pulse">
-        <div className="h-10 bg-gray-200 rounded w-72" />
-        <div className="grid grid-cols-3 gap-5">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-200 rounded-2xl" />
-          ))}
-        </div>
-        <div className="h-96 bg-gray-200 rounded-2xl" />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="w-10 h-10 text-brand animate-spin" />
+        <p className="text-gray-500 font-medium animate-pulse">Loading staff records...</p>
       </div>
     )
   }
