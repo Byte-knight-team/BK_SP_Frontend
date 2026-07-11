@@ -130,9 +130,9 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
           ? `This branch seats at most ${maxGuests} guests`
           : null
 
-  // Derived from the check result
-  const reservedTables = result ? result.tables.filter((t) => t.status === 'RESERVED') : []
-  const selectableTables = result ? result.tables.filter((t) => t.status !== 'RESERVED') : []
+  // Derived from the check result. Only a time overlap (BLOCKED) removes a table; gap tables stay selectable.
+  const blockedTables = result ? result.tables.filter((t) => t.status === 'BLOCKED') : []
+  const selectableTables = result ? result.tables.filter((t) => t.status !== 'BLOCKED') : []
   const selectedSeats = result
     ? result.tables.filter((t) => selectedIds.includes(t.tableId)).reduce((s, t) => s + (t.capacity || 0), 0)
     : 0
@@ -215,32 +215,48 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
 
         {result && result.tables.length > 0 && (
           <div className="mt-5 space-y-5">
-            {/* ② CONFLICTS — per table with its window */}
-            {reservedTables.length > 0 ? (
+            {/* ② BLOCKED — tables whose time overlaps an existing reservation (can't be picked) */}
+            {blockedTables.length > 0 ? (
               <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
                 <div className="mb-2 flex items-center gap-2 text-sm font-bold text-red-600">
-                  <AlertTriangle size={15} /> Conflicts for this slot
+                  <AlertTriangle size={15} /> Time conflicts (unavailable)
                 </div>
                 <div className="space-y-1.5">
-                  {reservedTables.map((t) => (
+                  {blockedTables.map((t) => (
                     <div key={t.tableId} className="text-[11px] text-red-500">
                       <span className="font-bold">Table {t.tableNumber}</span>{' '}
                       — reserved {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}
-                      {t.gapConflict && <span className="text-red-400"> · needs 1-hour gap</span>}
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
               <div className="flex items-center gap-2 rounded-2xl border border-green-100 bg-green-50 p-3 text-xs font-bold text-green-600">
-                <Check size={15} /> No conflicts for this slot
+                <Check size={15} /> No time conflicts for this slot
+              </div>
+            )}
+
+            {/* Gap warnings in the result area too (also shown on each table card). Never blocks. */}
+            {selectableTables.some((t) => t.gapConflict) && (
+              <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-bold text-amber-700">
+                  <AlertTriangle size={15} /> Gap warnings (still bookable)
+                </div>
+                <div className="space-y-1.5">
+                  {selectableTables.filter((t) => t.gapConflict).map((t) => (
+                    <div key={t.tableId} className="text-[11px] text-amber-600">
+                      <span className="font-bold">Table {t.tableNumber}</span>{' '}
+                      — near a reservation {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}. Maintain at least one hour gap between two reservations to avoid conflicts.
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             {/* ③ GUEST DETAILS + TABLE PICKER (only if something is bookable) */}
             {selectableTables.length === 0 ? (
               <p className="text-xs font-semibold text-gray-400">
-                No tables are free for this slot — every table has a conflict.
+                No tables are free for this slot — every table's time overlaps a booking.
               </p>
             ) : (
               <form onSubmit={handleBook} className="space-y-4 border-t border-gray-100 pt-5">
@@ -312,6 +328,12 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
                           {isOccupied && (
                             <p className="mt-0.5 flex items-center gap-1 text-[11px] text-amber-500">
                               <ClipboardList size={10} /> Pending orders (still to serve): {t.pendingOrderCount ?? 0}
+                            </p>
+                          )}
+                          {t.gapConflict && (
+                            <p className="mt-1 flex items-start gap-1 text-[11px] font-semibold text-amber-600">
+                              <AlertTriangle size={11} className="mt-0.5 shrink-0" />
+                              Maintain at least one hour gap between two reservations to avoid conflicts
                             </p>
                           )}
                         </button>
