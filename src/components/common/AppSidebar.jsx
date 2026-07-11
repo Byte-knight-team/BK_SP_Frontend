@@ -34,11 +34,29 @@ export default function AppSidebar({
     - Example: /staff/staff/create should keep Staff Management active.
   */
   const isActive = (item) => {
+    const [itemPath, itemSearch] = (item.path || "").split("?");
+    
+    let matchPath = false;
     if (item.exact) {
-      return location.pathname === item.path;
+      matchPath = location.pathname === itemPath;
+    } else {
+      matchPath = location.pathname.startsWith(itemPath);
     }
 
-    return location.pathname.startsWith(item.path);
+    if (itemSearch) {
+      const currentParams = new URLSearchParams(location.search);
+      const itemParams = new URLSearchParams(itemSearch);
+      for (const [key, value] of itemParams.entries()) {
+        if (currentParams.get(key) !== value) return false;
+      }
+      return matchPath;
+    }
+
+    if (item.exactSearch) {
+      return matchPath && !location.search;
+    }
+
+    return matchPath;
   };
 
   /*
@@ -90,26 +108,56 @@ export default function AppSidebar({
         <nav className="px-4 py-6 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
+            // The parent is active if it matches the criteria (note: we check subItems if needed)
             const active = isActive(item);
 
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
-                  active
-                    ? "bg-orange-500 text-white shadow-md shadow-orange-200"
-                    : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
-                }`}
-              >
-                <Icon size={20} />
+              <div key={item.path}>
+                <Link
+                  to={item.path}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
+                    active && !item.subItems
+                      ? "bg-orange-500 text-white shadow-md shadow-orange-200"
+                      : active && item.subItems
+                      ? "bg-orange-50 text-orange-600"
+                      : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
+                  }`}
+                >
+                  <Icon size={20} />
 
-                <span className="text-sm font-medium flex-1">
-                  {item.label}
-                </span>
+                  <span className="text-sm font-medium flex-1">
+                    {item.label}
+                  </span>
 
-                {active && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-              </Link>
+                  {active && !item.subItems && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                </Link>
+
+                {item.subItems && (
+                  <div className="ml-9 mt-1 space-y-1">
+                    {item.subItems.map((sub) => {
+                      const subActive = isActive(sub);
+                      return (
+                        <Link
+                          key={sub.path}
+                          to={sub.path}
+                          className={`flex items-center justify-between px-4 py-2 text-sm rounded-xl transition-all ${
+                            subActive
+                              ? "text-orange-600 bg-orange-100 font-medium"
+                              : "text-gray-500 hover:text-orange-600 hover:bg-orange-50"
+                          }`}
+                        >
+                          <span>{sub.label}</span>
+                          {sub.count !== undefined && (
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${subActive ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-600'}`}>
+                              {sub.count}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

@@ -55,6 +55,7 @@ export default function EditMenuItemPage() {
   const [categoryName, setCategoryName] = useState('');
   const [subCategory, setSubCategory] = useState('');
   const [basePrice, setBasePrice] = useState('0');
+  const [preparationTime, setPreparationTime] = useState('');
   const [description, setDescription] = useState('');
   const [visibility, setVisibility] = useState('Available');
   const [imageData, setImageData] = useState(null);
@@ -102,6 +103,7 @@ export default function EditMenuItemPage() {
         setCategoryName(item.categoryName || '');
         setSubCategory(item.subCategory || '');
         setBasePrice(String(item.price ?? '0'));
+        setPreparationTime(String(item.preparationTime ?? ''));
         setDescription(item.description || '');
         setVisibility(mapStatusToVisibility(item.status));
 
@@ -204,6 +206,7 @@ export default function EditMenuItemPage() {
     const nextErrors = {};
     const normalizedSubCategory = normalizeSubCategory(subCategory);
     const parsedPrice = Number(basePrice);
+    const parsedPreparationTime = Number(preparationTime);
 
     if (itemName.trim().length < 2) {
       nextErrors.itemName = 'Item name must be at least 2 characters.';
@@ -219,6 +222,10 @@ export default function EditMenuItemPage() {
 
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
       nextErrors.basePrice = 'Base price must be greater than 0.';
+    }
+
+    if (!Number.isFinite(parsedPreparationTime) || parsedPreparationTime <= 0) {
+      nextErrors.preparationTime = 'Preparation time must be greater than 0.';
     }
 
     if (!imageData?.secure_url) {
@@ -244,6 +251,7 @@ export default function EditMenuItemPage() {
         categoryName,
         subCategory: normalizedSubCategory,
         price: Number(basePrice),
+        preparationTime: Number(preparationTime),
         description: description.trim() || null,
         status: mapVisibilityToStatus(visibility),
         imageUrl: imageData.secure_url,
@@ -338,8 +346,8 @@ export default function EditMenuItemPage() {
                 {errors.itemName && <p className="mt-1 text-xs text-red-600">{errors.itemName}</p>}
               </div>
 
-              {/* Category, Subcategory & Base Price */}
-              <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
+              {/* Category, Subcategory, Base Price & Prep Time */}
+              <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                   <select
@@ -409,6 +417,20 @@ export default function EditMenuItemPage() {
                     className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all ${errors.basePrice ? 'border-red-300' : 'border-gray-200'}`}
                   />
                   {errors.basePrice && <p className="mt-1 text-xs text-red-600">{errors.basePrice}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Preparation Time (min)</label>
+                  <input
+                    type="number"
+                    value={preparationTime}
+                    onChange={(e) => setPreparationTime(e.target.value)}
+                    placeholder="e.g. 15"
+                    min="1"
+                    step="1"
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all ${errors.preparationTime ? 'border-red-300' : 'border-gray-200'}`}
+                  />
+                  {errors.preparationTime && <p className="mt-1 text-xs text-red-600">{errors.preparationTime}</p>}
                 </div>
               </div>
 

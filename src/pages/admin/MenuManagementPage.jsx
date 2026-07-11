@@ -12,7 +12,7 @@ import {
   ChevronDown,
   ImageOff,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
   getMenuItemsAPI,
@@ -41,6 +41,7 @@ const normalizeStatus = (status) => {
 // Admin page for managing menu categories, filters, and item actions.
 export default function MenuManagementPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [menuItems, setMenuItems] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -48,7 +49,23 @@ export default function MenuManagementPage() {
   const [activeCategory, setActiveCategory] = useState('');
   const [activeSubCategory, setActiveSubCategory] = useState('All Sub Categories');
   const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  
+  const initialStatus = searchParams.get('status')?.toUpperCase() || 'ALL';
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+
+  useEffect(() => {
+    const status = searchParams.get('status')?.toUpperCase();
+    if (status) {
+      setStatusFilter(status);
+      if (status === 'PENDING' || status === 'REJECTED') {
+        setActiveCategory('');
+        setActiveSubCategory('All Sub Categories');
+      }
+    } else {
+      setStatusFilter('ALL');
+    }
+  }, [searchParams]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState('');
   const [togglingItemId, setTogglingItemId] = useState(null);
@@ -92,7 +109,13 @@ export default function MenuManagementPage() {
         const categories = await getMenuCategoriesAPI();
         if (isMounted && categories.length > 0) {
           setCategoryOptions(categories);
-          setActiveCategory(categories[0].name);
+          
+          const currentStatus = searchParams.get('status')?.toUpperCase();
+          if (currentStatus === 'PENDING' || currentStatus === 'REJECTED') {
+            setActiveCategory('');
+          } else if (!activeCategory) {
+            setActiveCategory(categories[0].name);
+          }
         }
       } catch (error) {
         if (isMounted) {
@@ -110,7 +133,13 @@ export default function MenuManagementPage() {
     let isMounted = true;
 
     const loadSubCategories = async () => {
-      if (!activeCategory) return;
+      if (!activeCategory) {
+        if (isMounted) {
+          setSubCategoryOptions([]);
+          setActiveSubCategory('All Sub Categories');
+        }
+        return;
+      }
 
       const selectedCategory = categoryOptions.find((c) => c.name === activeCategory);
 
@@ -409,6 +438,21 @@ export default function MenuManagementPage() {
               </div>
 
               <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveCategory('');
+                    setActiveSubCategory('All Sub Categories');
+                  }}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${activeCategory === '' ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                >
+                  <span className="flex items-center gap-3 text-sm font-medium">
+                    All Categories
+                  </span>
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${activeCategory === '' ? 'bg-white text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
+                    {menuItems.length}
+                  </span>
+                </button>
                 {categoryOptions.map((category) => {
                   const isActive = activeCategory === category.name;
 
@@ -481,7 +525,11 @@ export default function MenuManagementPage() {
                   <label className="relative">
                     <select
                       value={statusFilter}
-                      onChange={(event) => setStatusFilter(event.target.value)}
+                      onChange={(event) => {
+                        const newStatus = event.target.value;
+                        setStatusFilter(newStatus);
+                        navigate(`/admin/menu${newStatus === 'ALL' ? '' : `?status=${newStatus.toLowerCase()}`}`, { replace: true });
+                      }}
                       className="appearance-none rounded-xl border border-gray-200 bg-white py-2 pl-3 pr-9 text-sm text-gray-700 outline-none"
                     >
                       <option value="ALL">All Status</option>
@@ -498,6 +546,9 @@ export default function MenuManagementPage() {
                     onClick={() => {
                       setSearchText('');
                       setStatusFilter('ALL');
+                      setActiveCategory(categoryOptions[0]?.name || '');
+                      setActiveSubCategory('All Sub Categories');
+                      navigate('/admin/menu', { replace: true });
                     }}
                     className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >

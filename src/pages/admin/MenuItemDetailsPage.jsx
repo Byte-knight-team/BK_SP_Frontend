@@ -275,7 +275,7 @@ export default function MenuItemDetailsPage() {
               </div>
 
               {/* Category & Subcategory & Price */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                   <p className="text-sm text-gray-900">{item.categoryName || 'N/A'}</p>
@@ -290,6 +290,13 @@ export default function MenuItemDetailsPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Base Price (LKR)</label>
                   <p className="text-sm font-semibold text-orange-600">
                     {Number(item.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Prep Time</label>
+                  <p className="text-sm text-gray-900">
+                    {item.preparationTime ? `${item.preparationTime} min` : 'N/A'}
                   </p>
                 </div>
               </div>
