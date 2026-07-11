@@ -40,27 +40,30 @@ const TableGridCard = ({ refreshKey = 0 }) => {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-5 gap-2">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="h-10 w-full animate-pulse rounded-xl bg-gray-100" />
+        <div className="grid flex-1 grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="aspect-square w-full animate-pulse rounded-2xl bg-gray-100" />
           ))}
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-5 gap-2">
-            {tables.map((table) => {
-              const status = table.status?.toUpperCase() || 'AVAILABLE'
-              const config = STATUS_CONFIG[status] || { bg: 'bg-gray-300' }
-              return (
-                <div
-                  key={table.id}
-                  className={`flex items-center justify-center rounded-xl ${config.bg} py-2.5`}
-                  title={`Table ${table.tableNumber} — ${config.label}`}
-                >
-                  <span className="text-xs font-black text-white">{table.tableNumber}</span>
-                </div>
-              )
-            })}
+          {/* Big squares, vertically centered to fill the card */}
+          <div className="flex flex-1 items-center">
+            <div className="grid w-full grid-cols-4 gap-3">
+              {tables.map((table) => {
+                const status = table.status?.toUpperCase() || 'AVAILABLE'
+                const config = STATUS_CONFIG[status] || { bg: 'bg-gray-300' }
+                return (
+                  <div
+                    key={table.id}
+                    className={`flex aspect-square items-center justify-center rounded-2xl ${config.bg}`}
+                    title={`Table ${table.tableNumber} — ${config.label}`}
+                  >
+                    <span className="text-lg font-black text-white">{table.tableNumber}</span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           {/* Legend */}

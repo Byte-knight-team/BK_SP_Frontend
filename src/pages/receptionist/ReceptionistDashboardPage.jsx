@@ -87,17 +87,17 @@ const ReceptionistDashboardPage = () => {
         <OrderPipelineCard refreshKey={ordersRefreshKey} />
       </div>
 
-      {/* BOTTOM — alerts + table grid + reservations */}
+      {/* BOTTOM — alerts + table grid + reservations (fixed tall so ~5 rows fit) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="h-[400px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <AlertsCard refreshKey={alertsRefreshKey} />
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="h-[400px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <TableGridCard refreshKey={tablesRefreshKey} />
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="h-[400px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <UpcomingReservationsCard refreshKey={reservationsRefreshKey} />
         </div>
       </div>
