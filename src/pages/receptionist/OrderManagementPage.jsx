@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { ClipboardList, AlertTriangle } from 'lucide-react'
 import { getReceptionistOrdersAPI } from '../../apis/receptionist/orders'
-import { toast } from 'react-toastify'
 import OrderCard from '../../components/receptionist/orders/OrderCard'
 import OrderDetailPanel from '../../components/receptionist/orders/OrderDetailPanel'
 import KitchenAlertsModal from '../../components/receptionist/orders/KitchenAlertsModal'
@@ -110,19 +109,13 @@ const OrderManagementPage = () => {
     if (!msg?.orderId) return
 
     // QR item ready: auto-switch selected order to Ready tab, or notify if viewing a different order
+    // Toasts for these events are shown globally by ReceptionistNotifier; here we only refresh page data.
     if (msg.newStatus === 'READY' && msg.orderType === 'QR') {
       if (activeTabRef.current === 'COMPLETED') {
         setListRefreshKey((prev) => prev + 1)
       } else if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
         setActiveTab('COMPLETED')
-      } else {
-        toast.info(`Item ready in Order ${msg.orderNumber} — check the Ready tab.`, { autoClose: 5000 })
       }
-    }
-
-    // Notify receptionist whenever all items in any order are completed
-    if (msg.orderStatus === 'COMPLETED') {
-      toast.success(`Order ${msg.orderNumber} is ready — kitchen has completed all items.`, { autoClose: 6000 })
     }
 
     fetchCounts()
@@ -144,11 +137,7 @@ const OrderManagementPage = () => {
   const handleOrderStatusUpdate = useCallback((msg) => {
     if (!msg?.orderId) return
 
-    // Notify receptionist whenever any order is put on hold by the kitchen
-    if (msg.newStatus === 'ON_HOLD') {
-      toast.warning(`Kitchen put Order ${msg.orderNumber} on hold. Please check the Hold tab.`, { autoClose: 8000 })
-    }
-
+    // Hold toast is shown globally by ReceptionistNotifier; here we only refresh page data.
     fetchCounts()
 
     // Tab switch + detail refresh only for the currently selected order
@@ -167,13 +156,7 @@ const OrderManagementPage = () => {
 
   const handleKitchenAlert = useCallback((msg) => {
     if (!msg?.message) return
-    if (msg.type === 'CRITICAL') {
-      toast.error(`Kitchen CRITICAL: ${msg.message}`, { autoClose: 10000 })
-    } else if (msg.type === 'WARNING') {
-      toast.warning(`Kitchen WARNING: ${msg.message}`, { autoClose: 8000 })
-    } else {
-      toast.info(`Kitchen: ${msg.message}`, { autoClose: 6000 })
-    }
+    // Alert toast is shown globally by ReceptionistNotifier; here we only refresh the alerts badge.
     setAlertsRefreshKey((prev) => prev + 1)
   }, [])
 

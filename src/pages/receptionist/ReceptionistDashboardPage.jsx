@@ -3,7 +3,6 @@ import { useOutletContext } from 'react-router-dom'
 import { LayoutDashboard } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
-import { toast } from 'react-toastify'
 
 import ReceptionistStats from '../../components/receptionist/dashboard/ReceptionistStats'
 import RevenueLineChart from '../../components/receptionist/dashboard/RevenueLineChart'
@@ -44,14 +43,8 @@ const ReceptionistDashboardPage = () => {
 
   const handleMessage = useCallback((message, topic) => {
     if (topic.endsWith('/alerts')) {
+      // Toast is shown globally by ReceptionistNotifier; here we only refresh the alerts data.
       setAlertsRefreshKey(k => k + 1)
-      if (message.type === 'CRITICAL') {
-        toast.error(`Kitchen CRITICAL: ${message.message}`, { autoClose: 8000 })
-      } else if (message.type === 'WARNING') {
-        toast.warning(`Kitchen WARNING: ${message.message}`, { autoClose: 6000 })
-      } else {
-        toast.info(`Kitchen INFO: ${message.message}`, { autoClose: 5000 })
-      }
     }
 
     if (topic.endsWith('/order-status-update') || topic.endsWith('/kitchen-orders')) {

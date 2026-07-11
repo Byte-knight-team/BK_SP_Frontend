@@ -28,6 +28,7 @@ import LineChefHeader from './components/line-chef/LineChefHeader'
 
 import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
+import ReceptionistNotifier from './components/receptionist/ReceptionistNotifier'
 
 import DeliverySidebar from './components/delivery/DeliverySidebar'
 import DeliveryHeader from './components/delivery/DeliveryHeader'
@@ -440,6 +441,8 @@ export default function App() {
           path="/receptionist"
           element={
             <ProtectedRoute allowedRoles={['RECEPTIONIST']}>
+              {/* Global receptionist notifications — active on every /receptionist page */}
+              <ReceptionistNotifier />
               <MainLayout
                 Sidebar={ReceptionistSidebar}
                 Header={ReceptionistHeader}
