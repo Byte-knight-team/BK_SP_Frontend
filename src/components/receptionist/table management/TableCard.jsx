@@ -97,7 +97,7 @@ const TableCard = ({ table, onClick }) => {
           {isReserved && activeReservation && (
             <div className="flex flex-col items-end gap-0.5 rounded-xl border border-purple-200 bg-purple-100/70 px-2.5 py-1.5 ring-1 ring-purple-200">
               <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-purple-600">
-                <Lock size={9} /> This Slot
+                <Lock size={9} /> Reserved For
               </span>
               <span className="text-[10px] font-black text-purple-800">
                 {formatTime(activeReservation.reservationTime)} – {formatTime(activeReservation.endTime)}

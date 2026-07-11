@@ -81,7 +81,7 @@ const UpcomingReservationsCard = ({ refreshKey = 0 }) => {
                 </div>
               </div>
               <span className="shrink-0 rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-black text-purple-600 border border-purple-100">
-                T{r.tableNumber}
+                T{(r.tableNumbers || []).join(', ')}
               </span>
             </div>
           ))}

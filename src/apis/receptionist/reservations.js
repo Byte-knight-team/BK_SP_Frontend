@@ -43,9 +43,16 @@ export const getReservationsAPI = async () => {
   }
 }
 
-export const getAllReservationsAPI = async () => {
+// Paged + filtered. params: { page, size, date, tableNumber, status } — all optional.
+// Returns { data: { content, page, size, totalElements, totalPages }, error }
+export const getAllReservationsAPI = async (params = {}) => {
   try {
-    const response = await authFetch(`${API_BASE}/all`)
+    const qs = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') qs.append(k, v)
+    })
+    const query = qs.toString()
+    const response = await authFetch(`${API_BASE}/all${query ? `?${query}` : ''}`)
     const result = await response.json()
     if (!response.ok) return { data: null, error: result.message || 'Failed to fetch reservations' }
     return { data: result.data, error: null }

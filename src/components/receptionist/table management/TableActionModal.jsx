@@ -98,11 +98,13 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
       return
     }
     toast.success('Reservation cancelled')
-    // Drop it locally; onUpdate refreshes the grid (backend frees the table if it was the locked slot).
-    setReservations((prev) => prev.filter((r) => r.reservationId !== reservationId))
+    // The table's state may have changed (freed, or re-locked for another slot) and this modal holds a
+    // stale snapshot — refresh the grid and close, so the receptionist sees the accurate state instead
+    // of an empty "reserved for this slot" with a dead Seat button.
     setCancelTargetId(null)
     setCancelReason('')
     onUpdate()
+    onClose()
   }
 
   const getTitle = () => {

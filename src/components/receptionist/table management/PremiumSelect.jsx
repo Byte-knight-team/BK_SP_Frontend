@@ -2,16 +2,16 @@ import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headless
 import { ChevronDown, Check } from 'lucide-react'
 
 // Reusable premium dropdown (Headless UI Listbox) — options: [{ value, label }]
-const PremiumSelect = ({ value, onChange, options, placeholder = 'Select', disabled = false, compact = false }) => {
+const PremiumSelect = ({ value, onChange, options, placeholder = 'Select', disabled = false, compact = false, bordered = false }) => {
   const selected = options.find((o) => o.value === value)
 
   return (
     <Listbox value={value} onChange={onChange} disabled={disabled}>
       <div className="relative">
         <ListboxButton
-          className={`flex w-full items-center justify-between rounded-2xl bg-gray-50 text-left font-medium outline-none transition-all focus:ring-2 focus:ring-orange-500/20 disabled:opacity-60 ${
-            compact ? 'px-3 py-2 text-xs' : 'px-4 py-3 text-sm'
-          }`}
+          className={`flex w-full items-center justify-between rounded-2xl text-left font-medium outline-none transition-all focus:ring-2 focus:ring-orange-500/20 disabled:opacity-60 ${
+            bordered ? 'border border-gray-200 bg-white shadow-sm hover:bg-gray-50' : 'bg-gray-50'
+          } ${compact ? 'px-3 py-2 text-xs' : 'px-4 py-3 text-sm'}`}
         >
           <span className={selected ? 'text-gray-800' : 'text-gray-400'}>
             {selected ? selected.label : placeholder}

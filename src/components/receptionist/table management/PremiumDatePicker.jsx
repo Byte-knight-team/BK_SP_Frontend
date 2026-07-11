@@ -18,7 +18,7 @@ const fmtLabel = (str) =>
 
 // Calendar date picker (react-day-picker) as a plain drop-down: absolutely positioned below the
 // field so it always opens downward — no auto-flip, so it never jumps to the top of the screen.
-const PremiumDatePicker = ({ value, onChange }) => {
+const PremiumDatePicker = ({ value, onChange, disablePast = true, placeholder = 'Pick a date', bordered = false }) => {
   const [open, setOpen] = useState(false)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -28,11 +28,13 @@ const PremiumDatePicker = ({ value, onChange }) => {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 text-left text-sm outline-none transition-all focus:ring-2 focus:ring-orange-500/20"
+        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm outline-none transition-all focus:ring-2 focus:ring-orange-500/20 ${
+          bordered ? 'border border-gray-200 bg-white shadow-sm hover:bg-gray-50' : 'bg-gray-50'
+        }`}
       >
         <span className={`flex items-center gap-2 ${value ? 'font-medium text-gray-800' : 'text-gray-400'}`}>
           <CalendarDays size={16} className="text-gray-400" />
-          {value ? fmtLabel(value) : 'Pick a date'}
+          {value ? fmtLabel(value) : placeholder}
         </span>
         <ChevronDown size={18} className={`shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -51,7 +53,7 @@ const PremiumDatePicker = ({ value, onChange }) => {
                   setOpen(false)
                 }
               }}
-              disabled={{ before: today }}
+              disabled={disablePast ? { before: today } : undefined}
               style={{
                 '--rdp-accent-color': '#f97316',
                 '--rdp-accent-background-color': '#fff7ed',
