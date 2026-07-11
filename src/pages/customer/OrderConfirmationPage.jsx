@@ -151,17 +151,7 @@ export default function OrderConfirmationPage() {
         };
       });
 
-      // Trigger toast if it's a new status
-      if (lastKnownStatus.current && lastKnownStatus.current !== update.orderStatus) {
-        const friendlyStatus = update.orderStatus.replace(/_/g, ' ');
-        if (update.orderStatus === 'COMPLETED' || update.orderStatus === 'SERVED') {
-          toast.success(`Your order is ${friendlyStatus}! 🎉`);
-        } else if (update.orderStatus === 'CANCELLED') {
-          toast.error(`Your order has been ${friendlyStatus}.`);
-        } else {
-          toast.info(`Your order is now ${friendlyStatus}.`);
-        }
-      }
+
       lastKnownStatus.current = update.orderStatus;
     }
   });
@@ -282,7 +272,7 @@ export default function OrderConfirmationPage() {
               {isCancelled ? <XCircle size={32} /> : <CheckCircle2 size={32} />}
             </div>
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Confirmed'}</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Placed'}</h1>
           <p className="mt-1 text-xs text-slate-600">{isCancelled ? 'Cancelled order' : 'You will be notified of each step'}</p>
         </div>
       </div>
@@ -329,10 +319,10 @@ export default function OrderConfirmationPage() {
                         delay: index * 0.1
                       }}
                       className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center shrink-0 rounded-full transition-colors duration-500 ${isDone
-                          ? 'bg-orange-500 text-white shadow-md'
-                          : isNextStep
-                            ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg'
-                            : 'bg-white border border-slate-200 text-slate-300'
+                        ? 'bg-orange-500 text-white shadow-md'
+                        : isNextStep
+                          ? 'bg-white border-2 border-orange-400 text-orange-500 shadow-lg'
+                          : 'bg-white border border-slate-200 text-slate-300'
                         }`}
                     >
                       <StepIcon size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
