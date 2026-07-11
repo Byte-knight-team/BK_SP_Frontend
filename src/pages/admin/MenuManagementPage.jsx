@@ -6,7 +6,6 @@ import {
   Bell,
   HelpCircle,
   Plus,
-  Minus,
   SlidersHorizontal,
   EllipsisVertical,
   Clock3,
@@ -14,13 +13,12 @@ import {
   ChevronDown,
   ImageOff,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
   getMenuItemsAPI,
   getMenuCategoriesAPI,
   getMenuSubcategoriesAPI,
-  deleteMenuCategoryAPI,
   getMenuCategoriesCountAPI,
   getMenuSubcategoriesCountAPI,
   getMenuItemsCountAPI,
@@ -44,6 +42,7 @@ const normalizeStatus = (status) => {
 // Admin page for managing menu categories, filters, and item actions.
 export default function MenuManagementPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
   const { data: menuItems = [], isLoading, error: queryError } = useQuery({
@@ -57,10 +56,23 @@ export default function MenuManagementPage() {
   const [activeCategory, setActiveCategory] = useState('');
   const [activeSubCategory, setActiveSubCategory] = useState('All Sub Categories');
   const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  
+  const initialStatus = searchParams.get('status')?.toUpperCase() || 'ALL';
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+
+  useEffect(() => {
+    const status = searchParams.get('status')?.toUpperCase();
+    if (status) {
+      setStatusFilter(status);
+      if (status === 'PENDING' || status === 'REJECTED') {
+        setActiveCategory('');
+        setActiveSubCategory('All Sub Categories');
+      }
+    } else {
+      setStatusFilter('ALL');
+    }
+  }, [searchParams]);
   const [apiError, setApiError] = useState('');
-  const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState(null);
-  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
   const [togglingItemId, setTogglingItemId] = useState(null);
   const [decisionItemId, setDecisionItemId] = useState(null);
   const [totalCategoriesCount, setTotalCategoriesCount] = useState(0);
@@ -102,7 +114,13 @@ export default function MenuManagementPage() {
         const categories = await getMenuCategoriesAPI();
         if (isMounted && categories.length > 0) {
           setCategoryOptions(categories);
-          setActiveCategory(categories[0].name);
+          
+          const currentStatus = searchParams.get('status')?.toUpperCase();
+          if (currentStatus === 'PENDING' || currentStatus === 'REJECTED') {
+            setActiveCategory('');
+          } else if (!activeCategory) {
+            setActiveCategory(categories[0].name);
+          }
         }
       } catch (error) {
         if (isMounted) {
@@ -120,7 +138,13 @@ export default function MenuManagementPage() {
     let isMounted = true;
 
     const loadSubCategories = async () => {
-      if (!activeCategory) return;
+      if (!activeCategory) {
+        if (isMounted) {
+          setSubCategoryOptions([]);
+          setActiveSubCategory('All Sub Categories');
+        }
+        return;
+      }
 
       const selectedCategory = categoryOptions.find((c) => c.name === activeCategory);
 
@@ -282,27 +306,33 @@ export default function MenuManagementPage() {
     }
   };
 
-  const handleDeleteCategory = async (categoryId) => {
-    setIsDeletingCategory(true);
-
-    try {
-      await deleteMenuCategoryAPI(categoryId);
-      setCategoryOptions((prev) => {
-        const newOptions = prev.filter((item) => item.id !== categoryId);
-        // Ensure active category is valid or switch to the first available category
-        if (newOptions.length > 0) {
-          setActiveCategory(newOptions[0].name);
-        } else {
-          setActiveCategory('');
-        }
-        return newOptions;
-      });
-      setDeleteCategoryConfirm(null);
-    } catch (error) {
-      setApiError(error.message || 'Unable to delete category. It might have items attached.');
-    } finally {
-      setIsDeletingCategory(false);
-    }
+  // Compact visual toggle switch (orange when on, gray when off)
+  const ToggleSwitch = ({ checked, onChange, disabled, loading }) => {
+    return (
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onChange?.(event);
+        }}
+        disabled={disabled || loading}
+        aria-pressed={checked}
+        className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
+          checked ? 'bg-orange-500' : 'bg-gray-300'
+        } disabled:opacity-60`}
+      >
+        <span
+          className={`absolute left-1 h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+            checked ? 'translate-x-4' : 'translate-x-0'
+          }`}
+        />
+        {loading && (
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-white">
+            ...
+          </span>
+        )}
+      </button>
+    );
   };
 
   const getStatusDisplay = (status) => {
@@ -391,53 +421,29 @@ export default function MenuManagementPage() {
             </div>
           )}
 
-          {/* Delete Category Confirmation Modal */}
-          {deleteCategoryConfirm && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Category</h3>
-                <p className="text-sm text-gray-600 mb-5">
-                  Are you sure you want to delete the category <span className="font-semibold">"{deleteCategoryConfirm.name}"</span>? This action cannot be undone.
-                </p>
-                <div className="flex items-center gap-3 justify-end">
-                  <button
-                    onClick={() => setDeleteCategoryConfirm(null)}
-                    disabled={isDeletingCategory}
-                    className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(deleteCategoryConfirm.id)}
-                    disabled={isDeletingCategory}
-                    className="rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-70"
-                  >
-                    {isDeletingCategory ? 'Deleting...' : 'Delete'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
             {/* Categories Panel */}
             <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-900">Categories</h2>
-                <button 
-                  onClick={() => {
-                    const selectedCat = categoryOptions.find(c => c.name === activeCategory);
-                    if (selectedCat) setDeleteCategoryConfirm(selectedCat);
-                  }}
-                  disabled={!activeCategory}
-                  className="grid size-8 place-items-center rounded-lg border border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Delete Category"
-                >
-                  <Minus size={16} />
-                </button>
               </div>
 
               <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveCategory('');
+                    setActiveSubCategory('All Sub Categories');
+                  }}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${activeCategory === '' ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                >
+                  <span className="flex items-center gap-3 text-sm font-medium">
+                    All Categories
+                  </span>
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${activeCategory === '' ? 'bg-white text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
+                    {menuItems.length}
+                  </span>
+                </button>
                 {categoryOptions.map((category) => {
                   const isActive = activeCategory === category.name;
 
@@ -459,13 +465,6 @@ export default function MenuManagementPage() {
                   );
                 })}
               </div>
-
-              <button 
-                onClick={() => navigate('/admin/menu/category/add')}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 px-4 py-3 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50">
-                <Plus size={16} />
-                Add Category
-              </button>
             </section>
 
             {/* Sub Categories Panel */}
@@ -517,7 +516,11 @@ export default function MenuManagementPage() {
                   <label className="relative">
                     <select
                       value={statusFilter}
-                      onChange={(event) => setStatusFilter(event.target.value)}
+                      onChange={(event) => {
+                        const newStatus = event.target.value;
+                        setStatusFilter(newStatus);
+                        navigate(`/admin/menu${newStatus === 'ALL' ? '' : `?status=${newStatus.toLowerCase()}`}`, { replace: true });
+                      }}
                       className="appearance-none rounded-xl border border-gray-200 bg-white py-2 pl-3 pr-9 text-sm text-gray-700 outline-none"
                     >
                       <option value="ALL">All Status</option>
@@ -534,6 +537,9 @@ export default function MenuManagementPage() {
                     onClick={() => {
                       setSearchText('');
                       setStatusFilter('ALL');
+                      setActiveCategory(categoryOptions[0]?.name || '');
+                      setActiveSubCategory('All Sub Categories');
+                      navigate('/admin/menu', { replace: true });
                     }}
                     className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
@@ -554,7 +560,7 @@ export default function MenuManagementPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {filteredMenuItems.map((item) => (
-                    <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+                    <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md cursor-pointer" onClick={() => navigate(`/admin/menu/${item.id}`)}>
                       <div className="relative h-40 overflow-hidden bg-gray-100">
                         <img
                           src={item.imageUrl || PLACEHOLDER_IMAGE}
@@ -580,49 +586,21 @@ export default function MenuManagementPage() {
                         )}
 
                         <div className="mt-auto flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
-                          {normalizeStatus(item.status) === 'PENDING' ? (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => handleApprovePendingItem(item)}
-                                disabled={decisionItemId === item.id}
-                                className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-70"
-                              >
-                                {decisionItemId === item.id ? 'Processing...' : 'Approve'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleRejectPendingItem(item)}
-                                disabled={decisionItemId === item.id}
-                                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-70"
-                              >
-                                Reject
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleToggleAvailability(item)}
-                              disabled={
-                                togglingItemId === item.id
-                                || (normalizeStatus(item.status) !== 'ACTIVE' && normalizeStatus(item.status) !== 'INACTIVE')
-                              }
-                              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-70 ${
-                                normalizeStatus(item.status) === 'ACTIVE'
-                                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                  : 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'
-                              }`}
-                            >
-                              {togglingItemId === item.id
-                                ? 'Updating...'
-                                : normalizeStatus(item.status) === 'ACTIVE'
-                                  ? 'ON'
-                                  : 'OFF'}
-                            </button>
-                          )}
+                          <ToggleSwitch
+                            checked={normalizeStatus(item.status) === 'ACTIVE'}
+                            onChange={() => handleToggleAvailability(item)}
+                            disabled={
+                              togglingItemId === item.id
+                              || (normalizeStatus(item.status) !== 'ACTIVE' && normalizeStatus(item.status) !== 'INACTIVE')
+                            }
+                            loading={togglingItemId === item.id}
+                          />
                           <button
                             type="button"
-                            onClick={() => navigate(`/admin/menu/edit/${item.id}`)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate(`/admin/menu/edit/${item.id}`);
+                            }}
                             className="grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                             aria-label="Edit"
                           >

@@ -26,11 +26,29 @@ export default function AppSidebar({
     matches the current route.
   */
   const isActive = (item) => {
+    const [itemPath, itemSearch] = (item.path || "").split("?");
+    
+    let matchPath = false;
     if (item.exact) {
-      return location.pathname === item.path;
+      matchPath = location.pathname === itemPath;
+    } else {
+      matchPath = location.pathname.startsWith(itemPath);
     }
 
-    return location.pathname.startsWith(item.path);
+    if (itemSearch) {
+      const currentParams = new URLSearchParams(location.search);
+      const itemParams = new URLSearchParams(itemSearch);
+      for (const [key, value] of itemParams.entries()) {
+        if (currentParams.get(key) !== value) return false;
+      }
+      return matchPath;
+    }
+
+    if (item.exactSearch) {
+      return matchPath && !location.search;
+    }
+
+    return matchPath;
   };
 
   /*
@@ -125,53 +143,82 @@ export default function AppSidebar({
             )}
           </div>
 
-          {/* Navigation */}
-          <nav
-            className={`space-y-1 py-4 ${
-              collapsed ? "px-3" : "px-4"
-            }`}
-          >
+        {/* Navigation */}
+        <nav
+          className={`space-y-1 py-4 ${
+            collapsed ? "px-3" : "px-4"
+          }`}
+        >
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item);
 
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`group relative flex items-center rounded-2xl py-3 transition-all ${
-                    collapsed
-                      ? "justify-center px-2"
-                      : "gap-3 px-4"
-                  } ${
-                    active
-                      ? "bg-orange-500 text-white shadow-md shadow-orange-200"
-                      : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
-                  }`}
-                >
-                  {/* Navigation icon */}
-                  <Icon size={20} />
+                <div key={item.path}>
+                  <Link
+                    to={item.path}
+                    className={`group relative flex items-center rounded-2xl py-3 transition-all ${
+                      collapsed
+                        ? "justify-center px-2"
+                        : "gap-3 px-4"
+                    } ${
+                      active && !item.subItems
+                        ? "bg-orange-500 text-white shadow-md shadow-orange-200"
+                        : active && item.subItems
+                        ? "bg-orange-50 text-orange-600"
+                        : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
+                    }`}
+                  >
+                    {/* Navigation icon */}
+                    <Icon size={20} />
 
-                  {/* Expanded label */}
-                  {!collapsed && (
-                    <>
-                      <span className="flex-1 text-sm font-medium">
+                    {/* Expanded label */}
+                    {!collapsed && (
+                      <>
+                        <span className="flex-1 text-sm font-medium">
+                          {item.label}
+                        </span>
+
+                        {active && !item.subItems && (
+                          <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                        )}
+                      </>
+                    )}
+
+                    {/* Collapsed floating label */}
+                    {collapsed && (
+                      <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
                         {item.label}
-                      </span>
+                      </div>
+                    )}
+                  </Link>
 
-                      {active && (
-                        <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                      )}
-                    </>
-                  )}
-
-                  {/* Collapsed floating label */}
-                  {collapsed && (
-                    <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
-                      {item.label}
+                  {item.subItems && !collapsed && (
+                    <div className="ml-9 mt-1 space-y-1">
+                      {item.subItems.map((sub) => {
+                        const subActive = isActive(sub);
+                        return (
+                          <Link
+                            key={sub.path}
+                            to={sub.path}
+                            className={`flex items-center justify-between px-4 py-2 text-sm rounded-xl transition-all ${
+                              subActive
+                                ? "text-orange-600 bg-orange-100 font-medium"
+                                : "text-gray-500 hover:text-orange-600 hover:bg-orange-50"
+                            }`}
+                          >
+                            <span>{sub.label}</span>
+                            {sub.count !== undefined && (
+                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${subActive ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-600'}`}>
+                                {sub.count}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
                     </div>
                   )}
-                </Link>
+                </div>
               );
             })}
           </nav>

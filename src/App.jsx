@@ -81,6 +81,7 @@ import MenuManagementPage from './pages/admin/MenuManagementPage'
 import AddCategoryPage from './pages/admin/AddCategoryPage'
 import AddMenuItemPage from './pages/admin/AddMenuItemPage'
 import EditMenuItemPage from './pages/admin/EditMenuItemPage'
+import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
 import AddTablePage from './pages/admin/AddTablePage'
 import TableQrPage from './pages/admin/TableQrPage'
@@ -169,13 +170,11 @@ const queryClient = new QueryClient({
 
 function CustomerLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <AuthGuard />
-        <GlobalNotificationProvider />
-        <Outlet />
-      </CartProvider>
-    </QueryClientProvider>
+    <CartProvider>
+      <AuthGuard />
+      <GlobalNotificationProvider />
+      <Outlet />
+    </CartProvider>
   )
 }
 
@@ -191,7 +190,7 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
@@ -264,14 +263,15 @@ export default function App() {
           <Route path="staff/:id" element={<StaffDetailsPage />} />
           <Route path="staff/:id/edit" element={<EditStaffPage />} />
 
-          <Route path="tables" element={<TableManagementPage />} />
-          <Route path="tables/add" element={<AddTablePage />} />
-          <Route path="tables/:tableId/qr" element={<TableQrPage />} />
-          <Route path="menu" element={<MenuManagementPage />} />
-          <Route path="menu/category/add" element={<AddCategoryPage />} />
-          <Route path="menu/add" element={<AddMenuItemPage />} />
-          <Route path="menu/edit" element={<EditMenuItemPage />} />
-          <Route path="coupons" element={<CouponsPage />} />
+        <Route path="tables" element={<TableManagementPage />} />
+        <Route path="tables/add" element={<AddTablePage />} />
+        <Route path="tables/:tableId/qr" element={<TableQrPage />} />
+        <Route path="menu" element={<MenuManagementPage />} />
+        <Route path="menu/category/add" element={<AddCategoryPage />} />
+        <Route path="menu/add" element={<AddMenuItemPage />} />
+        <Route path="menu/:id" element={<MenuItemDetailsPage />} />
+        <Route path="menu/edit/:id" element={<EditMenuItemPage />} />
+        <Route path="coupons" element={<CouponsPage />} />
 
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Route>
@@ -498,6 +498,6 @@ export default function App() {
         draggable
         limit={3}
       />
-    </>
+    </QueryClientProvider>
   )
 }
