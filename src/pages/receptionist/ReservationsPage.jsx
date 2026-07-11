@@ -4,8 +4,8 @@ import { CalendarCheck, CalendarDays } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { getAllReservationsAPI, cancelReservationAPI, seatReservationAPI } from '../../apis/receptionist/reservations'
 import { getBranchTablesAPI } from '../../apis/receptionist/tables'
-import PremiumSelect from '../../components/receptionist/table management/PremiumSelect'
-import PremiumDatePicker from '../../components/receptionist/table management/PremiumDatePicker'
+import Dropdown from '../../components/common/Dropdown'
+import DatePicker from '../../components/receptionist/table management/DatePicker'
 
 const PAGE_SIZE = 10
 
@@ -126,7 +126,7 @@ export default function ReservationsPage() {
       {/* Filter bar */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="w-52">
-          <PremiumDatePicker value={dateFilter} onChange={onDate} disablePast={false} placeholder="All dates" bordered />
+          <DatePicker value={dateFilter} onChange={onDate} disablePast={false} placeholder="All dates" bordered />
         </div>
         {dateFilter && (
           <button
@@ -137,10 +137,10 @@ export default function ReservationsPage() {
           </button>
         )}
         <div className="w-40">
-          <PremiumSelect value={tableFilter} onChange={onTable} options={tableOptions} bordered />
+          <Dropdown value={tableFilter} onChange={onTable} options={tableOptions} bordered />
         </div>
         <div className="w-40">
-          <PremiumSelect value={statusFilter} onChange={onStatus} options={STATUS_OPTIONS} bordered />
+          <Dropdown value={statusFilter} onChange={onStatus} options={STATUS_OPTIONS} bordered />
         </div>
         <span className="ml-auto text-sm font-bold text-gray-400">
           {totalElements} reservation{totalElements !== 1 ? 's' : ''}

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { X, CalendarCheck, Search, AlertTriangle, Users, Check, ClipboardList } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { checkAvailabilityAPI, createReservationAPI } from '../../../apis/receptionist/reservations'
-import PremiumDatePicker from './PremiumDatePicker'
+import DatePicker from './DatePicker'
 import TimePicker from './TimePicker'
 
 const fmtTime = (iso) =>
@@ -164,7 +164,7 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
         <form onSubmit={handleCheck} className="space-y-3">
           <div>
             <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">Date</label>
-            <PremiumDatePicker value={check.date} onChange={(v) => setCheck((p) => ({ ...p, date: v }))} />
+            <DatePicker value={check.date} onChange={(v) => setCheck((p) => ({ ...p, date: v }))} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] font-black uppercase tracking-widest text-gray-400">Start time</label>

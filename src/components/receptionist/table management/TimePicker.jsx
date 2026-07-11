@@ -1,4 +1,4 @@
-import PremiumSelect from './PremiumSelect'
+import Dropdown from '../../common/Dropdown'
 
 const HOURS = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))
 // minutes in 5-minute steps: 00, 05, 10 … 55
@@ -40,9 +40,9 @@ const TimePicker = ({ value, onChange }) => {
 
   return (
     <div className="grid grid-cols-3 gap-2">
-      <PremiumSelect compact value={hour} onChange={(v) => update('hour', v)} options={HOURS} />
-      <PremiumSelect compact value={minute} onChange={(v) => update('minute', v)} options={MINUTES} />
-      <PremiumSelect compact value={meridiem} onChange={(v) => update('meridiem', v)} options={MERIDIEM} />
+      <Dropdown compact value={hour} onChange={(v) => update('hour', v)} options={HOURS} />
+      <Dropdown compact value={minute} onChange={(v) => update('minute', v)} options={MINUTES} />
+      <Dropdown compact value={meridiem} onChange={(v) => update('meridiem', v)} options={MERIDIEM} />
     </div>
   )
 }

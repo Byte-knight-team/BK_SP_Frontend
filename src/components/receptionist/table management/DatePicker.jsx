@@ -18,7 +18,7 @@ const fmtLabel = (str) =>
 
 // Calendar date picker (react-day-picker) as a plain drop-down: absolutely positioned below the
 // field so it always opens downward — no auto-flip, so it never jumps to the top of the screen.
-const PremiumDatePicker = ({ value, onChange, disablePast = true, placeholder = 'Pick a date', bordered = false }) => {
+const DatePicker = ({ value, onChange, disablePast = true, placeholder = 'Pick a date', bordered = false }) => {
   const [open, setOpen] = useState(false)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -67,4 +67,4 @@ const PremiumDatePicker = ({ value, onChange, disablePast = true, placeholder = 
   )
 }
 
-export default PremiumDatePicker
+export default DatePicker
