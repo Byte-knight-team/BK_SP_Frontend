@@ -49,6 +49,9 @@ export function useManagerNotifications() {
        
        toast.success(toastMsg, { id: 'manager-notification-ping' })
        fetchNotifications()
+    } else if (payload?.message === 'NOTIFICATION_RESOLVED') {
+       // Silently fetch to update the bell count/list
+       fetchNotifications()
     }
   })
 

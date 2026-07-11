@@ -22,9 +22,8 @@ export default function ManagerNotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const handleView = async (notification) => {
-    // 1. Mark as read immediately
-    await markAsRead(notification.id)
+  const handleView = (notification) => {
+    // Navigate based on type
     setIsOpen(false)
 
     // 2. Navigate based on type
