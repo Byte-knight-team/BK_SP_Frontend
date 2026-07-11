@@ -36,6 +36,17 @@ const TableCard = ({ table, onClick }) => {
     return new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
   }
 
+  // "just now" → "1 min ago" → … climbing minute by minute (re-computed on each 30s tick).
+  const agoText = (dt) => {
+    if (!dt) return ''
+    const mins = Math.max(0, Math.floor((now - new Date(dt).getTime()) / 60000))
+    if (mins < 1) return 'just now'
+    if (mins < 60) return `${mins} min ago`
+    const h = Math.floor(mins / 60)
+    const m = mins % 60
+    return m ? `${h}h ${m}m ago` : `${h}h ago`
+  }
+
   // Re-render every 30s so "live" filtering and the overdue blink update without a manual refresh.
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
@@ -55,15 +66,23 @@ const TableCard = ({ table, onClick }) => {
   const activeReservation = isReserved ? liveReservations[0] || null : null
   const upcomingReservations = isReserved ? liveReservations.slice(1) : liveReservations
 
-  // Occupied-from-a-reservation: show its window; blink the border once the end time passes.
+  // Occupied-from-a-reservation: show its window; blink the border RED once the end time passes.
   const seated = isOccupied ? table.seatedReservation : null
   const seatedOverdue = seated && seated.endTime && now >= new Date(seated.endTime).getTime()
+
+  // Reserved but the guest isn't seated and the slot has already started → they're late: blink PURPLE.
+  const reservedLate =
+    isReserved && activeReservation && now >= new Date(activeReservation.reservationTime).getTime()
 
   return (
     <div
       onClick={() => onClick(table)}
       className={`cursor-pointer rounded-3xl border-2 ${config.bg} p-5 transition-all hover:shadow-md space-y-4 ${
-        seatedOverdue ? 'border-red-400 ring-4 ring-red-300/60 animate-pulse' : config.border
+        seatedOverdue
+          ? 'border-red-400 ring-4 ring-red-300/60 animate-pulse'
+          : reservedLate
+            ? 'border-purple-400 ring-4 ring-purple-300/60 animate-pulse'
+            : config.border
       }`}
     >
       {/* Left: table number + upcoming reservations. Right: status badge + the locked "this slot". */}
@@ -97,7 +116,7 @@ const TableCard = ({ table, onClick }) => {
           {isReserved && activeReservation && (
             <div className="flex flex-col items-end gap-0.5 rounded-xl border border-purple-200 bg-purple-100/70 px-2.5 py-1.5 ring-1 ring-purple-200">
               <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-purple-600">
-                <Lock size={9} /> Reserved For
+                <Lock size={9} /> {reservedLate ? 'Guest Late' : 'Reserved For'}
               </span>
               <span className="text-[10px] font-black text-purple-800">
                 {formatTime(activeReservation.reservationTime)} – {formatTime(activeReservation.endTime)}
@@ -131,8 +150,11 @@ const TableCard = ({ table, onClick }) => {
         </span>
         <span className="ml-1 text-xs text-gray-400">guests</span>
         {table.status === 'OCCUPIED' && table.statusUpdatedAt && (
-          <span className="ml-auto flex items-center gap-1 text-[10px] text-gray-400">
-            <Clock size={10} /> {formatTime(table.statusUpdatedAt)}
+          <span className="ml-auto flex flex-col items-end leading-tight text-gray-400">
+            <span className="flex items-center gap-1 text-[10px]">
+              <Clock size={10} /> {formatTime(table.statusUpdatedAt)}
+            </span>
+            <span className="text-[9px] text-gray-400">{agoText(table.statusUpdatedAt)}</span>
           </span>
         )}
       </div>

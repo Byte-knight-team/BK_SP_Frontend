@@ -165,6 +165,7 @@ export default function ReservationsPage() {
                   <th className={`${th} text-left`}>Res. No</th>
                   <th className={`${th} text-left`}>Customer</th>
                   <th className={`${th} text-center`}>Tables</th>
+                  <th className={`${th} text-center`}>Guests</th>
                   <th className={`${th} text-left`}>Date</th>
                   <th className={`${th} text-center`}>Start</th>
                   <th className={`${th} text-center`}>End</th>
@@ -191,6 +192,7 @@ export default function ReservationsPage() {
                           ))}
                         </div>
                       </td>
+                      <td className="px-4 py-3 text-center font-bold text-gray-700">{r.guestCount ?? '—'}</td>
                       <td className="px-4 py-3 text-gray-600">{fmtDate(r.reservationTime)}</td>
                       <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.reservationTime)}</td>
                       <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.endTime)}</td>
@@ -225,7 +227,7 @@ export default function ReservationsPage() {
 
                     {cancelTargetId === r.id && (
                       <tr className="bg-red-50/40">
-                        <td colSpan={9} className="px-4 py-3">
+                        <td colSpan={10} className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <input
                               value={cancelReason}
