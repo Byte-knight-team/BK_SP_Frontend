@@ -1,4 +1,4 @@
-export default function AppHeader({ title, subtitle }) {
+export default function AppHeader({ title, subtitle, children }) {
   const dateText = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -16,7 +16,10 @@ export default function AppHeader({ title, subtitle }) {
         )}
       </div>
 
-      <div className="text-[13px] text-gray-500">{dateText}</div>
+      <div className="flex items-center gap-4 text-[13px] text-gray-500">
+        <div>{dateText}</div>
+        {children}
+      </div>
     </header>
   );
 }
