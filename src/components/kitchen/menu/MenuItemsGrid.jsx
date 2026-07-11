@@ -15,12 +15,14 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
   const [activeTab, setActiveTab] = useState('ACTIVE')
   const [search, setSearch] = useState('')
 
-  // Filter items by the selected tab status, then by the search query
+  // Filter items by the selected tab status, then by the search query.
+  // Sort by id ascending so newly created items (highest id) always appear last.
   const filtered = items
     .filter((item) => item.status === activeTab)
     .filter((item) =>
       item.name.toLowerCase().includes(search.toLowerCase())
     )
+    .sort((a, b) => a.id - b.id)
 
   // Count per tab for the badge numbers
   const counts = {
@@ -39,7 +41,7 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+              className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
                 activeTab === tab.key
                   ? 'bg-orange-500 text-white shadow'
                   : 'text-gray-500 hover:text-gray-700'
@@ -63,7 +65,7 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
         {/* Add Item button — opens AddMenuItemModal in the parent */}
         <button
           onClick={onAdd}
-          className="flex items-center gap-2 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-orange-200 transition hover:bg-orange-700"
+          className="flex cursor-pointer items-center gap-2 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-orange-200 transition hover:bg-orange-700"
         >
           <Plus size={16} />
           Add Item

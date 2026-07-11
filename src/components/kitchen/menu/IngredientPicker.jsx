@@ -64,7 +64,7 @@ const IngredientPicker = ({ ingredients = [], inventoryItems = [], onChange }) =
               </div>
               <button
                 onClick={() => handleRemove(ing.inventoryItemId)}
-                className="text-red-400 hover:text-red-600 transition"
+                className="cursor-pointer text-red-400 hover:text-red-600 transition"
               >
                 <Trash2 size={13} />
               </button>
@@ -103,7 +103,7 @@ const IngredientPicker = ({ ingredients = [], inventoryItems = [], onChange }) =
         {/* Add button */}
         <button
           onClick={handleAdd}
-          className="flex items-center gap-1 rounded-xl bg-orange-500 px-3 py-2.5 text-xs font-bold text-white hover:bg-orange-600 transition"
+          className="flex cursor-pointer items-center gap-1 rounded-xl bg-orange-500 px-3 py-2.5 text-xs font-bold text-white hover:bg-orange-600 transition"
         >
           <Plus size={13} />
           Add

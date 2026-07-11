@@ -65,7 +65,7 @@ const CloudinaryImageUpload = ({ value = '', onChange }) => {
           <button
             type="button"
             onClick={() => { setError(''); onChange?.('') }}
-            className="absolute top-2 right-2 flex items-center justify-center rounded-full bg-black/50 p-1 text-white hover:bg-black/70 transition-colors"
+            className="absolute top-2 right-2 flex cursor-pointer items-center justify-center rounded-full bg-black/50 p-1 text-white hover:bg-black/70 transition-colors"
             title="Remove image"
           >
             <X size={14} />

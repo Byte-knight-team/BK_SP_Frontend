@@ -50,12 +50,14 @@ const MenuItemPage = () => {
     fetchInventory()
   }, [])
 
-  const fetchItems = async () => {
-    setIsLoading(true)
+  // silent = true skips the loading flash (used after create/edit so the grid
+  // updates in place instead of clearing and re-rendering the whole list)
+  const fetchItems = async (silent = false) => {
+    if (!silent) setIsLoading(true)
     const { data, error } = await getAllMenuItemsAPI()
     if (error) toast.error('Failed to load menu items.')
     else setItems(data || [])
-    setIsLoading(false)
+    if (!silent) setIsLoading(false)
   }
 
   // Fetch all inventory items so the IngredientPicker has a list to choose from
@@ -90,7 +92,7 @@ const MenuItemPage = () => {
 
     toast.success('Menu item submitted for approval!')
     setIsAddOpen(false)
-    fetchItems()
+    fetchItems(true)
   }
 
   // Update item, then save its updated ingredient list
@@ -109,7 +111,7 @@ const MenuItemPage = () => {
     setIsEditOpen(false)
     setSelectedItem(null)
     setExistingIngredients([])
-    fetchItems()
+    fetchItems(true)
   }
 
   const openView = async (item) => {

@@ -82,7 +82,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
           <div className="p-2.5 bg-orange-100 text-orange-600 rounded-2xl">
             <UtensilsCrossed size={20} />
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="cursor-pointer text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
         </div>
@@ -167,7 +167,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 text-sm font-bold text-gray-400 hover:bg-gray-50 rounded-2xl transition-all"
+            className="flex-1 cursor-pointer py-3 text-sm font-bold text-gray-400 hover:bg-gray-50 rounded-2xl transition-all"
           >
             Cancel
           </button>

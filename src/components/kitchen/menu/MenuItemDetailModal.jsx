@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, UtensilsCrossed, Tag, Clock, FlaskConical, Pencil, Trash2, Plus, Check } from 'lucide-react'
-import { saveMenuItemIngredientsAPI } from '../../../apis/kitchen/menu'
+import { saveMenuItemIngredientsAPI, updateMenuItemAPI } from '../../../apis/kitchen/menu'
 import { toast } from 'react-toastify'
 
 // Status badge color map
@@ -35,6 +35,12 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
   const [editingId, setEditingId] = useState(null)
   const [editingQty, setEditingQty] = useState('')
 
+  // Tracks which ingredient row is awaiting delete confirmation (by inventoryItemId)
+  const [deletingId, setDeletingId] = useState(null)
+
+  // Editable prep time (minutes) — saved to the menu item on "Save Recipe".
+  const [prepTime, setPrepTime] = useState('')
+
   // "Add ingredient" row state
   const [selectedItemId, setSelectedItemId] = useState('')
   const [addQty, setAddQty] = useState('')
@@ -45,9 +51,11 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
   useEffect(() => {
     setEditableIngredients(ingredients)
     setEditingId(null)
+    setDeletingId(null)
     setSelectedItemId('')
     setAddQty('')
-  }, [ingredients, isOpen])
+    setPrepTime(item?.preparationTime != null ? String(item.preparationTime) : '')
+  }, [ingredients, isOpen, item])
 
   if (!isOpen || !item) return null
 
@@ -117,14 +125,37 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
     setAddQty('')
   }
 
-  // ── Save: send full updated list to backend (full-replace) ────────────
+  // ── Save: recipe (full-replace) + prep time if it changed ─────────────
   const handleSave = async () => {
+    const newPrep = parseInt(prepTime)
+    if (!newPrep || newPrep <= 0) {
+      toast.error('Prep time must be greater than zero.')
+      return
+    }
     setIsSaving(true)
-    const { error } = await saveMenuItemIngredientsAPI(item.id, editableIngredients)
-    if (error) {
-      toast.error('Failed to save recipe. Please try again.')
+
+    const { error: ingError } = await saveMenuItemIngredientsAPI(item.id, editableIngredients)
+
+    // Persist prep time only if it changed. Reuse the menu-update PUT — we deliberately DON'T send
+    // `status`, so the update leaves the item's approval status untouched.
+    let prepError = null
+    if (newPrep !== item.preparationTime) {
+      const { error } = await updateMenuItemAPI(item.id, {
+        name: item.name,
+        description: item.description || null,
+        categoryId: item.categoryId,
+        subCategory: item.subCategory || null,
+        price: parseFloat(item.price),
+        preparationTime: newPrep,
+        imageUrl: item.imageUrl || null,
+      })
+      prepError = error
+    }
+
+    if (ingError || prepError) {
+      toast.error('Failed to save. Please try again.')
     } else {
-      toast.success('Recipe saved successfully!')
+      toast.success('Saved successfully!')
       onSaved?.()
       onClose()
     }
@@ -145,7 +176,7 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
           <div className="rounded-2xl bg-orange-100 p-3 text-orange-600">
             <UtensilsCrossed size={22} />
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="cursor-pointer text-gray-400 hover:text-gray-600">
             <X size={20} />
           </button>
         </div>
@@ -191,7 +222,14 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
               <p className="text-xs text-gray-400 mb-1">Prep Time</p>
               <div className="flex items-center gap-1.5 text-sm font-bold text-gray-700">
                 <Clock size={14} className="text-orange-500" />
-                <span>{item.preparationTime} min</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={prepTime}
+                  onChange={(e) => setPrepTime(e.target.value)}
+                  className="w-14 rounded-lg bg-white px-2 py-1 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+                />
+                <span className="font-normal text-gray-400">min</span>
               </div>
             </div>
           </div>
@@ -265,26 +303,41 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
 
                       {/* Edit / confirm + delete — styled as small icon buttons */}
                       <td className="px-3 py-2.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {editingId === ing.inventoryItemId ? (
-                            // Confirm qty edit
-                            <button onClick={confirmEdit} title="Confirm"
-                              className="flex items-center justify-center rounded-lg bg-green-50 p-1.5 text-green-500 hover:bg-green-100 hover:text-green-700 transition-colors">
+                        {deletingId === ing.inventoryItemId ? (
+                          // Delete confirmation — remove only after confirming
+                          <div className="flex items-center justify-end gap-1.5">
+                            <span className="text-[11px] font-bold text-red-500">Remove?</span>
+                            <button onClick={() => { deleteIngredient(ing.inventoryItemId); setDeletingId(null) }} title="Confirm remove"
+                              className="flex cursor-pointer items-center justify-center rounded-lg bg-red-500 p-1.5 text-white hover:bg-red-600 transition-colors">
                               <Check size={13} />
                             </button>
-                          ) : (
-                            // Open qty edit
-                            <button onClick={() => startEdit(ing)} title="Edit quantity"
-                              className="flex items-center justify-center rounded-lg bg-orange-50 p-1.5 text-orange-400 hover:bg-orange-100 hover:text-orange-600 transition-colors">
-                              <Pencil size={13} />
+                            <button onClick={() => setDeletingId(null)} title="Cancel"
+                              className="flex cursor-pointer items-center justify-center rounded-lg bg-gray-100 p-1.5 text-gray-400 hover:bg-gray-200 transition-colors">
+                              <X size={13} />
                             </button>
-                          )}
-                          {/* Remove ingredient from local list */}
-                          <button onClick={() => deleteIngredient(ing.inventoryItemId)} title="Remove"
-                            className="flex items-center justify-center rounded-lg bg-red-50 p-1.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-1.5">
+                            {editingId === ing.inventoryItemId ? (
+                              // Confirm qty edit
+                              <button onClick={confirmEdit} title="Confirm"
+                                className="flex cursor-pointer items-center justify-center rounded-lg bg-green-50 p-1.5 text-green-500 hover:bg-green-100 hover:text-green-700 transition-colors">
+                                <Check size={13} />
+                              </button>
+                            ) : (
+                              // Open qty edit
+                              <button onClick={() => startEdit(ing)} title="Edit quantity"
+                                className="flex cursor-pointer items-center justify-center rounded-lg bg-orange-50 p-1.5 text-orange-400 hover:bg-orange-100 hover:text-orange-600 transition-colors">
+                                <Pencil size={13} />
+                              </button>
+                            )}
+                            {/* Ask before removing (row-level confirmation, not instant) */}
+                            <button onClick={() => setDeletingId(ing.inventoryItemId)} title="Remove"
+                              className="flex cursor-pointer items-center justify-center rounded-lg bg-red-50 p-1.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        )}
                       </td>
 
                     </tr>
@@ -324,7 +377,7 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
 
           {/* Appends to local list — not saved until "Save Recipe" is clicked */}
           <button onClick={handleAdd}
-            className="shrink-0 flex items-center gap-1 rounded-xl bg-orange-500 px-3 py-2.5 text-xs font-bold text-white hover:bg-orange-600 transition-colors">
+            className="shrink-0 flex cursor-pointer items-center gap-1 rounded-xl bg-orange-500 px-3 py-2.5 text-xs font-bold text-white hover:bg-orange-600 transition-colors">
             <Plus size={13} /> Add
           </button>
         </div>
@@ -332,12 +385,12 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
         {/* ── Footer: save + close ────────────────────────────────────── */}
         <div className="flex gap-3">
           <button onClick={onClose}
-            className="flex-1 rounded-2xl bg-gray-100 py-2.5 text-sm font-bold text-gray-500 hover:bg-gray-200 transition-colors">
+            className="flex-1 cursor-pointer rounded-2xl bg-gray-100 py-2.5 text-sm font-bold text-gray-500 hover:bg-gray-200 transition-colors">
             Close
           </button>
           {/* Sends the full updated ingredient list to the backend */}
           <button onClick={handleSave} disabled={isSaving}
-            className="flex-1 rounded-2xl bg-orange-500 py-2.5 text-sm font-bold text-white hover:bg-orange-600 disabled:bg-gray-300 transition-colors">
+            className="flex-1 cursor-pointer rounded-2xl bg-orange-500 py-2.5 text-sm font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300 transition-colors">
             {isSaving ? 'Saving...' : 'Save Recipe'}
           </button>
         </div>
