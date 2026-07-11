@@ -35,31 +35,18 @@ const PeakHoursChart = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-6">
-        {/* Header Skeleton */}
-        <div className="flex items-center justify-between">
-          <div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
-          <div className="h-4 w-20 animate-pulse rounded bg-gray-50" />
+      <div className="flex h-full flex-col">
+        {/* Header skeleton (matches the icon-box header below) */}
+        <div className="mb-4 flex items-center gap-2">
+          <div className="h-9 w-9 animate-pulse rounded-xl bg-gray-100" />
+          <div className="space-y-1.5">
+            <div className="h-3.5 w-24 animate-pulse rounded bg-gray-100" />
+            <div className="h-2.5 w-32 animate-pulse rounded bg-gray-50" />
+          </div>
         </div>
 
-        {/* Bar Chart Skeleton */}
-        <div className="flex h-[200px] items-end justify-between gap-3 px-2">
-          {/* create 7 bars with random heights */}
-          {[60, 40, 85, 50, 70, 30, 90].map((height, i) => (
-            <div
-              key={i}
-              style={{ height: `${height}%` }}
-              className="w-full animate-pulse rounded-t-lg bg-gray-100/80"
-            />
-          ))}
-        </div>
-
-        {/* X-Axis labels skeleton */}
-        <div className="flex justify-between px-1">
-          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="h-2 w-8 animate-pulse rounded bg-gray-50" />
-          ))}
-        </div>
+        {/* Chart area placeholder */}
+        <div className="min-h-0 flex-1 animate-pulse rounded-2xl bg-gray-50" />
       </div>
     )
   }
