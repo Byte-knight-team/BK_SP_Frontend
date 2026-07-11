@@ -22,9 +22,11 @@ import ManagerHeader from './components/manager/ManagerHeader'
 
 import KitchenSidebar from './components/kitchen/KitchenSidebar'
 import KitchenHeader from './components/kitchen/KitchenHeader'
+import KitchenNotifier from './components/kitchen/KitchenNotifier'
 
 import LineChefSidebar from './components/line-chef/LineChefSidebar'
 import LineChefHeader from './components/line-chef/LineChefHeader'
+import LineChefNotifier from './components/line-chef/LineChefNotifier'
 
 import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
@@ -423,6 +425,8 @@ export default function App() {
           path="/kitchen"
           element={
             <ProtectedRoute allowedRoles={['CHEF']}>
+              {/* Global kitchen notifications — active on every /kitchen page */}
+              <KitchenNotifier />
               <MainLayout Sidebar={KitchenSidebar} Header={KitchenHeader} />
             </ProtectedRoute>
           }
@@ -464,6 +468,8 @@ export default function App() {
           path="/line-chef"
           element={
             <ProtectedRoute allowedRoles={['LINE_CHEF']}>
+              {/* Global line-chef notifications — active on every line-chef page */}
+              <LineChefNotifier />
               <MainLayout Sidebar={LineChefSidebar} Header={LineChefHeader} />
             </ProtectedRoute>
           }

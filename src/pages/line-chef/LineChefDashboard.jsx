@@ -58,10 +58,8 @@ export default function LineChefDashboard() {
     ? `/topic/line-chef/${wsTopicUserId}/new-item`
     : null
 
-  useWebSocket(user?.branchId, wsTopic, (msg) => {
-    toast.info(`New item assigned: ${msg.itemName} (Order ${msg.orderNumber})`, {
-      autoClose: 6000,
-    })
+  useWebSocket(user?.branchId, wsTopic, () => {
+    // Toast is shown globally by LineChefNotifier; here we only refresh the items.
     fetchItems(false)
   })
 
@@ -70,10 +68,8 @@ export default function LineChefDashboard() {
     ? `/topic/line-chef/${wsTopicUserId}/item-removed`
     : null
 
-  useWebSocket(user?.branchId, wsRemovalTopic, (msg) => {
-    toast.warning(`${msg.itemName} (Order ${msg.orderNumber}) has been reassigned to ${msg.newChefName}.`, {
-      autoClose: 8000,
-    })
+  useWebSocket(user?.branchId, wsRemovalTopic, () => {
+    // Toast is shown globally by LineChefNotifier; here we only refresh the items.
     fetchItems(false)
   })
 
