@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { InventoryService } from '../apis/manager/InventoryService'
 import { useAuth } from '../context/AuthContext'
+import useWebSocket from './useWebSocket'
 
 export function useInventoryData() {
   const [data, setData] = useState(null)
@@ -72,6 +73,13 @@ export function useInventoryData() {
       return { success: false, error: err.message }
     }
   }
+
+  // Subscribe to the manager-notifications topic and silently refetch inventory data
+  // whenever an event fires (e.g. a new chef request is submitted from the kitchen)
+  const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
+  useWebSocket(branchId, topic, () => {
+    fetchInventory()
+  })
 
   return { data, loading, error, refetch: fetchInventory, resolveChefRequest }
 }
