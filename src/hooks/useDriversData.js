@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ManagerDriverService } from '../apis/manager/ManagerDriverService'
 import { useAuth } from '../context/AuthContext'
+import useWebSocket from './useWebSocket'
 
 export function useDriversData() {
   const [data, setData] = useState(null)
@@ -28,6 +29,13 @@ export function useDriversData() {
   useEffect(() => {
     fetchDriversData()
   }, [fetchDriversData])
+
+  // Subscribe to the manager-notifications topic and silently refetch drivers data
+  // whenever an event fires (e.g. a delivery order is completed by the kitchen)
+  const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
+  useWebSocket(branchId, topic, () => {
+    fetchDriversData()
+  })
 
   return { data, loading, error, refetch: fetchDriversData }
 }
