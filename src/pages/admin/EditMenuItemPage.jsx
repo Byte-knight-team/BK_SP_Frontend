@@ -3,7 +3,8 @@ import {
   Search, Bell, HelpCircle, Settings, ArrowLeft, CheckCircle2, CircleDot
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 import CloudinaryImageUpload from '../../components/admin/CloudinaryImageUpload';
 import {
   getMenuItemByIdAPI,
@@ -11,6 +12,9 @@ import {
   getMenuSubcategoriesAPI,
   updateMenuItemAPI,
 } from '../../apis/admin/menu';
+import IngredientPicker from '../../components/kitchen/menu/IngredientPicker';
+import { getMenuItemIngredientsAPI, saveMenuItemIngredientsAPI } from '../../apis/kitchen/menu';
+import { InventoryService } from '../../apis/manager/InventoryService';
 
 const normalizeSubCategory = (value) => {
   const trimmed = value.trim().replace(/\s+/g, ' ');
@@ -63,12 +67,12 @@ export default function EditMenuItemPage() {
   const [imageData, setImageData] = useState(null);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [subCategoryOptions, setSubCategoryOptions] = useState([]);
+  const [ingredients, setIngredients] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
   const [isSubCategoryOpen, setIsSubCategoryOpen] = useState(false);
-  const [isMetaLoading, setIsMetaLoading] = useState(false);
-  const [isPageLoading, setIsPageLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitSuccessful, setIsSubmitSuccessful] = useState(false);
   const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState('');
 
   const visibilityOptions = [
     { label: 'Available', color: 'text-orange-500' },
@@ -87,107 +91,149 @@ export default function EditMenuItemPage() {
       .slice(0, 8);
   }, [subCategory, subCategoryOptions]);
 
-  // Load existing item data
+  const { data: item, isLoading: isItemLoading, error: itemError } = useQuery({
+    queryKey: ['menuItem', itemId],
+    queryFn: () => getMenuItemByIdAPI(itemId),
+    initialData: () => {
+      const allItems = queryClient.getQueryData(['menuItems']);
+      return allItems?.find((i) => String(i.id) === String(itemId));
+    },
+  });
+
+  const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
+    queryKey: ['menuCategories'],
+    queryFn: getMenuCategoriesAPI,
+  });
+
+  const { data: subCategories = [], isLoading: isSubCategoriesLoading } = useQuery({
+    queryKey: ['menuSubCategories', categoryId, categoryName],
+    queryFn: () => getMenuSubcategoriesAPI({ categoryId, categoryName }),
+    enabled: !!categoryId || !!categoryName,
+  });
+
+  const { data: ingredientsData } = useQuery({
+    queryKey: ['menuItemIngredients', itemId],
+    queryFn: () => getMenuItemIngredientsAPI(itemId),
+  });
+
+  const { data: inventoryData } = useQuery({
+    queryKey: ['inventoryItems'],
+    queryFn: () => InventoryService.getAllItems(""),
+  });
+
+  // Sync item data to form state ONCE when it loads
   useEffect(() => {
-    let isMounted = true;
+    if (item && !itemName) {
+      setItemName(item.name || '');
+      setCategoryId(String(item.categoryId ?? item.categoryName ?? ''));
+      setCategoryName(item.categoryName || '');
+      setSubCategory(item.subCategory || '');
+      setBasePrice(String(item.price ?? '0'));
+      setPreparationTime(String(item.preparationTime ?? ''));
+      setDescription(item.description || '');
+      setVisibility(mapStatusToVisibility(item.status));
 
-    const loadItem = async () => {
-      setIsPageLoading(true);
-      setApiError('');
+      if (item.imageUrl) {
+        setImageData({
+          secure_url: item.imageUrl,
+          public_id: item.imagePublicId || '',
+        });
+      }
+    }
+  }, [item, itemName]);
 
-      try {
-        const item = await getMenuItemByIdAPI(itemId);
+  // Sync secondary data to state
+  useEffect(() => {
+    if (ingredientsData && !ingredientsData.error && ingredients.length === 0) {
+      setIngredients(ingredientsData.data || []);
+    }
+  }, [ingredientsData]);
 
-        if (!isMounted) return;
+  useEffect(() => {
+    if (inventoryData && inventoryItems.length === 0) {
+      if (Array.isArray(inventoryData)) {
+        setInventoryItems(inventoryData);
+      } else if (inventoryData && Array.isArray(inventoryData.data)) {
+        setInventoryItems(inventoryData.data);
+      }
+    }
+  }, [inventoryData]);
 
-        setItemName(item.name || '');
-        setCategoryId(String(item.categoryId ?? item.categoryName ?? ''));
-        setCategoryName(item.categoryName || '');
-        setSubCategory(item.subCategory || '');
-        setBasePrice(String(item.price ?? '0'));
-        setPreparationTime(String(item.preparationTime ?? ''));
-        setDescription(item.description || '');
-        setVisibility(mapStatusToVisibility(item.status));
+  // Compute if the form has been modified
+  const isFormDirty = useMemo(() => {
+    if (!item) return false;
+    
+    if (itemName !== (item.name || '')) return true;
+    if (categoryId !== String(item.categoryId ?? item.categoryName ?? '')) return true;
+    if (subCategory !== (item.subCategory || '')) return true;
+    if (basePrice !== String(item.price ?? '0')) return true;
+    if (preparationTime !== String(item.preparationTime ?? '')) return true;
+    if (description !== (item.description || '')) return true;
+    if (visibility !== mapStatusToVisibility(item.status)) return true;
+    if (imageData?.secure_url !== (item.imageUrl || '')) return true;
+    
+    const initialIngredients = ingredientsData?.data || [];
+    if (ingredients.length !== initialIngredients.length) return true;
+    const currentIngIds = ingredients.map(i => i.inventoryItemId).sort().join(',');
+    const initialIngIds = initialIngredients.map(i => i.inventoryItemId).sort().join(',');
+    if (currentIngIds !== initialIngIds) return true;
 
-        if (item.imageUrl) {
-          setImageData({
-            secure_url: item.imageUrl,
-            public_id: item.imagePublicId || '',
-          });
-        }
-      } catch (error) {
-        if (isMounted) {
-          setApiError(error.message || 'Unable to load menu item.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsPageLoading(false);
+    return false;
+  }, [
+    item, itemName, categoryId, subCategory, basePrice, preparationTime,
+    description, visibility, imageData, ingredients, ingredientsData
+  ]);
+
+  // Protect against browser refresh/close
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isFormDirty && !isSubmitSuccessful) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isFormDirty, isSubmitSuccessful]);
+
+  // Intercept all link clicks (like sidebar navigation)
+  useEffect(() => {
+    const handleLinkClick = (e) => {
+      if (isFormDirty && !isSubmitSuccessful) {
+        const link = e.target.closest('a');
+        if (link && link.href) {
+          e.preventDefault();
+          e.stopPropagation(); // Stop React Router from seeing this click
+          toast.error("Save the changes before leaving");
         }
       }
     };
+    
+    window.addEventListener('click', handleLinkClick, { capture: true });
+    return () => window.removeEventListener('click', handleLinkClick, { capture: true });
+  }, [isFormDirty, isSubmitSuccessful]);
 
-    loadItem();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [itemId]);
-
-  // Load categories
   useEffect(() => {
-    let isMounted = true;
+    if (categories.length > 0) {
+      setCategoryOptions(categories);
+    }
+  }, [categories]);
 
-    const loadCategories = async () => {
-      setIsMetaLoading(true);
-
-      try {
-        const categories = await getMenuCategoriesAPI();
-
-        if (isMounted) {
-          setCategoryOptions(categories);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setApiError(error.message || 'Unable to load category data.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsMetaLoading(false);
-        }
-      }
-    };
-
-    loadCategories();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Load subcategories when category changes
   useEffect(() => {
-    let isMounted = true;
+    if (subCategories.length > 0) {
+      setSubCategoryOptions(subCategories);
+    }
+  }, [subCategories]);
 
-    const loadSubCategories = async () => {
-      try {
-        const data = await getMenuSubcategoriesAPI({ categoryId, categoryName });
+  // Combine loading states
+  const isPageLoading = isItemLoading && !item;
+  const isMetaLoading = isCategoriesLoading || isSubCategoriesLoading;
 
-        if (isMounted) {
-          setSubCategoryOptions(data);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setApiError(error.message || 'Unable to load subcategories.');
-        }
-      }
-    };
-
-    loadSubCategories();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [categoryId, categoryName]);
+  useEffect(() => {
+    if (itemError) {
+      toast.error(itemError.message || 'Unable to load menu item.');
+    }
+  }, [itemError]);
 
   // Close subcategory dropdown on outside click
   useEffect(() => {
@@ -239,7 +285,6 @@ export default function EditMenuItemPage() {
   };
 
   const handleSaveChanges = async () => {
-    setApiError('');
 
     const { isValid, normalizedSubCategory } = validateForm();
     if (!isValid) return;
@@ -247,7 +292,7 @@ export default function EditMenuItemPage() {
     setIsSubmitting(true);
 
     try {
-      await updateMenuItemAPI(itemId, {
+      const updatedItem = await updateMenuItemAPI(itemId, {
         name: itemName.trim(),
         categoryId: Number(categoryId),
         categoryName,
@@ -260,17 +305,33 @@ export default function EditMenuItemPage() {
         imagePublicId: imageData.public_id,
       });
 
+      // Save ingredients
+      await saveMenuItemIngredientsAPI(itemId, ingredients);
+
+      queryClient.setQueryData(['menuItems'], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map((item) =>
+          String(item.id) === String(itemId) ? { ...item, ...updatedItem } : item
+        );
+      });
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+
+      toast.success('Menu item updated successfully!');
+      setIsSubmitSuccessful(true);
       navigate('/admin/menu');
     } catch (error) {
-      setApiError(error.message || 'Unable to update menu item.');
+      toast.error(error.message || 'Unable to update menu item.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    navigate('/admin/menu');
+    if (isFormDirty && !isSubmitSuccessful) {
+      toast.error("Save the changes before leaving");
+    } else {
+      navigate('/admin/menu');
+    }
   };
 
   if (isPageLoading) {
@@ -291,7 +352,7 @@ export default function EditMenuItemPage() {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate('/admin/menu')}
+                onClick={handleCancel}
                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors shadow-sm"
               >
                 <ArrowLeft size={20} />
@@ -318,17 +379,16 @@ export default function EditMenuItemPage() {
             </div>
           </div>
 
-          {apiError && (
-            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {apiError}
-            </div>
-          )}
+          </div>
 
           {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
 
-            {/* Left Column - General Information */}
-            <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm p-8">
+            {/* Left Column - General Information & Ingredients */}
+            <div className="flex flex-col gap-6">
+              
+              {/* First Section - General Information */}
+              <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm p-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center">
                   <CircleDot size={16} className="text-orange-500" />
@@ -451,8 +511,19 @@ export default function EditMenuItemPage() {
               </div>
             </div>
 
-            {/* Right Column */}
-            <div className="flex flex-col gap-6">
+            {/* Second Section - Recipe Ingredients */}
+            <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm p-8">
+              <IngredientPicker
+                ingredients={ingredients}
+                inventoryItems={inventoryItems}
+                onChange={setIngredients}
+              />
+            </div>
+
+          </div>
+
+          {/* Right Column (Third Section) */}
+          <div className="flex flex-col gap-6">
 
               {/* Item Image */}
               <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm p-6">
@@ -491,6 +562,5 @@ export default function EditMenuItemPage() {
           </div>
 
         </div>
-    </div>
   );
 }
