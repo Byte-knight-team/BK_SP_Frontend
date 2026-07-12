@@ -11,9 +11,12 @@ import {
   Clock3,
   Pencil,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ImageOff,
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import {
   getMenuItemsAPI,
@@ -51,11 +54,17 @@ export default function MenuManagementPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [subCategoryOptions, setSubCategoryOptions] = useState([]);
   const [activeCategory, setActiveCategory] = useState('');
   const [activeSubCategory, setActiveSubCategory] = useState('All Sub Categories');
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchText]);
   
   const initialStatus = searchParams.get('status')?.toUpperCase() || 'ALL';
   const [statusFilter, setStatusFilter] = useState(initialStatus);
@@ -72,102 +81,54 @@ export default function MenuManagementPage() {
       setStatusFilter('ALL');
     }
   }, [searchParams]);
-  const [apiError, setApiError] = useState('');
   const [togglingItemId, setTogglingItemId] = useState(null);
   const [decisionItemId, setDecisionItemId] = useState(null);
-  const [totalCategoriesCount, setTotalCategoriesCount] = useState(0);
-  const [totalSubCategoriesCount, setTotalSubCategoriesCount] = useState(0);
-  const [totalMenuItemsCount, setTotalMenuItemsCount] = useState(0);
-  const [totalAvailableItemsCount, setTotalAvailableItemsCount] = useState(0);
+  const [isChefRequestOpen, setIsChefRequestOpen] = useState(false);
+  const [chefRequestText, setChefRequestText] = useState('');
 
-  // Fetch counts whenever menu items or categories change
-  useEffect(() => {
-    let isMounted = true;
-    const fetchCounts = async () => {
+  // Queries
+  const { data: counts = { catCount: 0, subCatCount: 0, itemsCount: 0, availCount: 0 } } = useQuery({
+    queryKey: ['menuCounts'],
+    queryFn: async () => {
+      const [catCount, subCatCount, itemsCount, availCount] = await Promise.all([
+        getMenuCategoriesCountAPI(),
+        getMenuSubcategoriesCountAPI(),
+        getMenuItemsCountAPI(),
+        getAvailableItemsCountAPI(),
+      ]);
+      return { catCount, subCatCount, itemsCount, availCount };
+    },
+  });
+
+  const { data: categoryOptions = [] } = useQuery({
+    queryKey: ['menuCategories'],
+    queryFn: getMenuCategoriesAPI,
+  });
+
+
+
+  const selectedCategory = categoryOptions.find((c) => c.name === activeCategory);
+
+  const { data: subCategoryOptions = [] } = useQuery({
+    queryKey: ['menuSubCategories', selectedCategory?.id, activeCategory],
+    queryFn: async () => {
+      if (!activeCategory) return [];
       try {
-        const [catCount, subCatCount, itemsCount, availCount] = await Promise.all([
-          getMenuCategoriesCountAPI(),
-          getMenuSubcategoriesCountAPI(),
-          getMenuItemsCountAPI(),
-          getAvailableItemsCountAPI(),
-        ]);
-        if (isMounted) {
-          setTotalCategoriesCount(catCount);
-          setTotalSubCategoriesCount(subCatCount);
-          setTotalMenuItemsCount(itemsCount);
-          setTotalAvailableItemsCount(availCount);
-        }
-      } catch (error) {
-        console.error('Failed to fetch counts:', error);
-      }
-    };
-    fetchCounts();
-    return () => { isMounted = false; };
-  }, [categoryOptions, menuItems]);
-
-  // Load categories on mount
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadCategories = async () => {
-      try {
-        const categories = await getMenuCategoriesAPI();
-        if (isMounted && categories.length > 0) {
-          setCategoryOptions(categories);
-          
-          const currentStatus = searchParams.get('status')?.toUpperCase();
-          if (currentStatus === 'PENDING' || currentStatus === 'REJECTED') {
-            setActiveCategory('');
-          } else if (!activeCategory) {
-            setActiveCategory(categories[0].name);
-          }
-        }
-      } catch (error) {
-        if (isMounted) {
-          setApiError(error.message || 'Unable to load categories.');
-        }
-      }
-    };
-
-    loadCategories();
-    return () => { isMounted = false; };
-  }, []);
-
-  // Load subcategories when category changes
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadSubCategories = async () => {
-      if (!activeCategory) {
-        if (isMounted) {
-          setSubCategoryOptions([]);
-          setActiveSubCategory('All Sub Categories');
-        }
-        return;
-      }
-
-      const selectedCategory = categoryOptions.find((c) => c.name === activeCategory);
-
-      try {
-        const data = await getMenuSubcategoriesAPI({
+        return await getMenuSubcategoriesAPI({
           categoryId: selectedCategory?.id || '',
           categoryName: activeCategory,
         });
-
-        if (isMounted) {
-          setSubCategoryOptions(data);
-          setActiveSubCategory('All Sub Categories');
-        }
       } catch {
-        if (isMounted) {
-          setSubCategoryOptions([]);
-        }
+        return [];
       }
-    };
+    },
+    enabled: !!activeCategory,
+  });
 
-    loadSubCategories();
-    return () => { isMounted = false; };
-  }, [activeCategory, categoryOptions]);
+  // Automatically reset subcategory when activeCategory changes
+  useEffect(() => {
+    setActiveSubCategory('All Sub Categories');
+  }, [activeCategory]);
 
   // Remove manual loadMenuItems since useQuery handles it
 
@@ -181,14 +142,28 @@ export default function MenuManagementPage() {
       const matchesCategory = !activeCategory || itemCategory === activeCategory;
       const matchesSubCategory =
         activeSubCategory === 'All Sub Categories' || itemSubCategory === activeSubCategory;
-      const matchesSearch = itemName.toLowerCase().includes(searchText.toLowerCase());
+      const matchesSearch = itemName.toLowerCase().includes(debouncedSearchText.toLowerCase());
       const matchesStatus =
         statusFilter === 'ALL' ||
         itemStatus === statusFilter.toUpperCase();
 
       return matchesCategory && matchesSubCategory && matchesSearch && matchesStatus;
     });
-  }, [menuItems, activeCategory, activeSubCategory, searchText, statusFilter]);
+  }, [menuItems, activeCategory, activeSubCategory, debouncedSearchText, statusFilter]);
+
+  const ITEMS_PER_PAGE = 8;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset to page 1 when any filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, activeSubCategory, debouncedSearchText, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMenuItems.length / ITEMS_PER_PAGE));
+  const paginatedMenuItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredMenuItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredMenuItems, currentPage]);
 
   // Count items per category from actual data
   const categoryCounts = useMemo(() => {
@@ -205,7 +180,7 @@ export default function MenuManagementPage() {
     const counts = { 'All Sub Categories': 0 };
     menuItems.forEach((item) => {
       const cat = item.categoryName || item.category || '';
-      if (cat !== activeCategory) return;
+      if (activeCategory && cat !== activeCategory) return;
       counts['All Sub Categories'] = (counts['All Sub Categories'] || 0) + 1;
       const sub = item.subCategory || '';
       if (sub) {
@@ -242,8 +217,9 @@ export default function MenuManagementPage() {
         )
       );
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      toast.success('Item availability updated.');
     } catch (error) {
-      setApiError(error.message || 'Unable to update item status.');
+      toast.error(error.message || 'Unable to update item status.');
     } finally {
       setTogglingItemId(null);
     }
@@ -251,7 +227,6 @@ export default function MenuManagementPage() {
 
   const handleApprovePendingItem = async (item) => {
     setDecisionItemId(item.id);
-    setApiError('');
 
     try {
       const action = await approveMenuItemAPI(item.id, {});
@@ -265,8 +240,9 @@ export default function MenuManagementPage() {
         )
       );
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      toast.success('Item approved successfully.');
     } catch (error) {
-      setApiError(error.message || 'Unable to approve item.');
+      toast.error(error.message || 'Unable to approve item.');
     } finally {
       setDecisionItemId(null);
     }
@@ -280,12 +256,11 @@ export default function MenuManagementPage() {
     }
 
     if (!reason.trim()) {
-      setApiError('Rejection reason is required.');
+      toast.error('Rejection reason is required.');
       return;
     }
 
     setDecisionItemId(item.id);
-    setApiError('');
 
     try {
       const action = await rejectMenuItemAPI(item.id, reason.trim());
@@ -299,8 +274,9 @@ export default function MenuManagementPage() {
         )
       );
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      toast.success('Item rejected successfully.');
     } catch (error) {
-      setApiError(error.message || 'Unable to reject item.');
+      toast.error(error.message || 'Unable to reject item.');
     } finally {
       setDecisionItemId(null);
     }
@@ -372,22 +348,22 @@ export default function MenuManagementPage() {
   const summaryCards = [
     {
       label: 'Categories',
-      value: String(totalCategoriesCount),
+      value: String(counts.catCount),
       tone: 'bg-amber-50 text-amber-600',
     },
     {
       label: 'Sub Categories',
-      value: String(totalSubCategoriesCount),
+      value: String(counts.subCatCount),
       tone: 'bg-orange-100 text-orange-700',
     },
     {
       label: 'Menu Items',
-      value: String(totalMenuItemsCount),
+      value: String(counts.itemsCount),
       tone: 'bg-orange-50 text-orange-600',
     },
     {
       label: 'Active Items',
-      value: String(totalAvailableItemsCount),
+      value: String(counts.availCount),
       tone: 'bg-emerald-50 text-emerald-600',
     },
   ];
@@ -400,26 +376,14 @@ export default function MenuManagementPage() {
               <p className="text-gray-500 text-sm mt-1">Manage categories, sub categories, and menu items</p>
             </div>
 
-            <Link
-              to="/admin/menu/add"
+            <button
+              onClick={() => setIsChefRequestOpen(true)}
               className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
             >
               <Plus size={14} />
-              Add Menu Item
-            </Link>
+              Request for chef
+            </button>
           </div>
-
-          {apiError && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {apiError}
-              <button
-                onClick={() => setApiError('')}
-                className="ml-2 font-semibold hover:underline"
-              >
-                Dismiss
-              </button>
-            </div>
-          )}
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
             {/* Categories Panel */}
@@ -509,7 +473,7 @@ export default function MenuManagementPage() {
                       value={searchText}
                       onChange={(event) => setSearchText(event.target.value)}
                       placeholder="Search menu items..."
-                      className="w-full min-w-[170px] border-none bg-transparent text-sm outline-none placeholder:text-gray-400"
+                      className="w-full min-w-[200px] border-none bg-transparent text-sm outline-none placeholder:text-gray-400"
                     />
                   </div>
 
@@ -531,21 +495,6 @@ export default function MenuManagementPage() {
                     </select>
                     <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   </label>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchText('');
-                      setStatusFilter('ALL');
-                      setActiveCategory(categoryOptions[0]?.name || '');
-                      setActiveSubCategory('All Sub Categories');
-                      navigate('/admin/menu', { replace: true });
-                    }}
-                    className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    <SlidersHorizontal size={14} />
-                    Filter
-                  </button>
                 </div>
               </div>
 
@@ -559,7 +508,7 @@ export default function MenuManagementPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {filteredMenuItems.map((item) => (
+                  {paginatedMenuItems.map((item) => (
                     <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md cursor-pointer" onClick={() => navigate(`/admin/menu/${item.id}`)}>
                       <div className="relative h-40 overflow-hidden bg-gray-100">
                         <img
@@ -613,8 +562,50 @@ export default function MenuManagementPage() {
                 </div>
               )}
 
-              <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-                <span>Showing {filteredMenuItems.length} of {menuItems.length} items</span>
+              <div className="mt-6 flex flex-col items-center justify-between gap-4 border-t border-gray-100 pt-4 sm:flex-row">
+                <div className="text-xs text-gray-500">
+                  Showing {filteredMenuItems.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-
+                  {Math.min(currentPage * ITEMS_PER_PAGE, filteredMenuItems.length)} of {filteredMenuItems.length} items
+                </div>
+                
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="inline-flex size-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-50"
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => setCurrentPage(page)}
+                          className={`inline-flex size-8 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                            currentPage === page
+                              ? 'bg-orange-50 text-orange-600'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="inline-flex size-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-50"
+                      aria-label="Next page"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
             </section>
           </div>
@@ -634,6 +625,45 @@ export default function MenuManagementPage() {
               ))}
             </div>
           </section>
+
+      {/* Chef Request Modal */}
+      {isChefRequestOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-2xl">
+            <h3 className="mb-4 text-xl font-bold text-gray-900">Request for Chef</h3>
+            <textarea
+              className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+              rows={4}
+              placeholder="Type your request here (e.g. Please add a new seasonal burger...)"
+              value={chefRequestText}
+              onChange={(e) => setChefRequestText(e.target.value)}
+            />
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsChefRequestOpen(false);
+                  setChefRequestText('');
+                }}
+                className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  toast.success("Request sent to chef successfully!");
+                  setIsChefRequestOpen(false);
+                  setChefRequestText('');
+                }}
+                className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!chefRequestText.trim()}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

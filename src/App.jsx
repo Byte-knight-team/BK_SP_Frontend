@@ -79,7 +79,6 @@ import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import MenuManagementPage from './pages/admin/MenuManagementPage'
 import AddCategoryPage from './pages/admin/AddCategoryPage'
-import AddMenuItemPage from './pages/admin/AddMenuItemPage'
 import EditMenuItemPage from './pages/admin/EditMenuItemPage'
 import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
@@ -268,7 +267,6 @@ export default function App() {
         <Route path="tables/:tableId/qr" element={<TableQrPage />} />
         <Route path="menu" element={<MenuManagementPage />} />
         <Route path="menu/category/add" element={<AddCategoryPage />} />
-        <Route path="menu/add" element={<AddMenuItemPage />} />
         <Route path="menu/:id" element={<MenuItemDetailsPage />} />
         <Route path="menu/edit/:id" element={<EditMenuItemPage />} />
         <Route path="coupons" element={<CouponsPage />} />

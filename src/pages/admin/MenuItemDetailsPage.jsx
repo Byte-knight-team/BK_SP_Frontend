@@ -9,7 +9,10 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 import { getMenuItemByIdAPI, approveMenuItemAPI, rejectMenuItemAPI } from '../../apis/admin/menu';
+import { getMenuItemIngredientsAPI } from '../../apis/kitchen/menu';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
 
@@ -54,59 +57,51 @@ export default function MenuItemDetailsPage() {
   const navigate = useNavigate();
   const { id: itemId } = useParams();
 
-  const [item, setItem] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [apiError, setApiError] = useState('');
+  const queryClient = useQueryClient();
+
+  const { data: item, isLoading: isItemLoading, error: itemError } = useQuery({
+    queryKey: ['menuItem', itemId],
+    queryFn: () => getMenuItemByIdAPI(itemId),
+    initialData: () => {
+      const allItems = queryClient.getQueryData(['menuItems']);
+      return allItems?.find(i => String(i.id) === String(itemId));
+    },
+  });
+
+  const { data: ingredientsRes } = useQuery({
+    queryKey: ['menuItemIngredients', itemId],
+    queryFn: () => getMenuItemIngredientsAPI(itemId),
+  });
+
+  const ingredients = ingredientsRes && !ingredientsRes.error ? (ingredientsRes.data || []) : [];
+  const isLoading = isItemLoading && !item; // Show loading only if we have NO data (no initialData)
+
+  useEffect(() => {
+    if (itemError) {
+      toast.error(itemError.message || 'Unable to load menu item.');
+    }
+  }, [itemError]);
+
   const [decisionItemId, setDecisionItemId] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadItem = async () => {
-      setIsLoading(true);
-      setApiError('');
-
-      try {
-        const data = await getMenuItemByIdAPI(itemId);
-        if (isMounted) {
-          setItem(data);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setApiError(error.message || 'Unable to load menu item.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadItem();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [itemId]);
-
   const handleImageError = (event) => {
     event.target.src = PLACEHOLDER_IMAGE;
   };
 
   const handleApprovePendingItem = async () => {
     setDecisionItemId(item.id);
-    setApiError('');
 
     try {
       const action = await approveMenuItemAPI(item.id, {});
       const nextStatus = normalizeStatus(action?.type) || 'ACTIVE';
-      setItem((prev) => ({ ...prev, status: nextStatus }));
+      queryClient.setQueryData(['menuItem', itemId], (old) => ({ ...old, status: nextStatus }));
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      toast.success('Item approved successfully.');
       // Optionally navigate back after approval
       setTimeout(() => navigate('/admin/menu'), 1000);
     } catch (error) {
-      setApiError(error.message || 'Unable to approve item.');
+      toast.error(error.message || 'Unable to approve item.');
     } finally {
       setDecisionItemId(null);
     }
@@ -115,7 +110,6 @@ export default function MenuItemDetailsPage() {
   const handleRejectPendingItem = () => {
     setShowRejectModal(true);
     setRejectionReason('');
-    setApiError('');
   };
 
   const handleCancelReject = () => {
@@ -125,23 +119,24 @@ export default function MenuItemDetailsPage() {
 
   const handleConfirmReject = async () => {
     if (!rejectionReason.trim()) {
-      setApiError('Rejection reason is required.');
+      toast.error('Rejection reason is required.');
       return;
     }
 
     setDecisionItemId(item.id);
-    setApiError('');
 
     try {
       const action = await rejectMenuItemAPI(item.id, rejectionReason.trim());
       const nextStatus = normalizeStatus(action?.type) || 'REJECTED';
-      setItem((prev) => ({ ...prev, status: nextStatus }));
+      queryClient.setQueryData(['menuItem', itemId], (old) => ({ ...old, status: nextStatus }));
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       setShowRejectModal(false);
       setRejectionReason('');
+      toast.success('Item rejected successfully.');
       // Optionally navigate back after rejection
       setTimeout(() => navigate('/admin/menu'), 1000);
     } catch (error) {
-      setApiError(error.message || 'Unable to reject item.');
+      toast.error(error.message || 'Unable to reject item.');
     } finally {
       setDecisionItemId(null);
     }
@@ -232,13 +227,7 @@ export default function MenuItemDetailsPage() {
           </button>
         </div>
 
-        {apiError && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {apiError}
-          </div>
-        )}
-
-        {/* Content Grid */}
+        {/* Action Bar (Top) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Image */}
           <div className="lg:col-span-1">
@@ -314,6 +303,27 @@ export default function MenuItemDetailsPage() {
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.description}</p>
               </div>
             )}
+
+            {/* Ingredients */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
+                  <FileText size={16} className="text-emerald-500" />
+                </div>
+                <h2 className="text-base font-bold text-gray-900">Ingredients</h2>
+              </div>
+              {ingredients && ingredients.length > 0 ? (
+                <ul className="list-disc pl-5 space-y-1">
+                  {ingredients.map((ing) => (
+                    <li key={ing.id || ing.inventoryItemId} className="text-sm text-gray-700">
+                      <span className="font-medium">{ing.inventoryItemName}</span> - {ing.quantityRequired} {ing.unit}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-400 italic"></p>
+              )}
+            </div>
 
             {/* Metadata */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
