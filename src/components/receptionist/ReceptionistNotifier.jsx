@@ -1,5 +1,7 @@
 import { useCallback } from 'react'
 import { toast } from 'react-toastify'
+import { useNavigate } from 'react-router-dom'
+import { BellRing } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
 
@@ -13,18 +15,25 @@ import useWebSocket from '../../hooks/useWebSocket'
 export default function ReceptionistNotifier() {
   const { user } = useAuth()
   const branchId = user?.branchId
+  const navigate = useNavigate()
 
   // #1 New order placed by a customer.
-  // Dormant until the customer-dev broadcasts to /topic/branch/{id}/new-order
-  // with { orderNumber, orderType }. Once that's added, this lights up automatically.
   const newOrderTopic = branchId ? `/topic/branch/${branchId}/new-order` : null
   const handleNewOrder = useCallback((msg) => {
     const label =
       msg?.orderType === 'ONLINE_PICKUP' ? 'Pickup'
         : msg?.orderType === 'ONLINE_DELIVERY' ? 'Delivery'
           : msg?.orderType === 'QR' ? 'QR' : 'New'
-    toast.info(`New ${label} order ${msg?.orderNumber || ''} placed.`, { autoClose: 6000 })
-  }, [])
+    
+    toast.success(`New ${label} order ${msg?.orderNumber || ''} placed.`, { 
+      autoClose: 6000,
+      icon: <BellRing size={20} />,
+      onClick: () => {
+        navigate('/receptionist/orders', { state: { tab: 'PLACED' } })
+      },
+      style: { cursor: 'pointer' }
+    })
+  }, [navigate])
   useWebSocket(branchId, newOrderTopic, handleNewOrder)
 
   // #2 Ready to serve — kitchen finished an item / the whole order.
