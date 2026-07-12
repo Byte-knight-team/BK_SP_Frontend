@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen, BarChart3 } from 'lucide-react';
+import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen, BarChart3, Calendar } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { endQrSession } from '../../apis/customer/qrSessions';
@@ -194,6 +194,13 @@ export default function Navbar() {
             {/* ───── GUEST VIEW ───── */}
             {!auth.isLoggedIn && !auth.isQrCustomer && (
               <>
+                <LinkButton
+                  to="/reservations"
+                  variant="secondary"
+                  icon={Calendar}
+                >
+                  Book a Table
+                </LinkButton>
                 <LoginButton />
                 <SignupButton />
               </>
@@ -208,6 +215,13 @@ export default function Navbar() {
                   icon={Package}
                 >
                   Orders
+                </LinkButton>
+                <LinkButton
+                  to="/reservations"
+                  variant="secondary"
+                  icon={Calendar}
+                >
+                  Reservations
                 </LinkButton>
 
                 {/* ONLY SHOW ACCOUNT IF NOT A QR CUSTOMER */}
@@ -336,6 +350,15 @@ export default function Navbar() {
             {!auth.isLoggedIn && !auth.isQrCustomer && (
               <>
                 <LinkButton
+                  to="/reservations"
+                  onClick={toggleMenu}
+                  variant="secondary"
+                  icon={Calendar}
+                  className="w-full justify-start"
+                >
+                  Book a Table
+                </LinkButton>
+                <LinkButton
                   to="/login"
                   onClick={toggleMenu}
                   variant="secondary"
@@ -364,6 +387,15 @@ export default function Navbar() {
                   className="w-full justify-start"
                 >
                   Orders
+                </LinkButton>
+                <LinkButton
+                  to="/reservations"
+                  onClick={toggleMenu}
+                  variant="secondary"
+                  icon={Calendar}
+                  className="w-full justify-start"
+                >
+                  Reservations
                 </LinkButton>
                 {!auth.isQrCustomer && (
                   <LinkButton

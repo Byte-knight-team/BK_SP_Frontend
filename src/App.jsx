@@ -105,7 +105,8 @@ import OrdersPage from './pages/customer/OrdersPage'
 import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
-
+import CustomerReservationsListPage from './pages/customer/CustomerReservationsListPage'
+import CustomerReservationDetailPage from './pages/customer/ReservationDetailPage'
 // Kitchen pages
 import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
@@ -398,6 +399,30 @@ export default function App() {
                 unauthenticatedRedirect="/login?redirect=/orders"
               >
                 <OrdersPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/reservations"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/reservations"
+                unauthenticatedRedirect="/login?redirect=/reservations"
+              >
+                <CustomerReservationsListPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/reservations/:id"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/reservations"
+                unauthenticatedRedirect="/login?redirect=/reservations"
+              >
+                <CustomerReservationDetailPage />
               </CustomerProtectedRoute>
             }
           />
