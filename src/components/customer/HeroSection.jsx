@@ -34,6 +34,12 @@ export default function HeroSection() {
 							Start Ordering
 							<ArrowRight size={18} />
 						</Link>
+						<Link
+							to="/reservations"
+							className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-md border border-white/20 transition-all hover:-translate-y-0.5 hover:bg-white/20"
+						>
+							Book a Table
+						</Link>
 					</div>
 
 					<div className="mt-8 grid max-w-md grid-cols-2 gap-3">
