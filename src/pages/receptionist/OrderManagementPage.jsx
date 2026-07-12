@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, useLocation } from 'react-router-dom'
 import { ClipboardList, AlertTriangle } from 'lucide-react'
 import { getReceptionistOrdersAPI } from '../../apis/receptionist/orders'
 import OrderCard from '../../components/receptionist/orders/OrderCard'
@@ -36,6 +36,7 @@ const TYPE_FILTERS = [
 const OrderManagementPage = () => {
   const { setHeaderInfo } = useOutletContext()
   const { user } = useAuth()
+  const location = useLocation()
 
   const [activeTab, setActiveTab] = useState('PLACED')
   const [typeFilter, setTypeFilter] = useState('ALL')
@@ -48,6 +49,15 @@ const OrderManagementPage = () => {
   const [alertsRefreshKey, setAlertsRefreshKey] = useState(0)
   const [readyCount, setReadyCount] = useState(0)
   const [holdCount, setHoldCount] = useState(0)
+
+  // Auto-switch tabs if navigated here via a toast notification
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab)
+      // Clear the state so a page refresh doesn't force the tab again
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
 
   // Refs so the stable WebSocket callback can read latest values
   const activeTabRef = useRef(activeTab)
