@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Lock } from 'lucide-react';
 import { updateCustomerPayment } from '../../apis/customer/checkout';
+import { payReservation } from '../../apis/customer/reservations';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -9,7 +10,7 @@ export default function CardPaymentPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { orderId, finalAmount } = location.state || {};
+  const { orderId, reservationId, finalAmount, returnUrl } = location.state || {};
 
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
@@ -18,22 +19,22 @@ export default function CardPaymentPage() {
   const [errors, setErrors] = useState({});
   const [isPaying, setIsPaying] = useState(false);
 
-  // ---------- No order session guard ----------
-  if (!orderId || !finalAmount) {
+  // ---------- No order/reservation session guard ----------
+  if ((!orderId && !reservationId) || !finalAmount) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
           <CreditCard size={40} className="mx-auto mb-4 text-gray-400" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">No payment session</h1>
           <p className="text-sm text-gray-500 mb-6">
-            Please go back to your orders to retry payment.
+            Please go back to retry payment.
           </p>
           <button
             type="button"
-            onClick={() => navigate('/orders', { replace: true })}
+            onClick={() => navigate(returnUrl || '/', { replace: true })}
             className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
           >
-            <ArrowLeft size={16} /> Back to Orders
+            <ArrowLeft size={16} /> Go Back
           </button>
         </div>
       </div>
@@ -95,19 +96,31 @@ export default function CardPaymentPage() {
       // Generate a fake transaction ID for the database
       const fakeTransactionId = `DUMMY_TX_${Math.floor(Math.random() * 100000000)}`;
 
-      // Tell the backend the card went through
-      const res = await updateCustomerPayment(orderId, {
-        paymentStatus: 'PAID',
-        transactionId: fakeTransactionId,
-      });
+      if (orderId) {
+        // Tell the backend the card went through
+        const res = await updateCustomerPayment(orderId, {
+          paymentStatus: 'PAID',
+          transactionId: fakeTransactionId,
+        });
 
-      if (!res.ok) throw new Error('Server failed to update payment status');
+        if (!res.ok) throw new Error('Server failed to update payment status');
 
-      // Success — navigate to confirmation screen
-      navigate('/order-confirmation', {
-        replace: true,
-        state: { orderId },
-      });
+        // Success — navigate to confirmation screen
+        navigate('/order-confirmation', {
+          replace: true,
+          state: { orderId },
+        });
+      } else if (reservationId) {
+        const res = await payReservation(reservationId, fakeTransactionId);
+        if (!res.ok) {
+           const data = await res.json().catch(()=>({}));
+           throw new Error(data.message || 'Server failed to update payment status');
+        }
+        
+        navigate(returnUrl || `/reservations/${reservationId}`, {
+          replace: true,
+        });
+      }
     } catch (err) {
       console.error(err);
       setErrors((prev) => ({ ...prev, submit: err.message || 'Payment update failed. Please try again.' }));

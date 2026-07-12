@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { toast } from 'react-toastify';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   ClipboardList, 
   CheckCircle2, 
@@ -52,50 +53,45 @@ export default function GlobalNotificationProvider() {
   const clientRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const activeTokenRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('customer_jwt') || localStorage.getItem('qr_session_token');
     
-    // If we have no token, or if the token hasn't changed, do nothing
     if (!token) {
-      if (clientRef.current?.active) {
+      if (clientRef.current) {
         clientRef.current.deactivate();
+        clientRef.current = null;
         activeTokenRef.current = null;
       }
       return;
     }
-    
-    if (token === activeTokenRef.current && clientRef.current?.active) {
-      return; // Already connected with this token
+
+    if (activeTokenRef.current === token && clientRef.current?.connected) {
+      return;
     }
 
-    // Decode the JWT to extract the userId
-    let userId;
+    let userId = null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       userId = payload.userId || payload.user_id || payload.sub;
-    } catch {
-      console.warn('[GlobalNotification] Could not decode token');
+    } catch (e) {
+      console.error('[GlobalNotification] Failed to decode JWT', e);
       return;
     }
 
     if (!userId) return;
 
-    // Clean up old connection if any
-    if (clientRef.current?.active) {
+    if (clientRef.current) {
       clientRef.current.deactivate();
     }
 
-    activeTokenRef.current = token;
-
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_BASE}/ws`),
-      connectHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
+      connectHeaders: { Authorization: `Bearer ${token}` },
+      debug: (str) => {},
       reconnectDelay: 5000,
-
       onConnect: () => {
         console.log('[GlobalNotification] Connected — subscribing to /topic/user/' + userId + '/orders');
 
@@ -140,8 +136,53 @@ export default function GlobalNotificationProvider() {
                 style: { cursor: 'pointer' },
               }
             );
+          } catch (error) {
+            console.error('[GlobalNotification] Error parsing order message:', error);
+          }
+        });
+
+        // 2. Subscribe to reservations topic
+        console.log('[GlobalNotification] Subscribing to /topic/user/' + userId + '/reservations');
+        client.subscribe(`/topic/user/${userId}/reservations`, (message) => {
+          try {
+            const update = JSON.parse(message.body);
+            const { reservationStatus, reservationId } = update;
+
+            if (!reservationStatus) return;
+
+            // Invalidate React Query cache so the modal/page updates immediately
+            if (queryClient) {
+              queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] });
+              queryClient.invalidateQueries({ queryKey: ['myReservations'] });
+            }
+
+            let text = 'Reservation Updated';
+            let type = 'info';
+            
+            if (reservationStatus === 'CONFIRMED') { text = 'Reservation Confirmed! Please pay to secure.'; type = 'success'; }
+            if (reservationStatus === 'REJECTED') { text = 'Reservation Rejected'; type = 'error'; }
+            if (reservationStatus === 'EXPIRED') { text = 'Reservation Expired'; type = 'error'; }
+            if (reservationStatus === 'CANCELLED') { text = 'Reservation Cancelled'; type = 'error'; }
+
+            const toastFn =
+              type === 'success'
+                ? toast.success
+                : type === 'error'
+                  ? toast.error
+                  : toast.info;
+
+            toastFn(
+              `Reservation #${reservationId}: ${text}`,
+              {
+                icon: <ClipboardList size={20} />,
+                onClick: () => {
+                  navigate('/reservations', { state: { openReservationId: reservationId } });
+                },
+                style: { cursor: 'pointer' },
+              }
+            );
           } catch (e) {
-            console.error('[GlobalNotification] Failed to parse update:', e);
+            console.error('[GlobalNotification] Failed to parse reservation update:', e);
           }
         });
       },
