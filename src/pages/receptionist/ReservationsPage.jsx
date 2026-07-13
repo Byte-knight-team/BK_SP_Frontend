@@ -2,10 +2,16 @@ import { useState, useEffect, useCallback, Fragment } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { CalendarCheck, CalendarDays } from 'lucide-react'
 import { toast } from 'react-toastify'
-import { getAllReservationsAPI, cancelReservationAPI, seatReservationAPI } from '../../apis/receptionist/reservations'
+import {
+  getAllReservationsAPI,
+  cancelReservationAPI,
+  seatReservationAPI,
+  rejectReservationAPI,
+} from '../../apis/receptionist/reservations'
 import { getBranchTablesAPI } from '../../apis/receptionist/tables'
 import Dropdown from '../../components/common/Dropdown'
 import DatePicker from '../../components/receptionist/table management/DatePicker'
+import ConfirmReservationModal from '../../components/receptionist/table management/ConfirmReservationModal'
 
 const PAGE_SIZE = 10
 
@@ -16,14 +22,22 @@ const fmtDate = (dt) =>
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'All statuses' },
-  { value: 'PENDING', label: 'Pending' },
+  { value: 'REQUESTED', label: 'Requested' },
+  { value: 'CONFIRMED', label: 'Confirmed' },
+  { value: 'PAID', label: 'Paid' },
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'CANCELLED', label: 'Cancelled' },
+  { value: 'REJECTED', label: 'Rejected' },
+  { value: 'EXPIRED', label: 'Expired' },
 ]
 const STATUS_STYLES = {
-  PENDING: 'bg-blue-50 text-blue-600',
-  COMPLETED: 'bg-green-50 text-green-600',
+  REQUESTED: 'bg-amber-50 text-amber-600',
+  CONFIRMED: 'bg-blue-50 text-blue-600',
+  PAID: 'bg-green-50 text-green-600',
+  COMPLETED: 'bg-purple-50 text-purple-600',
   CANCELLED: 'bg-gray-100 text-gray-400',
+  REJECTED: 'bg-red-50 text-red-500',
+  EXPIRED: 'bg-orange-50 text-orange-500',
 }
 
 export default function ReservationsPage() {
@@ -40,15 +54,23 @@ export default function ReservationsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalElements, setTotalElements] = useState(0)
 
+  // Confirm (assign tables) modal target — the whole reservation row
+  const [confirmTarget, setConfirmTarget] = useState(null)
+
+  // Inline reason rows
   const [cancelTargetId, setCancelTargetId] = useState(null)
   const [cancelReason, setCancelReason] = useState('')
   const [cancelLoading, setCancelLoading] = useState(false)
-  const [confirmingId, setConfirmingId] = useState(null)
+  const [rejectTargetId, setRejectTargetId] = useState(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejectLoading, setRejectLoading] = useState(false)
+
+  const [seatingId, setSeatingId] = useState(null)
 
   useEffect(() => {
     setHeaderInfo({
       title: 'Reservations',
-      description: 'Browse, filter and cancel table reservations.',
+      description: 'Review requests, confirm or reject, seat paid guests, and cancel bookings.',
       Icon: CalendarCheck,
     })
   }, [setHeaderInfo])
@@ -61,7 +83,7 @@ export default function ReservationsPage() {
     })
   }, [])
 
-  // Fetch the current page from the server whenever filters or page change
+  // Fetch the current page from the server whenever filters or page change.
   // silent = true refreshes the rows in place without the loading spinner (used after an action).
   const load = useCallback((silent = false) => {
     if (!silent) setLoading(true)
@@ -89,37 +111,41 @@ export default function ReservationsPage() {
   const onStatus = (v) => { setPage(0); setStatusFilter(v) }
 
   const handleCancel = async (id) => {
-    if (!cancelReason.trim()) {
-      toast.error('Please enter a reason')
-      return
-    }
+    if (!cancelReason.trim()) return toast.error('Please enter a reason')
     setCancelLoading(true)
     const { error } = await cancelReservationAPI(id, cancelReason.trim())
     setCancelLoading(false)
-    if (error) {
-      toast.error(error)
-      return
-    }
+    if (error) return toast.error(error)
     toast.success('Reservation cancelled')
     setCancelTargetId(null)
     setCancelReason('')
-    load(true) // silent refresh — no spinner flash
+    load(true)
   }
 
-  // Confirm = the party arrived: seat them (occupies the booking's tables, marks it completed).
-  const handleConfirm = async (id) => {
-    setConfirmingId(id)
+  const handleReject = async (id) => {
+    if (!rejectReason.trim()) return toast.error('Please enter a reason')
+    setRejectLoading(true)
+    const { error } = await rejectReservationAPI(id, rejectReason.trim())
+    setRejectLoading(false)
+    if (error) return toast.error(error)
+    toast.success('Request rejected')
+    setRejectTargetId(null)
+    setRejectReason('')
+    load(true)
+  }
+
+  // Seat = the PAID party arrived: occupy the booking's tables, mark it completed.
+  const handleSeat = async (id) => {
+    setSeatingId(id)
     const { error } = await seatReservationAPI(id)
-    setConfirmingId(null)
-    if (error) {
-      toast.error(error)
-      return
-    }
+    setSeatingId(null)
+    if (error) return toast.error(error)
     toast.success('Reservation seated')
-    load(true) // silent refresh
+    load(true)
   }
 
   const th = 'px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400'
+  const btn = 'rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50'
 
   return (
     <div className="p-4">
@@ -139,7 +165,7 @@ export default function ReservationsPage() {
         <div className="w-40">
           <Dropdown value={tableFilter} onChange={onTable} options={tableOptions} bordered />
         </div>
-        <div className="w-40">
+        <div className="w-44">
           <Dropdown value={statusFilter} onChange={onStatus} options={STATUS_OPTIONS} bordered />
         </div>
         <span className="ml-auto text-sm font-bold text-gray-400">
@@ -159,7 +185,7 @@ export default function ReservationsPage() {
       ) : (
         <>
           <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
-            <table className="w-full min-w-[920px] text-sm">
+            <table className="w-full min-w-[960px] text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className={`${th} text-left`}>Res. No</th>
@@ -185,11 +211,15 @@ export default function ReservationsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap justify-center gap-1">
-                          {(r.tableNumbers || []).map((n) => (
-                            <span key={n} className="rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-black text-purple-700">
-                              {n}
-                            </span>
-                          ))}
+                          {(r.tableNumbers || []).length === 0 ? (
+                            <span className="text-xs text-gray-300">—</span>
+                          ) : (
+                            (r.tableNumbers || []).map((n) => (
+                              <span key={n} className="rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-black text-purple-700">
+                                {n}
+                              </span>
+                            ))
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center font-bold text-gray-700">{r.guestCount ?? '—'}</td>
@@ -203,18 +233,43 @@ export default function ReservationsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {r.status === 'PENDING' ? (
+                        {r.status === 'REQUESTED' ? (
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => handleConfirm(r.id)}
-                              disabled={confirmingId === r.id}
-                              className="rounded-lg border border-green-200 px-3 py-1.5 text-xs font-bold text-green-600 hover:bg-green-50 disabled:opacity-50"
+                              onClick={() => setConfirmTarget(r)}
+                              className={`${btn} border-purple-200 text-purple-600 hover:bg-purple-50`}
                             >
-                              {confirmingId === r.id ? 'Seating…' : 'Confirm'}
+                              Confirm
                             </button>
                             <button
-                              onClick={() => { setCancelTargetId(r.id); setCancelReason('') }}
-                              className="rounded-lg border border-red-100 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-50"
+                              onClick={() => { setRejectTargetId(r.id); setRejectReason(''); setCancelTargetId(null) }}
+                              className={`${btn} border-red-100 text-red-500 hover:bg-red-50`}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        ) : r.status === 'PAID' ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleSeat(r.id)}
+                              disabled={seatingId === r.id}
+                              className={`${btn} border-green-200 text-green-600 hover:bg-green-50`}
+                            >
+                              {seatingId === r.id ? 'Seating…' : 'Seat'}
+                            </button>
+                            <button
+                              onClick={() => { setCancelTargetId(r.id); setCancelReason(''); setRejectTargetId(null) }}
+                              className={`${btn} border-red-100 text-red-500 hover:bg-red-50`}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : r.status === 'CONFIRMED' ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="text-[11px] font-semibold text-gray-400">Awaiting payment</span>
+                            <button
+                              onClick={() => { setCancelTargetId(r.id); setCancelReason(''); setRejectTargetId(null) }}
+                              className={`${btn} border-red-100 text-red-500 hover:bg-red-50`}
                             >
                               Cancel
                             </button>
@@ -225,6 +280,7 @@ export default function ReservationsPage() {
                       </td>
                     </tr>
 
+                    {/* Inline cancel-reason row */}
                     {cancelTargetId === r.id && (
                       <tr className="bg-red-50/40">
                         <td colSpan={10} className="px-4 py-3">
@@ -247,6 +303,35 @@ export default function ReservationsPage() {
                               className="rounded-xl bg-red-500 px-4 py-2 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
                             >
                               {cancelLoading ? 'Cancelling...' : 'Confirm Cancel'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+
+                    {/* Inline reject-reason row */}
+                    {rejectTargetId === r.id && (
+                      <tr className="bg-red-50/40">
+                        <td colSpan={10} className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <input
+                              value={rejectReason}
+                              onChange={(e) => setRejectReason(e.target.value)}
+                              placeholder="Reason for rejecting this request..."
+                              className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-red-300/30"
+                            />
+                            <button
+                              onClick={() => { setRejectTargetId(null); setRejectReason('') }}
+                              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
+                            >
+                              Back
+                            </button>
+                            <button
+                              onClick={() => handleReject(r.id)}
+                              disabled={rejectLoading}
+                              className="rounded-xl bg-red-500 px-4 py-2 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+                            >
+                              {rejectLoading ? 'Rejecting...' : 'Confirm Reject'}
                             </button>
                           </div>
                         </td>
@@ -284,6 +369,14 @@ export default function ReservationsPage() {
           )}
         </>
       )}
+
+      {/* Confirm (assign tables) modal */}
+      <ConfirmReservationModal
+        isOpen={!!confirmTarget}
+        onClose={() => setConfirmTarget(null)}
+        reservation={confirmTarget}
+        onConfirmed={() => load(true)}
+      />
     </div>
   )
 }
