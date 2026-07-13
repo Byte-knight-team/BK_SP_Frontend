@@ -118,6 +118,7 @@ export function getQrSessionClaims(sessionToken) {
     session_id: payload.session_id || null,
     branch_id: payload.branch_id || null,
     table_id: payload.table_id || null,
+    table_number: payload.table_number || null,
     qr_id: payload.qr_id || null,
     status: payload.status || null,
     exp: payload.exp || null,

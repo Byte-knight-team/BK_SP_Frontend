@@ -36,7 +36,8 @@ export default function Navbar() {
     isQrCustomer: false,
     userName: '',
     profilePic: '',
-    tableId: null
+    tableId: null,
+    tableNumber: null
   });
 
   useEffect(() => {
@@ -54,7 +55,8 @@ export default function Navbar() {
       isQrCustomer: Boolean(localStorage.getItem('qr_session_token')),
       userName: localStorage.getItem('customer_name') || '',
       profilePic: localStorage.getItem('customer_profile_pic') || '',
-      tableId: getQrSessionClaim('table_id')
+      tableId: getQrSessionClaim('table_id'),
+      tableNumber: getQrSessionClaim('table_number')
     });
     setIsMenuOpen(false);
 
@@ -152,9 +154,9 @@ export default function Navbar() {
           <div className="leading-tight min-w-0">
             <p className="text-base font-bold text-slate-900 truncate flex items-center gap-2">
               <span><span className="text-orange-500">Crave</span>House</span>
-              {auth.isQrCustomer && auth.tableId && (
+              {auth.isQrCustomer && auth.tableNumber && (
                 <span className="sm:hidden inline-flex items-center rounded-md bg-orange-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
-                  Table {auth.tableId}
+                  Table {auth.tableNumber}
                 </span>
               )}
             </p>
@@ -165,9 +167,9 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Table Badge (Larger, placed with distance from logo) */}
-          {auth.isQrCustomer && auth.tableId && (
+          {auth.isQrCustomer && auth.tableNumber && (
             <div className="hidden sm:flex items-center justify-center rounded-lg bg-orange-500 px-4 py-1.5 shadow-md transition-transform hover:scale-105">
-              <span className="text-white font-bold text-sm tracking-wide">Table {auth.tableId}</span>
+              <span className="text-white font-bold text-sm tracking-wide">Table {auth.tableNumber}</span>
             </div>
           )}
         </div>

@@ -51,9 +51,11 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
     const fetchPreview = async () => {
       const start = getStartDateTime();
       const end = getEndDateTime();
-      if (selectedBranch && start && end && start < end && guestCount > 0) {
+      const startStr = `${date}T${startTime}:00`;
+      const endStr = `${date}T${endTime}:00`;
+      if (selectedBranch && date && startTime && endTime && start < end && guestCount > 0) {
         try {
-          const res = await previewReservationCharge(selectedBranch.id, guestCount, start, end);
+          const res = await previewReservationCharge(selectedBranch.id, guestCount, startStr, endStr);
           if (res.ok) {
             const data = await res.json();
             setChargePreview(data?.data || data);
@@ -74,10 +76,12 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
     mutationFn: async () => {
       const start = getStartDateTime();
       const end = getEndDateTime();
+      const startStr = `${date}T${startTime}:00`;
+      const endStr = `${date}T${endTime}:00`;
       const res = await createReservationRequest({
         branchId: selectedBranch.id,
-        startTime: start,
-        endTime: end,
+        startTime: startStr,
+        endTime: endStr,
         guestCount,
         customerNote
       });
