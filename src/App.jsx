@@ -102,6 +102,7 @@ import MobileVerificationPage from './pages/customer/MobileVerificationPage'
 import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
+import VerifyEmailPage from './pages/customer/VerifyEmailPage'
 import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
@@ -375,6 +376,18 @@ export default function App() {
                 unauthenticatedRedirect="/login?redirect=/account"
               >
                 <AccountPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/verify-email"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/verify-email"
+                unauthenticatedRedirect="/login?redirect=/verify-email"
+              >
+                <VerifyEmailPage />
               </CustomerProtectedRoute>
             }
           />
