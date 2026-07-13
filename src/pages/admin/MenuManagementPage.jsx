@@ -20,16 +20,18 @@ import { toast } from 'react-toastify';
 
 import {
   getMenuItemsAPI,
-  getMenuCategoriesAPI,
-  getMenuSubcategoriesAPI,
-  getMenuCategoriesCountAPI,
-  getMenuSubcategoriesCountAPI,
   getMenuItemsCountAPI,
   getAvailableItemsCountAPI,
   updateMenuItemAPI,
   approveMenuItemAPI,
   rejectMenuItemAPI,
 } from '../../apis/admin/menu';
+import {
+  getMenuCategoriesAPI,
+  getMenuSubcategoriesAPI,
+  getMenuCategoriesCountAPI,
+  getMenuSubcategoriesCountAPI,
+} from '../../apis/staff/category';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
 
