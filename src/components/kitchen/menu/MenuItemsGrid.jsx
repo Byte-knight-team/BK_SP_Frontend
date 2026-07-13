@@ -11,7 +11,7 @@ const TABS = [
 
 // MenuItemsGrid — renders the tab switcher, search bar, and the card grid
 // All data fetching and modal state lives in the parent page (MenuAndRecipesPage)
-const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
+const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView }) => {
   const [activeTab, setActiveTab] = useState('ACTIVE')
   const [search, setSearch] = useState('')
 
@@ -41,20 +41,18 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
-                activeTab === tab.key
+              className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${activeTab === tab.key
                   ? 'bg-orange-500 text-white shadow'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               {tab.label}
               {/* Badge showing count per tab */}
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-black ${
-                  activeTab === tab.key
+                className={`rounded-full px-2 py-0.5 text-xs font-black ${activeTab === tab.key
                     ? 'bg-white/20 text-white'
                     : 'bg-gray-100 text-gray-500'
-                }`}
+                  }`}
               >
                 {counts[tab.key]}
               </span>
@@ -97,13 +95,13 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((item) => (
-  <MenuItemCard
-    key={item.id}
-    item={item}
-    onView={() => onView(item)}
-    onEdit={activeTab === 'ACTIVE' ? () => onEdit(item) : undefined}
-  />
-))}
+            <MenuItemCard
+              key={item.id}
+              item={item}
+              onView={() => onView(item)}
+              onEdit={activeTab === 'ACTIVE' ? () => onEdit(item) : undefined}
+            />
+          ))}
 
         </div>
       )}

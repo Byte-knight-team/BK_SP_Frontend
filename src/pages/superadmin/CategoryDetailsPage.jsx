@@ -152,11 +152,10 @@ export default function CategoryDetailsPage() {
                 {category.name || "No category name"}
               </h3>
               <span
-                className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                  active
+                className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${active
                     ? "bg-green-50 text-green-700"
                     : "bg-gray-100 text-gray-500"
-                }`}
+                  }`}
               >
                 {active ? "Active" : "Inactive"}
               </span>

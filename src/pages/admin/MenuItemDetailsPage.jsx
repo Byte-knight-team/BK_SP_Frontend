@@ -221,7 +221,13 @@ export default function MenuItemDetailsPage() {
           </div>
           <button
             onClick={() => navigate(`/admin/menu/edit/${itemId}`)}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-medium text-sm shadow-md hover:shadow-lg transition-all"
+            disabled={item.categoryStatus === 'INACTIVE'}
+            className={`px-6 py-2.5 rounded-xl font-medium text-sm shadow-md transition-all ${
+              item.categoryStatus === 'INACTIVE'
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                : 'bg-orange-500 hover:bg-orange-600 text-white hover:shadow-lg'
+            }`}
+            title={item.categoryStatus === 'INACTIVE' ? 'Cannot edit items in an inactive category' : 'Edit Item'}
           >
             Edit Item
           </button>
