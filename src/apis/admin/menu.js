@@ -30,6 +30,8 @@ export const getMenuCategoriesAPI = async () => {
       return {
         id: entry?.id ?? entry?.categoryId ?? entry?.name,
         name: entry?.name ?? entry?.categoryName ?? '',
+        description: entry?.description ?? '',
+        isActive: entry?.status === 'ACTIVE',
       };
     })
     .filter((entry) => entry.name);
@@ -153,12 +155,13 @@ export const deleteMenuItemAPI = async (id) => {
   return payload?.data ?? payload;
 };
 
-export const deleteMenuCategoryAPI = async (id) => {
-  const response = await authFetch(`${API_BASE}/api/v1/categories/${id}`, {
-    method: 'DELETE',
+export const toggleMenuCategoryStatusAPI = async (id, isActive) => {
+  const response = await authFetch(`${API_BASE}/api/v1/categories/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ isActive }),
   });
 
-  const payload = await parseResponse(response, 'Unable to delete category.');
+  const payload = await parseResponse(response, 'Unable to toggle category status.');
   return payload?.data ?? payload;
 };
 
