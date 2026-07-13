@@ -106,10 +106,12 @@ import MobileVerificationPage from './pages/customer/MobileVerificationPage'
 import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
+import VerifyEmailPage from './pages/customer/VerifyEmailPage'
 import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
-
+import CustomerReservationsListPage from './pages/customer/CustomerReservationsListPage'
+import CustomerReservationDetailPage from './pages/customer/ReservationDetailPage'
 // Kitchen pages
 import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
@@ -386,6 +388,18 @@ export default function App() {
             }
           />
           <Route
+            path="/verify-email"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/verify-email"
+                unauthenticatedRedirect="/login?redirect=/verify-email"
+              >
+                <VerifyEmailPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
             path="/statistics"
             element={
               <CustomerProtectedRoute
@@ -406,6 +420,30 @@ export default function App() {
                 unauthenticatedRedirect="/login?redirect=/orders"
               >
                 <OrdersPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/reservations"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/reservations"
+                unauthenticatedRedirect="/login?redirect=/reservations"
+              >
+                <CustomerReservationsListPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/reservations/:id"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/reservations"
+                unauthenticatedRedirect="/login?redirect=/reservations"
+              >
+                <CustomerReservationDetailPage />
               </CustomerProtectedRoute>
             }
           />
