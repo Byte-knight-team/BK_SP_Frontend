@@ -61,6 +61,9 @@ import ComingSoonPage from './pages/superadmin/ComingSoonPage'
 import CustomerManagement from "./pages/superadmin/CustomerManagement";
 import CustomerDetailsPage from "./pages/superadmin/CustomerDetailsPage";
 import CategoryManagementPage from "./pages/superadmin/CategoryManagementPage";
+import CreateCategoryPage from "./pages/superadmin/CreateCategoryPage";
+import EditCategoryPage from "./pages/superadmin/EditCategoryPage";
+import CategoryDetailsPage from "./pages/superadmin/CategoryDetailsPage";
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
@@ -236,6 +239,9 @@ export default function App() {
           <Route path="/staff/customers" element={<CustomerManagement />} />
           <Route path="/staff/customers/:id" element={<CustomerDetailsPage />} />
           <Route path="categories" element={<CategoryManagementPage />} />
+          <Route path="categories/create" element={<CreateCategoryPage />} />
+          <Route path="categories/:id" element={<CategoryDetailsPage />} />
+          <Route path="categories/:id/edit" element={<EditCategoryPage />} />
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />

@@ -8,10 +8,12 @@ import { toast } from 'react-toastify';
 import CloudinaryImageUpload from '../../components/admin/CloudinaryImageUpload';
 import {
   getMenuItemByIdAPI,
-  getMenuCategoriesAPI,
-  getMenuSubcategoriesAPI,
   updateMenuItemAPI,
 } from '../../apis/admin/menu';
+import {
+  getMenuCategoriesAPI,
+  getMenuSubcategoriesAPI,
+} from '../../apis/staff/category';
 import IngredientPicker from '../../components/kitchen/menu/IngredientPicker';
 import { getMenuItemIngredientsAPI, saveMenuItemIngredientsAPI } from '../../apis/kitchen/menu';
 import { InventoryService } from '../../apis/manager/InventoryService';

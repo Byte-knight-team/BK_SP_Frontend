@@ -16,38 +16,7 @@ const parseResponse = async (response, fallbackMessage) => {
 
 const toArray = (value) => (Array.isArray(value) ? value : []);
 
-export const getMenuCategoriesAPI = async () => {
-  const response = await authFetch(`${MENU_BASE}/categories`);
-  const payload = await parseResponse(response, 'Unable to load categories.');
-  const rows = toArray(payload?.data ?? payload);
 
-  return rows
-    .map((entry) => {
-      if (typeof entry === 'string') {
-        return { id: entry, name: entry };
-      }
-
-      return {
-        id: entry?.id ?? entry?.categoryId ?? entry?.name,
-        name: entry?.name ?? entry?.categoryName ?? '',
-        description: entry?.description ?? '',
-        isActive: entry?.status === 'ACTIVE',
-      };
-    })
-    .filter((entry) => entry.name);
-};
-
-export const getMenuCategoriesCountAPI = async () => {
-  const response = await authFetch(`${MENU_BASE}/categories/count`);
-  const payload = await parseResponse(response, 'Unable to load categories count.');
-  return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
-};
-
-export const getMenuSubcategoriesCountAPI = async () => {
-  const response = await authFetch(`${MENU_BASE}/subcategories/count`);
-  const payload = await parseResponse(response, 'Unable to load subcategories count.');
-  return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
-};
 
 export const getMenuItemsCountAPI = async () => {
   const response = await authFetch(`${MENU_BASE}/count`);
@@ -61,32 +30,7 @@ export const getAvailableItemsCountAPI = async () => {
   return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
 };
 
-export const getMenuSubcategoriesAPI = async ({ categoryId = '', categoryName = '' } = {}) => {
-  const params = new URLSearchParams();
 
-  if (categoryId) {
-    params.set('categoryId', categoryId);
-  }
-
-  if (categoryName) {
-    params.set('category', categoryName);
-  }
-
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const response = await authFetch(`${MENU_BASE}/subcategories${query}`);
-  const payload = await parseResponse(response, 'Unable to load subcategories.');
-  const rows = toArray(payload?.data ?? payload);
-
-  return rows
-    .map((entry) => {
-      if (typeof entry === 'string') {
-        return entry;
-      }
-
-      return entry?.name ?? entry?.subCategory ?? '';
-    })
-    .filter(Boolean);
-};
 
 export const createMenuItemAPI = async (menuItemPayload) => {
   const response = await authFetch(`${MENU_BASE}`, {
@@ -155,22 +99,4 @@ export const deleteMenuItemAPI = async (id) => {
   return payload?.data ?? payload;
 };
 
-export const toggleMenuCategoryStatusAPI = async (id, isActive) => {
-  const response = await authFetch(`${API_BASE}/api/v1/categories/${id}/status`, {
-    method: 'PATCH',
-    body: JSON.stringify({ isActive }),
-  });
 
-  const payload = await parseResponse(response, 'Unable to toggle category status.');
-  return payload?.data ?? payload;
-};
-
-export const createMenuCategoryAPI = async (categoryPayload) => {
-  const response = await authFetch(`${API_BASE}/api/v1/categories`, {
-    method: 'POST',
-    body: JSON.stringify(categoryPayload),
-  });
-
-  const payload = await parseResponse(response, 'Unable to create category.');
-  return payload?.data ?? payload;
-};
