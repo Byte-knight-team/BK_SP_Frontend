@@ -6,8 +6,8 @@ import Dropdown from '../../common/Dropdown'
 
 // Status badge color map
 const STATUS_STYLES = {
-  ACTIVE:   'bg-green-50 text-green-600 border border-green-100',
-  PENDING:  'bg-orange-50 text-orange-500 border border-orange-100',
+  ACTIVE: 'bg-green-50 text-green-600 border border-green-100',
+  PENDING: 'bg-orange-50 text-orange-500 border border-orange-100',
   REJECTED: 'bg-red-50 text-red-500 border border-red-100',
   INACTIVE: 'bg-gray-100 text-gray-400 border border-gray-200',
 }

@@ -291,6 +291,12 @@ export default function EditMenuItemPage() {
     const { isValid, normalizedSubCategory } = validateForm();
     if (!isValid) return;
 
+    const selectedCategory = categories.find((c) => String(c.id) === String(categoryId) || c.name === categoryId);
+    if (selectedCategory && selectedCategory.status === 'INACTIVE') {
+      toast.error('Cannot save a menu item in an INACTIVE category.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

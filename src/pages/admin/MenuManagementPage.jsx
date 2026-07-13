@@ -421,8 +421,11 @@ export default function MenuManagementPage() {
                       className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
                         }`}
                     >
-                      <span className="flex items-center gap-3 text-sm font-medium">
-                        {category.name}
+                      <span className="flex items-center gap-2 text-sm font-medium">
+                        <span className="truncate max-w-[120px]">{category.name}</span>
+                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded ${category.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+                          {category.isActive ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
                       </span>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${isActive ? 'bg-white text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
                         {categoryCounts[category.name] || 0}
@@ -543,6 +546,7 @@ export default function MenuManagementPage() {
                             disabled={
                               togglingItemId === item.id
                               || (normalizeStatus(item.status) !== 'ACTIVE' && normalizeStatus(item.status) !== 'INACTIVE')
+                              || item.categoryStatus === 'INACTIVE'
                             }
                             loading={togglingItemId === item.id}
                           />
@@ -550,10 +554,17 @@ export default function MenuManagementPage() {
                             type="button"
                             onClick={(event) => {
                               event.stopPropagation();
+                              if (item.categoryStatus === 'INACTIVE') return;
                               navigate(`/admin/menu/edit/${item.id}`);
                             }}
-                            className="grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                            disabled={item.categoryStatus === 'INACTIVE'}
+                            className={`grid size-8 place-items-center rounded-lg border border-gray-200 text-sm transition-colors ${
+                              item.categoryStatus === 'INACTIVE'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            }`}
                             aria-label="Edit"
+                            title={item.categoryStatus === 'INACTIVE' ? 'Cannot edit items in an inactive category' : 'Edit item'}
                           >
                             <Pencil size={14} />
                           </button>
