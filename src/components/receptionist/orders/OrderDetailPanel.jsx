@@ -188,7 +188,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
               onClick={() => setIsPaymentOpen(true)}
               className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
             >
-              Collect Cash — Rs. {order.finalAmount.toFixed(2)}
+              Collect Cash: Rs. {order.finalAmount.toFixed(2)}
             </button>
           )}
           {cashCollected && !isCancelled && (
@@ -328,7 +328,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
                       ) : item.status === 'SERVED' ? (
                         <span className="text-xs text-gray-400">Done</span>
                       ) : (
-                        <span className="text-xs text-gray-300">—</span>
+                        <span className="text-xs text-gray-300">-</span>
                       )}
                     </td>
                   )}
@@ -373,8 +373,8 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
               : isCashDue ? (isDelivery ? 'text-teal-600' : 'text-orange-500')
                 : 'text-green-600'
             }`}>
-            {isCancelled ? '— Cancelled'
-              : isCashDue ? (isDelivery ? 'Cash on Delivery' : 'Cash — Not Yet Collected')
+            {isCancelled ? 'Cancelled'
+              : isCashDue ? (isDelivery ? 'Cash on Delivery' : 'Cash: Not Yet Collected')
                 : '✓ Paid'}
           </span>
         </div>
@@ -438,7 +438,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
 
         {order.status === 'COMPLETED' && isDelivery && (
           <div className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-xs font-semibold text-gray-400">
-            Ready for delivery — the manager will assign a driver from the delivery dashboard.
+            Ready for delivery. The manager will assign a driver from the delivery dashboard.
           </div>
         )}
       </div>

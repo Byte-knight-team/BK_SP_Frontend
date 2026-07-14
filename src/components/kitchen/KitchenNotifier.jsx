@@ -26,7 +26,7 @@ export default function KitchenNotifier() {
   const handleItem = useCallback((msg) => {
     if (!msg?.itemName) return
     if (msg.orderStatus === 'COMPLETED') {
-      toast.success(`Order ${msg.orderNumber} — all items completed!`, { autoClose: 5000 })
+      toast.success(`Order ${msg.orderNumber}: all items completed!`, { autoClose: 5000 })
     } else if (msg.newStatus === 'PREPARING') {
       toast.info(`${msg.itemName} started cooking (Order ${msg.orderNumber})`, { autoClose: 3000 })
     } else if (msg.newStatus === 'READY') {

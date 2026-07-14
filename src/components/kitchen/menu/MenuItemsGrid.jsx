@@ -2,33 +2,77 @@ import { useState } from 'react'
 import { Search, Plus } from 'lucide-react'
 import MenuItemCard from './MenuItemCard'
 
-// Tab definitions — chef sees Active items (all), and their own Pending/Rejected submissions
+// Tab definitions. INACTIVE is not a real backend status — it's an ACTIVE
+// item whose category was disabled (see bucketFor below). Being marked
+// unavailable (out of stock right now) does NOT move an item out of Active —
+// it's still something the restaurant serves, just not orderable this
+// moment, so it stays under Active with an availability filter instead.
+// PENDING/REJECTED map straight to item.status.
 const TABS = [
   { key: 'ACTIVE', label: 'Active' },
+  { key: 'INACTIVE', label: 'Inactive' },
   { key: 'PENDING', label: 'Pending' },
   { key: 'REJECTED', label: 'Rejected' },
 ]
 
+// Availability sub-filter, shown only inside the Active tab
+const AVAILABILITY_FILTERS = [
+  { key: 'ALL', label: 'All' },
+  { key: 'AVAILABLE', label: 'Available' },
+  { key: 'UNAVAILABLE', label: 'Unavailable' },
+]
+
+// Which tab an item belongs to — purely category-driven now
+const bucketFor = (item) => {
+  if (item.status !== 'ACTIVE') return item.status // PENDING or REJECTED
+  const categoryDisabled = item.categoryStatus && item.categoryStatus !== 'ACTIVE'
+  return categoryDisabled ? 'INACTIVE' : 'ACTIVE'
+}
+
 // MenuItemsGrid — renders the tab switcher, search bar, and the card grid
-// All data fetching and modal state lives in the parent page (MenuAndRecipesPage)
-const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView }) => {
+// All data fetching and modal state lives in the parent page (MenuItemPage)
+const MenuItemsGrid = ({ items = [], isLoading, onAdd, onView }) => {
   const [activeTab, setActiveTab] = useState('ACTIVE')
+  const [availabilityFilter, setAvailabilityFilter] = useState('ALL')
   const [search, setSearch] = useState('')
 
-  // Filter items by the selected tab status, then by the search query.
-  // Sort by id ascending so newly created items (highest id) always appear last.
+  const switchTab = (key) => {
+    setActiveTab(key)
+    setAvailabilityFilter('ALL')
+  }
+
+  // Filter items by the selected tab bucket, then (Active tab only) by
+  // availability, then by the search query. Active/Inactive (both are
+  // approved items) sort by most-recently-approved first, so a just-approved
+  // item surfaces at the top. Pending/Rejected sort by id ascending.
+  const sortByApproval = activeTab === 'ACTIVE' || activeTab === 'INACTIVE'
   const filtered = items
-    .filter((item) => item.status === activeTab)
+    .filter((item) => bucketFor(item) === activeTab)
+    .filter((item) => {
+      if (activeTab !== 'ACTIVE' || availabilityFilter === 'ALL') return true
+      return availabilityFilter === 'AVAILABLE' ? item.isAvailable === true : item.isAvailable !== true
+    })
     .filter((item) =>
       item.name.toLowerCase().includes(search.toLowerCase())
     )
-    .sort((a, b) => a.id - b.id)
+    .sort((a, b) =>
+      sortByApproval
+        ? new Date(b.approvedAt || 0) - new Date(a.approvedAt || 0)
+        : a.id - b.id
+    )
 
   // Count per tab for the badge numbers
-  const counts = {
-    ACTIVE: items.filter((i) => i.status === 'ACTIVE').length,
-    PENDING: items.filter((i) => i.status === 'PENDING').length,
-    REJECTED: items.filter((i) => i.status === 'REJECTED').length,
+  const counts = TABS.reduce((acc, tab) => {
+    acc[tab.key] = items.filter((i) => bucketFor(i) === tab.key).length
+    return acc
+  }, {})
+
+  // Availability counts, within the Active bucket only
+  const activeItems = items.filter((i) => bucketFor(i) === 'ACTIVE')
+  const availabilityCounts = {
+    ALL: activeItems.length,
+    AVAILABLE: activeItems.filter((i) => i.isAvailable === true).length,
+    UNAVAILABLE: activeItems.filter((i) => i.isAvailable !== true).length,
   }
 
   return (
@@ -40,8 +84,9 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView }) => {
           {TABS.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${activeTab === tab.key
+              onClick={() => switchTab(tab.key)}
+              className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+                activeTab === tab.key
                   ? 'bg-orange-500 text-white shadow'
                   : 'text-gray-500 hover:text-gray-700'
                 }`}
@@ -70,6 +115,32 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView }) => {
         </button>
       </div>
 
+      {/* Availability sub-filter — only inside the Active tab */}
+      {activeTab === 'ACTIVE' && (
+        <div className="flex flex-wrap items-center gap-2">
+          {AVAILABILITY_FILTERS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setAvailabilityFilter(f.key)}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                availabilityFilter === f.key
+                  ? 'bg-gray-800 text-white'
+                  : 'border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50'
+              }`}
+            >
+              {f.label}
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
+                  availabilityFilter === f.key ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-400'
+                }`}
+              >
+                {availabilityCounts[f.key]}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Search bar */}
       <div className="relative">
         <Search
@@ -85,7 +156,8 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView }) => {
         />
       </div>
 
-      {/* Grid of MenuItemCards */}
+      {/* Grid of MenuItemCards — every card opens the same detail modal;
+          only an ACTIVE item's modal offers the edit-request form */}
       {isLoading ? (
         <div className="py-20 text-center text-sm text-gray-400">Loading menu items...</div>
       ) : filtered.length === 0 ? (
@@ -95,14 +167,8 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView }) => {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((item) => (
-            <MenuItemCard
-              key={item.id}
-              item={item}
-              onView={() => onView(item)}
-              onEdit={activeTab === 'ACTIVE' ? () => onEdit(item) : undefined}
-            />
+            <MenuItemCard key={item.id} item={item} onView={() => onView(item)} />
           ))}
-
         </div>
       )}
 

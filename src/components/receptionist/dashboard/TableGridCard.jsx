@@ -57,7 +57,7 @@ const TableGridCard = ({ refreshKey = 0 }) => {
                   <div
                     key={table.id}
                     className={`flex aspect-square items-center justify-center rounded-2xl ${config.bg}`}
-                    title={`Table ${table.tableNumber} — ${config.label}`}
+                    title={`Table ${table.tableNumber}: ${config.label}`}
                   >
                     <span className="text-lg font-black text-white">{table.tableNumber}</span>
                   </div>

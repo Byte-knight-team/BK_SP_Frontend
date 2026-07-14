@@ -4,16 +4,16 @@ import SockJS from 'sockjs-client';
 import { toast } from 'react-toastify';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { 
-  ClipboardList, 
-  CheckCircle2, 
-  ChefHat, 
-  PartyPopper, 
-  PauseCircle, 
-  Truck, 
-  MapPin, 
-  UtensilsCrossed, 
-  XCircle, 
+import {
+  ClipboardList,
+  CheckCircle2,
+  ChefHat,
+  PartyPopper,
+  PauseCircle,
+  Truck,
+  MapPin,
+  UtensilsCrossed,
+  XCircle,
   Ban,
   Package
 } from 'lucide-react';
@@ -58,7 +58,7 @@ export default function GlobalNotificationProvider() {
 
   useEffect(() => {
     const token = localStorage.getItem('customer_jwt') || localStorage.getItem('qr_session_token');
-    
+
     if (!token) {
       if (clientRef.current) {
         clientRef.current.deactivate();
@@ -90,7 +90,7 @@ export default function GlobalNotificationProvider() {
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_BASE}/ws`),
       connectHeaders: { Authorization: `Bearer ${token}` },
-      debug: (str) => {},
+      debug: (str) => { },
       reconnectDelay: 5000,
       onConnect: () => {
         console.log('[GlobalNotification] Connected — subscribing to /topic/user/' + userId + '/orders');
@@ -101,7 +101,7 @@ export default function GlobalNotificationProvider() {
             const { orderStatus, orderNumber, orderId } = update;
 
             if (!orderStatus) return;
-            
+
             // Ignore PLACED status because a local toast is already shown upon placement,
             // and the user is immediately redirected to the confirmation page.
             if (orderStatus === 'PLACED') return;
@@ -158,7 +158,7 @@ export default function GlobalNotificationProvider() {
 
             let text = 'Reservation Updated';
             let type = 'info';
-            
+
             if (reservationStatus === 'CONFIRMED') { text = 'Reservation Confirmed! Please pay to secure.'; type = 'success'; }
             if (reservationStatus === 'REJECTED') { text = 'Reservation Rejected'; type = 'error'; }
             if (reservationStatus === 'EXPIRED') { text = 'Reservation Expired'; type = 'error'; }
