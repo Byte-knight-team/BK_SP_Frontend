@@ -12,6 +12,6 @@ export const kitchenNav = [
   { label: "Orders", path: "/kitchen/orders", icon: ClipboardList },
   { label: "Chefs", path: "/kitchen/chefs", icon: ChefHat },
   { label: "Inventory", path: "/kitchen/inventory", icon: Package },
-  { label: "My Requests", path: "/kitchen/requests", icon: PackageCheck },
   { label: "Menu Items", path: "/kitchen/menu", icon: UtensilsCrossed },
+  { label: "My Requests", path: "/kitchen/requests", icon: PackageCheck },
 ];
