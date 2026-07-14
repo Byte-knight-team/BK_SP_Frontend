@@ -151,7 +151,7 @@ function AuthGuard() {
       localStorage.removeItem('qr_session_token')
       localStorage.removeItem('qr_branch_id')
       localStorage.removeItem('qr_table_id')
-      
+
       // Auto-logout customer when QR session drops
       localStorage.removeItem('customer_jwt')
       localStorage.removeItem('customer_role')
@@ -272,14 +272,14 @@ export default function App() {
           <Route path="staff/:id" element={<StaffDetailsPage />} />
           <Route path="staff/:id/edit" element={<EditStaffPage />} />
 
-        <Route path="tables" element={<TableManagementPage />} />
-        <Route path="tables/add" element={<AddTablePage />} />
-        <Route path="tables/:tableId/qr" element={<TableQrPage />} />
-        <Route path="menu" element={<MenuManagementPage />} />
-        <Route path="menu/category/add" element={<AddCategoryPage />} />
-        <Route path="menu/:id" element={<MenuItemDetailsPage />} />
-        <Route path="menu-requests" element={<MenuUpdateRequestsPage />} />
-        <Route path="coupons" element={<CouponsPage />} />
+          <Route path="tables" element={<TableManagementPage />} />
+          <Route path="tables/add" element={<AddTablePage />} />
+          <Route path="tables/:tableId/qr" element={<TableQrPage />} />
+          <Route path="menu" element={<MenuManagementPage />} />
+          <Route path="menu/category/add" element={<AddCategoryPage />} />
+          <Route path="menu/:id" element={<MenuItemDetailsPage />} />
+          <Route path="menu-requests" element={<MenuUpdateRequestsPage />} />
+          <Route path="coupons" element={<CouponsPage />} />
 
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Route>

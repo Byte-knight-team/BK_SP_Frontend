@@ -5,7 +5,9 @@ export const getActiveReservationBranches = async () => {
 };
 
 export const previewReservationCharge = async (branchId, guestCount, startTime, endTime) => {
-  return customerAuthFetch(`/api/v1/customer/reservations/preview-charge?branchId=${branchId}&guestCount=${guestCount}&startTime=${startTime.toISOString()}&endTime=${endTime.toISOString()}`);
+  const startParam = typeof startTime === 'string' ? startTime : startTime.toISOString();
+  const endParam = typeof endTime === 'string' ? endTime : endTime.toISOString();
+  return customerAuthFetch(`/api/v1/customer/reservations/preview-charge?branchId=${branchId}&guestCount=${guestCount}&startTime=${startParam}&endTime=${endParam}`);
 };
 
 export const createReservationRequest = async (requestData) => {
