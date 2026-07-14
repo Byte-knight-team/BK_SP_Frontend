@@ -45,15 +45,18 @@ export const generateBill = (order) => {
 
   y = 48
 
-  // ── Date / Status row ──
+  // ── Order placed / Printed row ──
   doc.setTextColor(...darkText)
   doc.setFontSize(8.5)
   doc.setFont('helvetica', 'normal')
-  doc.text(`Date: ${order.placedAt || '—'}`, margin, y)
+  doc.text(`Order Placed: ${order.placedAt || '—'}`, margin, y)
 
-  const statusLabel = order.status?.replace(/_/g, ' ') || '—'
-  doc.setFont('helvetica', 'bold')
-  doc.text(`Status: ${statusLabel}`, pageW - margin, y, { align: 'right' })
+  const now = new Date()
+  const printedAt =
+    now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    ', ' +
+    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+  doc.text(`Printed: ${printedAt}`, pageW - margin, y, { align: 'right' })
 
   if (order.orderType === 'QR' && order.tableNumber) {
     y += 5.5
@@ -140,8 +143,8 @@ export const generateBill = (order) => {
   doc.line(margin, y, pageW - margin, y)
   y += 8
 
-  // ── Payment summary ──
-  const summaryX = margin + contentW * 0.55
+  // ── Payment summary (full width, matching the item table) ──
+  const summaryX = margin
 
   doc.setFontSize(8.5)
   doc.setFont('helvetica', 'normal')
