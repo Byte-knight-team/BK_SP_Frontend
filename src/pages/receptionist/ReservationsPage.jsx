@@ -19,6 +19,9 @@ const fmtTime = (dt) =>
   dt ? new Date(dt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
 const fmtDate = (dt) =>
   dt ? new Date(dt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : ''
+const fmtDateTime = (dt) =>
+  dt ? new Date(dt).toLocaleDateString([], { month: 'short', day: 'numeric' }) + ', ' + fmtTime(dt) : ''
+const fmtMoney = (n) => (n == null ? null : `Rs ${Number(n).toLocaleString()}`)
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'All statuses' },
@@ -185,7 +188,7 @@ export default function ReservationsPage() {
       ) : (
         <>
           <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
-            <table className="w-full min-w-[960px] text-sm">
+            <table className="w-full min-w-[1080px] text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className={`${th} text-left`}>Res. No</th>
@@ -196,6 +199,7 @@ export default function ReservationsPage() {
                   <th className={`${th} text-center`}>Start</th>
                   <th className={`${th} text-center`}>End</th>
                   <th className={`${th} text-left`}>Note</th>
+                  <th className={`${th} text-left`}>Payment</th>
                   <th className={`${th} text-center`}>Status</th>
                   <th className={`${th} text-center`}>Actions</th>
                 </tr>
@@ -227,6 +231,24 @@ export default function ReservationsPage() {
                       <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.reservationTime)}</td>
                       <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.endTime)}</td>
                       <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.notes || '—'}</td>
+                      <td className="px-4 py-3">
+                        {r.totalCharge != null ? (
+                          <>
+                            <p className="font-bold text-gray-700">{fmtMoney(r.totalCharge)}</p>
+                            {r.amountPaid != null && (
+                              <p className="text-[11px] text-green-600">Paid {fmtDateTime(r.paidAt)}</p>
+                            )}
+                            {r.refundAmount != null && (
+                              <p className="text-[11px] text-red-500">Refunded {fmtMoney(r.refundAmount)}</p>
+                            )}
+                            {r.amountPaid == null && r.refundAmount == null && r.status === 'CONFIRMED' && (
+                              <p className="text-[11px] text-amber-500">Unpaid</p>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${STATUS_STYLES[r.status] || 'bg-gray-100 text-gray-400'}`}>
                           {r.status}
@@ -283,7 +305,7 @@ export default function ReservationsPage() {
                     {/* Inline cancel-reason row */}
                     {cancelTargetId === r.id && (
                       <tr className="bg-red-50/40">
-                        <td colSpan={10} className="px-4 py-3">
+                        <td colSpan={11} className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <input
                               value={cancelReason}
@@ -312,7 +334,7 @@ export default function ReservationsPage() {
                     {/* Inline reject-reason row */}
                     {rejectTargetId === r.id && (
                       <tr className="bg-red-50/40">
-                        <td colSpan={10} className="px-4 py-3">
+                        <td colSpan={11} className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <input
                               value={rejectReason}
