@@ -1,5 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link, useOutletContext, useParams } from "react-router-dom";
+// src/pages/superadmin/EditBranchPage.jsx
+
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  Link,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
+
 import {
   RiBuilding2Line,
   RiArrowLeftLine,
@@ -19,24 +31,40 @@ import {
   updateBranchConfigAPI,
 } from "../../apis/staff/systemConfig";
 
-import LocationPickerModal from "../../components/customer/LocationPickerModal";
+import BranchLocationPickerModal from "../../components/superadmin/BranchLocationPickerModal";
 
 import { useAuth } from "../../context/AuthContext";
-import { showSuccessToast, showErrorToast } from "../../utils/toast";
+
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "../../utils/toast";
 
 const DEFAULT_BRANCH_CONFIG = {
   deliveryFee: 0,
   deliveryFeePerKm: 10,
   maxDeliveryRadiusKm: 30,
+
   deliveryEnabled: false,
   pickupEnabled: false,
   dineInEnabled: false,
   branchActiveForOrders: false,
+
+  reservationFeePerHour: 1000,
+  reservationHandlingFee: 500,
+  reservationPaymentWindowMinutes: 30,
+  reservationMinLeadHours: 3,
+  reservationMaxGuestCount: 20,
+  reservationsEnabled: true,
 };
 
 export default function EditBranchPage() {
   const { id } = useParams();
-  const { setHeaderInfo } = useOutletContext();
+
+  const outletContext = useOutletContext();
+
+  const setHeaderInfo =
+    outletContext?.setHeaderInfo;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -47,19 +75,31 @@ export default function EditBranchPage() {
     longitude: null,
   });
 
-  const [branchConfig, setBranchConfig] = useState(
-    DEFAULT_BRANCH_CONFIG
-  );
+  const [branchConfig, setBranchConfig] =
+    useState(DEFAULT_BRANCH_CONFIG);
 
-  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
+  const [
+    locationPickerOpen,
+    setLocationPickerOpen,
+  ] = useState(false);
 
-  const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState("");
+  const [loading, setLoading] =
+    useState(true);
 
-  const [saving, setSaving] = useState(false);
-  const [configLoading, setConfigLoading] = useState(true);
-  const [configSaving, setConfigSaving] = useState(false);
-  const [configError, setConfigError] = useState("");
+  const [pageError, setPageError] =
+    useState("");
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [configLoading, setConfigLoading] =
+    useState(true);
+
+  const [configSaving, setConfigSaving] =
+    useState(false);
+
+  const [configError, setConfigError] =
+    useState("");
 
   const { user } = useAuth();
 
@@ -67,101 +107,139 @@ export default function EditBranchPage() {
     user?.roleName || user?.role || ""
   );
 
-  const isSuperAdmin = loggedInRole === "SUPER_ADMIN";
+  const isSuperAdmin =
+    loggedInRole === "SUPER_ADMIN";
+
+  const hasSelectedLocation =
+    Number.isFinite(formData.latitude) &&
+    Number.isFinite(formData.longitude);
 
   useEffect(() => {
-    setHeaderInfo({
-      title: "Edit Branch",
-      description:
-        "Update branch information, map location, and branch order configuration.",
-      Icon: RiBuilding2Line,
-    });
+    if (setHeaderInfo) {
+      setHeaderInfo({
+        title: "Edit Branch",
+        description:
+          "Update branch information, map coordinates, order settings, and reservation settings.",
+        Icon: RiBuilding2Line,
+      });
+    }
 
-    return () => setHeaderInfo(null);
+    return () => {
+      if (setHeaderInfo) {
+        setHeaderInfo(null);
+      }
+    };
   }, [setHeaderInfo]);
 
-  /*
-   * Loads the selected branch.
-   */
-  const loadBranch = useCallback(async () => {
-    setLoading(true);
-    setPageError("");
+  const loadBranch = useCallback(
+    async ({
+      showFullLoading = true,
+    } = {}) => {
+      if (showFullLoading) {
+        setLoading(true);
+      }
 
-    const { data, error } = await getBranchByIdAPI(id);
+      setPageError("");
 
-    if (error) {
-      setPageError(error);
-      showErrorToast(error);
-      setLoading(false);
-      return;
-    }
+      try {
+        const { data, error } =
+          await getBranchByIdAPI(id);
 
-    setFormData({
-      name: data?.name || "",
-      address: data?.address || "",
-      contactNumber:
-        data?.contactNumber || data?.phone || "",
-      email: data?.email || "",
-      latitude: data?.latitude ?? null,
-      longitude: data?.longitude ?? null,
-    });
+        if (error) {
+          throw new Error(error);
+        }
 
-    setLoading(false);
-  }, [id]);
+        if (!data) {
+          throw new Error(
+            "Branch details were not returned by the server."
+          );
+        }
 
-  /*
-   * Loads delivery and order configuration for the branch.
-   */
-  const loadBranchConfig = useCallback(async () => {
-    setConfigLoading(true);
-    setConfigError("");
+        setFormData({
+          name: data?.name || "",
+          address: data?.address || "",
 
-    try {
-      const data = await getBranchConfigAPI(id);
+          contactNumber:
+            data?.contactNumber ||
+            data?.phone ||
+            "",
 
-      setBranchConfig(normalizeBranchConfig(data));
-    } catch (error) {
-      const message =
-        error.message ||
-        "Failed to load branch order configuration.";
+          email: data?.email || "",
 
-      setConfigError(message);
-      showErrorToast(message);
-      setBranchConfig(DEFAULT_BRANCH_CONFIG);
-    } finally {
-      setConfigLoading(false);
-    }
-  }, [id]);
+          latitude: normalizeCoordinate(
+            data?.latitude
+          ),
+
+          longitude: normalizeCoordinate(
+            data?.longitude
+          ),
+        });
+
+        return true;
+      } catch (error) {
+        const message =
+          error?.message ||
+          "Failed to load branch details.";
+
+        setPageError(message);
+        showErrorToast(message);
+
+        return false;
+      } finally {
+        if (showFullLoading) {
+          setLoading(false);
+        }
+      }
+    },
+    [id]
+  );
+
+  const loadBranchConfig =
+    useCallback(async () => {
+      setConfigLoading(true);
+      setConfigError("");
+
+      try {
+        const response =
+          await getBranchConfigAPI(id);
+
+        setBranchConfig(
+          normalizeBranchConfig(response)
+        );
+
+        return true;
+      } catch (error) {
+        const message =
+          error?.message ||
+          "Failed to load branch configuration.";
+
+        setConfigError(message);
+        showErrorToast(message);
+
+        setBranchConfig(
+          DEFAULT_BRANCH_CONFIG
+        );
+
+        return false;
+      } finally {
+        setConfigLoading(false);
+      }
+    }, [id]);
 
   useEffect(() => {
-    if (isSuperAdmin) {
-      loadBranch();
-      loadBranchConfig();
+    if (!isSuperAdmin) {
+      setLoading(false);
+      setConfigLoading(false);
       return;
     }
 
-    setLoading(false);
-    setConfigLoading(false);
+    loadBranch();
+    loadBranchConfig();
   }, [
-    id,
     isSuperAdmin,
     loadBranch,
     loadBranchConfig,
   ]);
-
-  /*
-   * Keeps only valid phone-number characters and permits
-   * a single plus sign at the beginning.
-   */
-  const cleanContactNumber = (value) => {
-    const cleaned = value.replace(/[^\d+]/g, "");
-
-    if (!cleaned.includes("+")) {
-      return cleaned;
-    }
-
-    return `+${cleaned.replace(/\+/g, "")}`;
-  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -177,66 +255,47 @@ export default function EditBranchPage() {
     }));
   };
 
-  /*
-   * Receives the existing teammate location picker's output:
-   * { lat, lng, address }
-   */
   const handleLocationConfirm = ({
     lat,
     lng,
-    address,
   }) => {
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    const latitude = Number(lat);
+    const longitude = Number(lng);
+
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
       showErrorToast(
         "Unable to read the selected map coordinates."
       );
       return;
     }
 
-    const selectedAddress = String(address || "").trim();
-
-    const hasCurrentCoordinates =
-      Number.isFinite(formData.latitude) &&
-      Number.isFinite(formData.longitude);
-
-    const coordinatesChanged =
-      !hasCurrentCoordinates ||
-      Math.abs(formData.latitude - lat) > 0.0000001 ||
-      Math.abs(formData.longitude - lng) > 0.0000001;
-
-    /*
-     * The current picker sets the address when a place is selected
-     * through search. Prevent changed coordinates from being paired
-     * with the branch's previous address.
-     */
-    if (!selectedAddress && coordinatesChanged) {
+    if (
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
       showErrorToast(
-        "Please search and select the new location so its address can be recorded."
-      );
-      return;
-    }
-
-    const resolvedAddress =
-      selectedAddress || formData.address.trim();
-
-    if (!resolvedAddress) {
-      showErrorToast(
-        "Please select a branch location with an address."
+        "The selected map coordinates are invalid."
       );
       return;
     }
 
     setFormData((previousData) => ({
       ...previousData,
-      address: resolvedAddress,
-      latitude: lat,
-      longitude: lng,
+      latitude,
+      longitude,
     }));
 
     setLocationPickerOpen(false);
   };
 
-  const handleConfigInputChange = (event) => {
+  const handleConfigInputChange = (
+    event
+  ) => {
     const { name, value } = event.target;
 
     setBranchConfig((previousConfig) => ({
@@ -245,7 +304,9 @@ export default function EditBranchPage() {
     }));
   };
 
-  const handleConfigCheckboxChange = (event) => {
+  const handleConfigCheckboxChange = (
+    event
+  ) => {
     const { name, checked } = event.target;
 
     setBranchConfig((previousConfig) => ({
@@ -254,29 +315,16 @@ export default function EditBranchPage() {
     }));
   };
 
-  const toNumber = (value) => {
-    const numberValue = Number(value);
-
-    return Number.isNaN(numberValue) ? 0 : numberValue;
-  };
-
-  /*
-   * Validates basic branch information and map coordinates.
-   */
   const validateForm = () => {
     if (!formData.name.trim()) {
       return "Branch name is required.";
     }
 
     if (!formData.address.trim()) {
-      return "Please select the branch location from the map.";
+      return "Branch address is required.";
     }
 
-    if (!Number.isFinite(formData.latitude)) {
-      return "Please select the branch location from the map.";
-    }
-
-    if (!Number.isFinite(formData.longitude)) {
+    if (!hasSelectedLocation) {
       return "Please select the branch location from the map.";
     }
 
@@ -300,7 +348,11 @@ export default function EditBranchPage() {
 
     const phoneRegex = /^\+?\d{10,15}$/;
 
-    if (!phoneRegex.test(formData.contactNumber.trim())) {
+    if (
+      !phoneRegex.test(
+        formData.contactNumber.trim()
+      )
+    ) {
       return "Contact number is invalid.";
     }
 
@@ -308,19 +360,20 @@ export default function EditBranchPage() {
       return "Branch email is required.";
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(formData.email.trim())) {
+    if (
+      !emailRegex.test(
+        formData.email.trim()
+      )
+    ) {
       return "Please enter a valid branch email address.";
     }
 
     return "";
   };
 
-  /*
-   * Saves the main branch information separately from
-   * the branch order configuration.
-   */
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -331,122 +384,243 @@ export default function EditBranchPage() {
       return;
     }
 
-    setSaving(true);
-
     const payload = {
       name: formData.name.trim(),
       address: formData.address.trim(),
-      contactNumber: formData.contactNumber.trim(),
+
+      contactNumber:
+        formData.contactNumber.trim(),
+
       email: formData.email.trim(),
+
       latitude: formData.latitude,
       longitude: formData.longitude,
     };
 
-    const { error } = await updateBranchAPI(id, payload);
+    setSaving(true);
 
-    setSaving(false);
+    try {
+      const { data, error } =
+        await updateBranchAPI(id, payload);
 
-    if (error) {
-      showErrorToast(error);
-      return;
+      if (error) {
+        throw new Error(error);
+      }
+
+      showSuccessToast(
+        data?.message ||
+          "Branch details updated successfully."
+      );
+
+      await loadBranch({
+        showFullLoading: false,
+      });
+    } catch (error) {
+      showErrorToast(
+        error?.message ||
+          "Failed to update branch details."
+      );
+    } finally {
+      setSaving(false);
     }
-
-    showSuccessToast(
-      "Branch details updated successfully."
-    );
-
-    await loadBranch();
   };
 
-  /*
-   * Validates the branch delivery configuration.
-   */
   const validateBranchConfig = () => {
-    const deliveryFee = toNumber(
+    const deliveryFee = parseNumber(
       branchConfig.deliveryFee
     );
 
-    const deliveryFeePerKm = toNumber(
+    const deliveryFeePerKm = parseNumber(
       branchConfig.deliveryFeePerKm
     );
 
-    const maxDeliveryRadiusKm = toNumber(
+    const maxDeliveryRadiusKm = parseNumber(
       branchConfig.maxDeliveryRadiusKm
     );
 
+    const reservationFeePerHour = parseNumber(
+      branchConfig.reservationFeePerHour
+    );
+
+    const reservationHandlingFee =
+      parseNumber(
+        branchConfig.reservationHandlingFee
+      );
+
+    const reservationPaymentWindowMinutes =
+      parseNumber(
+        branchConfig.reservationPaymentWindowMinutes
+      );
+
+    const reservationMinLeadHours =
+      parseNumber(
+        branchConfig.reservationMinLeadHours
+      );
+
+    const reservationMaxGuestCount =
+      parseNumber(
+        branchConfig.reservationMaxGuestCount
+      );
+
+    if (deliveryFee === null) {
+      return "Enter a valid base delivery fee.";
+    }
+
     if (deliveryFee < 0) {
       return "Delivery fee cannot be negative.";
+    }
+
+    if (deliveryFeePerKm === null) {
+      return "Enter a valid delivery fee per kilometre.";
     }
 
     if (deliveryFeePerKm < 0) {
       return "Delivery fee per kilometre cannot be negative.";
     }
 
+    if (maxDeliveryRadiusKm === null) {
+      return "Enter a valid maximum delivery radius.";
+    }
+
     if (maxDeliveryRadiusKm < 0) {
       return "Maximum delivery radius cannot be negative.";
+    }
+
+    if (reservationFeePerHour === null) {
+      return "Enter a valid reservation fee per hour.";
+    }
+
+    if (reservationFeePerHour < 0) {
+      return "Reservation fee per hour cannot be negative.";
+    }
+
+    if (reservationHandlingFee === null) {
+      return "Enter a valid reservation handling fee.";
+    }
+
+    if (reservationHandlingFee < 0) {
+      return "Reservation handling fee cannot be negative.";
+    }
+
+    if (
+      reservationPaymentWindowMinutes === null ||
+      !Number.isInteger(
+        reservationPaymentWindowMinutes
+      ) ||
+      reservationPaymentWindowMinutes < 1
+    ) {
+      return "Reservation payment window must be at least 1 whole minute.";
+    }
+
+    if (
+      reservationMinLeadHours === null ||
+      !Number.isInteger(
+        reservationMinLeadHours
+      ) ||
+      reservationMinLeadHours < 0
+    ) {
+      return "Reservation minimum lead time must be zero or more whole hours.";
+    }
+
+    if (
+      reservationMaxGuestCount === null ||
+      !Number.isInteger(
+        reservationMaxGuestCount
+      ) ||
+      reservationMaxGuestCount < 1
+    ) {
+      return "Reservation maximum guest count must be at least 1.";
     }
 
     return "";
   };
 
-  /*
-   * Saves the branch-level delivery and order configuration.
-   */
-  const handleSaveBranchConfig = async (event) => {
+  const handleSaveBranchConfig = async (
+    event
+  ) => {
     event.preventDefault();
 
-    const validationError = validateBranchConfig();
+    const validationError =
+      validateBranchConfig();
 
     if (validationError) {
       showErrorToast(validationError);
       return;
     }
 
+    const payload = {
+      deliveryFee: Number(
+        branchConfig.deliveryFee
+      ),
+
+      deliveryFeePerKm: Number(
+        branchConfig.deliveryFeePerKm
+      ),
+
+      maxDeliveryRadiusKm: Number(
+        branchConfig.maxDeliveryRadiusKm
+      ),
+
+      deliveryEnabled: Boolean(
+        branchConfig.deliveryEnabled
+      ),
+
+      pickupEnabled: Boolean(
+        branchConfig.pickupEnabled
+      ),
+
+      dineInEnabled: Boolean(
+        branchConfig.dineInEnabled
+      ),
+
+      branchActiveForOrders: Boolean(
+        branchConfig.branchActiveForOrders
+      ),
+
+      reservationFeePerHour: Number(
+        branchConfig.reservationFeePerHour
+      ),
+
+      reservationHandlingFee: Number(
+        branchConfig.reservationHandlingFee
+      ),
+
+      reservationPaymentWindowMinutes:
+        Number(
+          branchConfig.reservationPaymentWindowMinutes
+        ),
+
+      reservationMinLeadHours: Number(
+        branchConfig.reservationMinLeadHours
+      ),
+
+      reservationMaxGuestCount: Number(
+        branchConfig.reservationMaxGuestCount
+      ),
+
+      reservationsEnabled: Boolean(
+        branchConfig.reservationsEnabled
+      ),
+    };
+
     setConfigSaving(true);
     setConfigError("");
 
     try {
-      const payload = {
-        deliveryFee: toNumber(
-          branchConfig.deliveryFee
-        ),
-
-        deliveryFeePerKm: toNumber(
-          branchConfig.deliveryFeePerKm
-        ),
-
-        maxDeliveryRadiusKm: toNumber(
-          branchConfig.maxDeliveryRadiusKm
-        ),
-
-        deliveryEnabled: Boolean(
-          branchConfig.deliveryEnabled
-        ),
-
-        pickupEnabled: Boolean(
-          branchConfig.pickupEnabled
-        ),
-
-        dineInEnabled: Boolean(
-          branchConfig.dineInEnabled
-        ),
-
-        branchActiveForOrders: Boolean(
-          branchConfig.branchActiveForOrders
-        ),
-      };
-
-      await updateBranchConfigAPI(id, payload);
+      await updateBranchConfigAPI(
+        id,
+        payload
+      );
 
       showSuccessToast(
-        "Branch order configuration updated successfully."
+        "Branch configuration updated successfully."
       );
 
       await loadBranchConfig();
     } catch (error) {
       const message =
-        error.message ||
-        "Failed to update branch order configuration.";
+        error?.message ||
+        "Failed to update branch configuration.";
 
       setConfigError(message);
       showErrorToast(message);
@@ -477,7 +651,7 @@ export default function EditBranchPage() {
           <EditBranchState
             Icon={RiBuilding2Line}
             title="Loading branch edit form"
-            description="Please wait while branch details and configuration are loaded."
+            description="Please wait while the branch details are loaded."
             iconClassName="bg-gray-100 text-gray-600"
             loading
           />
@@ -506,8 +680,7 @@ export default function EditBranchPage() {
   return (
     <>
       <div className="max-w-5xl space-y-6">
-        {/* Branch information */}
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+        <section className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
           <BackToBranchDetailsLink id={id} />
 
           <div className="mb-5 border-b border-gray-100 pb-5">
@@ -516,8 +689,9 @@ export default function EditBranchPage() {
             </h3>
 
             <p className="mt-1 text-sm text-gray-500">
-              Update the branch name, map location, contact
-              number, and email address.
+              Update the branch address manually
+              and select its coordinates separately
+              using the map.
             </p>
           </div>
 
@@ -526,22 +700,54 @@ export default function EditBranchPage() {
             className="space-y-5"
           >
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
+              <label
+                htmlFor="branch-name"
+                className="mb-2 block text-sm font-semibold text-gray-700"
+              >
                 Branch Name
               </label>
 
               <input
+                id="branch-name"
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 disabled={saving}
                 placeholder="Example: Maharagama Branch"
+                autoComplete="organization"
                 className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
               />
             </div>
 
-            {/* Map-selected branch location */}
+            <div>
+              <label
+                htmlFor="branch-address"
+                className="mb-2 block text-sm font-semibold text-gray-700"
+              >
+                Branch Address
+              </label>
+
+              <textarea
+                id="branch-address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                disabled={saving}
+                rows={3}
+                placeholder="Enter the physical branch address"
+                autoComplete="street-address"
+                className="w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
+              />
+
+              <p className="mt-2 text-xs leading-5 text-gray-400">
+                The physical address is entered
+                manually. Changing it does not
+                automatically change the saved map
+                coordinates.
+              </p>
+            </div>
+
             <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-3">
@@ -555,8 +761,10 @@ export default function EditBranchPage() {
                     </p>
 
                     <p className="mt-1 text-sm leading-6 text-gray-500">
-                      Select the exact restaurant location
-                      using the existing Google Maps picker.
+                      Move the map until the exact
+                      restaurant position is under the
+                      center pin. Only latitude and
+                      longitude are saved.
                     </p>
                   </div>
                 </div>
@@ -567,103 +775,82 @@ export default function EditBranchPage() {
                     setLocationPickerOpen(true)
                   }
                   disabled={saving}
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <RiMapPinLine size={18} />
 
-                  {Number.isFinite(formData.latitude) &&
-                  Number.isFinite(formData.longitude)
+                  {hasSelectedLocation
                     ? "Change Location"
                     : "Select Location"}
                 </button>
               </div>
 
-              {formData.address &&
-              Number.isFinite(formData.latitude) &&
-              Number.isFinite(formData.longitude) ? (
+              {hasSelectedLocation ? (
                 <div className="mt-4 rounded-2xl border border-green-100 bg-white p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-green-700">
-                    Current Location
+                    Current Coordinates
                   </p>
 
-                  <p className="mt-2 text-sm font-semibold leading-6 text-gray-900">
-                    {formData.address}
-                  </p>
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <CoordinateValue
+                      label="Latitude"
+                      value={formData.latitude}
+                    />
 
-                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-gray-500 sm:grid-cols-2">
-                    <p>
-                      <span className="font-semibold text-gray-700">
-                        Latitude:
-                      </span>{" "}
-                      {formData.latitude}
-                    </p>
-
-                    <p>
-                      <span className="font-semibold text-gray-700">
-                        Longitude:
-                      </span>{" "}
-                      {formData.longitude}
-                    </p>
+                    <CoordinateValue
+                      label="Longitude"
+                      value={formData.longitude}
+                    />
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
-                  This branch does not have a complete map
-                  location. Select one before saving branch
-                  details.
+                <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm leading-6 text-orange-700">
+                  This branch does not have a
+                  complete map location. Select one
+                  before saving.
                 </div>
               )}
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Address
-              </label>
-
-              <textarea
-                name="address"
-                value={formData.address}
-                readOnly
-                rows="3"
-                placeholder="Select a location from the map"
-                className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none"
-              />
-
-              <p className="mt-2 text-xs text-gray-400">
-                The address is filled automatically using the
-                selected map location.
-              </p>
-            </div>
-
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label
+                  htmlFor="branch-contact-number"
+                  className="mb-2 block text-sm font-semibold text-gray-700"
+                >
                   Contact Number
                 </label>
 
                 <input
-                  type="text"
+                  id="branch-contact-number"
+                  type="tel"
                   name="contactNumber"
                   value={formData.contactNumber}
                   onChange={handleChange}
                   disabled={saving}
                   placeholder="Example: +94771234567"
+                  autoComplete="tel"
                   className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label
+                  htmlFor="branch-email"
+                  className="mb-2 block text-sm font-semibold text-gray-700"
+                >
                   Email
                 </label>
 
                 <input
+                  id="branch-email"
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   disabled={saving}
                   placeholder="Example: maharagama@cravehouse.com"
+                  autoComplete="email"
                   className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
                 />
               </div>
@@ -672,7 +859,7 @@ export default function EditBranchPage() {
             <div className="flex items-center justify-end gap-3 pt-3">
               <Link
                 to={`/staff/branches/${id}`}
-                className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Cancel
               </Link>
@@ -680,7 +867,7 @@ export default function EditBranchPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {saving ? (
                   <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
@@ -694,21 +881,20 @@ export default function EditBranchPage() {
               </button>
             </div>
           </form>
-        </div>
+        </section>
 
-        {/* Branch order configuration */}
         <form
           onSubmit={handleSaveBranchConfig}
           className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm"
         >
           <div className="border-b border-gray-100 pb-5">
             <h3 className="text-xl font-bold text-gray-900">
-              Branch Order Configuration
+              Branch Order & Reservation Configuration
             </h3>
 
             <p className="mt-1 text-sm text-gray-500">
-              Configure delivery charges, delivery distance,
-              and available order methods for this branch.
+              Configure delivery pricing, available
+              order methods, and reservation rules.
             </p>
           </div>
 
@@ -735,31 +921,35 @@ export default function EditBranchPage() {
             <div className="mt-6">
               <EditBranchState
                 Icon={RiBuilding2Line}
-                title="Loading branch order configuration"
-                description="Please wait while delivery and order method settings are loaded."
+                title="Loading branch configuration"
+                description="Please wait while the order and reservation settings are loaded."
                 iconClassName="bg-gray-100 text-gray-600"
                 loading
               />
             </div>
           ) : (
             <>
-              {/* Delivery pricing */}
               <div className="mt-6">
                 <h4 className="text-sm font-bold text-gray-900">
                   Delivery Pricing
                 </h4>
 
                 <p className="mt-1 text-sm text-gray-500">
-                  Manage the delivery charges and supported
-                  delivery distance for this branch.
+                  Manage delivery charges and the
+                  maximum supported delivery distance.
                 </p>
 
                 <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                   <ConfigNumberField
                     label="Base Delivery Fee"
                     name="deliveryFee"
-                    value={branchConfig.deliveryFee}
-                    onChange={handleConfigInputChange}
+                    value={
+                      branchConfig.deliveryFee
+                    }
+                    onChange={
+                      handleConfigInputChange
+                    }
+                    min="0"
                     step="0.01"
                     disabled={
                       !branchConfig.deliveryEnabled ||
@@ -771,8 +961,13 @@ export default function EditBranchPage() {
                   <ConfigNumberField
                     label="Delivery Fee Per KM"
                     name="deliveryFeePerKm"
-                    value={branchConfig.deliveryFeePerKm}
-                    onChange={handleConfigInputChange}
+                    value={
+                      branchConfig.deliveryFeePerKm
+                    }
+                    onChange={
+                      handleConfigInputChange
+                    }
+                    min="0"
                     step="0.01"
                     disabled={
                       !branchConfig.deliveryEnabled ||
@@ -787,7 +982,10 @@ export default function EditBranchPage() {
                     value={
                       branchConfig.maxDeliveryRadiusKm
                     }
-                    onChange={handleConfigInputChange}
+                    onChange={
+                      handleConfigInputChange
+                    }
+                    min="0"
                     step="0.1"
                     disabled={
                       !branchConfig.deliveryEnabled ||
@@ -798,15 +996,14 @@ export default function EditBranchPage() {
                 </div>
               </div>
 
-              {/* Order availability */}
               <div className="mt-7 border-t border-gray-100 pt-6">
                 <h4 className="text-sm font-bold text-gray-900">
                   Order Availability
                 </h4>
 
                 <p className="mt-1 text-sm text-gray-500">
-                  Choose which ordering methods are available
-                  for this branch.
+                  Choose which ordering methods are
+                  available for this branch.
                 </p>
 
                 <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -840,7 +1037,9 @@ export default function EditBranchPage() {
                     name="pickupEnabled"
                     label="Pickup"
                     description="Enable pickup orders for this branch."
-                    checked={branchConfig.pickupEnabled}
+                    checked={
+                      branchConfig.pickupEnabled
+                    }
                     disabled={configSaving}
                     onChange={
                       handleConfigCheckboxChange
@@ -851,7 +1050,9 @@ export default function EditBranchPage() {
                     name="dineInEnabled"
                     label="Dine-In"
                     description="Enable dine-in orders for this branch."
-                    checked={branchConfig.dineInEnabled}
+                    checked={
+                      branchConfig.dineInEnabled
+                    }
                     disabled={configSaving}
                     onChange={
                       handleConfigCheckboxChange
@@ -860,11 +1061,130 @@ export default function EditBranchPage() {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end">
+              <div className="mt-7 border-t border-gray-100 pt-6">
+                <h4 className="text-sm font-bold text-gray-900">
+                  Reservation Configuration
+                </h4>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  Configure reservation availability,
+                  fees, payment timing, and customer
+                  limits.
+                </p>
+
+                <div className="mt-4">
+                  <ConfigToggleCard
+                    name="reservationsEnabled"
+                    label="Reservations"
+                    description="Allow customers to create reservations for this branch."
+                    checked={
+                      branchConfig.reservationsEnabled
+                    }
+                    disabled={configSaving}
+                    onChange={
+                      handleConfigCheckboxChange
+                    }
+                  />
+                </div>
+
+                <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                  <ConfigNumberField
+                    label="Reservation Fee Per Hour"
+                    name="reservationFeePerHour"
+                    value={
+                      branchConfig.reservationFeePerHour
+                    }
+                    onChange={
+                      handleConfigInputChange
+                    }
+                    min="0"
+                    step="0.01"
+                    disabled={
+                      !branchConfig.reservationsEnabled ||
+                      configSaving
+                    }
+                    description="Hourly charge applied to a reservation."
+                  />
+
+                  <ConfigNumberField
+                    label="Reservation Handling Fee"
+                    name="reservationHandlingFee"
+                    value={
+                      branchConfig.reservationHandlingFee
+                    }
+                    onChange={
+                      handleConfigInputChange
+                    }
+                    min="0"
+                    step="0.01"
+                    disabled={
+                      !branchConfig.reservationsEnabled ||
+                      configSaving
+                    }
+                    description="Additional handling charge applied to a reservation."
+                  />
+
+                  <ConfigNumberField
+                    label="Payment Window (Minutes)"
+                    name="reservationPaymentWindowMinutes"
+                    value={
+                      branchConfig.reservationPaymentWindowMinutes
+                    }
+                    onChange={
+                      handleConfigInputChange
+                    }
+                    min="1"
+                    step="1"
+                    disabled={
+                      !branchConfig.reservationsEnabled ||
+                      configSaving
+                    }
+                    description="Time allowed for the customer to complete payment."
+                  />
+
+                  <ConfigNumberField
+                    label="Minimum Lead Time (Hours)"
+                    name="reservationMinLeadHours"
+                    value={
+                      branchConfig.reservationMinLeadHours
+                    }
+                    onChange={
+                      handleConfigInputChange
+                    }
+                    min="0"
+                    step="1"
+                    disabled={
+                      !branchConfig.reservationsEnabled ||
+                      configSaving
+                    }
+                    description="Minimum advance notice required for a reservation."
+                  />
+
+                  <ConfigNumberField
+                    label="Maximum Guest Count"
+                    name="reservationMaxGuestCount"
+                    value={
+                      branchConfig.reservationMaxGuestCount
+                    }
+                    onChange={
+                      handleConfigInputChange
+                    }
+                    min="1"
+                    step="1"
+                    disabled={
+                      !branchConfig.reservationsEnabled ||
+                      configSaving
+                    }
+                    description="Maximum number of guests allowed in one reservation."
+                  />
+                </div>
+              </div>
+
+              <div className="mt-7 flex justify-end border-t border-gray-100 pt-6">
                 <button
                   type="submit"
                   disabled={configSaving}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {configSaving ? (
                     <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
@@ -882,13 +1202,14 @@ export default function EditBranchPage() {
         </form>
       </div>
 
-      <LocationPickerModal
+      <BranchLocationPickerModal
         isOpen={locationPickerOpen}
-        onClose={() => setLocationPickerOpen(false)}
+        onClose={() =>
+          setLocationPickerOpen(false)
+        }
         onConfirm={handleLocationConfirm}
         initialCenter={
-          Number.isFinite(formData.latitude) &&
-          Number.isFinite(formData.longitude)
+          hasSelectedLocation
             ? {
                 lat: formData.latitude,
                 lng: formData.longitude,
@@ -914,7 +1235,9 @@ function BackToBranchesLink() {
   );
 }
 
-function BackToBranchDetailsLink({ id }) {
+function BackToBranchDetailsLink({
+  id,
+}) {
   return (
     <div className="mb-6">
       <Link
@@ -924,6 +1247,23 @@ function BackToBranchDetailsLink({ id }) {
         <RiArrowLeftLine size={18} />
         Back to branch details
       </Link>
+    </div>
+  );
+}
+
+function CoordinateValue({
+  label,
+  value,
+}) {
+  return (
+    <div className="rounded-xl bg-gray-50 px-4 py-3">
+      <p className="text-xs font-semibold text-gray-500">
+        {label}
+      </p>
+
+      <p className="mt-1 break-all text-sm font-bold text-gray-900">
+        {formatCoordinate(value)}
+      </p>
     </div>
   );
 }
@@ -965,20 +1305,25 @@ function ConfigNumberField({
   onChange,
   disabled,
   description,
+  min = "0",
   step = "0.01",
 }) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
+      <label
+        htmlFor={`config-${name}`}
+        className="text-xs font-bold uppercase tracking-wider text-gray-500"
+      >
         {label}
       </label>
 
       <input
+        id={`config-${name}`}
         type="number"
         name={name}
         value={value}
         onChange={onChange}
-        min="0"
+        min={min}
         step={step}
         disabled={disabled}
         className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
@@ -1000,7 +1345,13 @@ function ConfigToggleCard({
   onChange,
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition hover:border-orange-100 hover:bg-orange-50/40">
+    <label
+      className={`flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition ${
+        disabled
+          ? "cursor-not-allowed opacity-70"
+          : "cursor-pointer hover:border-orange-100 hover:bg-orange-50/40"
+      }`}
+    >
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
           {label}
@@ -1029,38 +1380,82 @@ function ConfigToggleCard({
   );
 }
 
-function Spinner({ className }) {
-  return (
-    <span
-      className={`inline-flex animate-spin rounded-full border-2 ${className}`}
-    />
-  );
+function cleanContactNumber(value) {
+  const cleaned = String(value || "")
+    .replace(/[^\d+]/g, "");
+
+  if (!cleaned.includes("+")) {
+    return cleaned;
+  }
+
+  return `+${cleaned.replace(/\+/g, "")}`;
+}
+
+function normalizeCoordinate(value) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue)
+    ? numericValue
+    : null;
+}
+
+function formatCoordinate(value) {
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return "N/A";
+  }
+
+  return numericValue.toFixed(6);
+}
+
+function parseNumber(value) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue)
+    ? numericValue
+    : null;
 }
 
 function normalizeBranchConfig(response) {
-  const config = response?.data || response || {};
+  const config =
+    response?.data || response || {};
 
   return {
     ...DEFAULT_BRANCH_CONFIG,
     ...config,
 
-    deliveryFee:
-      config.deliveryFee === null ||
-      config.deliveryFee === undefined
-        ? 0
-        : config.deliveryFee,
+    deliveryFee: normalizeConfigValue(
+      config.deliveryFee,
+      0
+    ),
 
-    deliveryFeePerKm:
-      config.deliveryFeePerKm === null ||
-      config.deliveryFeePerKm === undefined
-        ? 10
-        : config.deliveryFeePerKm,
+    deliveryFeePerKm: normalizeConfigValue(
+      config.deliveryFeePerKm,
+      10
+    ),
 
     maxDeliveryRadiusKm:
-      config.maxDeliveryRadiusKm === null ||
-      config.maxDeliveryRadiusKm === undefined
-        ? 30
-        : config.maxDeliveryRadiusKm,
+      normalizeConfigValue(
+        config.maxDeliveryRadiusKm,
+        30
+      ),
 
     deliveryEnabled: Boolean(
       config.deliveryEnabled
@@ -1077,7 +1472,56 @@ function normalizeBranchConfig(response) {
     branchActiveForOrders: Boolean(
       config.branchActiveForOrders
     ),
+
+    reservationFeePerHour:
+      normalizeConfigValue(
+        config.reservationFeePerHour,
+        1000
+      ),
+
+    reservationHandlingFee:
+      normalizeConfigValue(
+        config.reservationHandlingFee,
+        500
+      ),
+
+    reservationPaymentWindowMinutes:
+      normalizeConfigValue(
+        config.reservationPaymentWindowMinutes,
+        30
+      ),
+
+    reservationMinLeadHours:
+      normalizeConfigValue(
+        config.reservationMinLeadHours,
+        3
+      ),
+
+    reservationMaxGuestCount:
+      normalizeConfigValue(
+        config.reservationMaxGuestCount,
+        20
+      ),
+
+    reservationsEnabled:
+      config.reservationsEnabled === null ||
+      config.reservationsEnabled === undefined
+        ? true
+        : Boolean(
+            config.reservationsEnabled
+          ),
   };
+}
+
+function normalizeConfigValue(
+  value,
+  fallback
+) {
+  return value === null ||
+    value === undefined ||
+    value === ""
+    ? fallback
+    : value;
 }
 
 function normalizeRole(role) {
@@ -1086,4 +1530,12 @@ function normalizeRole(role) {
     .replace(/^ROLE_/, "")
     .replace(/\s+/g, "_")
     .toUpperCase();
+}
+
+function Spinner({ className }) {
+  return (
+    <span
+      className={`inline-flex animate-spin rounded-full border-2 ${className}`}
+    />
+  );
 }
