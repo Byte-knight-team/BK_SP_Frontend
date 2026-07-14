@@ -87,6 +87,7 @@ export default function MenuManagementPage() {
     }
   }, [searchParams]);
   const [togglingItemId, setTogglingItemId] = useState(null);
+  const [toggleConfirmItem, setToggleConfirmItem] = useState(null);
   const [decisionItemId, setDecisionItemId] = useState(null);
 
   // Queries
@@ -193,14 +194,22 @@ export default function MenuManagementPage() {
     return counts;
   }, [menuItems, activeCategory]);
 
-  const handleToggleAvailability = async (item) => {
+  const handleToggleAvailability = (item) => {
     const currentStatus = normalizeStatus(item.status);
     if (currentStatus !== 'ACTIVE' && currentStatus !== 'INACTIVE') {
       return;
     }
+    setToggleConfirmItem(item);
+  };
 
+  const confirmToggleAvailability = async () => {
+    if (!toggleConfirmItem) return;
+    const item = toggleConfirmItem;
+    
+    const currentStatus = normalizeStatus(item.status);
     const nextStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     setTogglingItemId(item.id);
+    setToggleConfirmItem(null);
 
     try {
       const updatedItem = await updateMenuItemAPI(item.id, {
@@ -649,6 +658,33 @@ export default function MenuManagementPage() {
           mode="direct"
           onClose={() => setEditingMenuItemId(null)}
         />
+      )}
+
+      {/* Toggle Availability Confirmation Modal */}
+      {toggleConfirmItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Change Availability</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to make <strong>{toggleConfirmItem.name}</strong>{' '}
+              {normalizeStatus(toggleConfirmItem.status) === 'ACTIVE' ? 'unavailable' : 'available'}?
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button
+                onClick={() => setToggleConfirmItem(null)}
+                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmToggleAvailability}
+                className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 transition-colors"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
