@@ -14,22 +14,26 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageOff,
+  UtensilsCrossed,
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import {
   getMenuItemsAPI,
-  getMenuCategoriesAPI,
-  getMenuSubcategoriesAPI,
-  getMenuCategoriesCountAPI,
-  getMenuSubcategoriesCountAPI,
   getMenuItemsCountAPI,
   getAvailableItemsCountAPI,
   updateMenuItemAPI,
   approveMenuItemAPI,
   rejectMenuItemAPI,
 } from '../../apis/admin/menu';
+import {
+  getMenuCategoriesAPI,
+  getMenuSubcategoriesAPI,
+  getMenuCategoriesCountAPI,
+  getMenuSubcategoriesCountAPI,
+} from '../../apis/staff/category';
+import AdminEditMenuItemModal from '../../components/admin/modal/AdminEditMenuItemModal';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
 
@@ -56,6 +60,7 @@ export default function MenuManagementPage() {
 
   const [activeCategory, setActiveCategory] = useState('');
   const [activeSubCategory, setActiveSubCategory] = useState('All Sub Categories');
+  const [editingMenuItemId, setEditingMenuItemId] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
 
@@ -82,9 +87,8 @@ export default function MenuManagementPage() {
     }
   }, [searchParams]);
   const [togglingItemId, setTogglingItemId] = useState(null);
+  const [toggleConfirmItem, setToggleConfirmItem] = useState(null);
   const [decisionItemId, setDecisionItemId] = useState(null);
-  const [isChefRequestOpen, setIsChefRequestOpen] = useState(false);
-  const [chefRequestText, setChefRequestText] = useState('');
 
   // Queries
   const { data: counts = { catCount: 0, subCatCount: 0, itemsCount: 0, availCount: 0 } } = useQuery({
@@ -190,14 +194,22 @@ export default function MenuManagementPage() {
     return counts;
   }, [menuItems, activeCategory]);
 
-  const handleToggleAvailability = async (item) => {
+  const handleToggleAvailability = (item) => {
     const currentStatus = normalizeStatus(item.status);
     if (currentStatus !== 'ACTIVE' && currentStatus !== 'INACTIVE') {
       return;
     }
+    setToggleConfirmItem(item);
+  };
 
+  const confirmToggleAvailability = async () => {
+    if (!toggleConfirmItem) return;
+    const item = toggleConfirmItem;
+    
+    const currentStatus = normalizeStatus(item.status);
     const nextStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     setTogglingItemId(item.id);
+    setToggleConfirmItem(null);
 
     try {
       const updatedItem = await updateMenuItemAPI(item.id, {
@@ -371,18 +383,15 @@ export default function MenuManagementPage() {
   return (
     <div className="bg-[#FAFAFA] font-sans px-8 pb-10">
           <div className="mb-8 mt-1 flex items-center justify-between">
-            <div>
-              <h1 className="text-[28px] font-bold text-gray-900 tracking-tight">Menu Management</h1>
-              <p className="text-gray-500 text-sm mt-1">Manage categories, sub categories, and menu items</p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-orange-50 text-orange-600">
+                <UtensilsCrossed size={22} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Menu Management</h3>
+                <p className="mt-1 text-sm text-gray-500">Manage categories, sub categories, and menu items</p>
+              </div>
             </div>
-
-            <button
-              onClick={() => setIsChefRequestOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
-            >
-              <Plus size={14} />
-              Request for chef
-            </button>
           </div>
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
@@ -419,8 +428,11 @@ export default function MenuManagementPage() {
                       className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
                         }`}
                     >
-                      <span className="flex items-center gap-3 text-sm font-medium">
-                        {category.name}
+                      <span className="flex items-center gap-2 text-sm font-medium">
+                        <span className="truncate max-w-[120px]">{category.name}</span>
+                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded ${category.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+                          {category.isActive ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
                       </span>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${isActive ? 'bg-white text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
                         {categoryCounts[category.name] || 0}
@@ -541,6 +553,7 @@ export default function MenuManagementPage() {
                             disabled={
                               togglingItemId === item.id
                               || (normalizeStatus(item.status) !== 'ACTIVE' && normalizeStatus(item.status) !== 'INACTIVE')
+                              || item.categoryStatus === 'INACTIVE'
                             }
                             loading={togglingItemId === item.id}
                           />
@@ -548,10 +561,23 @@ export default function MenuManagementPage() {
                             type="button"
                             onClick={(event) => {
                               event.stopPropagation();
-                              navigate(`/admin/menu/edit/${item.id}`);
+                              if (item.categoryStatus === 'INACTIVE' || normalizeStatus(item.status) === 'REJECTED') return;
+                              setEditingMenuItemId(item.id);
                             }}
-                            className="grid size-8 place-items-center rounded-lg border border-gray-200 bg-white text-sm transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                            disabled={item.categoryStatus === 'INACTIVE' || normalizeStatus(item.status) === 'REJECTED'}
+                            className={`grid size-8 place-items-center rounded-lg border border-gray-200 text-sm transition-colors ${
+                              item.categoryStatus === 'INACTIVE' || normalizeStatus(item.status) === 'REJECTED'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            }`}
                             aria-label="Edit"
+                            title={
+                              item.categoryStatus === 'INACTIVE' 
+                                ? 'Cannot edit items in an inactive category' 
+                                : normalizeStatus(item.status) === 'REJECTED'
+                                  ? 'Cannot edit rejected menu items'
+                                  : 'Edit item'
+                            }
                           >
                             <Pencil size={14} />
                           </button>
@@ -626,44 +652,40 @@ export default function MenuManagementPage() {
             </div>
           </section>
 
-      {/* Chef Request Modal */}
-      {isChefRequestOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-2xl">
-            <h3 className="mb-4 text-xl font-bold text-gray-900">Request for Chef</h3>
-            <textarea
-              className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
-              rows={4}
-              placeholder="Type your request here (e.g. Please add a new seasonal burger...)"
-              value={chefRequestText}
-              onChange={(e) => setChefRequestText(e.target.value)}
-            />
-            <div className="mt-6 flex justify-end gap-3">
+      {editingMenuItemId && (
+        <AdminEditMenuItemModal
+          request={{ menuItemId: editingMenuItemId }}
+          mode="direct"
+          onClose={() => setEditingMenuItemId(null)}
+        />
+      )}
+
+      {/* Toggle Availability Confirmation Modal */}
+      {toggleConfirmItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Change Availability</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to make <strong>{toggleConfirmItem.name}</strong>{' '}
+              {normalizeStatus(toggleConfirmItem.status) === 'ACTIVE' ? 'unavailable' : 'available'}?
+            </p>
+            <div className="flex items-center gap-3 justify-end">
               <button
-                onClick={() => {
-                  setIsChefRequestOpen(false);
-                  setChefRequestText('');
-                }}
-                className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                onClick={() => setToggleConfirmItem(null)}
+                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  toast.success("Request sent to chef successfully!");
-                  setIsChefRequestOpen(false);
-                  setChefRequestText('');
-                }}
-                className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!chefRequestText.trim()}
+                onClick={confirmToggleAvailability}
+                className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 transition-colors"
               >
-                Send
+                Confirm
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -466,23 +466,23 @@ export default function DashboardPage() {
     <div className="space-y-5">
       <section className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">
-              Super Admin Overview
-            </h3>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">
+                Super Admin Overview
+              </h3>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Monitor branch revenue, system governance, customer activity, and
-              global business rules.
-            </p>
+              <p className="mt-1 text-sm text-gray-500">
+                Monitor branch revenue, system governance, customer activity, and
+                global business rules.
+              </p>
 
-            <p className="mt-2 text-sm text-gray-500">
-              Total governance records:{" "}
-              <span className="font-semibold text-gray-800">
-                {totalStaff + totalBranches + totalCustomers}
-              </span>
-            </p>
-          </div>
+              <p className="mt-2 text-sm text-gray-500">
+                Total governance records:{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalStaff + totalBranches + totalCustomers}
+                </span>
+              </p>
+            </div>
 
           <button
             type="button"

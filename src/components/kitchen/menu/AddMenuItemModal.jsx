@@ -43,7 +43,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
   }
 
   const handleSubmit = async () => {
-    if (!form.name || !form.categoryId || !form.price || !form.preparationTime) {
+    if (!form.name || !form.categoryId || !form.price || !form.preparationTime || !form.subCategory) {
       toast.warning('Please fill in all required fields!')
       return
     }
@@ -119,7 +119,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
           <input
             type="text"
             name="subCategory"
-            placeholder="Sub-category (optional, e.g. Starters)"
+            placeholder="Sub-category (e.g. Starters) *"
             value={form.subCategory}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"

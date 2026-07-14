@@ -35,5 +35,17 @@ export default function KitchenNotifier() {
   }, [])
   useWebSocket(branchId, itemTopic, handleItem)
 
+  // Menu update approval notification sent to the chef
+  const menuUpdateApprovalTopic = user?.id ? `/topic/chef/${user.id}/menu-update-approval` : null
+  const handleMenuUpdateApproval = useCallback((msg) => {
+    if (msg?.message) {
+      toast.success(msg.message, { autoClose: 6000, theme: 'colored' })
+    }
+  }, [])
+  // useWebSocket from the hooks will handle this. Wait, the hook `useWebSocket` expects `branchId` as first arg. 
+  // Let me look at `useWebSocket`. It takes `branchId` to prevent connecting if `branchId` is null, but maybe I can just pass `user?.id` or `true` since it just needs a truthy value for the first parameter. Wait, let me check `useWebSocket.js`. 
+  // Let's pass branchId to be safe, so it only connects when the branchId is known.
+  useWebSocket(branchId, menuUpdateApprovalTopic, handleMenuUpdateApproval)
+
   return null
 }
