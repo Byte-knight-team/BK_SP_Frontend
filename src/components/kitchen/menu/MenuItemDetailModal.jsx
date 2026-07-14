@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { X, UtensilsCrossed, Tag, Clock, FlaskConical, AlertTriangle, Send } from 'lucide-react'
-import { createEditRequestAPI } from '../../../apis/kitchen/menu'
+import { X, UtensilsCrossed, Tag, Clock, FlaskConical, AlertTriangle, Send, ChefHat } from 'lucide-react'
+import { createEditRequestAPI, toggleMenuItemAvailabilityAPI } from '../../../apis/kitchen/menu'
 import { toast } from 'react-toastify'
 
 // Status badge color map
@@ -31,10 +31,15 @@ const STATUS_STYLES = {
     pendingEditRequests— all of this item's PENDING edit requests
     onRequestSubmitted — called after a new edit request is successfully sent,
                           so the parent can silently refresh the list above
+    onAvailabilityChanged — called after the availability toggle succeeds, so
+                          the parent can refresh the item (card + this modal)
 */
-const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], pendingEditRequests = [], onRequestSubmitted }) => {
+const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], pendingEditRequests = [], onRequestSubmitted, onAvailabilityChanged }) => {
   const [chefNote, setChefNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  // null = no toggle in flight; true/false = which button was just clicked
+  // (so it can go gray immediately, before the API call resolves)
+  const [togglingAvailability, setTogglingAvailability] = useState(null)
 
   useEffect(() => {
     if (isOpen) setChefNote('')
@@ -42,29 +47,36 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], pendingE
 
   if (!isOpen || !item) return null
 
-  // "Effectively inactive": an ACTIVE item that's either marked out of stock,
-  // sitting in a disabled category, or both — status itself stays ACTIVE.
+  // An item is "off the live menu" for one of two independent reasons:
+  // - its own status was set to INACTIVE by the branch admin (via her edit
+  //   screen), or
+  // - its category was disabled by the SUPER ADMIN.
+  // Both can be true at once. The badge just says INACTIVE either way; the
+  // reason banner below explains which one (or both).
   const categoryDisabled = item.categoryStatus && item.categoryStatus !== 'ACTIVE'
-  const outOfStock = item.isAvailable === false
-  const isEffectivelyInactive = item.status === 'ACTIVE' && (categoryDisabled || outOfStock)
-  const displayStatus = isEffectivelyInactive ? 'INACTIVE' : item.status
+  const itemDeactivated = item.status === 'INACTIVE'
+  const displayStatus = categoryDisabled || itemDeactivated ? 'INACTIVE' : item.status
   const statusStyle = STATUS_STYLES[displayStatus] || STATUS_STYLES.INACTIVE
 
   const inactiveReason =
-    categoryDisabled && outOfStock
-      ? 'This item and its category are both no longer active.'
+    categoryDisabled && itemDeactivated
+      ? 'This item was deactivated by the branch admin, and its category is also no longer active.'
       : categoryDisabled
       ? `Category "${item.categoryName}" is no longer active.`
-      : outOfStock
-      ? 'This item is marked out of stock.'
+      : itemDeactivated
+      ? 'This item was deactivated by the branch admin.'
       : null
 
-  // A category being disabled is the SUPER ADMIN's call, not the branch
-  // admin's — there's nothing an edit request could change about that, so no
-  // request can be raised while it's disabled. Being out of stock (item-level,
-  // set by the branch admin) is a normal editable case — a request can ask
-  // for it to be turned back on.
-  const canRequestEdit = item.status === 'ACTIVE' && !categoryDisabled
+  // A category being disabled is the SUPER ADMIN's call — nothing an edit
+  // request could change, so it's blocked while that's the case. The item's
+  // own status (ACTIVE or INACTIVE, set by the branch admin) is a normal
+  // editable case either way — a request can ask for it to be reactivated.
+  const canRequestEdit = (item.status === 'ACTIVE' || item.status === 'INACTIVE') && !categoryDisabled
+
+  // Kitchen Availability only makes sense for the item's true live state —
+  // ACTIVE status AND category active. If the branch admin deactivated it,
+  // or the category is disabled, availability is moot either way.
+  const isLiveOnMenu = item.status === 'ACTIVE' && !categoryDisabled
 
   const handleSubmitRequest = async () => {
     if (!chefNote.trim()) {
@@ -81,6 +93,23 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], pendingE
     toast.success('Edit request sent to admin!')
     setChefNote('')
     onRequestSubmitted?.()
+  }
+
+  // Available = the kitchen can cook this right now. Unavailable = it can't.
+  // Only the chef sets this to true — admin actions never grant it.
+  const handleSetAvailability = async (nextAvailable) => {
+    setTogglingAvailability(nextAvailable) // clicked button goes gray right away
+    const { error } = await toggleMenuItemAvailabilityAPI(item.id, nextAvailable)
+    if (error) {
+      toast.error(error)
+      setTogglingAvailability(null)
+      return
+    }
+    toast.success(nextAvailable ? 'Marked available to cook.' : 'Marked unavailable to cook.')
+    // Wait for the parent to refresh `item` before clearing the loading state,
+    // so the buttons never flash back to the old colors in between.
+    await onAvailabilityChanged?.()
+    setTogglingAvailability(null)
   }
 
   return (
@@ -116,7 +145,7 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], pendingE
         <div className="space-y-4 max-h-[45vh] overflow-y-auto px-2 -mx-2 mb-4">
 
           {/* Why this item isn't actually live right now */}
-          {isEffectivelyInactive && inactiveReason && (
+          {inactiveReason && (
             <div className="flex items-start gap-2 rounded-2xl bg-gray-50 border border-gray-200 p-3">
               <AlertTriangle size={16} className="mt-0.5 shrink-0 text-gray-400" />
               <p className="text-xs font-semibold text-gray-500">{inactiveReason}</p>
@@ -165,6 +194,54 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], pendingE
             </div>
           )}
 
+          {/* ── Kitchen availability — "can we cook this right now?"       */}
+          {/* Only shown for the item's true live state (ACTIVE + category   */}
+          {/* active) — not shown if the admin deactivated it or its         */}
+          {/* category is disabled, since availability is moot either way.   */}
+          {isLiveOnMenu && (
+            <div className="rounded-2xl bg-gray-50 p-3">
+              <div className="mb-2 flex items-center gap-2">
+                <ChefHat size={14} className="text-orange-500" />
+                <p className="text-xs font-bold text-gray-700">Kitchen Availability</p>
+                <span
+                  className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                    item.isAvailable === true
+                      ? 'bg-green-50 text-green-600'
+                      : item.isAvailable === false
+                      ? 'bg-rose-50 text-rose-600'
+                      : 'bg-amber-50 text-amber-600'
+                  }`}
+                >
+                  {item.isAvailable === true ? 'Available' : item.isAvailable === false ? 'Unavailable' : 'Not set'}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleSetAvailability(true)}
+                  disabled={togglingAvailability !== null || item.isAvailable === true}
+                  className={`flex-1 cursor-pointer rounded-xl py-2 text-xs font-bold text-white transition-colors disabled:cursor-not-allowed ${
+                    togglingAvailability === true || (togglingAvailability === null && item.isAvailable === true)
+                      ? 'bg-gray-300 text-gray-500'
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                >
+                  Available
+                </button>
+                <button
+                  onClick={() => handleSetAvailability(false)}
+                  disabled={togglingAvailability !== null || item.isAvailable === false}
+                  className={`flex-1 cursor-pointer rounded-xl py-2 text-xs font-bold text-white transition-colors disabled:cursor-not-allowed ${
+                    togglingAvailability === false || (togglingAvailability === null && item.isAvailable === false)
+                      ? 'bg-gray-300 text-gray-500'
+                      : 'bg-rose-500 hover:bg-rose-600'
+                  }`}
+                >
+                  Unavailable
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ── Recipe Ingredients — read only, no add/edit/delete here.   */}
           {/* Any change (including to the recipe) goes through the note   */}
           {/* below, same as every other field.                            */}
@@ -207,60 +284,50 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], pendingE
             </div>
           )}
 
-          {/* ── Edit request — only for a live (ACTIVE) item, and only    */}
-          {/* while its category is active (a disabled category is the     */}
-          {/* Super Admin's call, not something an edit request can fix)   */}
-          {item.status === 'ACTIVE' && (
+          {/* ── Edit request — allowed for status ACTIVE or INACTIVE, as    */}
+          {/* long as the category is active. Blocked only when the         */}
+          {/* category itself is disabled — nothing shows here then, the    */}
+          {/* reason banner at the top already covers it.                   */}
+          {canRequestEdit && (
             <div className="pt-1">
               <div className="mb-2 flex items-center gap-2">
                 <div className="rounded-xl bg-orange-100 p-1.5 text-orange-600">
                   <Send size={13} />
                 </div>
                 <p className="text-sm font-bold text-gray-800">Request an Edit</p>
-                {canRequestEdit && pendingEditRequests.length > 0 && (
+                {pendingEditRequests.length > 0 && (
                   <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-bold text-orange-500">
                     {pendingEditRequests.length} pending
                   </span>
                 )}
               </div>
 
-              {!canRequestEdit ? (
-                <div className="rounded-2xl bg-gray-50 border border-gray-200 p-3">
-                  <p className="text-xs font-semibold text-gray-500">
-                    Category "{item.categoryName}" was disabled by the Super Admin — that's above the branch
-                    admin's control, so no edit request can be raised while it stays disabled.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Every PENDING request for this item — a chef can send more than one */}
-                  {pendingEditRequests.length > 0 && (
-                    <div className="space-y-2 mb-3">
-                      {pendingEditRequests.map((r) => (
-                        <div key={r.id} className="rounded-2xl bg-orange-50 border border-orange-100 p-3">
-                          <p className="text-[11px] font-black uppercase tracking-tighter text-orange-500 mb-1">
-                            Pending admin review
-                          </p>
-                          <p className="text-sm text-gray-700 leading-relaxed">{r.chefNote}</p>
-                        </div>
-                      ))}
+              {/* Every PENDING request for this item — a chef can send more than one */}
+              {pendingEditRequests.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {pendingEditRequests.map((r) => (
+                    <div key={r.id} className="rounded-2xl bg-orange-50 border border-orange-100 p-3">
+                      <p className="text-[11px] font-black uppercase tracking-tighter text-orange-500 mb-1">
+                        Pending admin review
+                      </p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{r.chefNote}</p>
                     </div>
-                  )}
-
-                  {/* Form stays available regardless — you can always send another */}
-                  <p className="text-xs text-gray-400 mb-2">
-                    Describe everything you want changed — price, prep time, ingredients, availability, anything.
-                    e.g. "Please reactivate — Rs. 1200, remove Garlic, add Chili Flakes 0.05kg."
-                  </p>
-                  <textarea
-                    value={chefNote}
-                    onChange={(e) => setChefNote(e.target.value)}
-                    rows={4}
-                    placeholder="Type what you want changed..."
-                    className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
-                  />
-                </>
+                  ))}
+                </div>
               )}
+
+              {/* Form stays available regardless — you can always send another */}
+              <p className="text-xs text-gray-400 mb-2">
+                Describe everything you want changed: price, prep time, ingredients, availability, anything.
+                e.g. "Please reactivate, set price to Rs. 1200, remove Garlic, add Chili Flakes 0.05kg."
+              </p>
+              <textarea
+                value={chefNote}
+                onChange={(e) => setChefNote(e.target.value)}
+                rows={4}
+                placeholder="Type what you want changed..."
+                className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
+              />
             </div>
           )}
 

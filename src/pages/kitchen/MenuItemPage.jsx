@@ -102,9 +102,13 @@ const MenuItemPage = () => {
   const openView = async (item) => {
     setViewItem(item)
     setIsViewOpen(true)
+    // Edit requests are possible for ACTIVE or INACTIVE items (see
+    // KitchenMenuServiceImpl.createEditRequest) — fetch pending ones for both,
+    // not just ACTIVE, or a deactivated item's existing requests never show.
+    const canHaveRequests = item.status === 'ACTIVE' || item.status === 'INACTIVE'
     const [{ data: ingredients }, pending] = await Promise.all([
       getMenuItemIngredientsAPI(item.id),
-      item.status === 'ACTIVE' ? findPendingRequests(item.id) : Promise.resolve([]),
+      canHaveRequests ? findPendingRequests(item.id) : Promise.resolve([]),
     ])
     setViewIngredients(ingredients || [])
     setViewPendingRequests(pending)
@@ -115,6 +119,18 @@ const MenuItemPage = () => {
   const handleRequestSubmitted = async () => {
     if (!viewItem) return
     setViewPendingRequests(await findPendingRequests(viewItem.id))
+  }
+
+  // After toggling availability, refresh the full grid (so the card's badge
+  // and Active/Inactive bucket update) and the open modal's own copy of the
+  // item (so its "Available/Unavailable" state updates without closing it)
+  const handleAvailabilityChanged = async () => {
+    const { data } = await getMyMenuItemsAPI()
+    const freshItems = data || []
+    setItems(freshItems)
+    if (viewItem) {
+      setViewItem(freshItems.find((i) => i.id === viewItem.id) || viewItem)
+    }
   }
 
   return (
@@ -147,6 +163,7 @@ const MenuItemPage = () => {
         ingredients={viewIngredients}
         pendingEditRequests={viewPendingRequests}
         onRequestSubmitted={handleRequestSubmitted}
+        onAvailabilityChanged={handleAvailabilityChanged}
       />
 
     </div>
