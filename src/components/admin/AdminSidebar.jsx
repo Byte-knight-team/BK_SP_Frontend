@@ -4,20 +4,30 @@ import { useEffect, useState, useMemo } from "react";
 import AppSidebar from "../common/AppSidebar";
 import { adminNav } from "../../config/nav/adminNav";
 import { getMenuItemsAPI } from "../../apis/admin/menu";
+import { getMenuUpdateRequestsAPI } from "../../apis/admin/menuUpdateRequests";
 
 export default function AdminSidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   const [menuItems, setMenuItems] = useState([]);
+  const [pendingUpdateRequestsCount, setPendingUpdateRequestsCount] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
-    getMenuItemsAPI()
-      .then((data) => {
-        if (isMounted) setMenuItems(data);
+    
+    Promise.all([
+      getMenuItemsAPI(),
+      getMenuUpdateRequestsAPI('PENDING')
+    ])
+      .then(([items, requests]) => {
+        if (isMounted) {
+          setMenuItems(items);
+          setPendingUpdateRequestsCount(requests.length);
+        }
       })
-      .catch((error) => console.error("Failed to fetch menu items for sidebar:", error));
+      .catch((error) => console.error("Failed to fetch sidebar data:", error));
+      
     return () => { isMounted = false; };
   }, []);
 
@@ -44,9 +54,17 @@ export default function AdminSidebar() {
           }),
         };
       }
+      
+      if (item.label === "Chef Update Requests" && pendingUpdateRequestsCount > 0) {
+        return {
+          ...item,
+          count: pendingUpdateRequestsCount
+        };
+      }
+      
       return item;
     });
-  }, [menuItems]);
+  }, [menuItems, pendingUpdateRequestsCount]);
 
   const handleLogout = () => {
     logout();

@@ -37,3 +37,15 @@ export const removeProfilePicture = async () => {
     method: 'DELETE',
   });
 };
+
+export const requestEmailVerification = async () => {
+  return customerAuthFetch('/api/v1/customer/request-email-verification', {
+    method: 'POST',
+  });
+};
+
+export const verifyEmailToken = async (token) => {
+  return customerAuthFetch(`/api/v1/customer/verify-email?token=${token}`, {
+    method: 'POST',
+  });
+};

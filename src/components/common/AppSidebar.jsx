@@ -179,7 +179,13 @@ export default function AppSidebar({
                           {item.label}
                         </span>
 
-                        {active && !item.subItems && (
+                        {item.count !== undefined && (
+                          <span className={`px-2 py-0.5 ml-2 text-[10px] font-bold rounded-full ${active ? 'bg-white text-orange-600' : 'bg-orange-100 text-orange-600'}`}>
+                            {item.count}
+                          </span>
+                        )}
+
+                        {active && !item.subItems && item.count === undefined && (
                           <div className="h-1.5 w-1.5 rounded-full bg-white" />
                         )}
                       </>

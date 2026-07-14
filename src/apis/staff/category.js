@@ -1,0 +1,112 @@
+import { authFetch } from '../apiHelper';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const MENU_BASE = `${API_BASE}/api/v1/menu`;
+
+const parseResponse = async (response, fallbackMessage) => {
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload?.message || fallbackMessage);
+  }
+
+  return payload;
+};
+
+const toArray = (value) => (Array.isArray(value) ? value : []);
+
+export const getMenuCategoriesAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}/categories`);
+  const payload = await parseResponse(response, 'Unable to load categories.');
+  const rows = toArray(payload?.data ?? payload);
+
+  return rows
+    .map((entry) => {
+      if (typeof entry === 'string') {
+        return { id: entry, name: entry };
+      }
+
+      return {
+        id: entry?.id ?? entry?.categoryId ?? entry?.name,
+        name: entry?.name ?? entry?.categoryName ?? '',
+        description: entry?.description ?? '',
+        isActive: entry?.status === 'ACTIVE',
+      };
+    })
+    .filter((entry) => entry.name);
+};
+
+export const getMenuCategoriesCountAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}/categories/count`);
+  const payload = await parseResponse(response, 'Unable to load categories count.');
+  return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
+};
+
+export const getMenuSubcategoriesCountAPI = async () => {
+  const response = await authFetch(`${MENU_BASE}/subcategories/count`);
+  const payload = await parseResponse(response, 'Unable to load subcategories count.');
+  return typeof payload === 'number' ? payload : (payload?.data ?? payload ?? 0);
+};
+
+export const getMenuSubcategoriesAPI = async ({ categoryId = '', categoryName = '' } = {}) => {
+  const params = new URLSearchParams();
+
+  if (categoryId) {
+    params.set('categoryId', categoryId);
+  }
+
+  if (categoryName) {
+    params.set('category', categoryName);
+  }
+
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const response = await authFetch(`${MENU_BASE}/subcategories${query}`);
+  const payload = await parseResponse(response, 'Unable to load subcategories.');
+  const rows = toArray(payload?.data ?? payload);
+
+  return rows
+    .map((entry) => {
+      if (typeof entry === 'string') {
+        return entry;
+      }
+
+      return entry?.name ?? entry?.subCategory ?? '';
+    })
+    .filter(Boolean);
+};
+
+export const toggleMenuCategoryStatusAPI = async (id, isActive) => {
+  const response = await authFetch(`${API_BASE}/api/v1/categories/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ isActive }),
+  });
+
+  const payload = await parseResponse(response, 'Unable to toggle category status.');
+  return payload?.data ?? payload;
+};
+
+export const createMenuCategoryAPI = async (categoryPayload) => {
+  const response = await authFetch(`${API_BASE}/api/v1/categories`, {
+    method: 'POST',
+    body: JSON.stringify(categoryPayload),
+  });
+
+  const payload = await parseResponse(response, 'Unable to create category.');
+  return payload?.data ?? payload;
+};
+
+export const getMenuCategoryByIdAPI = async (id) => {
+  const response = await authFetch(`${API_BASE}/api/v1/categories/${id}`);
+  const payload = await parseResponse(response, 'Unable to load category details.');
+  return payload?.data ?? payload;
+};
+
+export const updateMenuCategoryAPI = async (id, categoryPayload) => {
+  const response = await authFetch(`${API_BASE}/api/v1/categories/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(categoryPayload),
+  });
+
+  const payload = await parseResponse(response, 'Unable to update category.');
+  return payload?.data ?? payload;
+};

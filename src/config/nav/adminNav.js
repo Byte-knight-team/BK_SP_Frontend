@@ -4,6 +4,7 @@ import {
   UtensilsCrossed,
   TableProperties,
   Settings2Icon,
+  ClipboardList
 } from "lucide-react";
 
 export const adminNav = [
@@ -43,6 +44,11 @@ export const adminNav = [
         path: "/admin/menu?status=rejected",
       },
     ]
+  },
+  {
+    label: "Chef Update Requests",
+    path: "/admin/menu-requests",
+    icon: ClipboardList,
   },
   {
     label: "Coupons",

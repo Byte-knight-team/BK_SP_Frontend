@@ -60,6 +60,10 @@ import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
 import CustomerManagement from "./pages/superadmin/CustomerManagement";
 import CustomerDetailsPage from "./pages/superadmin/CustomerDetailsPage";
+import CategoryManagementPage from "./pages/superadmin/CategoryManagementPage";
+import CreateCategoryPage from "./pages/superadmin/CreateCategoryPage";
+import EditCategoryPage from "./pages/superadmin/EditCategoryPage";
+import CategoryDetailsPage from "./pages/superadmin/CategoryDetailsPage";
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
@@ -78,8 +82,8 @@ import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import MenuManagementPage from './pages/admin/MenuManagementPage'
+import MenuUpdateRequestsPage from './pages/admin/MenuUpdateRequestsPage'
 import AddCategoryPage from './pages/admin/AddCategoryPage'
-import EditMenuItemPage from './pages/admin/EditMenuItemPage'
 import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
 import AddTablePage from './pages/admin/AddTablePage'
@@ -102,6 +106,7 @@ import MobileVerificationPage from './pages/customer/MobileVerificationPage'
 import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
+import VerifyEmailPage from './pages/customer/VerifyEmailPage'
 import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
@@ -235,6 +240,10 @@ export default function App() {
 
           <Route path="/staff/customers" element={<CustomerManagement />} />
           <Route path="/staff/customers/:id" element={<CustomerDetailsPage />} />
+          <Route path="categories" element={<CategoryManagementPage />} />
+          <Route path="categories/create" element={<CreateCategoryPage />} />
+          <Route path="categories/:id" element={<CategoryDetailsPage />} />
+          <Route path="categories/:id/edit" element={<EditCategoryPage />} />
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
@@ -269,7 +278,7 @@ export default function App() {
         <Route path="menu" element={<MenuManagementPage />} />
         <Route path="menu/category/add" element={<AddCategoryPage />} />
         <Route path="menu/:id" element={<MenuItemDetailsPage />} />
-        <Route path="menu/edit/:id" element={<EditMenuItemPage />} />
+        <Route path="menu-requests" element={<MenuUpdateRequestsPage />} />
         <Route path="coupons" element={<CouponsPage />} />
 
           <Route path="*" element={<Navigate to="/admin" replace />} />
@@ -375,6 +384,18 @@ export default function App() {
                 unauthenticatedRedirect="/login?redirect=/account"
               >
                 <AccountPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/verify-email"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/verify-email"
+                unauthenticatedRedirect="/login?redirect=/verify-email"
+              >
+                <VerifyEmailPage />
               </CustomerProtectedRoute>
             }
           />

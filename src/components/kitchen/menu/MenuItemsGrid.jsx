@@ -89,16 +89,15 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onView }) => {
                 activeTab === tab.key
                   ? 'bg-orange-500 text-white shadow'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               {tab.label}
               {/* Badge showing count per tab */}
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-black ${
-                  activeTab === tab.key
+                className={`rounded-full px-2 py-0.5 text-xs font-black ${activeTab === tab.key
                     ? 'bg-white/20 text-white'
                     : 'bg-gray-100 text-gray-500'
-                }`}
+                  }`}
               >
                 {counts[tab.key]}
               </span>
