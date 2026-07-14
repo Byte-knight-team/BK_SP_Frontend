@@ -52,10 +52,15 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
 
   useEffect(() => { load() }, [load])
 
-  // Live refresh when any reservation changes (new request, pay, expire, cancel…)
-  const topic = branchId ? `/topic/branch/${branchId}/reservation-update` : null
-  const onWs = useCallback(() => load(true), [load])
-  useWebSocket(branchId, topic, onWs)
+  // Live, silent refresh (load(true) skips the spinner). ONE connection, both topics:
+  //  - reservation-update: confirm/reject/seat/cancel/pay/expire → both queues update.
+  //  - new-reservation: a brand-new customer request arrives → the Requested queue updates.
+  // Also refresh the table grid so a confirmed/expired/cancelled reservation shows/clears on the cards.
+  const onWs = useCallback(() => { load(true); onTablesChanged?.() }, [load, onTablesChanged])
+  const wsTopics = branchId
+    ? [`/topic/branch/${branchId}/reservation-update`, `/topic/branch/${branchId}/new-reservation`]
+    : null
+  useWebSocket(branchId, wsTopics, onWs)
 
   // Collapse expanders + refresh both queues + let the parent refresh the table grid.
   const afterChange = () => {
