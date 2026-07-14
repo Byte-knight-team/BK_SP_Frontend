@@ -2,34 +2,44 @@ import { useState } from 'react'
 import { Search, Plus } from 'lucide-react'
 import MenuItemCard from './MenuItemCard'
 
-// Tab definitions — chef sees Active items (all), and their own Pending/Rejected submissions
+// Tab definitions. INACTIVE is not a real backend status — it's an ACTIVE
+// item that's either out of stock, in a disabled category, or both (see
+// bucketFor below). PENDING/REJECTED map straight to item.status.
 const TABS = [
   { key: 'ACTIVE', label: 'Active' },
+  { key: 'INACTIVE', label: 'Inactive' },
   { key: 'PENDING', label: 'Pending' },
   { key: 'REJECTED', label: 'Rejected' },
 ]
 
+// Which tab an item belongs to
+const bucketFor = (item) => {
+  if (item.status !== 'ACTIVE') return item.status // PENDING or REJECTED
+  const categoryDisabled = item.categoryStatus && item.categoryStatus !== 'ACTIVE'
+  const outOfStock = item.isAvailable === false
+  return categoryDisabled || outOfStock ? 'INACTIVE' : 'ACTIVE'
+}
+
 // MenuItemsGrid — renders the tab switcher, search bar, and the card grid
-// All data fetching and modal state lives in the parent page (MenuAndRecipesPage)
-const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
+// All data fetching and modal state lives in the parent page (MenuItemPage)
+const MenuItemsGrid = ({ items = [], isLoading, onAdd, onView }) => {
   const [activeTab, setActiveTab] = useState('ACTIVE')
   const [search, setSearch] = useState('')
 
-  // Filter items by the selected tab status, then by the search query.
+  // Filter items by the selected tab bucket, then by the search query.
   // Sort by id ascending so newly created items (highest id) always appear last.
   const filtered = items
-    .filter((item) => item.status === activeTab)
+    .filter((item) => bucketFor(item) === activeTab)
     .filter((item) =>
       item.name.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => a.id - b.id)
 
   // Count per tab for the badge numbers
-  const counts = {
-    ACTIVE: items.filter((i) => i.status === 'ACTIVE').length,
-    PENDING: items.filter((i) => i.status === 'PENDING').length,
-    REJECTED: items.filter((i) => i.status === 'REJECTED').length,
-  }
+  const counts = TABS.reduce((acc, tab) => {
+    acc[tab.key] = items.filter((i) => bucketFor(i) === tab.key).length
+    return acc
+  }, {})
 
   return (
     <div className="space-y-6">
@@ -87,7 +97,8 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
         />
       </div>
 
-      {/* Grid of MenuItemCards */}
+      {/* Grid of MenuItemCards — every card opens the same detail modal;
+          only an ACTIVE item's modal offers the edit-request form */}
       {isLoading ? (
         <div className="py-20 text-center text-sm text-gray-400">Loading menu items...</div>
       ) : filtered.length === 0 ? (
@@ -97,14 +108,8 @@ const MenuItemsGrid = ({ items = [], isLoading, onAdd, onEdit, onView  }) => {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((item) => (
-  <MenuItemCard
-    key={item.id}
-    item={item}
-    onView={() => onView(item)}
-    onEdit={activeTab === 'ACTIVE' ? () => onEdit(item) : undefined}
-  />
-))}
-
+            <MenuItemCard key={item.id} item={item} onView={() => onView(item)} />
+          ))}
         </div>
       )}
 

@@ -7,8 +7,27 @@ const STATUS_STYLES = {
   INACTIVE: 'bg-gray-100 text-gray-400 border border-gray-200',
 }
 
-const MenuItemCard = ({ item, onEdit, onView }) => {
-  const statusStyle = STATUS_STYLES[item.status] || STATUS_STYLES.INACTIVE
+const MenuItemCard = ({ item, onView }) => {
+  // An ACTIVE item is only "effectively inactive" if it's marked out of
+  // stock, its category was disabled, or both — status itself stays ACTIVE.
+  const categoryDisabled = item.status === 'ACTIVE' && item.categoryStatus && item.categoryStatus !== 'ACTIVE'
+  const outOfStock = item.status === 'ACTIVE' && item.isAvailable === false
+  const isEffectivelyInactive = categoryDisabled || outOfStock
+  const displayStatus = isEffectivelyInactive ? 'INACTIVE' : item.status
+  const statusStyle = STATUS_STYLES[displayStatus] || STATUS_STYLES.INACTIVE
+
+  const inactiveReason =
+    categoryDisabled && outOfStock
+      ? 'Item & category both disabled'
+      : categoryDisabled
+      ? `Category "${item.categoryName}" is disabled`
+      : outOfStock
+      ? 'Marked out of stock'
+      : null
+
+  // Category-disabled is the Super Admin's call — no edit request possible
+  // while that's the case, even though the item itself is still ACTIVE.
+  const canRequestEdit = item.status === 'ACTIVE' && !categoryDisabled
 
   return (
     <div
@@ -25,20 +44,28 @@ const MenuItemCard = ({ item, onEdit, onView }) => {
           </div>
         )}
 
-        {/* Status badge */}
-        <span className={`absolute top-2 right-2 rounded-full px-3 py-1 text-[11px] font-black tracking-tighter uppercase ${statusStyle}`}>
-          {item.status}
+        {/* Status badge — shows why an approved item isn't actually live, when relevant */}
+        <span
+          className={`absolute top-2 right-2 rounded-full px-3 py-1 text-[11px] font-black tracking-tighter uppercase ${statusStyle}`}
+          title={inactiveReason || undefined}
+        >
+          {displayStatus}
         </span>
 
-        {/* Bottom-right icon: pencil for editable, eye for view-only */}
+        {/* Bottom-right icon: pencil = can request an edit, eye = view-only */}
         <div className="absolute bottom-2 right-2 rounded-xl bg-white/90 p-1.5 text-orange-500 shadow">
-          {onEdit ? <Pencil size={13} /> : <Eye size={13} />}
+          {canRequestEdit ? <Pencil size={13} /> : <Eye size={13} />}
         </div>
       </div>
 
       {/* Card body */}
       <div className="flex flex-col gap-2 p-4">
         <h3 className="text-sm font-bold text-gray-900 line-clamp-1">{item.name}</h3>
+
+        {/* Explains why an approved item is shown as inactive */}
+        {inactiveReason && (
+          <p className="text-[11px] font-bold text-gray-400">{inactiveReason}</p>
+        )}
 
         <div className="flex items-center gap-1 text-xs text-gray-400">
           <Tag size={12} />

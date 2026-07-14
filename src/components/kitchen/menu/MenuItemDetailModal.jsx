@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
-import { X, UtensilsCrossed, Tag, Clock, FlaskConical, Pencil, Trash2, Plus, Check } from 'lucide-react'
-import { saveMenuItemIngredientsAPI, updateMenuItemAPI } from '../../../apis/kitchen/menu'
+import { X, UtensilsCrossed, Tag, Clock, FlaskConical, AlertTriangle, Send } from 'lucide-react'
+import { createEditRequestAPI } from '../../../apis/kitchen/menu'
 import { toast } from 'react-toastify'
-import Dropdown from '../../common/Dropdown'
 
 // Status badge color map
 const STATUS_STYLES = {
@@ -15,158 +14,74 @@ const STATUS_STYLES = {
 /*
   MenuItemDetailModal
   -------------------
-  Shows full details of a menu item and lets the chef manage its recipe ingredients.
+  The single "view" modal for a menu item, for every status. Everything here
+  is READ-ONLY (info + recipe) — there is no in-place field editing. The only
+  action available is, for an ACTIVE item, raising a free-text edit request:
+  the chef describes what they want changed (price, prep time, ingredients,
+  anything) in one note, and the admin applies it manually after reviewing.
+  A chef can send more than one request (e.g. separate asks sent at different
+  times) — every PENDING one for this item is listed, and the form stays
+  available so another can always be sent.
 
   Props:
-    isOpen         — controls visibility
-    onClose        — called when modal is closed
-    item           — the menu item object to display
-    ingredients    — initial ingredient list fetched from backend
-    inventoryItems — all inventory items (for the "add ingredient" dropdown)
-    onSaved        — optional callback fired after a successful save (to refresh parent)
+    isOpen             — controls visibility
+    onClose            — called when modal is closed
+    item               — the menu item object to display
+    ingredients        — ingredient list fetched from backend (read-only here)
+    pendingEditRequests— all of this item's PENDING edit requests
+    onRequestSubmitted — called after a new edit request is successfully sent,
+                          so the parent can silently refresh the list above
 */
-const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventoryItems = [], onSaved }) => {
+const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], pendingEditRequests = [], onRequestSubmitted }) => {
+  const [chefNote, setChefNote] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  // Local editable copy of the ingredient list.
-  // All add / update / delete operations modify this list.
-  // Nothing is sent to the backend until "Save Recipe" is clicked.
-  const [editableIngredients, setEditableIngredients] = useState([])
-
-  // Tracks which ingredient row is in edit mode (by inventoryItemId)
-  const [editingId, setEditingId] = useState(null)
-  const [editingQty, setEditingQty] = useState('')
-
-  // Tracks which ingredient row is awaiting delete confirmation (by inventoryItemId)
-  const [deletingId, setDeletingId] = useState(null)
-
-  // Editable prep time (minutes) — saved to the menu item on "Save Recipe".
-  const [prepTime, setPrepTime] = useState('')
-
-  // "Add ingredient" row state
-  const [selectedItemId, setSelectedItemId] = useState('')
-  const [addQty, setAddQty] = useState('')
-
-  const [isSaving, setIsSaving] = useState(false)
-
-  // Re-sync editable list whenever the modal opens or the parent passes new ingredients
   useEffect(() => {
-    setEditableIngredients(ingredients)
-    setEditingId(null)
-    setDeletingId(null)
-    setSelectedItemId('')
-    setAddQty('')
-    setPrepTime(item?.preparationTime != null ? String(item.preparationTime) : '')
-  }, [ingredients, isOpen, item])
+    if (isOpen) setChefNote('')
+  }, [isOpen, item])
 
   if (!isOpen || !item) return null
 
-  const statusStyle = STATUS_STYLES[item.status] || STATUS_STYLES.INACTIVE
+  // "Effectively inactive": an ACTIVE item that's either marked out of stock,
+  // sitting in a disabled category, or both — status itself stays ACTIVE.
+  const categoryDisabled = item.categoryStatus && item.categoryStatus !== 'ACTIVE'
+  const outOfStock = item.isAvailable === false
+  const isEffectivelyInactive = item.status === 'ACTIVE' && (categoryDisabled || outOfStock)
+  const displayStatus = isEffectivelyInactive ? 'INACTIVE' : item.status
+  const statusStyle = STATUS_STYLES[displayStatus] || STATUS_STYLES.INACTIVE
 
-  // ── Inline edit: start editing a row ──────────────────────────────────
-  const startEdit = (ing) => {
-    setEditingId(ing.inventoryItemId)
-    setEditingQty(String(ing.quantityRequired))
-  }
+  const inactiveReason =
+    categoryDisabled && outOfStock
+      ? 'This item and its category are both no longer active.'
+      : categoryDisabled
+      ? `Category "${item.categoryName}" is no longer active.`
+      : outOfStock
+      ? 'This item is marked out of stock.'
+      : null
 
-  // Confirm inline edit — validates qty and updates local state
-  const confirmEdit = () => {
-    const qty = parseFloat(editingQty)
-    if (!qty || qty <= 0) {
-      // Invalid qty — cancel edit without applying
-      setEditingId(null)
+  // A category being disabled is the SUPER ADMIN's call, not the branch
+  // admin's — there's nothing an edit request could change about that, so no
+  // request can be raised while it's disabled. Being out of stock (item-level,
+  // set by the branch admin) is a normal editable case — a request can ask
+  // for it to be turned back on.
+  const canRequestEdit = item.status === 'ACTIVE' && !categoryDisabled
+
+  const handleSubmitRequest = async () => {
+    if (!chefNote.trim()) {
+      toast.warning('Please describe what you want changed.')
       return
     }
-    setEditableIngredients((prev) =>
-      prev.map((ing) =>
-        ing.inventoryItemId === editingId
-          ? { ...ing, quantityRequired: qty }
-          : ing
-      )
-    )
-    setEditingId(null)
-  }
-
-  // ── Delete: remove ingredient from local list ─────────────────────────
-  const deleteIngredient = (inventoryItemId) => {
-    setEditableIngredients((prev) =>
-      prev.filter((ing) => ing.inventoryItemId !== inventoryItemId)
-    )
-    // If the row being deleted is currently in edit mode, cancel the edit
-    if (editingId === inventoryItemId) setEditingId(null)
-  }
-
-  // ── Add: append a new ingredient to local list ────────────────────────
-  const handleAdd = () => {
-    if (!selectedItemId || !addQty || parseFloat(addQty) <= 0) return
-
-    const invItem = inventoryItems.find((i) => String(i.id) === String(selectedItemId))
-    if (!invItem) return
-
-    // Prevent adding the same inventory item twice
-    const alreadyAdded = editableIngredients.some(
-      (ing) => String(ing.inventoryItemId) === String(selectedItemId)
-    )
-    if (alreadyAdded) {
-      toast.warning('This ingredient is already in the recipe.')
+    setSubmitting(true)
+    const { error } = await createEditRequestAPI(item.id, chefNote.trim())
+    setSubmitting(false)
+    if (error) {
+      toast.error(error)
       return
     }
-
-    setEditableIngredients((prev) => [
-      ...prev,
-      {
-        inventoryItemId: invItem.id,
-        inventoryItemName: invItem.name,
-        unit: invItem.unit,
-        quantityRequired: parseFloat(addQty),
-      },
-    ])
-
-    // Reset add-row inputs
-    setSelectedItemId('')
-    setAddQty('')
+    toast.success('Edit request sent to admin!')
+    setChefNote('')
+    onRequestSubmitted?.()
   }
-
-  // ── Save: recipe (full-replace) + prep time if it changed ─────────────
-  const handleSave = async () => {
-    const newPrep = parseInt(prepTime)
-    if (!newPrep || newPrep <= 0) {
-      toast.error('Prep time must be greater than zero.')
-      return
-    }
-    setIsSaving(true)
-
-    const { error: ingError } = await saveMenuItemIngredientsAPI(item.id, editableIngredients)
-
-    // Persist prep time only if it changed. Reuse the menu-update PUT — we deliberately DON'T send
-    // `status`, so the update leaves the item's approval status untouched.
-    let prepError = null
-    if (newPrep !== item.preparationTime) {
-      const { error } = await updateMenuItemAPI(item.id, {
-        name: item.name,
-        description: item.description || null,
-        categoryId: item.categoryId,
-        subCategory: item.subCategory || null,
-        price: parseFloat(item.price),
-        preparationTime: newPrep,
-        imageUrl: item.imageUrl || null,
-      })
-      prepError = error
-    }
-
-    if (ingError || prepError) {
-      toast.error('Failed to save. Please try again.')
-    } else {
-      toast.success('Saved successfully!')
-      onSaved?.()
-      onClose()
-    }
-    setIsSaving(false)
-  }
-
-  // Only show inventory items that haven't been added to the recipe yet
-  const availableInventoryItems = inventoryItems.filter(
-    (inv) => !editableIngredients.some((ing) => String(ing.inventoryItemId) === String(inv.id))
-  )
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
@@ -186,7 +101,7 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
         <div className="mb-1 flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900 leading-tight">{item.name}</h2>
           <span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black tracking-tighter uppercase ${statusStyle}`}>
-            {item.status}
+            {displayStatus}
           </span>
         </div>
 
@@ -197,10 +112,24 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
           {item.subCategory && <span>· {item.subCategory}</span>}
         </div>
 
-        {/* ── Scrollable section: item info + ingredient table ───────── */}
-        {/* The add-row and footer buttons live OUTSIDE this div so they   */}
-        {/* are never clipped by the scrollbar.                            */}
-        <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 mb-4">
+        {/* ── Scrollable section: reason banners + item info + ingredients ── */}
+        <div className="space-y-4 max-h-[45vh] overflow-y-auto px-2 -mx-2 mb-4">
+
+          {/* Why this item isn't actually live right now */}
+          {isEffectivelyInactive && inactiveReason && (
+            <div className="flex items-start gap-2 rounded-2xl bg-gray-50 border border-gray-200 p-3">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-gray-400" />
+              <p className="text-xs font-semibold text-gray-500">{inactiveReason}</p>
+            </div>
+          )}
+
+          {/* Why this item was rejected */}
+          {item.status === 'REJECTED' && item.rejectionReason && (
+            <div className="flex items-start gap-2 rounded-2xl bg-red-50 border border-red-100 p-3">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-red-400" />
+              <p className="text-xs font-semibold text-red-600">{item.rejectionReason}</p>
+            </div>
+          )}
 
           {/* Item image */}
           <div className="h-36 w-full rounded-2xl overflow-hidden bg-gray-100">
@@ -213,7 +142,7 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
             )}
           </div>
 
-          {/* Price + prep time */}
+          {/* Price + prep time — read-only */}
           <div className="flex gap-3">
             <div className="flex-1 rounded-2xl bg-gray-50 p-3">
               <p className="text-xs text-gray-400 mb-1">Price</p>
@@ -223,14 +152,7 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
               <p className="text-xs text-gray-400 mb-1">Prep Time</p>
               <div className="flex items-center gap-1.5 text-sm font-bold text-gray-700">
                 <Clock size={14} className="text-orange-500" />
-                <input
-                  type="number"
-                  min="1"
-                  value={prepTime}
-                  onChange={(e) => setPrepTime(e.target.value)}
-                  className="w-14 rounded-lg bg-white px-2 py-1 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-                />
-                <span className="font-normal text-gray-400">min</span>
+                <span>{item.preparationTime} min</span>
               </div>
             </div>
           </div>
@@ -243,23 +165,24 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
             </div>
           )}
 
-          {/* ── Recipe Ingredients section header ──────────────────────── */}
+          {/* ── Recipe Ingredients — read only, no add/edit/delete here.   */}
+          {/* Any change (including to the recipe) goes through the note   */}
+          {/* below, same as every other field.                            */}
           <div className="flex items-center gap-2">
             <div className="rounded-xl bg-orange-100 p-1.5 text-orange-600">
               <FlaskConical size={13} />
             </div>
             <p className="text-sm font-bold text-gray-800">Recipe Ingredients</p>
-            {editableIngredients.length > 0 && (
+            {ingredients.length > 0 && (
               <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-bold text-orange-500">
-                {editableIngredients.length} items
+                {ingredients.length} items
               </span>
             )}
           </div>
 
-          {/* Ingredient table */}
-          {editableIngredients.length === 0 ? (
+          {ingredients.length === 0 ? (
             <div className="rounded-2xl bg-gray-50 p-4 text-center text-sm text-gray-400">
-              No ingredients linked yet. Add one below.
+              No ingredients linked yet.
             </div>
           ) : (
             <div className="rounded-2xl border border-gray-100 overflow-hidden">
@@ -269,78 +192,14 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
                     <th className="px-3 py-2.5 text-left font-semibold">Ingredient</th>
                     <th className="px-3 py-2.5 text-center font-semibold">Qty</th>
                     <th className="px-3 py-2.5 text-right font-semibold">Unit</th>
-                    <th className="px-3 py-2.5 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {editableIngredients.map((ing) => (
-                    <tr key={ing.inventoryItemId} className="hover:bg-gray-50/60">
-
-                      {/* Ingredient name */}
-                      <td className="px-3 py-2.5 font-medium text-gray-800">
-                        {ing.inventoryItemName}
-                      </td>
-
-                      {/* Quantity — switches to an input when this row is in edit mode */}
-                      <td className="px-3 py-2.5 text-center">
-                        {editingId === ing.inventoryItemId ? (
-                          <input
-                            type="number"
-                            value={editingQty}
-                            onChange={(e) => setEditingQty(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && confirmEdit()}
-                            autoFocus
-                            min="0.001"
-                            step="0.001"
-                            className="w-16 rounded-lg border border-orange-300 bg-orange-50 px-2 py-1 text-center text-xs font-bold text-orange-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-                          />
-                        ) : (
-                          <span className="font-bold text-gray-700">{ing.quantityRequired}</span>
-                        )}
-                      </td>
-
-                      {/* Unit */}
+                  {ingredients.map((ing) => (
+                    <tr key={ing.inventoryItemId}>
+                      <td className="px-3 py-2.5 font-medium text-gray-800">{ing.inventoryItemName}</td>
+                      <td className="px-3 py-2.5 text-center font-bold text-gray-700">{ing.quantityRequired}</td>
                       <td className="px-3 py-2.5 text-right text-gray-400">{ing.unit}</td>
-
-                      {/* Edit / confirm + delete — styled as small icon buttons */}
-                      <td className="px-3 py-2.5 text-right">
-                        {deletingId === ing.inventoryItemId ? (
-                          // Delete confirmation — remove only after confirming
-                          <div className="flex items-center justify-end gap-1.5">
-                            <span className="text-[11px] font-bold text-red-500">Remove?</span>
-                            <button onClick={() => { deleteIngredient(ing.inventoryItemId); setDeletingId(null) }} title="Confirm remove"
-                              className="flex cursor-pointer items-center justify-center rounded-lg bg-red-500 p-1.5 text-white hover:bg-red-600 transition-colors">
-                              <Check size={13} />
-                            </button>
-                            <button onClick={() => setDeletingId(null)} title="Cancel"
-                              className="flex cursor-pointer items-center justify-center rounded-lg bg-gray-100 p-1.5 text-gray-400 hover:bg-gray-200 transition-colors">
-                              <X size={13} />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-end gap-1.5">
-                            {editingId === ing.inventoryItemId ? (
-                              // Confirm qty edit
-                              <button onClick={confirmEdit} title="Confirm"
-                                className="flex cursor-pointer items-center justify-center rounded-lg bg-green-50 p-1.5 text-green-500 hover:bg-green-100 hover:text-green-700 transition-colors">
-                                <Check size={13} />
-                              </button>
-                            ) : (
-                              // Open qty edit
-                              <button onClick={() => startEdit(ing)} title="Edit quantity"
-                                className="flex cursor-pointer items-center justify-center rounded-lg bg-orange-50 p-1.5 text-orange-400 hover:bg-orange-100 hover:text-orange-600 transition-colors">
-                                <Pencil size={13} />
-                              </button>
-                            )}
-                            {/* Ask before removing (row-level confirmation, not instant) */}
-                            <button onClick={() => setDeletingId(ing.inventoryItemId)} title="Remove"
-                              className="flex cursor-pointer items-center justify-center rounded-lg bg-red-50 p-1.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-
                     </tr>
                   ))}
                 </tbody>
@@ -348,49 +207,77 @@ const MenuItemDetailModal = ({ isOpen, onClose, item, ingredients = [], inventor
             </div>
           )}
 
+          {/* ── Edit request — only for a live (ACTIVE) item, and only    */}
+          {/* while its category is active (a disabled category is the     */}
+          {/* Super Admin's call, not something an edit request can fix)   */}
+          {item.status === 'ACTIVE' && (
+            <div className="pt-1">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="rounded-xl bg-orange-100 p-1.5 text-orange-600">
+                  <Send size={13} />
+                </div>
+                <p className="text-sm font-bold text-gray-800">Request an Edit</p>
+                {canRequestEdit && pendingEditRequests.length > 0 && (
+                  <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-bold text-orange-500">
+                    {pendingEditRequests.length} pending
+                  </span>
+                )}
+              </div>
+
+              {!canRequestEdit ? (
+                <div className="rounded-2xl bg-gray-50 border border-gray-200 p-3">
+                  <p className="text-xs font-semibold text-gray-500">
+                    Category "{item.categoryName}" was disabled by the Super Admin — that's above the branch
+                    admin's control, so no edit request can be raised while it stays disabled.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Every PENDING request for this item — a chef can send more than one */}
+                  {pendingEditRequests.length > 0 && (
+                    <div className="space-y-2 mb-3">
+                      {pendingEditRequests.map((r) => (
+                        <div key={r.id} className="rounded-2xl bg-orange-50 border border-orange-100 p-3">
+                          <p className="text-[11px] font-black uppercase tracking-tighter text-orange-500 mb-1">
+                            Pending admin review
+                          </p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{r.chefNote}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Form stays available regardless — you can always send another */}
+                  <p className="text-xs text-gray-400 mb-2">
+                    Describe everything you want changed — price, prep time, ingredients, availability, anything.
+                    e.g. "Please reactivate — Rs. 1200, remove Garlic, add Chili Flakes 0.05kg."
+                  </p>
+                  <textarea
+                    value={chefNote}
+                    onChange={(e) => setChefNote(e.target.value)}
+                    rows={4}
+                    placeholder="Type what you want changed..."
+                    className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
+                  />
+                </>
+              )}
+            </div>
+          )}
+
         </div>
 
-        {/* ── Add ingredient row — fixed below scroll, never clipped ──── */}
-        <div className="flex gap-2 mb-4">
-          {/* Only show inventory items not already in the recipe */}
-          <div className="min-w-0 flex-1">
-            <Dropdown
-              value={selectedItemId}
-              onChange={setSelectedItemId}
-              options={availableInventoryItems.map((inv) => ({ value: String(inv.id), label: `${inv.name} (${inv.unit})` }))}
-              placeholder="Select ingredient"
-              compact
-            />
-          </div>
-
-          <input
-            type="number"
-            placeholder="Qty"
-            value={addQty}
-            onChange={(e) => setAddQty(e.target.value)}
-            min="0.001"
-            step="0.001"
-            className="w-16 shrink-0 rounded-xl bg-gray-50 px-2 py-2.5 text-center text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-          />
-
-          {/* Appends to local list — not saved until "Save Recipe" is clicked */}
-          <button onClick={handleAdd}
-            className="shrink-0 flex cursor-pointer items-center gap-1 rounded-xl bg-orange-500 px-3 py-2.5 text-xs font-bold text-white hover:bg-orange-600 transition-colors">
-            <Plus size={13} /> Add
-          </button>
-        </div>
-
-        {/* ── Footer: save + close ────────────────────────────────────── */}
+        {/* ── Footer ───────────────────────────────────────────────────── */}
         <div className="flex gap-3">
           <button onClick={onClose}
             className="flex-1 cursor-pointer rounded-2xl bg-gray-100 py-2.5 text-sm font-bold text-gray-500 hover:bg-gray-200 transition-colors">
             Close
           </button>
-          {/* Sends the full updated ingredient list to the backend */}
-          <button onClick={handleSave} disabled={isSaving}
-            className="flex-1 cursor-pointer rounded-2xl bg-orange-500 py-2.5 text-sm font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300 transition-colors">
-            {isSaving ? 'Saving...' : 'Save Recipe'}
-          </button>
+          {canRequestEdit && (
+            <button onClick={handleSubmitRequest} disabled={submitting}
+              className="flex-1 cursor-pointer rounded-2xl bg-orange-500 py-2.5 text-sm font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300 transition-colors">
+              {submitting ? 'Submitting...' : 'Send Edit Request'}
+            </button>
+          )}
         </div>
 
       </div>
