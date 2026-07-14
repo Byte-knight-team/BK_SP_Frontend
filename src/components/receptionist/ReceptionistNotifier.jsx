@@ -50,10 +50,10 @@ export default function ReceptionistNotifier() {
     if (topic.endsWith('/kitchen-item-update')) {
       if (!msg?.orderId) return
       if (msg.newStatus === 'READY') {
-        toast.info(`Item ready in Order ${msg.orderNumber} — check the Ready tab.`, { autoClose: 5000 })
+        toast.info(`Item ready in Order ${msg.orderNumber}. Check the Ready tab.`, { autoClose: 5000 })
       }
       if (msg.orderStatus === 'COMPLETED') {
-        toast.success(`Order ${msg.orderNumber} is ready — kitchen completed all items.`, { autoClose: 6000 })
+        toast.success(`Order ${msg.orderNumber} is ready: kitchen completed all items.`, { autoClose: 6000 })
       }
       return
     }
@@ -82,13 +82,13 @@ export default function ReceptionistNotifier() {
       const time = msg?.reservationTime
       switch (msg?.type) {
         case 'REMINDER_1HR':
-          toast.info(`Table ${t} has a reservation at ${time} — 1 hour away.`, { autoClose: 10000 }); break
+          toast.info(`Table ${t} has a reservation at ${time}, 1 hour away.`, { autoClose: 10000 }); break
         case 'REMINDER_30MIN':
           toast.info(`Table ${t} reservation at ${time} is in 30 minutes.`, { autoClose: 10000 }); break
         case 'REMINDER_15MIN':
-          toast.warning(`Table ${t} reservation at ${time} is in 15 minutes — table is now locked.`, { autoClose: 15000 }); break
+          toast.warning(`Table ${t} reservation at ${time} is in 15 minutes. Table is now locked.`, { autoClose: 15000 }); break
         case 'GUEST_LATE':
-          toast.warning(`Table ${t}: reserved guest is late — slot started ${time}, not seated yet.`, { autoClose: 12000 }); break
+          toast.warning(`Table ${t}: reserved guest is late. Slot started ${time}, not seated yet.`, { autoClose: 12000 }); break
         case 'TIME_UP':
           toast.error(`Table ${t}: reserved time is up (ended ${time}). Please clear the table.`, { autoClose: 12000 }); break
         default: break
@@ -98,7 +98,7 @@ export default function ReceptionistNotifier() {
 
     // #8 New reservation request from a customer — jump to the Requested queue.
     if (topic.endsWith('/new-reservation')) {
-      toast.info('New reservation request received — review it in Table Management.', {
+      toast.info('New reservation request received. Review it in Table Management.', {
         autoClose: 8000,
         icon: <BellRing size={20} />,
         onClick: () => navigate('/receptionist/tables'),
@@ -112,7 +112,7 @@ export default function ReceptionistNotifier() {
       const who = msg?.customerName || 'A customer'
       const num = msg?.reservationId ? `#${msg.reservationId}` : ''
       if (msg?.action === 'PAID') {
-        toast.success(`${who} paid for reservation ${num} — it's confirmed.`, { autoClose: 7000 })
+        toast.success(`${who} paid for reservation ${num}. It's confirmed.`, { autoClose: 7000 })
       } else if (msg?.action === 'CANCELLED') {
         toast.warning(`${who} cancelled reservation ${num}.`, { autoClose: 7000 })
       }

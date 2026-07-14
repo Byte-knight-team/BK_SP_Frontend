@@ -163,12 +163,12 @@ const InventoryRequestsPage = () => {
                   <td className="px-4 py-3 font-bold text-gray-800">{r.item}</td>
                   <td className="px-4 py-3 text-center">
                     <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600">
-                      {TYPE_LABEL[r.requestType] || r.requestType || '—'}
+                      {TYPE_LABEL[r.requestType] || r.requestType || '-'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center font-bold text-gray-700 whitespace-nowrap">{r.quantity}</td>
-                  <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.note || '—'}</td>
-                  <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.managerNote || '—'}</td>
+                  <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.note || '-'}</td>
+                  <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.managerNote || '-'}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${STATUS_STYLES[r.status] || 'bg-gray-100 text-gray-400'}`}>
                       {r.status}
@@ -196,8 +196,8 @@ const InventoryRequestsPage = () => {
               {visible.map((r) => (
                 <tr key={r.id} className="hover:bg-gray-50/60">
                   <td className="px-4 py-3 font-bold text-gray-800">{r.menuItemName}</td>
-                  <td className="max-w-[260px] truncate px-4 py-3 text-gray-500">{r.chefNote || '—'}</td>
-                  <td className="max-w-[260px] truncate px-4 py-3 text-gray-500">{r.adminNote || '—'}</td>
+                  <td className="max-w-[260px] truncate px-4 py-3 text-gray-500">{r.chefNote || '-'}</td>
+                  <td className="max-w-[260px] truncate px-4 py-3 text-gray-500">{r.adminNote || '-'}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${STATUS_STYLES[r.status] || 'bg-gray-100 text-gray-400'}`}>
                       {r.status}

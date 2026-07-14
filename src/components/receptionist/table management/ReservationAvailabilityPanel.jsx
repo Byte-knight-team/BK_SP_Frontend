@@ -76,7 +76,7 @@ const ReservationAvailabilityPanel = ({ reservation, onDone }) => {
     })
     setSubmitting(false)
     if (error) return toast.error(error)
-    toast.success('Reservation confirmed — customer can now pay')
+    toast.success('Reservation confirmed, customer can now pay')
     onDone?.()
   }
 
@@ -116,7 +116,7 @@ const ReservationAvailabilityPanel = ({ reservation, onDone }) => {
               <div className="space-y-1.5">
                 {blockedTables.map((t) => (
                   <div key={t.tableId} className="text-[11px] text-red-500">
-                    <span className="font-bold">Table {t.tableNumber}</span> — reserved{' '}
+                    <span className="font-bold">Table {t.tableNumber}</span>: reserved{' '}
                     {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}
                   </div>
                 ))}
@@ -137,7 +137,7 @@ const ReservationAvailabilityPanel = ({ reservation, onDone }) => {
               <div className="space-y-1.5">
                 {selectableTables.filter((t) => t.gapConflict).map((t) => (
                   <div key={t.tableId} className="text-[11px] text-amber-600">
-                    <span className="font-bold">Table {t.tableNumber}</span> — near a reservation{' '}
+                    <span className="font-bold">Table {t.tableNumber}</span>: near a reservation{' '}
                     {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}. Keep at least an hour gap between bookings.
                   </div>
                 ))}
@@ -147,7 +147,7 @@ const ReservationAvailabilityPanel = ({ reservation, onDone }) => {
 
           {selectableTables.length === 0 ? (
             <p className="text-xs font-semibold text-gray-400">
-              No tables are free for this slot — every table's time overlaps a booking. You can reject this request below.
+              No tables are free for this slot: every table's time overlaps a booking. You can reject this request below.
             </p>
           ) : (
             <>

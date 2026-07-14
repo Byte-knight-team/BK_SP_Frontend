@@ -224,8 +224,8 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
                 <div className="space-y-1.5">
                   {blockedTables.map((t) => (
                     <div key={t.tableId} className="text-[11px] text-red-500">
-                      <span className="font-bold">Table {t.tableNumber}</span>{' '}
-                      — reserved {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}
+                      <span className="font-bold">Table {t.tableNumber}:</span>{' '}
+                      reserved {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}
                     </div>
                   ))}
                 </div>
@@ -245,8 +245,8 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
                 <div className="space-y-1.5">
                   {selectableTables.filter((t) => t.gapConflict).map((t) => (
                     <div key={t.tableId} className="text-[11px] text-amber-600">
-                      <span className="font-bold">Table {t.tableNumber}</span>{' '}
-                      — near a reservation {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}. Maintain at least one hour gap between two reservations to avoid conflicts.
+                      <span className="font-bold">Table {t.tableNumber}:</span>{' '}
+                      near a reservation {fmtTime(t.conflictStart)}–{fmtTime(t.conflictEnd)}. Maintain at least one hour gap between two reservations to avoid conflicts.
                     </div>
                   ))}
                 </div>
@@ -256,7 +256,7 @@ const ReservationBookingPanel = ({ tables = [], onClose, onSuccess }) => {
             {/* ③ GUEST DETAILS + TABLE PICKER (only if something is bookable) */}
             {selectableTables.length === 0 ? (
               <p className="text-xs font-semibold text-gray-400">
-                No tables are free for this slot — every table's time overlaps a booking.
+                No tables are free for this slot: every table's time overlaps a booking.
               </p>
             ) : (
               <form onSubmit={handleBook} className="space-y-4 border-t border-gray-100 pt-5">

@@ -73,7 +73,7 @@ const ConfirmReservationModal = ({ isOpen, onClose, reservation, onConfirmed }) 
     })
     setSubmitting(false)
     if (error) return toast.error(error)
-    toast.success('Reservation confirmed — customer can now pay')
+    toast.success('Reservation confirmed, customer can now pay')
     onConfirmed?.()
     onClose()
   }
@@ -147,7 +147,7 @@ const ConfirmReservationModal = ({ isOpen, onClose, reservation, onConfirmed }) 
                 {seatsCovered} / {guests} seats selected
               </span>
               {!enough && selected.length > 0 && (
-                <span className="text-xs text-gray-400">— need more seats</span>
+                <span className="text-xs text-gray-400">(need more seats)</span>
               )}
             </div>
 

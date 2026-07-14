@@ -127,7 +127,7 @@ const KitchenAlertsModal = ({ isOpen, onClose, refreshKey }) => {
                 {isResolvedView
                   ? 'No resolved alerts yet'
                   : filter === 'ALL'
-                    ? 'No active alerts — kitchen is running smooth'
+                    ? 'No active alerts, kitchen is running smooth'
                     : `No ${filter.toLowerCase()} alerts`}
               </p>
             </div>

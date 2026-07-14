@@ -164,13 +164,13 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
                       <tr className="hover:bg-gray-50/60">
                         <td className="px-4 py-3 font-bold text-gray-500">#{r.id}</td>
                         <td className="px-4 py-3 font-bold text-gray-800">{r.customerName}</td>
-                        <td className="px-4 py-3 text-gray-500">{r.customerPhone || '—'}</td>
+                        <td className="px-4 py-3 text-gray-500">{r.customerPhone || '-'}</td>
                         <td className="px-4 py-3 text-gray-600">{fmtDate(r.reservationTime)}</td>
                         <td className="px-4 py-3 text-center text-gray-600 whitespace-nowrap">
                           {fmtTime(r.reservationTime)}–{fmtTime(r.endTime)}
                         </td>
-                        <td className="px-4 py-3 text-center font-bold text-gray-700">{r.guestCount ?? '—'}</td>
-                        <td className="max-w-[200px] truncate px-4 py-3 text-gray-500">{r.notes || '—'}</td>
+                        <td className="px-4 py-3 text-center font-bold text-gray-700">{r.guestCount ?? '-'}</td>
+                        <td className="max-w-[200px] truncate px-4 py-3 text-gray-500">{r.notes || '-'}</td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
@@ -258,7 +258,7 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
                       <tr className="hover:bg-gray-50/60">
                         <td className="px-4 py-3 font-bold text-gray-500">#{r.id}</td>
                         <td className="px-4 py-3 font-bold text-gray-800">{r.customerName}</td>
-                        <td className="px-4 py-3 text-gray-500">{r.customerPhone || '—'}</td>
+                        <td className="px-4 py-3 text-gray-500">{r.customerPhone || '-'}</td>
                         <td className="px-4 py-3 text-gray-600">{fmtDate(r.reservationTime)}</td>
                         <td className="px-4 py-3 text-center text-gray-600 whitespace-nowrap">
                           {fmtTime(r.reservationTime)}–{fmtTime(r.endTime)}

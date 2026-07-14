@@ -216,7 +216,7 @@ export default function ReservationsPage() {
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap justify-center gap-1">
                           {(r.tableNumbers || []).length === 0 ? (
-                            <span className="text-xs text-gray-300">—</span>
+                            <span className="text-xs text-gray-300">-</span>
                           ) : (
                             (r.tableNumbers || []).map((n) => (
                               <span key={n} className="rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-black text-purple-700">
@@ -226,11 +226,11 @@ export default function ReservationsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center font-bold text-gray-700">{r.guestCount ?? '—'}</td>
+                      <td className="px-4 py-3 text-center font-bold text-gray-700">{r.guestCount ?? '-'}</td>
                       <td className="px-4 py-3 text-gray-600">{fmtDate(r.reservationTime)}</td>
                       <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.reservationTime)}</td>
                       <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.endTime)}</td>
-                      <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.notes || '—'}</td>
+                      <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.notes || '-'}</td>
                       <td className="px-4 py-3">
                         {r.totalCharge != null ? (
                           <>
@@ -246,7 +246,7 @@ export default function ReservationsPage() {
                             )}
                           </>
                         ) : (
-                          <span className="text-xs text-gray-300">—</span>
+                          <span className="text-xs text-gray-300">-</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -297,7 +297,7 @@ export default function ReservationsPage() {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-300">—</span>
+                          <span className="text-xs text-gray-300">-</span>
                         )}
                       </td>
                     </tr>

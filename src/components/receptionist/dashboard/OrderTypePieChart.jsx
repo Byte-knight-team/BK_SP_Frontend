@@ -37,7 +37,7 @@ const OrderTypePieChart = () => {
         </div>
         <div>
           <h2 className="text-sm font-bold text-gray-800">Order Type Breakdown</h2>
-          <p className="text-xs text-gray-400">Last 7 days — completed orders</p>
+          <p className="text-xs text-gray-400">Last 7 days, completed orders</p>
         </div>
       </div>
 
