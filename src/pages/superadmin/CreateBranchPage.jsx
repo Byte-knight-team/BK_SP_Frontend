@@ -5,11 +5,14 @@ import {
   RiArrowLeftLine,
   RiAddLine,
   RiShieldUserLine,
+  RiMapPinLine,
 } from "@remixicon/react";
 
 import { useAuth } from "../../context/AuthContext";
 import { createBranchAPI } from "../../apis/staff/branches";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
+
+import LocationPickerModal from "../../components/customer/LocationPickerModal";
 
 export default function CreateBranchPage() {
   const navigate = useNavigate();
@@ -20,8 +23,11 @@ export default function CreateBranchPage() {
     address: "",
     contactNumber: "",
     email: "",
+    latitude: null,
+    longitude: null,
   });
 
+  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { user } = useAuth();
@@ -32,7 +38,8 @@ export default function CreateBranchPage() {
   useEffect(() => {
     setHeaderInfo({
       title: "Create Branch",
-      description: "Add a new restaurant branch to the system.",
+      description:
+        "Add a new restaurant branch and select its exact map location.",
       Icon: RiBuilding2Line,
     });
 
@@ -43,12 +50,37 @@ export default function CreateBranchPage() {
     const { name, value } = event.target;
 
     const cleanedValue =
-      name === "contactNumber" ? value.replace(/[^\d+]/g, "") : value;
+      name === "contactNumber"
+        ? cleanContactNumber(value)
+        : value;
 
     setFormData((previous) => ({
       ...previous,
       [name]: cleanedValue,
     }));
+  };
+
+  const handleLocationConfirm = ({ lat, lng, address }) => {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      showErrorToast("Unable to read the selected map coordinates.");
+      return;
+    }
+
+    if (!address || !address.trim()) {
+      showErrorToast(
+        "Please search and select a location so its address can be recorded."
+      );
+      return;
+    }
+
+    setFormData((previous) => ({
+      ...previous,
+      address: address.trim(),
+      latitude: lat,
+      longitude: lng,
+    }));
+
+    setLocationPickerOpen(false);
   };
 
   const validateForm = () => {
@@ -57,11 +89,24 @@ export default function CreateBranchPage() {
     }
 
     if (!formData.address.trim()) {
-      return "Branch address is required.";
+      return "Please select the branch location from the map.";
+    }
+
+    if (
+      !Number.isFinite(formData.latitude) ||
+      !Number.isFinite(formData.longitude)
+    ) {
+      return "Please select the branch location from the map.";
     }
 
     if (!formData.contactNumber.trim()) {
       return "Contact number is required.";
+    }
+
+    const phoneRegex = /^\+?\d{10,15}$/;
+
+    if (!phoneRegex.test(formData.contactNumber.trim())) {
+      return "Contact number is invalid.";
     }
 
     if (!formData.email.trim()) {
@@ -94,6 +139,8 @@ export default function CreateBranchPage() {
       address: formData.address.trim(),
       contactNumber: formData.contactNumber.trim(),
       email: formData.email.trim(),
+      latitude: formData.latitude,
+      longitude: formData.longitude,
     };
 
     const { error } = await createBranchAPI(payload);
@@ -125,128 +172,212 @@ export default function CreateBranchPage() {
   }
 
   return (
-    <div className="max-w-5xl">
-      <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
-        {/* Back link */}
-        <div className="mb-6">
-          <Link
-            to="/staff/branches"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
-          >
-            <RiArrowLeftLine size={18} />
-            Back to branches
-          </Link>
-        </div>
-
-        <div className="mb-6 border-b border-gray-100 pb-5">
-          <h3 className="text-lg font-bold text-gray-900">Branch Details</h3>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Enter the basic details for the new restaurant branch.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Branch Name
-            </label>
-
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              disabled={loading}
-              placeholder="Example: Maharagama Branch"
-              className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
-            />
+    <>
+      <div className="max-w-5xl">
+        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm">
+          <div className="mb-6">
+            <Link
+              to="/staff/branches"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors hover:text-orange-600"
+            >
+              <RiArrowLeftLine size={18} />
+              Back to branches
+            </Link>
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Address
-            </label>
+          <div className="mb-6 border-b border-gray-100 pb-5">
+            <h3 className="text-lg font-bold text-gray-900">
+              Branch Details
+            </h3>
 
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              disabled={loading}
-              placeholder="Example: 123 High Level Road, Maharagama"
-              rows="3"
-              className="w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
-            />
+            <p className="mt-1 text-sm text-gray-500">
+              Enter the branch details and choose its exact location from the
+              map.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Contact Number
+                Branch Name
               </label>
 
               <input
                 type="text"
-                name="contactNumber"
-                value={formData.contactNumber}
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
                 disabled={loading}
-                placeholder="Example: +94771234567"
+                placeholder="Example: Maharagama Branch"
                 className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
               />
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-orange-600">
+                    <RiMapPinLine size={22} />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">
+                      Branch Map Location
+                    </p>
+
+                    <p className="mt-1 text-sm leading-6 text-gray-500">
+                      Search and select the exact restaurant location. The map
+                      provides the address and coordinates automatically.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setLocationPickerOpen(true)}
+                  disabled={loading}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <RiMapPinLine size={18} />
+
+                  {formData.latitude !== null
+                    ? "Change Location"
+                    : "Select Location"}
+                </button>
+              </div>
+
+              {formData.address ? (
+                <div className="mt-4 rounded-2xl border border-green-100 bg-white p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-green-700">
+                    Selected Location
+                  </p>
+
+                  <p className="mt-2 text-sm font-semibold text-gray-900">
+                    {formData.address}
+                  </p>
+
+                  <p className="mt-2 text-xs text-gray-500">
+                    Latitude: {formData.latitude} · Longitude:{" "}
+                    {formData.longitude}
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+                  No branch location has been selected yet.
+                </div>
+              )}
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Email
+                Address
               </label>
 
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="Example: maharagama@cravehouse.com"
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
+              <textarea
+                name="address"
+                value={formData.address}
+                readOnly
+                rows="3"
+                placeholder="Select a location from the map"
+                className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none"
               />
+
+              <p className="mt-2 text-xs text-gray-400">
+                This address is filled automatically from the selected map
+                location.
+              </p>
             </div>
-          </div>
 
-          <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
-            New branches are created as active branches. You can later
-            deactivate the branch from the branch list or branch details page.
-          </div>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Contact Number
+                </label>
 
-          <div className="flex items-center justify-end gap-3 pt-3">
-            <Link
-              to="/staff/branches"
-              className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </Link>
+                <input
+                  type="text"
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleChange}
+                  disabled={loading}
+                  placeholder="Example: +94771234567"
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? (
-                <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
-              ) : (
-                <RiAddLine size={18} />
-              )}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Email
+                </label>
 
-              {loading ? "Creating..." : "Create Branch"}
-            </button>
-          </div>
-        </form>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading}
+                  placeholder="Example: maharagama@cravehouse.com"
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 disabled:bg-gray-50 disabled:text-gray-400"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+              New branches are created as active branches. You can later
+              deactivate the branch from the branch list or details page.
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3">
+              <Link
+                to="/staff/branches"
+                className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </Link>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? (
+                  <Spinner className="h-4 w-4 border-orange-200 border-t-white" />
+                ) : (
+                  <RiAddLine size={18} />
+                )}
+
+                {loading ? "Creating..." : "Create Branch"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+
+      <LocationPickerModal
+        isOpen={locationPickerOpen}
+        onClose={() => setLocationPickerOpen(false)}
+        onConfirm={handleLocationConfirm}
+      />
+    </>
   );
 }
 
-function CreateBranchState({ Icon, title, description, iconClassName }) {
+function cleanContactNumber(value) {
+  const cleaned = value.replace(/[^\d+]/g, "");
+
+  if (!cleaned.includes("+")) {
+    return cleaned;
+  }
+
+  return `+${cleaned.replace(/\+/g, "")}`;
+}
+
+function CreateBranchState({
+  Icon,
+  title,
+  description,
+  iconClassName,
+}) {
   return (
     <div className="text-center">
       <div
