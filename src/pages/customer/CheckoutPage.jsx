@@ -171,6 +171,8 @@ export default function CheckoutPage() {
       branchId,
       couponCode: couponCode || undefined,
       redeemLoyaltyPoints: redeemLoyaltyPoints || undefined,
+      latitude: (overrides.orderType || orderType) === 'ONLINE_DELIVERY' && selectedLocation?.lat ? selectedLocation.lat : undefined,
+      longitude: (overrides.orderType || orderType) === 'ONLINE_DELIVERY' && selectedLocation?.lng ? selectedLocation.lng : undefined,
       items: cartItems.map((item) => ({
         menuItemId: item.id,
         quantity: item.quantity,
@@ -186,7 +188,7 @@ export default function CheckoutPage() {
     }
 
     return payloadJson.data;
-  }, [authToken, cartItems, orderType, branchId, appliedCouponCode, appliedLoyaltyPoints]);
+  }, [authToken, cartItems, orderType, branchId, appliedCouponCode, appliedLoyaltyPoints, selectedLocation]);
 
   useEffect(() => {
     let active = true; //If component unmounted or new request started, abort this one.
@@ -222,7 +224,7 @@ export default function CheckoutPage() {
     return () => {
       active = false;
     };
-  }, [authToken, cartItems, orderType, branchId, appliedCouponCode, appliedLoyaltyPoints, isLoadingProfile]);
+  }, [authToken, cartItems, orderType, branchId, appliedCouponCode, appliedLoyaltyPoints, isLoadingProfile, selectedLocation]);
 
   //Max Redeemable Points calculated by backend
   const maxRedeemablePoints = receipt?.maxRedeemablePoints || 0;
