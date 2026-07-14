@@ -53,7 +53,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
   const buttonLabel = isFetchingChefs
     ? 'Loading line chefs...'
     : selectedChef
-      ? `${selectedChef.chefName} — ${chefStatusLabel(selectedChef)}`
+      ? `${selectedChef.chefName} (${chefStatusLabel(selectedChef)})`
       : availableChefs.length > 0
         ? 'Select a line chef'
         : 'No line chefs available'
@@ -105,7 +105,7 @@ const AssignChefModal = ({ isOpen, onClose, onAssign, mealName }) => {
                   >
                     <span className="font-bold text-gray-700 group-data-[selected]:text-orange-600">
                       {chef.chefName}
-                      <span className="ml-1 font-medium text-gray-400">— {chefStatusLabel(chef)}</span>
+                      <span className="ml-1 font-medium text-gray-400">({chefStatusLabel(chef)})</span>
                     </span>
                     <Check size={16} className="shrink-0 text-orange-500 opacity-0 group-data-[selected]:opacity-100" />
                   </ListboxOption>

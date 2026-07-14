@@ -5,6 +5,7 @@ import { LayoutGrid, CalendarPlus, CalendarDays } from 'lucide-react'
 import TableCard from '../../components/receptionist/table management/TableCard'
 import TableActionModal from '../../components/receptionist/table management/TableActionModal'
 import ReservationBookingPanel from '../../components/receptionist/table management/ReservationBookingPanel'
+import ReservationQueues from '../../components/receptionist/table management/ReservationQueues'
 import { getBranchTablesAPI } from '../../apis/receptionist/tables'
 import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
@@ -117,6 +118,9 @@ const TableManagementPage = () => {
           </div>
         )}
       </div>
+
+      {/* Requested + Upcoming reservation queues (under the table cards) */}
+      <ReservationQueues branchId={branchId} onTablesChanged={() => fetchTables(false)} />
 
       <TableActionModal
         isOpen={isActionModalOpen}

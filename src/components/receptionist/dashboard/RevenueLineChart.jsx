@@ -33,7 +33,7 @@ const RevenueLineChart = () => {
           </div>
           <div>
             <h2 className="text-sm font-bold text-gray-800">Revenue by Order Type</h2>
-            <p className="text-xs text-gray-400">Last 7 days — cash collected</p>
+            <p className="text-xs text-gray-400">Last 7 days, cash collected</p>
           </div>
         </div>
       </div>

@@ -4,16 +4,16 @@ import { UtensilsCrossed } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 import {
-  getAllMenuItemsAPI,
+  getMyMenuItemsAPI,
   createMenuItemAPI,
-  updateMenuItemAPI,
   getMenuItemIngredientsAPI,
   saveMenuItemIngredientsAPI,
+  getActiveCategoriesAPI,
+  getMyEditRequestsAPI,
 } from '../../apis/kitchen/menu'
 import { getAllInventoryAPI } from '../../apis/kitchen/inventory'
 import MenuItemsGrid from '../../components/kitchen/menu/MenuItemsGrid'
 import AddMenuItemModal from '../../components/kitchen/menu/AddMenuItemModal'
-import EditMenuItemModal from '../../components/kitchen/menu/EditMenuItemModal'
 import MenuItemDetailModal from '../../components/kitchen/menu/MenuItemDetailModal'
 
 
@@ -23,19 +23,19 @@ const MenuItemPage = () => {
   const [items, setItems] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // Inventory items needed by IngredientPicker inside the modals
+  // Inventory items needed by IngredientPicker inside AddMenuItemModal
   const [inventoryItems, setInventoryItems] = useState([])
 
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const [isEditOpen, setIsEditOpen] = useState(false)
-  const [selectedItem, setSelectedItem] = useState(null)
+  // ACTIVE categories only, for the create-item dropdown
+  const [categories, setCategories] = useState([])
 
-  // Pre-loaded ingredients for the item being edited
-  const [existingIngredients, setExistingIngredients] = useState([])
+  const [isAddOpen, setIsAddOpen] = useState(false)
 
   const [isViewOpen, setIsViewOpen] = useState(false)
   const [viewItem, setViewItem] = useState(null)
   const [viewIngredients, setViewIngredients] = useState([])
+  // All of this item's own PENDING edit requests — a chef can have more than one
+  const [viewPendingRequests, setViewPendingRequests] = useState([])
 
   useEffect(() => {
     setHeaderInfo({
@@ -48,33 +48,30 @@ const MenuItemPage = () => {
   useEffect(() => {
     fetchItems()
     fetchInventory()
+    fetchCategories()
   }, [])
 
-  // silent = true skips the loading flash (used after create/edit so the grid
+  // silent = true skips the loading flash (used after create so the grid
   // updates in place instead of clearing and re-rendering the whole list)
   const fetchItems = async (silent = false) => {
     if (!silent) setIsLoading(true)
-    const { data, error } = await getAllMenuItemsAPI()
+    const { data, error } = await getMyMenuItemsAPI()
     if (error) toast.error('Failed to load menu items.')
     else setItems(data || [])
     if (!silent) setIsLoading(false)
   }
 
-  // Fetch all inventory items so the IngredientPicker has a list to choose from
+  // Fetch all inventory items so the IngredientPicker (create-item form) has a list to choose from
   const fetchInventory = async () => {
     const { data, error } = await getAllInventoryAPI()
     if (!error && data) setInventoryItems(data)
   }
 
-  // Derive unique categories from loaded items
-  // (CHEF role cannot access the /api/v1/categories endpoint directly)
-  const categories = Array.from(
-    new Map(
-      items
-        .filter((item) => item.categoryId && item.categoryName)
-        .map((item) => [item.categoryId, { id: item.categoryId, name: item.categoryName }])
-    ).values()
-  )
+  // ACTIVE categories only — an INACTIVE category can't take new items
+  const fetchCategories = async () => {
+    const { data, error } = await getActiveCategoriesAPI()
+    if (!error && data) setCategories(data)
+  }
 
   // Create new item, then save its ingredient list if the chef added any
   const handleAdd = async (payload, ingredients) => {
@@ -95,54 +92,45 @@ const MenuItemPage = () => {
     fetchItems(true)
   }
 
-  // Update item, then save its updated ingredient list
-  const handleEdit = async (id, payload, ingredients) => {
-    const { error } = await updateMenuItemAPI(id, payload)
-    if (error) {
-      toast.error(error)
-      return
-    }
-
-    // Always save ingredient list (even if empty — clears previous recipe)
-    const { error: ingError } = await saveMenuItemIngredientsAPI(id, ingredients)
-    if (ingError) toast.warning('Item updated but failed to save ingredients.')
-
-    toast.success('Menu item updated and resubmitted!')
-    setIsEditOpen(false)
-    setSelectedItem(null)
-    setExistingIngredients([])
-    fetchItems(true)
+  // All of this item's PENDING edit requests, newest last — the detail modal
+  // lists every one of these alongside the always-available request form
+  const findPendingRequests = async (itemId) => {
+    const { data } = await getMyEditRequestsAPI()
+    return (data || []).filter((r) => r.menuItemId === itemId && r.status === 'PENDING')
   }
 
   const openView = async (item) => {
     setViewItem(item)
-    const { data } = await getMenuItemIngredientsAPI(item.id)
-    setViewIngredients(data || [])
     setIsViewOpen(true)
+    // Edit requests are possible for ACTIVE or INACTIVE items (see
+    // KitchenMenuServiceImpl.createEditRequest) — fetch pending ones for both,
+    // not just ACTIVE, or a deactivated item's existing requests never show.
+    const canHaveRequests = item.status === 'ACTIVE' || item.status === 'INACTIVE'
+    const [{ data: ingredients }, pending] = await Promise.all([
+      getMenuItemIngredientsAPI(item.id),
+      canHaveRequests ? findPendingRequests(item.id) : Promise.resolve([]),
+    ])
+    setViewIngredients(ingredients || [])
+    setViewPendingRequests(pending)
   }
 
-  // Called by MenuItemDetailModal after a successful recipe save —
-  // re-fetches the ingredient list so the modal reflects the latest saved state
-  const handleIngredientsSaved = async () => {
+  // After submitting a new edit request, silently refresh the list so it
+  // shows up immediately without closing/reopening the modal
+  const handleRequestSubmitted = async () => {
     if (!viewItem) return
-    const { data } = await getMenuItemIngredientsAPI(viewItem.id)
-    setViewIngredients(data || [])
+    setViewPendingRequests(await findPendingRequests(viewItem.id))
   }
 
-  // When chef clicks a card, load that item's existing ingredients before opening modal
-  const openEdit = async (item) => {
-    setSelectedItem(item)
-    const { data } = await getMenuItemIngredientsAPI(item.id)
-    // Map response to the shape IngredientPicker expects
-    setExistingIngredients(
-      (data || []).map((ing) => ({
-        inventoryItemId: ing.inventoryItemId,
-        inventoryItemName: ing.inventoryItemName,
-        unit: ing.unit,
-        quantityRequired: ing.quantityRequired,
-      }))
-    )
-    setIsEditOpen(true)
+  // After toggling availability, refresh the full grid (so the card's badge
+  // and Active/Inactive bucket update) and the open modal's own copy of the
+  // item (so its "Available/Unavailable" state updates without closing it)
+  const handleAvailabilityChanged = async () => {
+    const { data } = await getMyMenuItemsAPI()
+    const freshItems = data || []
+    setItems(freshItems)
+    if (viewItem) {
+      setViewItem(freshItems.find((i) => i.id === viewItem.id) || viewItem)
+    }
   }
 
   return (
@@ -152,7 +140,6 @@ const MenuItemPage = () => {
         items={items}
         isLoading={isLoading}
         onAdd={() => setIsAddOpen(true)}
-        onEdit={openEdit}
         onView={openView}
       />
 
@@ -166,25 +153,17 @@ const MenuItemPage = () => {
 
       <MenuItemDetailModal
         isOpen={isViewOpen}
-        onClose={() => { setIsViewOpen(false); setViewItem(null); setViewIngredients([]) }}
+        onClose={() => {
+          setIsViewOpen(false)
+          setViewItem(null)
+          setViewIngredients([])
+          setViewPendingRequests([])
+        }}
         item={viewItem}
         ingredients={viewIngredients}
-        inventoryItems={inventoryItems}
-        onSaved={handleIngredientsSaved}
-      />
-
-      <EditMenuItemModal
-        isOpen={isEditOpen}
-        onClose={() => {
-          setIsEditOpen(false)
-          setSelectedItem(null)
-          setExistingIngredients([])
-        }}
-        onSubmit={handleEdit}
-        item={selectedItem}
-        categories={categories}
-        inventoryItems={inventoryItems}
-        existingIngredients={existingIngredients}
+        pendingEditRequests={viewPendingRequests}
+        onRequestSubmitted={handleRequestSubmitted}
+        onAvailabilityChanged={handleAvailabilityChanged}
       />
 
     </div>

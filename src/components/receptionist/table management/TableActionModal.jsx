@@ -108,7 +108,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   }
 
   const getTitle = () => {
-    if (isReserved) return `Reserved — Table ${table.tableNumber}`
+    if (isReserved) return `Reserved: Table ${table.tableNumber}`
     if (isAvailable) return `Seating Table ${table.tableNumber}`
     if (isOccupied) return `Manage Table ${table.tableNumber}`
     return `Table ${table.tableNumber}`
