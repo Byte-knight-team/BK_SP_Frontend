@@ -82,8 +82,8 @@ import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import MenuManagementPage from './pages/admin/MenuManagementPage'
+import MenuUpdateRequestsPage from './pages/admin/MenuUpdateRequestsPage'
 import AddCategoryPage from './pages/admin/AddCategoryPage'
-import EditMenuItemPage from './pages/admin/EditMenuItemPage'
 import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
 import AddTablePage from './pages/admin/AddTablePage'
@@ -278,7 +278,7 @@ export default function App() {
         <Route path="menu" element={<MenuManagementPage />} />
         <Route path="menu/category/add" element={<AddCategoryPage />} />
         <Route path="menu/:id" element={<MenuItemDetailsPage />} />
-        <Route path="menu/edit/:id" element={<EditMenuItemPage />} />
+        <Route path="menu-requests" element={<MenuUpdateRequestsPage />} />
         <Route path="coupons" element={<CouponsPage />} />
 
           <Route path="*" element={<Navigate to="/admin" replace />} />

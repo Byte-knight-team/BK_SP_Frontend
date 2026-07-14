@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CalendarDays, CircleDot, Sparkles, AlertTriangle } from 'lucide-react';
+import { CalendarDays, CircleDot, Sparkles, AlertTriangle, Settings2 } from 'lucide-react';
 import { createCouponAPI } from '../../apis/admin/coupon';
 
 const initialFormState = {
@@ -99,9 +99,14 @@ export default function CouponsPage() {
 
   return (
     <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
-      <div className="mb-8 mt-4">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create New Coupon</h1>
-        <p className="text-gray-500 text-sm mt-1">Fill in the details below to create a new coupon</p>
+      <div className="mb-8 mt-4 flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-orange-50 text-orange-600">
+          <Settings2 size={22} />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Create New Coupon</h3>
+          <p className="mt-1 text-sm text-gray-500">Fill in the details below to create a new coupon</p>
+        </div>
       </div>
 
       <form

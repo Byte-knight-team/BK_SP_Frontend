@@ -11,7 +11,12 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { getMenuItemByIdAPI, approveMenuItemAPI, rejectMenuItemAPI } from '../../apis/admin/menu';
+import { 
+  getMenuItemByIdAPI, 
+  approveMenuItemAPI,
+  rejectMenuItemAPI 
+} from '../../apis/admin/menu';
+import AdminEditMenuItemModal from '../../components/admin/modal/AdminEditMenuItemModal';
 import { getMenuItemIngredientsAPI } from '../../apis/kitchen/menu';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzliOWJhMyI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
@@ -83,6 +88,7 @@ export default function MenuItemDetailsPage() {
   }, [itemError]);
 
   const [decisionItemId, setDecisionItemId] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const handleImageError = (event) => {
@@ -220,14 +226,20 @@ export default function MenuItemDetailsPage() {
             </div>
           </div>
           <button
-            onClick={() => navigate(`/admin/menu/edit/${itemId}`)}
-            disabled={item.categoryStatus === 'INACTIVE'}
+            onClick={() => setShowEditModal(true)}
+            disabled={item.categoryStatus === 'INACTIVE' || normalizeStatus(item.status) === 'REJECTED'}
             className={`px-6 py-2.5 rounded-xl font-medium text-sm shadow-md transition-all ${
-              item.categoryStatus === 'INACTIVE'
+              item.categoryStatus === 'INACTIVE' || normalizeStatus(item.status) === 'REJECTED'
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
                 : 'bg-orange-500 hover:bg-orange-600 text-white hover:shadow-lg'
             }`}
-            title={item.categoryStatus === 'INACTIVE' ? 'Cannot edit items in an inactive category' : 'Edit Item'}
+            title={
+              item.categoryStatus === 'INACTIVE' 
+                ? 'Cannot edit items in an inactive category' 
+                : normalizeStatus(item.status) === 'REJECTED'
+                  ? 'Cannot edit rejected menu items'
+                  : 'Edit Item'
+            }
           >
             Edit Item
           </button>
@@ -387,6 +399,14 @@ export default function MenuItemDetailsPage() {
           </div>
         </div>
       </div>
+
+      {showEditModal && (
+        <AdminEditMenuItemModal
+          request={{ menuItemId: itemId }}
+          mode="direct"
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
     </div>
   );
 }

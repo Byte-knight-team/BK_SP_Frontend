@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { 
   Search, Bell, HelpCircle, Settings, 
   Printer, Plus, LayoutGrid, List, Filter,
-  MapPin, Users, Edit2, QrCode, AlertTriangle, UserCheck, ShoppingBag
+  MapPin, Users, Edit2, QrCode, AlertTriangle, UserCheck, ShoppingBag, TableProperties
 } from 'lucide-react';
 import { getTablesAPI, updateTableAPI } from '../../apis/admin/table';
 
@@ -106,11 +106,15 @@ export default function TableManagementPage() {
   return (
     <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
           
-          {/* Page Title & Actions */}
           <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-[28px] font-bold text-gray-900 tracking-tight">Table Management</h1>
-              <p className="text-gray-500 text-sm mt-1">Configure floor plans and QR code ordering tables</p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-orange-50 text-orange-600">
+                <TableProperties size={22} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Table Management</h3>
+                <p className="mt-1 text-sm text-gray-500">Configure floor plans and QR code ordering tables</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Link to="/admin/tables/add" className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">

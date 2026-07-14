@@ -352,7 +352,7 @@ Please manually share this temporary password with the staff member.`
       <div className="rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Staff Accounts</h3>
+            <h3 className="text-xl font-bold text-gray-900">Staff Accounts</h3>
 
             <p className="mt-1 text-sm text-gray-500">
               Manage staff users created for branches and internal operations.

@@ -10,6 +10,7 @@ import Dropdown from '../../common/Dropdown'
 const IngredientPicker = ({ ingredients = [], inventoryItems = [], onChange }) => {
   const [selectedItemId, setSelectedItemId] = useState('')
   const [quantity, setQuantity] = useState('')
+  const [itemToDelete, setItemToDelete] = useState(null)
 
   const handleAdd = () => {
     if (!selectedItemId || !quantity || parseFloat(quantity) <= 0) return
@@ -36,8 +37,9 @@ const IngredientPicker = ({ ingredients = [], inventoryItems = [], onChange }) =
     setQuantity('')
   }
 
-  const handleRemove = (inventoryItemId) => {
+  const handleConfirmRemove = (inventoryItemId) => {
     onChange(ingredients.filter((ing) => ing.inventoryItemId !== inventoryItemId))
+    setItemToDelete(null)
   }
 
   return (
@@ -63,12 +65,32 @@ const IngredientPicker = ({ ingredients = [], inventoryItems = [], onChange }) =
                   {ing.quantityRequired} {ing.unit}
                 </span>
               </div>
-              <button
-                onClick={() => handleRemove(ing.inventoryItemId)}
-                className="cursor-pointer text-red-400 hover:text-red-600 transition"
-              >
-                <Trash2 size={13} />
-              </button>
+              
+              {itemToDelete === ing.inventoryItemId ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-red-500 font-semibold uppercase tracking-wider">Delete?</span>
+                  <button 
+                    onClick={() => handleConfirmRemove(ing.inventoryItemId)} 
+                    className="cursor-pointer text-white bg-red-500 hover:bg-red-600 transition font-bold text-[10px] uppercase px-2 py-1 rounded"
+                  >
+                    Yes
+                  </button>
+                  <button 
+                    onClick={() => setItemToDelete(null)} 
+                    className="cursor-pointer text-gray-600 bg-gray-200 hover:bg-gray-300 transition font-bold text-[10px] uppercase px-2 py-1 rounded"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setItemToDelete(ing.inventoryItemId)}
+                  className="cursor-pointer text-red-400 hover:text-red-600 transition p-1"
+                  title="Remove ingredient"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           ))}
         </div>
