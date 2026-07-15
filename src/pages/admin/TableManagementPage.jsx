@@ -6,12 +6,14 @@ import {
   MapPin, Users, Edit2, QrCode, AlertTriangle, UserCheck, ShoppingBag, TableProperties
 } from 'lucide-react';
 import { getTablesAPI, updateTableAPI } from '../../apis/admin/table';
+import AddTableModal from '../../components/admin/modal/AddTableModal';
 
 
 // Admin page for managing table records, status, and QR actions.
 export default function TableManagementPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [editingTable, setEditingTable] = useState(null);
+  const [isAddTableModalOpen, setIsAddTableModalOpen] = useState(false);
   const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'warning' });
   
   const [tables, setTables] = useState([]);
@@ -117,10 +119,10 @@ export default function TableManagementPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/admin/tables/add" className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">
+              <button type="button" onClick={() => setIsAddTableModalOpen(true)} className="bg-[#FF6B00] hover:bg-[#e66000] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all">
                 <Plus size={18} />
                 Add Table
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -291,13 +293,13 @@ export default function TableManagementPage() {
               ))}
 
               {/* Add New Table Card */}
-              <Link to="/admin/tables/add" className="bg-[#FFFBF7] rounded-[1.5rem] p-5 border border-dashed border-orange-200 flex flex-col items-center justify-center min-h-[220px] hover:bg-orange-50/50 transition-colors group">
+              <button type="button" onClick={() => setIsAddTableModalOpen(true)} className="bg-[#FFFBF7] rounded-[1.5rem] p-5 border border-dashed border-orange-200 flex flex-col items-center justify-center min-h-[220px] hover:bg-orange-50/50 transition-colors group text-left">
                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#FF6B00] mb-4 shadow-sm group-hover:scale-110 transition-transform">
                   <Plus size={24} />
                 </div>
                 <h3 className="text-[15px] font-bold text-gray-900 mb-2">Add New Table</h3>
                 <p className="text-xs font-semibold text-[#FF6B00]">Expansion mode</p>
-              </Link>
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -368,12 +370,12 @@ export default function TableManagementPage() {
               ))}
               
               {/* Add New Table Button - List View */}
-              <Link to="/admin/tables/add" className="bg-[#FFFBF7] rounded-2xl py-4 border border-dashed border-orange-200 flex items-center justify-center gap-3 hover:bg-orange-50/50 transition-colors group">
+              <button type="button" onClick={() => setIsAddTableModalOpen(true)} className="bg-[#FFFBF7] rounded-2xl py-4 border border-dashed border-orange-200 flex items-center justify-center gap-3 hover:bg-orange-50/50 transition-colors group">
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#FF6B00] shadow-sm group-hover:scale-110 transition-transform">
                   <Plus size={18} />
                 </div>
                 <span className="text-[15px] font-bold text-gray-900">Add New Table</span>
-              </Link>
+              </button>
             </div>
           )}
 
@@ -464,6 +466,12 @@ export default function TableManagementPage() {
             </div>
           </div>
         )}
+
+        <AddTableModal
+          isOpen={isAddTableModalOpen}
+          onClose={() => setIsAddTableModalOpen(false)}
+          onCreated={fetchTables}
+        />
 
 
     </div>

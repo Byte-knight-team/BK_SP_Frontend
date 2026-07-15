@@ -86,7 +86,7 @@ import MenuUpdateRequestsPage from './pages/admin/MenuUpdateRequestsPage'
 import AddCategoryPage from './pages/admin/AddCategoryPage'
 import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
-import AddTablePage from './pages/admin/AddTablePage'
+import AddTablePage from './components/admin/AddTablePage'
 import TableQrPage from './pages/admin/TableQrPage'
 import CouponsPage from './pages/admin/CouponsPage'
 
