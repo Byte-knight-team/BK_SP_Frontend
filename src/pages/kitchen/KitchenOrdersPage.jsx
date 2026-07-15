@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ClipboardList } from "lucide-react";
-import { toast } from "react-toastify";
 import useWebSocket from "../../hooks/useWebSocket";
 
 const KitchenOrdersPage = () => {
@@ -31,12 +30,9 @@ const KitchenOrdersPage = () => {
   }, []);
 
   // Called when a new order notification arrives from the receptionist via WebSocket
-  const handleNewOrder = useCallback((message) => {
-    // Show a toast notification so the chef is alerted immediately
-    toast.success(`New order received: ${message.orderNumber}`, { autoClose: 5000 })
-
-    // Silently refresh the pending list in the background — do NOT switch tabs,
-    // as the chef may be actively working on a different section
+  const handleNewOrder = useCallback(() => {
+    // Toast is shown globally by KitchenNotifier; here we only refresh the pending list in the
+    // background — do NOT switch tabs, the chef may be actively working on a different section.
     setPendingRefreshKey((prev) => prev + 1)
   }, [])
 
@@ -52,18 +48,10 @@ const KitchenOrdersPage = () => {
     ? `/topic/branch/${branchId}/kitchen-item-update`
     : null
 
-  const handleItemUpdate = useCallback((msg) => {
+  const handleItemUpdate = useCallback(() => {
+    // Toasts are shown globally by KitchenNotifier; here we only refresh the lists.
     setItemUpdateKey((prev) => prev + 1)
     setPendingRefreshKey((prev) => prev + 1)
-
-    if (!msg?.itemName) return
-    if (msg.orderStatus === 'COMPLETED') {
-      toast.success(`Order ${msg.orderNumber} — all items completed!`, { autoClose: 5000 })
-    } else if (msg.newStatus === 'PREPARING') {
-      toast.info(`${msg.itemName} started cooking (Order ${msg.orderNumber})`, { autoClose: 3000 })
-    } else if (msg.newStatus === 'READY') {
-      toast.success(`${msg.itemName} is ready (Order ${msg.orderNumber})`, { autoClose: 3000 })
-    }
   }, [])
 
   useWebSocket(branchId, kitchenItemUpdateTopic, handleItemUpdate)

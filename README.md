@@ -15,8 +15,13 @@ For domain rules and deeper architecture details, refer to the backend (https://
 ## Tech Stack
 
 - React 19 + Vite
-- React Router
-- Tailwind CSS
+- React Router (v7)
+- Tailwind CSS (v4)
+- React Query (Data Fetching/Caching)
+- React Hook Form + Zod (Form Validation)
+- Framer Motion (Animations)
+- Recharts (Analytics Charts)
+- StompJS / SockJS (WebSockets)
 - ESLint + Prettier
 - Vitest + Testing Library
 
@@ -56,6 +61,10 @@ Defined in .env.example:
 
 - VITE_CLOUDINARY_UPLOAD_PRESET
   - Cloudinary upload preset.
+
+- VITE_GOOGLE_MAPS_CUSTOMER_API_KEY
+  - Google Maps API Key used for the customer location picker.
+  - If omitted, the location picker map will not display.
 
 ## Available Scripts
 

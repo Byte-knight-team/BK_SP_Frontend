@@ -41,7 +41,7 @@ const HoldOrderModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
             Cancel
           </button>
           <button onClick={handleConfirm} disabled={isLoading || !reason.trim()}
-            className="flex-1 rounded-2xl bg-orange-500 py-3 text-sm font-bold text-white disabled:bg-gray-300">
+            className="flex-1 rounded-2xl bg-orange-500 py-3 text-sm font-bold text-white disabled:bg-gray-300 disabled:cursor-not-allowed">
             {isLoading ? 'Holding...' : 'Hold Order'}
           </button>
         </div>

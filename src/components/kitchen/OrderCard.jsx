@@ -5,6 +5,7 @@ const STATUS_STYLES = {
   PENDING:   { badge: 'bg-orange-50 text-orange-500', border: 'border-l-orange-400' },
   PREPARING: { badge: 'bg-blue-50 text-blue-500',     border: 'border-l-blue-400'   },
   COMPLETED: { badge: 'bg-green-50 text-green-600',   border: 'border-l-green-400'  },
+  SERVED:    { badge: 'bg-green-50 text-green-600',   border: 'border-l-green-400'  },
   ON_HOLD:   { badge: 'bg-red-50 text-red-500',       border: 'border-l-red-400'    },
 }
 
@@ -13,6 +14,7 @@ const TIME_LABELS = {
   PENDING:   'Received',
   PREPARING: 'Started',
   COMPLETED: 'Completed',
+  SERVED:    'Served',
   ON_HOLD:   'Held',
 }
 

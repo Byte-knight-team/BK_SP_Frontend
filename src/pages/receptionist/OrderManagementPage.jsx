@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, useLocation } from 'react-router-dom'
 import { ClipboardList, AlertTriangle } from 'lucide-react'
 import { getReceptionistOrdersAPI } from '../../apis/receptionist/orders'
-import { toast } from 'react-toastify'
 import OrderCard from '../../components/receptionist/orders/OrderCard'
 import OrderDetailPanel from '../../components/receptionist/orders/OrderDetailPanel'
 import KitchenAlertsModal from '../../components/receptionist/orders/KitchenAlertsModal'
@@ -10,43 +9,55 @@ import { useAuth } from '../../context/AuthContext'
 import useWebSocket from '../../hooks/useWebSocket'
 
 const TABS = [
-  { key: 'PLACED',     label: 'New' },
-  { key: 'KITCHEN',    label: 'Kitchen' },
-  { key: 'ON_HOLD',    label: 'Hold' },
-  { key: 'COMPLETED',  label: 'Ready' },
-  { key: 'SERVED',     label: 'Served' },
-  { key: 'CANCELLED',  label: 'Cancelled' },
+  { key: 'PLACED', label: 'New' },
+  { key: 'KITCHEN', label: 'Kitchen' },
+  { key: 'ON_HOLD', label: 'Hold' },
+  { key: 'COMPLETED', label: 'Ready' },
+  { key: 'SERVED', label: 'Served' },
+  { key: 'CANCELLED', label: 'Cancelled' },
 ]
 
 const STATUS_MAP = {
-  PLACED:     ['PLACED'],
-  KITCHEN:    ['PENDING', 'PREPARING'],
-  ON_HOLD:    ['ON_HOLD'],
-  COMPLETED:  ['COMPLETED'],
-  SERVED:     ['SERVED'],
-  CANCELLED:  ['CANCELLED'],
+  PLACED: ['PLACED'],
+  KITCHEN: ['PENDING', 'PREPARING'],
+  ON_HOLD: ['ON_HOLD'],
+  COMPLETED: ['COMPLETED'],
+  SERVED: ['SERVED'],
+  CANCELLED: ['CANCELLED'],
 }
 
 const TYPE_FILTERS = [
-  { key: 'ALL',             label: 'All' },
-  { key: 'QR',             label: 'QR' },
-  { key: 'ONLINE_PICKUP',  label: 'Pickup' },
+  { key: 'ALL', label: 'All' },
+  { key: 'QR', label: 'QR' },
+  { key: 'ONLINE_PICKUP', label: 'Pickup' },
   { key: 'ONLINE_DELIVERY', label: 'Delivery' },
 ]
 
 const OrderManagementPage = () => {
   const { setHeaderInfo } = useOutletContext()
   const { user } = useAuth()
+  const location = useLocation()
 
-  const [activeTab, setActiveTab]             = useState('PLACED')
-  const [typeFilter, setTypeFilter]           = useState('ALL')
-  const [orders, setOrders]                   = useState([])
-  const [isLoading, setIsLoading]             = useState(false)
+  const [activeTab, setActiveTab] = useState('PLACED')
+  const [typeFilter, setTypeFilter] = useState('ALL')
+  const [orders, setOrders] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [detailRefreshKey, setDetailRefreshKey] = useState(0)
   const [listRefreshKey, setListRefreshKey] = useState(0)
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false)
   const [alertsRefreshKey, setAlertsRefreshKey] = useState(0)
+  const [readyCount, setReadyCount] = useState(0)
+  const [holdCount, setHoldCount] = useState(0)
+
+  // Auto-switch tabs if navigated here via a toast notification
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab)
+      // Clear the state so a page refresh doesn't force the tab again
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
 
   // Refs so the stable WebSocket callback can read latest values
   const activeTabRef = useRef(activeTab)
@@ -66,10 +77,23 @@ const OrderManagementPage = () => {
     fetchOrders()
   }, [activeTab, listRefreshKey])
 
+  const fetchCounts = useCallback(async () => {
+    const [{ data: readyData }, { data: holdData }] = await Promise.all([
+      getReceptionistOrdersAPI('COMPLETED'),
+      getReceptionistOrdersAPI('ON_HOLD'),
+    ])
+    setReadyCount(readyData?.length ?? 0)
+    setHoldCount(holdData?.length ?? 0)
+  }, [])
+
+  useEffect(() => {
+    fetchCounts()
+  }, [])
+
   const fetchOrders = async () => {
     setIsLoading(true)
     const statuses = STATUS_MAP[activeTab]
-    const results  = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
+    const results = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
     const combined = results.flatMap((r) => r.data || [])
 
     // New tab: sort by when the customer placed the order (oldest first = longest waiting).
@@ -95,20 +119,16 @@ const OrderManagementPage = () => {
     if (!msg?.orderId) return
 
     // QR item ready: auto-switch selected order to Ready tab, or notify if viewing a different order
+    // Toasts for these events are shown globally by ReceptionistNotifier; here we only refresh page data.
     if (msg.newStatus === 'READY' && msg.orderType === 'QR') {
       if (activeTabRef.current === 'COMPLETED') {
         setListRefreshKey((prev) => prev + 1)
       } else if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
         setActiveTab('COMPLETED')
-      } else {
-        toast.info(`Item ready in Order ${msg.orderNumber} — check the Ready tab.`, { autoClose: 5000 })
       }
     }
 
-    // Notify receptionist whenever all items in any order are completed
-    if (msg.orderStatus === 'COMPLETED') {
-      toast.success(`Order ${msg.orderNumber} is ready — kitchen has completed all items.`, { autoClose: 6000 })
-    }
+    fetchCounts()
 
     // Tab switch + detail refresh only for the currently selected order
     if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
@@ -117,7 +137,7 @@ const OrderManagementPage = () => {
         setActiveTab('COMPLETED')
       }
     }
-  }, [])
+  }, [fetchCounts])
 
   useWebSocket(branchId, kitchenItemTopic, handleKitchenItemUpdate)
 
@@ -127,10 +147,8 @@ const OrderManagementPage = () => {
   const handleOrderStatusUpdate = useCallback((msg) => {
     if (!msg?.orderId) return
 
-    // Notify receptionist whenever any order is put on hold by the kitchen
-    if (msg.newStatus === 'ON_HOLD') {
-      toast.warning(`Kitchen put Order ${msg.orderNumber} on hold. Please check the Hold tab.`, { autoClose: 8000 })
-    }
+    // Hold toast is shown globally by ReceptionistNotifier; here we only refresh page data.
+    fetchCounts()
 
     // Tab switch + detail refresh only for the currently selected order
     if (selectedOrderIdRef.current && Number(msg.orderId) === selectedOrderIdRef.current) {
@@ -139,7 +157,7 @@ const OrderManagementPage = () => {
         setActiveTab('ON_HOLD')
       }
     }
-  }, [])
+  }, [fetchCounts])
 
   useWebSocket(branchId, orderStatusTopic, handleOrderStatusUpdate)
 
@@ -148,13 +166,7 @@ const OrderManagementPage = () => {
 
   const handleKitchenAlert = useCallback((msg) => {
     if (!msg?.message) return
-    if (msg.type === 'CRITICAL') {
-      toast.error(`Kitchen CRITICAL: ${msg.message}`, { autoClose: 10000 })
-    } else if (msg.type === 'WARNING') {
-      toast.warning(`Kitchen WARNING: ${msg.message}`, { autoClose: 8000 })
-    } else {
-      toast.info(`Kitchen: ${msg.message}`, { autoClose: 6000 })
-    }
+    // Alert toast is shown globally by ReceptionistNotifier; here we only refresh the alerts badge.
     setAlertsRefreshKey((prev) => prev + 1)
   }, [])
 
@@ -196,13 +208,20 @@ const OrderManagementPage = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 pb-3 pt-1 text-xs font-bold transition-all ${
-                  activeTab === tab.key
+                className={`flex-1 pb-3 pt-1 text-xs font-bold transition-all ${activeTab === tab.key
                     ? 'border-b-2 border-orange-500 text-orange-500'
                     : 'text-gray-400 hover:text-gray-600'
-                }`}
+                  }`}
               >
-                {tab.label}
+                <span className="flex items-center justify-center gap-1">
+                  {tab.label}
+                  {tab.key === 'COMPLETED' && readyCount > 0 && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                  )}
+                  {tab.key === 'ON_HOLD' && holdCount > 0 && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  )}
+                </span>
               </button>
             ))}
           </div>
@@ -214,11 +233,10 @@ const OrderManagementPage = () => {
             <button
               key={f.key}
               onClick={() => setTypeFilter(f.key)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-                typeFilter === f.key
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${typeFilter === f.key
                   ? 'bg-orange-100 text-orange-600'
                   : 'bg-gray-50 text-gray-400 hover:text-gray-600'
-              }`}
+                }`}
             >
               {f.label}
             </button>
@@ -260,6 +278,7 @@ const OrderManagementPage = () => {
             activeTab={activeTab}
             onTabChange={(targetTab) => {
               setActiveTab(targetTab)
+              fetchCounts()
             }}
             refreshKey={detailRefreshKey}
           />

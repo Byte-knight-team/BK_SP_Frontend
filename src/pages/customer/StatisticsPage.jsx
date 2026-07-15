@@ -104,7 +104,7 @@ export default function StatisticsPage() {
 
   return (
     <CustomerPageShell maxWidth="max-w-6xl">
-      <motion.div 
+      <motion.div
         className="space-y-8"
         variants={containerVariants}
         initial="hidden"
@@ -182,32 +182,33 @@ export default function StatisticsPage() {
               <TrendingUp className="w-5 h-5 text-orange-500" />
               Spending Trend (Last 6 Months)
             </h3>
-            
+
             {hasSpendingTrend ? (
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.spendingTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <AreaChart data={data.spendingTrend} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis 
-                      dataKey="month" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: '#64748b', fontSize: 12 }} 
+                    <XAxis
+                      dataKey="month"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#64748b', fontSize: 12 }}
                       dy={10}
                     />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
                       tick={{ fill: '#64748b', fontSize: 12 }}
                       tickFormatter={(value) => `Rs.${value}`}
+                      width={70}
                     />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value) => [formatCurrency(value), 'Spend']}
                       contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
@@ -229,7 +230,7 @@ export default function StatisticsPage() {
               <Utensils className="w-5 h-5 text-orange-500" />
               Your Favorite Dishes
             </h3>
-            
+
             {hasTopItems ? (
               <div className="space-y-4">
                 {data.topItems.map((item, index) => (
@@ -267,10 +268,10 @@ export default function StatisticsPage() {
           {/* Order Type Breakdown */}
           <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
             <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-orange-500" /> {/* Using PieChart icon from lucide? No wait, PieChart is recharts. I should use another icon, let's just use Package2 or a custom icon layout, actually let's use the svg or leave it text. Let's use Package2 */}
+              <Package2 className="w-5 h-5 text-orange-500" />
               How You Order
             </h3>
-            
+
             {hasOrderTypes ? (
               <div className="h-[250px] w-full flex items-center">
                 <ResponsiveContainer width="100%" height="100%">
@@ -288,7 +289,7 @@ export default function StatisticsPage() {
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value, name) => [`${value} Orders`, name]}
                       contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
@@ -316,15 +317,15 @@ export default function StatisticsPage() {
                 <p className="text-2xl font-bold text-orange-600">{data.currentLoyaltyPoints}</p>
               </div>
             </div>
-            
+
             <div className="h-[200px] w-full mt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={loyaltyData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 14, fontWeight: 500 }} />
-                  <Tooltip 
-                    cursor={{fill: '#f8fafc'}}
+                  <Tooltip
+                    cursor={{ fill: '#f8fafc' }}
                     formatter={(value) => [`${value} Points`, '']}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />

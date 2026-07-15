@@ -5,8 +5,9 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL
 export const InventoryService = {
   // 1. Fetches all inventory items for a specific branch.
   getAllItems: async (branchId) => {
+    const branchQuery = branchId ? `branchId=${branchId}&` : ''
     const response = await authFetch(
-      `${BASE_URL}/api/inventory/items?branchId=${branchId}&_t=${Date.now()}`,
+      `${BASE_URL}/api/inventory/items?${branchQuery}_t=${Date.now()}`,
     )
     const result = await response.json()
     // Assuming the backend returns the array in result.data or result
@@ -17,8 +18,9 @@ export const InventoryService = {
    * 2. Fetches the aggregated dashboard metrics.
    */
   getSummary: async (branchId) => {
+    const branchQuery = branchId ? `branchId=${branchId}&` : ''
     const response = await authFetch(
-      `${BASE_URL}/api/inventory/summary?branchId=${branchId}&_t=${Date.now()}`,
+      `${BASE_URL}/api/inventory/summary?${branchQuery}_t=${Date.now()}`,
     )
     const result = await response.json()
     return result.data || result
@@ -75,7 +77,8 @@ export const InventoryService = {
 
   // 7. Get history of inventory updates
   getInventoryLogs: async (branchId) => {
-    const response = await authFetch(`${BASE_URL}/api/inventory/logs?branchId=${branchId}&_t=${Date.now()}`, {
+    const branchQuery = branchId ? `branchId=${branchId}&` : ''
+    const response = await authFetch(`${BASE_URL}/api/inventory/logs?${branchQuery}_t=${Date.now()}`, {
       method: 'GET',
     })
     const result = await response.json()

@@ -1,159 +1,236 @@
 import { jsPDF } from 'jspdf'
 
 export const generateBill = (order) => {
-  const doc = new jsPDF({ unit: 'mm', format: 'a5' })
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
 
   const pageW = doc.internal.pageSize.getWidth()
-  const margin = 15
+  const margin = 18
   const contentW = pageW - margin * 2
-  let y = 15
+  let y = 0
 
-  const centerText = (text, fontSize, style = 'normal') => {
-    doc.setFontSize(fontSize)
-    doc.setFont('helvetica', style)
-    doc.text(text, pageW / 2, y, { align: 'center' })
-    y += fontSize * 0.45
-  }
+  const orange = [234, 88, 12]
+  const lightGray = [245, 245, 245]
+  const midGray = [200, 200, 200]
+  const darkText = [30, 30, 30]
 
-  const leftRight = (left, right, fontSize = 9) => {
-    doc.setFontSize(fontSize)
-    doc.setFont('helvetica', 'normal')
-    doc.text(left, margin, y)
-    doc.text(right, pageW - margin, y, { align: 'right' })
-    y += 5.5
-  }
+  // ── Orange header bar ──
+  doc.setFillColor(...orange)
+  doc.rect(0, 0, pageW, 38, 'F')
 
-  const divider = () => {
-    y += 2
-    doc.setDrawColor(200)
-    doc.line(margin, y, pageW - margin, y)
-    y += 4
-  }
-
-  // ── Header ──
-  centerText('CRAVE HOUSE', 16, 'bold')
-  y += 1
-  centerText('Restaurant Receipt', 9)
-  y += 3
-  divider()
-
-  // ── Order Info ──
-  doc.setFontSize(9)
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(22)
   doc.setFont('helvetica', 'bold')
-  doc.text('ORDER DETAILS', margin, y)
-  y += 5.5
+  doc.text('CRAVE HOUSE', margin, 16)
 
-  leftRight('Order Number:', order.orderNumber)
-  leftRight('Date:', order.placedAt || '—')
-  leftRight('Type:', order.orderType === 'QR'
-    ? 'QR Dine-in'
-    : order.orderType === 'ONLINE_DELIVERY'
-    ? 'Home Delivery'
-    : 'Online Pickup')
-  leftRight('Status:', order.status.replace('_', ' '))
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Restaurant Receipt', margin, 23)
+
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.text(order.orderNumber, pageW - margin, 14, { align: 'right' })
+
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.text('RECEIPT NUMBER', pageW - margin, 20, { align: 'right' })
+
+  const orderType =
+    order.orderType === 'QR'
+      ? 'QR Dine-in'
+      : order.orderType === 'ONLINE_DELIVERY'
+      ? 'Home Delivery'
+      : 'Online Pickup'
+
+  doc.text(orderType.toUpperCase(), pageW - margin, 30, { align: 'right' })
+
+  y = 48
+
+  // ── Order placed / Printed row ──
+  doc.setTextColor(...darkText)
+  doc.setFontSize(8.5)
+  doc.setFont('helvetica', 'normal')
+  doc.text(`Order Placed: ${order.placedAt || '—'}`, margin, y)
+
+  const now = new Date()
+  const printedAt =
+    now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    ', ' +
+    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+  doc.text(`Printed: ${printedAt}`, pageW - margin, y, { align: 'right' })
 
   if (order.orderType === 'QR' && order.tableNumber) {
-    leftRight('Table:', `#${order.tableNumber}`)
+    y += 5.5
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Table: #${order.tableNumber}`, margin, y)
   }
 
-  divider()
+  y += 8
 
-  // ── Customer ──
-  doc.setFontSize(9)
+  // ── Light gray divider ──
+  doc.setDrawColor(...midGray)
+  doc.line(margin, y, pageW - margin, y)
+  y += 8
+
+  // ── BILL TO ──
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
-  doc.text('CUSTOMER', margin, y)
+  doc.setTextColor(...orange)
+  doc.text('BILL TO', margin, y)
   y += 5.5
 
+  doc.setTextColor(...darkText)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.5)
   const customerName = order.contactName || order.customerName || 'Guest'
+  doc.text(customerName, margin, y)
+  y += 5
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
   const customerPhone = order.contactPhone || order.customerPhone || '—'
   const customerEmail = order.contactEmail || order.customerEmail || '—'
+  doc.text(customerPhone, margin, y)
+  y += 4.5
+  doc.text(customerEmail, margin, y)
+  y += 10
 
-  leftRight('Name:', customerName)
-  leftRight('Phone:', customerPhone)
-  leftRight('Email:', customerEmail)
-
-  divider()
-
-  // ── Items ──
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
-  doc.text('ITEMS', margin, y)
-  y += 5.5
+  // ── Items table header ──
+  doc.setFillColor(...lightGray)
+  doc.rect(margin, y - 1, contentW, 8, 'F')
 
   doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
-  doc.text('Item', margin, y)
-  doc.text('Qty', margin + contentW * 0.6, y, { align: 'center' })
-  doc.text('Subtotal', pageW - margin, y, { align: 'right' })
-  y += 4.5
+  doc.setTextColor(...darkText)
+  doc.text('ITEM', margin + 2, y + 4)
+  doc.text('QTY', margin + contentW * 0.62, y + 4, { align: 'center' })
+  doc.text('UNIT PRICE', margin + contentW * 0.78, y + 4, { align: 'center' })
+  doc.text('SUBTOTAL', pageW - margin - 2, y + 4, { align: 'right' })
+  y += 10
 
+  // ── Items ──
   doc.setFont('helvetica', 'normal')
-  order.items.forEach((item) => {
-    doc.setFontSize(9)
+  order.items.forEach((item, index) => {
+    if (index % 2 === 0) {
+      doc.setFillColor(251, 251, 251)
+      doc.rect(margin, y - 4, contentW, 8, 'F')
+    }
+
+    doc.setFontSize(8.5)
+    doc.setTextColor(...darkText)
     const nameLines = doc.splitTextToSize(item.itemName, contentW * 0.58)
-    doc.text(nameLines, margin, y)
-    doc.text(String(item.quantity), margin + contentW * 0.6, y, { align: 'center' })
-    doc.text(`Rs. ${item.subtotal.toFixed(2)}`, pageW - margin, y, { align: 'right' })
+    doc.text(nameLines, margin + 2, y)
+    doc.text(String(item.quantity), margin + contentW * 0.62, y, { align: 'center' })
+
+    const unitPrice = item.subtotal / item.quantity
+    doc.text(`Rs. ${unitPrice.toFixed(2)}`, margin + contentW * 0.78, y, { align: 'center' })
+    doc.text(`Rs. ${item.subtotal.toFixed(2)}`, pageW - margin - 2, y, { align: 'right' })
+
     y += nameLines.length * 5
 
     if (item.kitchenNotes) {
       doc.setFontSize(7.5)
       doc.setTextColor(180, 100, 0)
-      doc.text(`Note: ${item.kitchenNotes}`, margin + 2, y)
-      doc.setTextColor(0)
+      doc.text(`  Note: ${item.kitchenNotes}`, margin + 2, y)
+      doc.setTextColor(...darkText)
       y += 4.5
     }
+
+    y += 2
   })
 
-  divider()
+  y += 4
+  doc.setDrawColor(...midGray)
+  doc.line(margin, y, pageW - margin, y)
+  y += 8
 
-  // ── Payment Summary ──
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
-  doc.text('PAYMENT SUMMARY', margin, y)
-  y += 5.5
+  // ── Payment summary (full width, matching the item table) ──
+  const summaryX = margin
 
+  doc.setFontSize(8.5)
   doc.setFont('helvetica', 'normal')
-  leftRight('Subtotal:', `Rs. ${order.totalAmount.toFixed(2)}`)
+  doc.setTextColor(...darkText)
+
+  const summaryRow = (label, value, bold = false) => {
+    if (bold) doc.setFont('helvetica', 'bold')
+    else doc.setFont('helvetica', 'normal')
+    doc.text(label, summaryX, y)
+    doc.text(value, pageW - margin, y, { align: 'right' })
+    y += 6
+  }
+
+  summaryRow('Subtotal:', `Rs. ${order.totalAmount.toFixed(2)}`)
 
   if (order.taxAmount > 0)
-    leftRight('Tax:', `Rs. ${order.taxAmount.toFixed(2)}`)
+    summaryRow('Tax:', `Rs. ${order.taxAmount.toFixed(2)}`)
 
   if (order.serviceCharge > 0)
-    leftRight('Service Charge:', `Rs. ${order.serviceCharge.toFixed(2)}`)
+    summaryRow('Service Charge:', `Rs. ${order.serviceCharge.toFixed(2)}`)
 
   if (order.discountAmount > 0) {
     const couponLabel = order.appliedCouponCode
       ? `Discount (${order.appliedCouponCode}):`
       : 'Discount:'
-    leftRight(couponLabel, `- Rs. ${order.discountAmount.toFixed(2)}`)
+    summaryRow(couponLabel, `- Rs. ${order.discountAmount.toFixed(2)}`)
   }
 
-  y += 1
-  doc.setDrawColor(200)
-  doc.line(margin, y, pageW - margin, y)
-  y += 4
+  y += 2
+  doc.setFillColor(...orange)
+  doc.rect(summaryX - 2, y - 1, pageW - margin - summaryX + 2, 10, 'F')
 
+  doc.setTextColor(255, 255, 255)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
   const totalLabel = order.status === 'CANCELLED' ? 'Total (Cancelled):' : 'TOTAL:'
-  leftRight(totalLabel, `Rs. ${order.finalAmount.toFixed(2)}`, 10)
+  doc.text(totalLabel, summaryX + 1, y + 6)
+  doc.text(`Rs. ${order.finalAmount.toFixed(2)}`, pageW - margin - 1, y + 6, { align: 'right' })
 
+  y += 16
+
+  doc.setTextColor(...darkText)
   doc.setFontSize(8.5)
   doc.setFont('helvetica', 'normal')
-  const paymentText = order.status === 'CANCELLED'
-    ? 'Cancelled'
-    : order.paymentStatus === 'PENDING'
-    ? 'Cash - Not Yet Collected'
-    : 'Paid'
-  leftRight('Payment:', paymentText)
+  const paymentText =
+    order.status === 'CANCELLED'
+      ? 'Cancelled'
+      : order.paymentStatus === 'PENDING'
+      ? 'Cash — Not Yet Collected'
+      : 'Paid'
+  doc.text('Payment Method:', summaryX, y)
+  doc.setFont('helvetica', 'bold')
+  doc.text(paymentText, pageW - margin, y, { align: 'right' })
+  y += 6
 
-  divider()
+  if (order.cashReceived != null) {
+    doc.setFont('helvetica', 'normal')
+    doc.text('Cash Received:', summaryX, y)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Rs. ${Number(order.cashReceived).toFixed(2)}`, pageW - margin, y, { align: 'right' })
+    y += 6
+
+    doc.setFont('helvetica', 'normal')
+    doc.text('Change Returned:', summaryX, y)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(22, 163, 74)
+    doc.text(`Rs. ${Number(order.changeReturned ?? 0).toFixed(2)}`, pageW - margin, y, { align: 'right' })
+    doc.setTextColor(...darkText)
+    y += 6
+  }
+
+  y += 10
 
   // ── Footer ──
-  centerText('Thank you for choosing Crave House!', 8)
-  y += 1
-  centerText('Please visit us again.', 8)
+  doc.setDrawColor(...midGray)
+  doc.line(margin, y, pageW - margin, y)
+  y += 8
+
+  doc.setFontSize(8.5)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...orange)
+  doc.text('Thank you for choosing Crave House!', pageW / 2, y, { align: 'center' })
+  y += 5
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(120, 120, 120)
+  doc.text('Please visit us again.', pageW / 2, y, { align: 'center' })
 
   doc.save(`receipt-${order.orderNumber}.pdf`)
 }

@@ -17,24 +17,24 @@ import CancelOrderModal from './CancelOrderModal'
 import CollectPaymentModal from './CollectPaymentModal'
 
 const ITEM_STATUS_STYLES = {
-  PENDING:   'bg-orange-50 text-orange-500 border border-orange-100',
+  PENDING: 'bg-orange-50 text-orange-500 border border-orange-100',
   PREPARING: 'bg-blue-50 text-blue-500 border border-blue-100',
-  READY:     'bg-green-50 text-green-600 border border-green-100',
-  SERVED:    'bg-gray-100 text-gray-400 border border-gray-200',
-  ON_HOLD:   'bg-gray-100 text-gray-500 border border-gray-200',
+  READY: 'bg-green-50 text-green-600 border border-green-100',
+  SERVED: 'bg-gray-100 text-gray-400 border border-gray-200',
+  ON_HOLD: 'bg-gray-100 text-gray-500 border border-gray-200',
 }
 
 const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) => {
-  const [order, setOrder]     = useState(null)
+  const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isActing, setIsActing] = useState(false)
 
-  const [servingItemId, setServingItemId] = useState(null)
+  const [servingItemIds, setServingItemIds] = useState(new Set())
   const [cashCollected, setCashCollected] = useState(false)
 
   const [isKitchenOpen, setIsKitchenOpen] = useState(false)
-  const [isHoldOpen, setIsHoldOpen]       = useState(false)
-  const [isCancelOpen, setIsCancelOpen]   = useState(false)
+  const [isHoldOpen, setIsHoldOpen] = useState(false)
+  const [isCancelOpen, setIsCancelOpen] = useState(false)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
   useEffect(() => {
@@ -95,9 +95,9 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
     setIsActing(false)
   }
 
-  const handleCollectPayment = async () => {
+  const handleCollectPayment = async (cashReceived) => {
     setIsActing(true)
-    const { error } = await collectPaymentAPI(orderId)
+    const { error } = await collectPaymentAPI(orderId, cashReceived)
     if (error) toast.error(error)
     else {
       toast.success('Payment collected!')
@@ -121,11 +121,11 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
   }
 
   const handleServeItem = async (itemId) => {
-    setServingItemId(itemId)
+    setServingItemIds(prev => new Set([...prev, itemId]))
     const { error } = await serveOrderItemAPI(itemId)
     if (error) {
       toast.error(error)
-      setServingItemId(null)
+      setServingItemIds(prev => { const s = new Set(prev); s.delete(itemId); return s })
       return
     }
     toast.success('Item served!')
@@ -134,7 +134,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
       setOrder(data)
       if (data.status === 'SERVED' && activeTab === 'COMPLETED') onTabChange('SERVED')
     }
-    setServingItemId(null)
+    setServingItemIds(prev => { const s = new Set(prev); s.delete(itemId); return s })
   }
 
   if (loading) return (
@@ -145,11 +145,11 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
 
   if (!order) return null
 
-  const isQR        = order.orderType === 'QR'
-  const isDelivery  = order.orderType === 'ONLINE_DELIVERY'
-  const isCashDue   = order.paymentStatus === 'PENDING'
+  const isQR = order.orderType === 'QR'
+  const isDelivery = order.orderType === 'ONLINE_DELIVERY'
+  const isCashDue = order.paymentStatus === 'PENDING'
   const isCancelled = order.status === 'CANCELLED'
-  const isOnHold    = order.status === 'ON_HOLD'
+  const isOnHold = order.status === 'ON_HOLD'
 
   // Collect cash only at the moment money should change hands:
   // — Pickup: when kitchen marks order COMPLETED (ready to hand over)
@@ -170,12 +170,11 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
             <h2 className={`text-lg font-bold ${isCancelled ? 'text-gray-400' : 'text-gray-900'}`}>
               {order.orderNumber}
             </h2>
-            <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${
-              isCancelled   ? 'bg-gray-100 text-gray-400 border border-gray-200'
-              : isQR        ? 'bg-purple-50 text-purple-600 border border-purple-100'
-              : isDelivery  ? 'bg-teal-50 text-teal-600 border border-teal-100'
-              :                'bg-blue-50 text-blue-600 border border-blue-100'
-            }`}>
+            <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tight ${isCancelled ? 'bg-gray-100 text-gray-400 border border-gray-200'
+                : isQR ? 'bg-purple-50 text-purple-600 border border-purple-100'
+                  : isDelivery ? 'bg-teal-50 text-teal-600 border border-teal-100'
+                    : 'bg-blue-50 text-blue-600 border border-blue-100'
+              }`}>
               {isQR ? <Monitor size={10} /> : isDelivery ? <Truck size={10} /> : <ShoppingBag size={10} />}
               {isQR ? 'QR Dine-in' : isDelivery ? 'Home Delivery' : 'Online Pickup'}
             </span>
@@ -189,20 +188,20 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
               onClick={() => setIsPaymentOpen(true)}
               className="rounded-2xl bg-green-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-200 hover:bg-green-600"
             >
-              Collect Cash — Rs. {order.finalAmount.toFixed(2)}
+              Collect Cash: Rs. {order.finalAmount.toFixed(2)}
             </button>
           )}
           {cashCollected && !isCancelled && (
             ((!isQR && !isDelivery && order.status === 'COMPLETED') ||
-            (isQR && order.status === 'SERVED'))
+              (isQR && order.status === 'SERVED'))
           ) && (
-            <button
-              onClick={() => generateBill(order)}
-              className="flex items-center gap-1.5 rounded-2xl border border-gray-200 px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
-            >
-              <FileDown size={14} /> Download Bill
-            </button>
-          )}
+              <button
+                onClick={() => generateBill(order)}
+                className="flex items-center gap-1.5 rounded-2xl border border-gray-200 px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
+              >
+                <FileDown size={14} /> Download Bill
+              </button>
+            )}
         </div>
       </div>
 
@@ -311,9 +310,8 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
                   </td>
                   {!isCancelled && order.status !== 'SERVED' && (
                     <td className="px-3 py-2 text-right">
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
-                        ITEM_STATUS_STYLES[item.status] || 'bg-gray-100 text-gray-400'
-                      }`}>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${ITEM_STATUS_STYLES[item.status] || 'bg-gray-100 text-gray-400'
+                        }`}>
                         {item.status}
                       </span>
                     </td>
@@ -323,14 +321,14 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
                       {item.status === 'READY' ? (
                         <button
                           onClick={() => handleServeItem(item.id)}
-                          disabled={servingItemId === item.id}
+                          disabled={servingItemIds.has(item.id)}
                           className="rounded-xl bg-green-500 px-3 py-1 text-xs font-bold text-white hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed">
                           Serve
                         </button>
                       ) : item.status === 'SERVED' ? (
                         <span className="text-xs text-gray-400">Done</span>
                       ) : (
-                        <span className="text-xs text-gray-300">—</span>
+                        <span className="text-xs text-gray-300">-</span>
                       )}
                     </td>
                   )}
@@ -371,16 +369,27 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
         </div>
         <div className="flex justify-between text-xs">
           <span className="text-gray-400">Payment</span>
-          <span className={`font-bold ${
-            isCancelled ? 'text-gray-400'
-            : isCashDue ? (isDelivery ? 'text-teal-600' : 'text-orange-500')
-            : 'text-green-600'
-          }`}>
-            {isCancelled ? '— Cancelled'
-              : isCashDue ? (isDelivery ? 'Cash on Delivery' : 'Cash — Not Yet Collected')
-              : '✓ Paid'}
+          <span className={`font-bold ${isCancelled ? 'text-gray-400'
+              : isCashDue ? (isDelivery ? 'text-teal-600' : 'text-orange-500')
+                : 'text-green-600'
+            }`}>
+            {isCancelled ? 'Cancelled'
+              : isCashDue ? (isDelivery ? 'Cash on Delivery' : 'Cash: Not Yet Collected')
+                : '✓ Paid'}
           </span>
         </div>
+        {order.cashReceived != null && (
+          <>
+            <div className="flex justify-between text-xs text-gray-500 border-t border-gray-200 pt-1.5 mt-1">
+              <span>Cash Received</span>
+              <span className="font-bold">Rs. {order.cashReceived.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-500">Change Returned</span>
+              <span className="font-bold text-green-600">Rs. {order.changeReturned?.toFixed(2) ?? '0.00'}</span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* KITCHEN NOTES */}
@@ -419,18 +428,17 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
 
         {order.status === 'COMPLETED' && !isQR && !isDelivery && (
           <button onClick={handleServeOrder} disabled={isActing || isCashDue}
-            className={`w-full rounded-2xl py-3 text-sm font-bold text-white transition-all ${
-              isCashDue || isActing
+            className={`w-full rounded-2xl py-3 text-sm font-bold text-white transition-all ${isCashDue || isActing
                 ? 'bg-gray-300 cursor-not-allowed'
                 : 'bg-green-500 shadow-lg shadow-green-200 hover:bg-green-600 cursor-pointer'
-            }`}>
+              }`}>
             {isCashDue ? 'Collect Payment First' : 'Hand Over & Complete ✓'}
           </button>
         )}
 
         {order.status === 'COMPLETED' && isDelivery && (
           <div className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-xs font-semibold text-gray-400">
-            Ready for delivery — the manager will assign a driver from the delivery dashboard.
+            Ready for delivery. The manager will assign a driver from the delivery dashboard.
           </div>
         )}
       </div>

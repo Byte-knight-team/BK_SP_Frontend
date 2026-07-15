@@ -1,19 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { CalendarDays, CircleDot, Sparkles } from 'lucide-react';
+import { CalendarDays, CircleDot, Sparkles, AlertTriangle, Settings2 } from 'lucide-react';
+import { createCouponAPI } from '../../apis/admin/coupon';
 
 const initialFormState = {
   couponCode: '',
-  couponType: '',
+  description: '',
   startDate: '',
   expirationDate: '',
   discountType: '',
   discountValue: '',
   usageLimit: '100',
-  platform: 'all',
-  maxDiscount: '100',
-  minPurchase: '',
-  minimumPurchaseAmount: '0',
-  maximumDiscountAmount: '0',
+  maxDiscount: '',
+  minOrderAmount: '',
 };
 
 const codeAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -32,15 +30,16 @@ const createCouponCode = (length = 10) => {
 // Admin page for creating and configuring coupon campaigns.
 export default function CouponsPage() {
   const [formData, setFormData] = useState(initialFormState);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'warning' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const canCreateCoupon = useMemo(() => {
     return (
       formData.couponCode.trim().length > 0
-      && formData.couponType.trim().length > 0
       && formData.startDate.trim().length > 0
       && formData.expirationDate.trim().length > 0
       && formData.discountType.trim().length > 0
-      && formData.discountValue.trim().length > 0
+      && formData.discountValue.toString().trim().length > 0
     );
   }, [formData]);
 
@@ -59,17 +58,55 @@ export default function CouponsPage() {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Reserved for API integration when coupon endpoints are available.
-    console.log('Coupon payload', formData);
+    if (!canCreateCoupon) return;
+
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        code: formData.couponCode,
+        description: formData.description,
+        discountType: formData.discountType === 'percentage' ? 'PERCENT' : 'FIXED',
+        discountValue: parseFloat(formData.discountValue),
+        minOrderAmount: formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : null,
+        maxDiscount: formData.maxDiscount ? parseFloat(formData.maxDiscount) : null,
+        startDate: formData.startDate,
+        expirationDate: formData.expirationDate,
+        usageLimit: formData.usageLimit === 'unlimited' ? null : parseInt(formData.usageLimit),
+      };
+
+      await createCouponAPI(payload);
+      
+      setAlertModal({
+        isOpen: true,
+        title: 'Success',
+        message: 'Coupon has been created successfully.',
+        type: 'success',
+      });
+      setFormData(initialFormState);
+    } catch (error) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Error',
+        message: error.message || 'Failed to create coupon',
+        type: 'error',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="bg-[#FAFAFA] font-sans px-10 pb-10">
-      <div className="mb-8 mt-4">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create New Coupon</h1>
-        <p className="text-gray-500 text-sm mt-1">Fill in the details below to create a new coupon</p>
+      <div className="mb-8 mt-4 flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-orange-50 text-orange-600">
+          <Settings2 size={22} />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Create New Coupon</h3>
+          <p className="mt-1 text-sm text-gray-500">Fill in the details below to create a new coupon</p>
+        </div>
       </div>
 
       <form
@@ -108,20 +145,16 @@ export default function CouponsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Coupon Types</label>
-            <select
-              name="couponType"
-              value={formData.couponType}
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+            <input
+              type="text"
+              name="description"
+              value={formData.description}
               onChange={updateField}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all appearance-none cursor-pointer"
-            >
-              <option value="">Select Audiences</option>
-              <option value="all-customers">All Customers</option>
-              <option value="new-customers">New Customers</option>
-              <option value="premium-members">Premium Members</option>
-              <option value="birthday-offer">Birthday Offer</option>
-            </select>
-            <p className="mt-1 text-xs text-gray-500">Identify the target audience for this coupon</p>
+              placeholder="e.g. 10% off for all orders"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+            />
+            <p className="mt-1 text-xs text-gray-500">Brief description of the coupon's purpose</p>
           </div>
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -175,6 +208,7 @@ export default function CouponsPage() {
               <input
                 type="number"
                 min="0"
+                step="0.01"
                 name="discountValue"
                 value={formData.discountValue}
                 onChange={updateField}
@@ -202,99 +236,72 @@ export default function CouponsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Platform</label>
-              <select
-                name="platform"
-                value={formData.platform}
-                onChange={updateField}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all appearance-none cursor-pointer"
-              >
-                <option value="all">All Platform</option>
-                <option value="web">Web</option>
-                <option value="mobile">Mobile</option>
-                <option value="in-store">In-Store</option>
-              </select>
-              <p className="mt-1 text-xs text-gray-500">Apply to all platforms if none selected</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Max Discount</label>
-              <input
-                type="number"
-                min="0"
-                name="maxDiscount"
-                value={formData.maxDiscount}
-                onChange={updateField}
-                placeholder="Enter Max Discount"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
-              />
-              <p className="mt-1 text-xs text-gray-500">Maximum discount that can be applied with this coupon</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Min Purchase</label>
-              <input
-                type="number"
-                min="0"
-                name="minPurchase"
-                value={formData.minPurchase}
-                onChange={updateField}
-                placeholder="Enter Min Purchase"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
-              />
-              <p className="mt-1 text-xs text-gray-500">Minimum purchase amount required to use this coupon</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Minimum Purchase Amount</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Max Discount Amount (Optional)</label>
               <div className="relative">
                 <input
                   type="number"
                   min="0"
-                  name="minimumPurchaseAmount"
-                  value={formData.minimumPurchaseAmount}
+                  step="0.01"
+                  name="maxDiscount"
+                  value={formData.maxDiscount}
                   onChange={updateField}
+                  placeholder="No Limit"
                   className="w-full px-4 py-3 pr-8 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
               </div>
-              <p className="mt-1 text-xs text-gray-500">Minimum order amount required (0 for no minimum)</p>
+              <p className="mt-1 text-xs text-gray-500">Maximum discount amount (leave empty for unlimited)</p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Maximum Discount Amount</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Minimum Order Amount (Optional)</label>
               <div className="relative">
                 <input
                   type="number"
                   min="0"
-                  name="maximumDiscountAmount"
-                  value={formData.maximumDiscountAmount}
+                  step="0.01"
+                  name="minOrderAmount"
+                  value={formData.minOrderAmount}
                   onChange={updateField}
+                  placeholder="0.00"
                   className="w-full px-4 py-3 pr-8 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
               </div>
-              <p className="mt-1 text-xs text-gray-500">Maximum discount amount (0 for unlimited)</p>
+              <p className="mt-1 text-xs text-gray-500">Minimum order amount required to use this coupon</p>
             </div>
           </div>
         </div>
 
-        <div className="pt-8 mt-8 border-t border-gray-100 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            className="px-6 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
-          >
-            Continue to Advanced Settings
-          </button>
+        <div className="pt-8 mt-8 border-t border-gray-100 flex justify-end">
           <button
             type="submit"
-            disabled={!canCreateCoupon}
+            disabled={!canCreateCoupon || isSubmitting}
             className="px-6 py-2.5 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Create Coupon
+            {isSubmitting ? 'Creating...' : 'Create Coupon'}
           </button>
         </div>
       </form>
+
+      {/* Alert Modal */}
+      {alertModal.isOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[1.5rem] w-full max-w-sm p-6 shadow-xl text-center">
+            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${alertModal.type === 'error' ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'}`}>
+              <AlertTriangle size={32} />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{alertModal.title}</h2>
+            <p className="text-gray-500 text-sm mb-8">{alertModal.message}</p>
+            <button 
+              onClick={() => setAlertModal({ isOpen: false, title: '', message: '', type: 'warning' })}
+              className="w-full px-5 py-3 rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

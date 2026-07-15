@@ -65,6 +65,41 @@ function PlacesSearch({ onPlaceSelect }) {
 }
 
 /**
+ * "Locate Me" Button
+ * Must be rendered inside <APIProvider> to use `useMap()`.
+ */
+function LocateMeButton() {
+  const map = useMap();
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleLocateMe = useCallback(() => {
+    if (!navigator.geolocation || !map) return;
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const newCenter = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        map.panTo(newCenter);
+        map.setZoom(17);
+        setIsLocating(false);
+      },
+      () => setIsLocating(false),
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }, [map]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleLocateMe}
+      className="location-picker-locate-btn"
+      disabled={isLocating}
+    >
+      <Crosshair size={18} className={isLocating ? 'animate-spin' : ''} />
+    </button>
+  );
+}
+
+/**
  * Full-screen modal with a Google Map + center-locked pin.
  * The user drags the map under the pin; on "Confirm", the center coordinates are returned.
  *
@@ -78,33 +113,6 @@ export default function LocationPickerModal({ isOpen, onClose, onConfirm, initia
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_CUSTOMER_API_KEY;
   const [center, setCenter] = useState(initialCenter || DEFAULT_CENTER);
   const [selectedAddress, setSelectedAddress] = useState('');
-  const [isLocating, setIsLocating] = useState(false);
-  const mapRef = useRef(null);
-
-  // ── Attempt to get user's current GPS location ──
-  const handleLocateMe = useCallback(() => {
-    if (!navigator.geolocation) return;
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const newCenter = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setCenter(newCenter);
-        setSelectedAddress('');
-        mapRef.current?.panTo(newCenter);
-        mapRef.current?.setZoom(17);
-        setIsLocating(false);
-      },
-      () => setIsLocating(false),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  }, []);
-
-  // ── Auto-locate on first open ──
-  useEffect(() => {
-    if (isOpen && !initialCenter) {
-      handleLocateMe();
-    }
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Handle map camera changes (user dragging) ──
   const handleCameraChanged = useCallback((ev) => {
@@ -162,28 +170,19 @@ export default function LocationPickerModal({ isOpen, onClose, onConfirm, initia
               zoomControl={true}
               mapId="delivery-location-picker"
               onCameraChanged={handleCameraChanged}
-              ref={mapRef}
               style={{ width: '100%', height: '100%' }}
             />
 
             {/* Search bar floating over map */}
             <PlacesSearch onPlaceSelect={handlePlaceSelect} />
+            {/* "Locate Me" GPS button (now inside APIProvider so it works!) */}
+            <LocateMeButton />
           </APIProvider>
 
           {/* Center pin (fixed in the middle of the map) */}
           <div className="location-picker-center-pin">
             <MapPin size={36} strokeWidth={2.5} color="#EA580C" fill="#FFF7F2" />
           </div>
-
-          {/* "Locate Me" GPS button */}
-          <button
-            type="button"
-            onClick={handleLocateMe}
-            className="location-picker-locate-btn"
-            disabled={isLocating}
-          >
-            <Crosshair size={18} className={isLocating ? 'animate-spin' : ''} />
-          </button>
         </div>
 
         {/* Footer with Confirm */}

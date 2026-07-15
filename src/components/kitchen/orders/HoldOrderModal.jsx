@@ -55,7 +55,7 @@ const HoldOrderModal = ({ isOpen, onClose, onConfirm }) => {
           <button
             onClick={handleConfirm}
             disabled={!reason.trim() || loading}
-            className="flex-1 rounded-2xl bg-red-500 py-4 text-sm font-bold text-white shadow-lg shadow-red-200 transition-all hover:bg-red-600 disabled:bg-gray-200 disabled:shadow-none"
+            className="flex-1 rounded-2xl bg-red-500 py-4 text-sm font-bold text-white shadow-lg shadow-red-200 transition-all hover:bg-red-600 disabled:bg-gray-200 disabled:shadow-none disabled:cursor-not-allowed"
           >
             {loading ? "Processing..." : "Confirm Hold"}
           </button>

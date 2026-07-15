@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
+import GlobalNotificationProvider from './context/GlobalNotificationProvider'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import './index.css'
@@ -22,12 +23,15 @@ import ManagerHeader from './components/manager/ManagerHeader'
 
 import KitchenSidebar from './components/kitchen/KitchenSidebar'
 import KitchenHeader from './components/kitchen/KitchenHeader'
+import KitchenNotifier from './components/kitchen/KitchenNotifier'
 
 import LineChefSidebar from './components/line-chef/LineChefSidebar'
 import LineChefHeader from './components/line-chef/LineChefHeader'
+import LineChefNotifier from './components/line-chef/LineChefNotifier'
 
 import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
+import ReceptionistNotifier from './components/receptionist/ReceptionistNotifier'
 
 import DeliverySidebar from './components/delivery/DeliverySidebar'
 import DeliveryHeader from './components/delivery/DeliveryHeader'
@@ -56,6 +60,10 @@ import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
 import CustomerManagement from "./pages/superadmin/CustomerManagement";
 import CustomerDetailsPage from "./pages/superadmin/CustomerDetailsPage";
+import CategoryManagementPage from "./pages/superadmin/CategoryManagementPage";
+import CreateCategoryPage from "./pages/superadmin/CreateCategoryPage";
+import EditCategoryPage from "./pages/superadmin/EditCategoryPage";
+import CategoryDetailsPage from "./pages/superadmin/CategoryDetailsPage";
 
 // Manager pages
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
@@ -74,9 +82,9 @@ import DeliveryOrderDetailPage from './pages/delivery/DeliveryOrderDetailPage'
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import MenuManagementPage from './pages/admin/MenuManagementPage'
+import MenuUpdateRequestsPage from './pages/admin/MenuUpdateRequestsPage'
 import AddCategoryPage from './pages/admin/AddCategoryPage'
-import AddMenuItemPage from './pages/admin/AddMenuItemPage'
-import EditMenuItemPage from './pages/admin/EditMenuItemPage'
+import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
 import AddTablePage from './pages/admin/AddTablePage'
 import TableQrPage from './pages/admin/TableQrPage'
@@ -98,17 +106,19 @@ import MobileVerificationPage from './pages/customer/MobileVerificationPage'
 import OtpVerificationPage from './pages/customer/OtpVerificationPage'
 import AccountPage from './pages/customer/AccountPage'
 import OrdersPage from './pages/customer/OrdersPage'
+import VerifyEmailPage from './pages/customer/VerifyEmailPage'
 import StatisticsPage from './pages/customer/StatisticsPage'
 import ScanPage from './pages/customer/ScanPage'
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
-
+import CustomerReservationsListPage from './pages/customer/CustomerReservationsListPage'
+import CustomerReservationDetailPage from './pages/customer/ReservationDetailPage'
 // Kitchen pages
 import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
 import ChefsPage from './pages/kitchen/ChefsPage'
 import InventoryPage from './pages/kitchen/InventoryPage'
+import InventoryRequestsPage from './pages/kitchen/InventoryRequestsPage'
 import MenuItemPage from './pages/kitchen/MenuItemPage'
-import ApprovalsPage from './pages/kitchen/ApprovalsPage'
 
 // Line Chef pages
 import LineChefDashboard from './pages/line-chef/LineChefDashboard'
@@ -117,6 +127,7 @@ import LineChefDashboard from './pages/line-chef/LineChefDashboard'
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
 import OrderManagementPage from './pages/receptionist/OrderManagementPage'
+import ReservationsPage from './pages/receptionist/ReservationsPage'
 
 
 
@@ -140,7 +151,7 @@ function AuthGuard() {
       localStorage.removeItem('qr_session_token')
       localStorage.removeItem('qr_branch_id')
       localStorage.removeItem('qr_table_id')
-      
+
       // Auto-logout customer when QR session drops
       localStorage.removeItem('customer_jwt')
       localStorage.removeItem('customer_role')
@@ -164,12 +175,11 @@ const queryClient = new QueryClient({
 
 function CustomerLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <AuthGuard />
-        <Outlet />
-      </CartProvider>
-    </QueryClientProvider>
+    <CartProvider>
+      <AuthGuard />
+      <GlobalNotificationProvider />
+      <Outlet />
+    </CartProvider>
   )
 }
 
@@ -185,7 +195,7 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <ScrollToTop />
       <Routes>
         {/* Public common staff login */}
@@ -230,6 +240,10 @@ export default function App() {
 
           <Route path="/staff/customers" element={<CustomerManagement />} />
           <Route path="/staff/customers/:id" element={<CustomerDetailsPage />} />
+          <Route path="categories" element={<CategoryManagementPage />} />
+          <Route path="categories/create" element={<CreateCategoryPage />} />
+          <Route path="categories/:id" element={<CategoryDetailsPage />} />
+          <Route path="categories/:id/edit" element={<EditCategoryPage />} />
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
@@ -263,8 +277,8 @@ export default function App() {
           <Route path="tables/:tableId/qr" element={<TableQrPage />} />
           <Route path="menu" element={<MenuManagementPage />} />
           <Route path="menu/category/add" element={<AddCategoryPage />} />
-          <Route path="menu/add" element={<AddMenuItemPage />} />
-          <Route path="menu/edit" element={<EditMenuItemPage />} />
+          <Route path="menu/:id" element={<MenuItemDetailsPage />} />
+          <Route path="menu-requests" element={<MenuUpdateRequestsPage />} />
           <Route path="coupons" element={<CouponsPage />} />
 
           <Route path="*" element={<Navigate to="/admin" replace />} />
@@ -374,6 +388,18 @@ export default function App() {
             }
           />
           <Route
+            path="/verify-email"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/verify-email"
+                unauthenticatedRedirect="/login?redirect=/verify-email"
+              >
+                <VerifyEmailPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
             path="/statistics"
             element={
               <CustomerProtectedRoute
@@ -394,6 +420,30 @@ export default function App() {
                 unauthenticatedRedirect="/login?redirect=/orders"
               >
                 <OrdersPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/reservations"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/reservations"
+                unauthenticatedRedirect="/login?redirect=/reservations"
+              >
+                <CustomerReservationsListPage />
+              </CustomerProtectedRoute>
+            }
+          />
+          <Route
+            path="/reservations/:id"
+            element={
+              <CustomerProtectedRoute
+                requireCustomerJwt
+                qrOnlyRedirect="/signup/qr?redirect=/reservations"
+                unauthenticatedRedirect="/login?redirect=/reservations"
+              >
+                <CustomerReservationDetailPage />
               </CustomerProtectedRoute>
             }
           />
@@ -422,6 +472,8 @@ export default function App() {
           path="/kitchen"
           element={
             <ProtectedRoute allowedRoles={['CHEF']}>
+              {/* Global kitchen notifications — active on every /kitchen page */}
+              <KitchenNotifier />
               <MainLayout Sidebar={KitchenSidebar} Header={KitchenHeader} />
             </ProtectedRoute>
           }
@@ -430,8 +482,8 @@ export default function App() {
           <Route path="orders" element={<KitchenOrdersPage />} />
           <Route path="chefs" element={<ChefsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
+          <Route path="requests" element={<InventoryRequestsPage />} />
           <Route path="menu" element={<MenuItemPage />} />
-          <Route path="approvals" element={<ApprovalsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/kitchen" replace />} />
@@ -441,6 +493,8 @@ export default function App() {
           path="/receptionist"
           element={
             <ProtectedRoute allowedRoles={['RECEPTIONIST']}>
+              {/* Global receptionist notifications — active on every /receptionist page */}
+              <ReceptionistNotifier />
               <MainLayout
                 Sidebar={ReceptionistSidebar}
                 Header={ReceptionistHeader}
@@ -451,6 +505,7 @@ export default function App() {
           <Route index element={<ReceptionistDashboardPage />} />
           <Route path="tables" element={<ReceptionistTablePage />} />
           <Route path="orders" element={<OrderManagementPage />} />
+          <Route path="reservations" element={<ReservationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/receptionist" replace />} />
@@ -461,6 +516,8 @@ export default function App() {
           path="/line-chef"
           element={
             <ProtectedRoute allowedRoles={['LINE_CHEF']}>
+              {/* Global line-chef notifications — active on every line-chef page */}
+              <LineChefNotifier />
               <MainLayout Sidebar={LineChefSidebar} Header={LineChefHeader} />
             </ProtectedRoute>
           }
@@ -485,6 +542,6 @@ export default function App() {
         draggable
         limit={3}
       />
-    </>
+    </QueryClientProvider>
   )
 }

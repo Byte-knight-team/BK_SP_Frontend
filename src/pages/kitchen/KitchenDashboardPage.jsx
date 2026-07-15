@@ -26,20 +26,20 @@ const KitchenDashboardPage = () => {
         <Stats />
       </div>
 
-      {/* MIDDLE CONTENT */}
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+      {/* MIDDLE CONTENT — chart gets 2x width, side cards stay narrow */}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-4">
         {/* SECTION: POPULAR MEALS */}
-        <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="h-[420px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-1">
           <MostPopularMeals />
         </div>
 
         {/* SECTION: PEAK HOURS */}
-        <div className="flex flex-col gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="h-[420px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-2">
           <PeakHoursChart />
         </div>
 
         {/* KITCHEN ALERTS CARD */}
-        <div className="flex flex-col gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="h-[420px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-1">
           <ActiveAlertsCard />
         </div>
       </div>
@@ -47,20 +47,20 @@ const KitchenDashboardPage = () => {
       {/* BOTTOM CONTENT */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* SECTION: PENDING ORDERS */}
-        <div className="rounded-2xl border border-gray-50 bg-white p-4 shadow-sm lg:col-span-1">
+        <div className="h-[420px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <PendingOrders />
         </div>
 
         {/* SECTION: PREPARING ORDERS */}
-        <div className="rounded-2xl border border-gray-50 bg-white p-4 shadow-sm lg:col-span-1">
+        <div className="h-[420px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <PreparingOrders />
         </div>
 
         {/* SECTION: INVENTORY ALERTS */}
-        <div className="rounded-2xl border border-gray-50 bg-white p-6 shadow-sm lg:col-span-1">
+        <div className="h-[420px] rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <InventoryAlerts />
         </div>
-        
+
       </div>
     </div>
   )

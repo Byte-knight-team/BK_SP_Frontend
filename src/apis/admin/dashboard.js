@@ -14,7 +14,7 @@ const ORDER_FLOW_ENDPOINTS = [
 ];
 
 const REVENUE_TREND_ENDPOINTS = [
-  `${API_BASE}/api/admin/dashboard/revenue-trend?days=7`,
+  `${API_BASE}/api/admin/dashboard/revenue-trend`,
 ];
 
 const toNumber = (value, fallback = 0) => {
@@ -106,12 +106,12 @@ export const getAdminDashboardOrderFlowAPI = async () => {
   };
 };
 
-export const getAdminDashboardRevenueTrendAPI = async () => {
+export const getAdminDashboardRevenueTrendAPI = async (days = 7) => {
   let lastError = null;
 
   for (const endpoint of REVENUE_TREND_ENDPOINTS) {
     try {
-      const response = await authFetch(endpoint);
+      const response = await authFetch(`${endpoint}?days=${days}`);
 
       if (!response.ok) {
         lastError = new Error(`Request failed with status ${response.status}`);
