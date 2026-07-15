@@ -15,6 +15,8 @@ export default function TableManagementPage() {
   const [editingTable, setEditingTable] = useState(null);
   const [isAddTableModalOpen, setIsAddTableModalOpen] = useState(false);
   const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'warning' });
+  const [toggleConfirmModal, setToggleConfirmModal] = useState({ isOpen: false, table: null });
+  const [availabilityFilter, setAvailabilityFilter] = useState('ALL');
   
   const [tables, setTables] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,6 +51,11 @@ export default function TableManagementPage() {
     if (activeStatusFilter !== 'ALL') {
       if (table.status !== activeStatusFilter) return false;
     }
+    
+    // Availability filter
+    if (availabilityFilter === 'ACTIVE' && table.isAvailable === false) return false;
+    if (availabilityFilter === 'INACTIVE' && table.isAvailable !== false) return false;
+
     // Search query filter
     if (!searchQuery.trim()) return true;
     const query = searchQuery.trim().toLowerCase();
@@ -69,9 +76,8 @@ export default function TableManagementPage() {
     if (editingTable) {
       try {
         const updatedTable = await updateTableAPI(editingTable.id, {
-          tableNumber: editingTable.tableNumber,
           capacity: editingTable.capacity,
-          status: editingTable.status,
+          tableNumber: editingTable.tableNumber,
         });
 
         setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
@@ -83,6 +89,31 @@ export default function TableManagementPage() {
           message: error?.message || 'Failed to update table',
           type: 'error',
         });
+      }
+    }
+  };
+
+  const handleToggleClick = (table) => {
+    setToggleConfirmModal({ isOpen: true, table: table });
+  };
+
+  const confirmToggle = async () => {
+    const tableToToggle = toggleConfirmModal.table;
+    if (tableToToggle) {
+      try {
+        const updatedTable = await updateTableAPI(tableToToggle.id, {
+          isAvailable: tableToToggle.isAvailable === false ? true : false
+        });
+        setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
+        setToggleConfirmModal({ isOpen: false, table: null });
+      } catch (error) {
+        setAlertModal({
+          isOpen: true,
+          title: 'Error',
+          message: error?.message || 'Failed to update table availability',
+          type: 'error',
+        });
+        setToggleConfirmModal({ isOpen: false, table: null });
       }
     }
   };
@@ -192,6 +223,15 @@ export default function TableManagementPage() {
             </div>
             
             <div className="flex items-center gap-3">
+              <select 
+                value={availabilityFilter}
+                onChange={(e) => setAvailabilityFilter(e.target.value)}
+                className="bg-white border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 outline-none focus:border-orange-300 shadow-sm"
+              >
+                <option value="ALL">All Tables</option>
+                <option value="ACTIVE">Active Only</option>
+                <option value="INACTIVE">Inactive Only</option>
+              </select>
               <div className="flex bg-white rounded-xl border border-gray-100 p-1 shadow-sm">
                 <button 
                   onClick={() => setViewMode('grid')}
@@ -227,6 +267,18 @@ export default function TableManagementPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold ${getStatusColor(table.status)}`}>
                       {table.id}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {table.isAvailable === false ? (
+                        <span className="px-2 py-1 bg-red-50 text-red-600 text-[10px] font-bold rounded-md uppercase tracking-wider">Inactive</span>
+                      ) : (
+                        <span className="px-2 py-1 bg-green-50 text-green-600 text-[10px] font-bold rounded-md uppercase tracking-wider">Active</span>
+                      )}
+                      
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" checked={table.isAvailable !== false} onChange={() => handleToggleClick(table)} />
+                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#FF6B00]"></div>
+                      </label>
                     </div>
                   </div>
                   
@@ -317,7 +369,14 @@ export default function TableManagementPage() {
                       {table.id}
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">T-{table.tableNumber?.toString().padStart(2, '0')}</h3>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-lg font-bold text-gray-900">T-{table.tableNumber?.toString().padStart(2, '0')}</h3>
+                        {table.isAvailable === false ? (
+                          <span className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] font-bold rounded-md uppercase tracking-wider">Inactive</span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-green-50 text-green-600 text-[10px] font-bold rounded-md uppercase tracking-wider">Active</span>
+                        )}
+                      </div>
                       <div className="flex flex-wrap items-center gap-4 mt-1">
                         <div className="flex items-center text-gray-500 text-xs font-medium">
                           <MapPin size={14} className="mr-1.5 text-gray-400" />
@@ -340,6 +399,14 @@ export default function TableManagementPage() {
                   </div>
                   
                   <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-6 sm:gap-10 pl-[72px] md:pl-0">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{table.isAvailable === false ? 'Inactive' : 'Active'}</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" checked={table.isAvailable !== false} onChange={() => handleToggleClick(table)} />
+                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#FF6B00]"></div>
+                      </label>
+                    </div>
+
                     <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600">
                       <span className={`w-2 h-2 rounded-full ${getStatusDotColor(table.status)}`}></span>
                       <span className={
@@ -393,9 +460,9 @@ export default function TableManagementPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Table Name/ID</label>
                   <input 
-                    type="text" 
+                    type="number" 
                     value={editingTable.tableNumber}
-                    onChange={(e) => setEditingTable({...editingTable, tableNumber: e.target.value})}
+                    onChange={(e) => setEditingTable({...editingTable, tableNumber: parseInt(e.target.value) || 0})}
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
                   />
                 </div>
@@ -417,18 +484,7 @@ export default function TableManagementPage() {
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
-                  <select 
-                    value={editingTable.status}
-                    onChange={(e) => setEditingTable({...editingTable, status: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
-                  >
-                    <option value="AVAILABLE">AVAILABLE</option>
-                    <option value="OCCUPIED">OCCUPIED</option>
-                    <option value="RESERVED">RESERVED</option>
-                  </select>
-                </div>
+
               </div>
               <div className="flex items-center justify-end gap-3 mt-8">
                 <button 
@@ -463,6 +519,35 @@ export default function TableManagementPage() {
               >
                 Understood
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Toggle Confirmation Modal */}
+        {toggleConfirmModal.isOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[1.5rem] w-full max-w-sm p-6 shadow-xl text-center">
+              <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-orange-50 text-orange-500">
+                <AlertTriangle size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Change Availability?</h2>
+              <p className="text-gray-500 text-sm mb-8">
+                Are you sure you want to mark Table T-{toggleConfirmModal.table?.tableNumber} as <strong className="text-gray-900">{toggleConfirmModal.table?.isAvailable === false ? 'ACTIVE' : 'INACTIVE'}</strong>?
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setToggleConfirmModal({ isOpen: false, table: null })}
+                  className="flex-1 px-5 py-3 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmToggle}
+                  className="flex-1 px-5 py-3 rounded-xl text-sm font-semibold text-white bg-[#FF6B00] hover:bg-[#e66000] transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
             </div>
           </div>
         )}
