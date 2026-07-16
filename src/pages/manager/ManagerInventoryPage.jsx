@@ -24,6 +24,7 @@ export default function ManagerInventoryPage() {
   const { data, loading, error, refetch, resolveChefRequest } = useInventoryData()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [updateModal, setUpdateModal] = useState({ open: false, item: null })
+  const [activeTab, setActiveTab] = useState('current-stock') // 'current-stock', 'update-log', 'chef-requests'
   const chefRequestsRef = useRef(null)
   const location = useLocation()
 
@@ -36,7 +37,7 @@ export default function ManagerInventoryPage() {
   }, [location])
 
   const scrollToChefRequests = () => {
-    chefRequestsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setActiveTab('chef-requests')
   }
 
   if (loading) return <LoadingSpinner />
@@ -97,16 +98,62 @@ export default function ManagerInventoryPage() {
         lowStockAlerts={data.summary.lowStockAlerts}
         onPendingDraftsClick={scrollToChefRequests}
       />
-      <CurrentStockTable
-        items={data.stockItems}
-        onUpdateItem={(item) => setUpdateModal({ open: true, item })}
-      />
-      <InventoryUpdateLogTable logs={data.logs} />
-      <ChefRequestsSection 
-        requests={data.chefRequests} 
-        scrollRef={chefRequestsRef} 
-        resolveChefRequest={resolveChefRequest}
-      />
+      
+      {/* TABS */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('current-stock')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'current-stock'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Current Stock
+          </button>
+          <button
+            onClick={() => setActiveTab('update-log')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'update-log'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Inventory Update Log
+          </button>
+          <button
+            onClick={() => setActiveTab('chef-requests')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'chef-requests'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Chef Requests
+          </button>
+        </nav>
+      </div>
+
+      {/* TABS CONTENT */}
+      {activeTab === 'current-stock' && (
+        <CurrentStockTable
+          items={data.stockItems}
+          onUpdateItem={(item) => setUpdateModal({ open: true, item })}
+        />
+      )}
+      
+      {activeTab === 'update-log' && (
+        <InventoryUpdateLogTable logs={data.logs} />
+      )}
+      
+      {activeTab === 'chef-requests' && (
+        <ChefRequestsSection 
+          requests={data.chefRequests} 
+          scrollRef={chefRequestsRef} 
+          resolveChefRequest={resolveChefRequest}
+        />
+      )}
 
       {/* Add Item Modal */}
       <AddInventoryItemModal

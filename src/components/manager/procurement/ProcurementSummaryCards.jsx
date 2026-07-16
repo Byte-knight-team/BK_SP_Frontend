@@ -30,7 +30,7 @@ export default function ProcurementSummaryCards({
     },
     {
       title: 'Monthly Spend',
-      value: `$${Number(monthlySpend).toFixed(2)}`,
+      value: `Rs.${Number(monthlySpend).toFixed(2)}`,
       icon: DollarSign,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100',
@@ -38,17 +38,19 @@ export default function ProcurementSummaryCards({
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
       {cards.map((card, idx) => {
         const Icon = card.icon
         return (
-          <div key={idx} className="card p-6 flex items-center justify-between">
+          <div key={idx} className="card flex items-center justify-between p-6">
             <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">{card.title}</p>
+              <p className="mb-1 text-sm font-medium text-gray-500">
+                {card.title}
+              </p>
               <h3 className="text-2xl font-bold text-gray-900">{card.value}</h3>
             </div>
-            <div className={`p-4 rounded-xl ${card.bgColor}`}>
-              <Icon className={`w-6 h-6 ${card.color}`} />
+            <div className={`rounded-xl p-4 ${card.bgColor}`}>
+              <Icon className={`h-6 w-6 ${card.color}`} />
             </div>
           </div>
         )
