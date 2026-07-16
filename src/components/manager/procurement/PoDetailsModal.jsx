@@ -1,5 +1,5 @@
 import { X, PackageOpen } from 'lucide-react'
-import { format } from 'date-fns'
+
 
 export default function PoDetailsModal({ isOpen, onClose, po }) {
   if (!isOpen || !po) return null
@@ -33,7 +33,7 @@ export default function PoDetailsModal({ isOpen, onClose, po }) {
             </div>
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-xs text-gray-500 mb-1">Expected Delivery</p>
-              <p className="font-semibold">{po.expectedDeliveryDate ? format(new Date(po.expectedDeliveryDate), 'MMM d, yyyy') : 'N/A'}</p>
+              <p className="font-semibold">{po.expectedDeliveryDate ? new Date(po.expectedDeliveryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</p>
             </div>
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-xs text-gray-500 mb-1">Created By</p>

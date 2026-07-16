@@ -22,10 +22,10 @@ export function useProcurementData() {
       ])
 
       setData({
-        vendors: vendors || [],
-        purchaseOrders: purchaseOrders || [],
-        grns: grns || [],
-        summary: summary || {},
+        vendors: Array.isArray(vendors) ? vendors : [],
+        purchaseOrders: Array.isArray(purchaseOrders) ? purchaseOrders : [],
+        grns: Array.isArray(grns) ? grns : [],
+        summary: summary && typeof summary === 'object' && !Array.isArray(summary) ? summary : {},
       })
       setError(null)
     } catch (err) {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Search, FileText, Ban, Eye } from 'lucide-react'
-import { format } from 'date-fns'
+
 import { toast } from 'react-toastify'
 import { ProcurementService } from '../../../apis/manager/ProcurementService'
 import PoDetailsModal from './PoDetailsModal'
@@ -105,14 +105,14 @@ export default function PurchaseOrderTab({ purchaseOrders, loading, refetch }) {
                   <td className="px-6 py-4 font-medium text-gray-700">{po.vendorName}</td>
                   <td className="px-6 py-4 text-center">
                     <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider ${getStatusStyle(po.status)}`}>
-                      {po.status.replace('_', ' ')}
+                      {(po.status || 'UNKNOWN').replace('_', ' ')}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right font-medium">
                     {po.totalValue?.toFixed(2) || '0.00'}
                   </td>
                   <td className="px-6 py-4 text-right text-gray-500">
-                    {po.expectedDeliveryDate ? format(new Date(po.expectedDeliveryDate), 'MMM d, yyyy') : '-'}
+                    {po.expectedDeliveryDate ? new Date(po.expectedDeliveryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">

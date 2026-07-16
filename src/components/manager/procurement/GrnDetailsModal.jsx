@@ -1,5 +1,5 @@
 import { X, PackageCheck } from 'lucide-react'
-import { format } from 'date-fns'
+
 
 export default function GrnDetailsModal({ isOpen, onClose, grn }) {
   if (!isOpen || !grn) return null
@@ -12,7 +12,7 @@ export default function GrnDetailsModal({ isOpen, onClose, grn }) {
           <div>
             <h2 className="text-xl font-bold text-gray-900">GRN Details: {grn.grnNumber}</h2>
             <p className="text-sm text-gray-500 mt-1">
-              Received on: <span className="font-semibold text-gray-700">{format(new Date(grn.receivedDate), 'MMM d, yyyy HH:mm')}</span>
+              Received on: <span className="font-semibold text-gray-700">{new Date(grn.receivedDate).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
             </p>
           </div>
           <button

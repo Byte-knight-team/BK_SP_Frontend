@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Search, PackageCheck, Eye } from 'lucide-react'
-import { format } from 'date-fns'
 import GrnDetailsModal from './GrnDetailsModal'
+
 
 export default function GoodsReceiptNoteTab({ grns, loading, refetch }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -61,7 +61,7 @@ export default function GoodsReceiptNoteTab({ grns, loading, refetch }) {
                   <td className="px-6 py-4 font-semibold text-gray-700">{grn.poNumber}</td>
                   <td className="px-6 py-4 text-gray-600">{grn.vendorName}</td>
                   <td className="px-6 py-4 text-right text-gray-500">
-                    {grn.receivedDate ? format(new Date(grn.receivedDate), 'MMM d, yyyy') : '-'}
+                    {grn.receivedDate ? new Date(grn.receivedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
                   </td>
                   <td className="px-6 py-4 text-center font-medium">
                     {grn.items?.length || 0} items

@@ -48,10 +48,10 @@ export default function ManagerProcurementPage() {
       />
 
       <ProcurementSummaryCards
-        totalVendors={data.summary.totalActiveVendors}
-        pendingPos={data.summary.activePendingPos}
-        monthlySpend={data.summary.totalMonthlySpend}
-        monthlyGrns={data.summary.totalGrnsThisMonth}
+        totalVendors={data?.summary?.totalActiveVendors || 0}
+        pendingPos={data?.summary?.activePendingPos || 0}
+        monthlySpend={data?.summary?.totalMonthlySpend || 0}
+        monthlyGrns={data?.summary?.totalGrnsThisMonth || 0}
       />
 
       {/* TABS */}
