@@ -64,6 +64,7 @@ import ManagerDriversPage from './pages/manager/ManagerDriversPage'
 import ManagerStaffPage from './pages/manager/ManagerStaffPage'
 
 import ManagerReportsPage from './pages/manager/ManagerReportsPage'
+import ManagerProcurementPage from './pages/manager/ManagerProcurementPage'
 
 
 // Admin pages
@@ -282,6 +283,7 @@ export default function App() {
           <Route path="reports" element={<ManagerReportsPage />} />
           <Route path="staff" element={<ManagerStaffPage />} />
           <Route path="inventory" element={<ManagerInventoryPage />} />
+          <Route path="procurement" element={<ManagerProcurementPage />} />
           <Route path="drivers" element={<ManagerDriversPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
