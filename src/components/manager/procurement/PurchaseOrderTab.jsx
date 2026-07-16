@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import { ProcurementService } from '../../../apis/manager/ProcurementService'
 import PoDetailsModal from './PoDetailsModal'
 
-export default function PurchaseOrderTab({ purchaseOrders, loading, refetch }) {
+export default function PurchaseOrderTab({ purchaseOrders, loading, refetch, mode = 'log' }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedPo, setSelectedPo] = useState(null)
@@ -15,7 +15,10 @@ export default function PurchaseOrderTab({ purchaseOrders, loading, refetch }) {
       (po.poNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (po.vendorName || '').toLowerCase().includes(searchQuery.toLowerCase())
     
-    const matchesStatus = statusFilter === 'ALL' || po.status === statusFilter
+    // In 'active' mode, strictly show SUBMITTED POs. In 'log' mode, use the dropdown filter.
+    const matchesStatus = mode === 'active' 
+      ? po.status === 'SUBMITTED'
+      : (statusFilter === 'ALL' || po.status === statusFilter)
     
     return matchesSearch && matchesStatus
   })
@@ -48,20 +51,24 @@ export default function PurchaseOrderTab({ purchaseOrders, loading, refetch }) {
   return (
     <div className="card">
       <div className="p-5 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900">Purchase Orders</h2>
+        <h2 className="text-xl font-bold text-gray-900">
+          {mode === 'active' ? 'Active Purchase Orders' : 'Purchase Order Log'}
+        </h2>
         
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none text-sm font-medium text-gray-700"
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="SUBMITTED">Submitted</option>
-            <option value="PARTIALLY_RECEIVED">Partially Received</option>
-            <option value="RECEIVED">Received</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
+          {mode === 'log' && (
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none text-sm font-medium text-gray-700"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="SUBMITTED">Submitted</option>
+              <option value="PARTIALLY_RECEIVED">Partially Received</option>
+              <option value="RECEIVED">Received</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          )}
 
           <div className="flex w-full sm:w-64 items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
             <Search className="h-4 w-4 text-gray-400" />
@@ -140,7 +147,9 @@ export default function PurchaseOrderTab({ purchaseOrders, loading, refetch }) {
             ) : (
               <tr>
                 <td colSpan={6} className="py-12 text-center text-sm text-gray-400">
-                  No purchase orders found.
+                  {mode === 'active' 
+                    ? "There are no purchase orders at the moment."
+                    : "No purchase orders found."}
                 </td>
               </tr>
             )}

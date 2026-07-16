@@ -102,6 +102,16 @@ export default function ManagerProcurementPage() {
             Active Purchase Orders
           </button>
           <button
+            onClick={() => setActiveTab('po-log')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'po-log'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Purchase Order Log
+          </button>
+          <button
             onClick={() => setActiveTab('grns')}
             className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'grns'
@@ -128,7 +138,11 @@ export default function ManagerProcurementPage() {
       )}
       
       {activeTab === 'pos' && (
-        <PurchaseOrderTab purchaseOrders={data.purchaseOrders} loading={loading} refetch={refetch} />
+        <PurchaseOrderTab purchaseOrders={data.purchaseOrders} loading={loading} refetch={refetch} mode="active" />
+      )}
+
+      {activeTab === 'po-log' && (
+        <PurchaseOrderTab purchaseOrders={data.purchaseOrders} loading={loading} refetch={refetch} mode="log" />
       )}
       
       {activeTab === 'grns' && (
