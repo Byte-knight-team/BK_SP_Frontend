@@ -8,6 +8,7 @@ import PurchaseOrderTab from '../../components/manager/procurement/PurchaseOrder
 import GoodsReceiptNoteTab from '../../components/manager/procurement/GoodsReceiptNoteTab'
 import VendorModal from '../../components/manager/procurement/VendorModal'
 import CreatePoModal from '../../components/manager/procurement/CreatePoModal'
+import CreateGrnModal from '../../components/manager/procurement/CreateGrnModal'
 
 function LoadingSpinner() {
   return (
@@ -25,6 +26,7 @@ export default function ManagerProcurementPage() {
   // Modals state
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false)
   const [isPoModalOpen, setIsPoModalOpen] = useState(false)
+  const [isGrnModalOpen, setIsGrnModalOpen] = useState(false)
 
   if (loading && !data) return <LoadingSpinner />
 
@@ -42,6 +44,7 @@ export default function ManagerProcurementPage() {
       <ProcurementHeader
         onNewVendor={() => setIsVendorModalOpen(true)}
         onNewPo={() => setIsPoModalOpen(true)}
+        onNewGrn={() => setIsGrnModalOpen(true)}
       />
 
       <ProcurementSummaryCards
@@ -110,6 +113,12 @@ export default function ManagerProcurementPage() {
         isOpen={isPoModalOpen}
         onClose={() => setIsPoModalOpen(false)}
         vendors={data.vendors}
+        onSuccess={refetch}
+      />
+      <CreateGrnModal
+        isOpen={isGrnModalOpen}
+        onClose={() => setIsGrnModalOpen(false)}
+        purchaseOrders={data.purchaseOrders}
         onSuccess={refetch}
       />
     </div>

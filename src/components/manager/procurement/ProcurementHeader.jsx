@@ -1,6 +1,6 @@
-import { Plus } from 'lucide-react'
+import { Plus, PackageCheck } from 'lucide-react'
 
-export default function ProcurementHeader({ onNewVendor, onNewPo }) {
+export default function ProcurementHeader({ onNewVendor, onNewPo, onNewGrn }) {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
@@ -12,9 +12,13 @@ export default function ProcurementHeader({ onNewVendor, onNewPo }) {
           <Plus className="w-4 h-4" />
           Add Vendor
         </button>
-        <button onClick={onNewPo} className="btn-primary flex items-center gap-2">
+        <button onClick={onNewPo} className="btn-primary flex items-center gap-2 bg-white text-brand border border-brand hover:bg-brand/5">
           <Plus className="w-4 h-4" />
           Create PO
+        </button>
+        <button onClick={onNewGrn} className="btn-primary flex items-center gap-2">
+          <PackageCheck className="w-4 h-4" />
+          Record GRN
         </button>
       </div>
     </div>
