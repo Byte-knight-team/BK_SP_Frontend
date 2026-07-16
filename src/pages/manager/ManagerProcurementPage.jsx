@@ -6,6 +6,7 @@ import ProcurementSummaryCards from '../../components/manager/procurement/Procur
 import VendorManagementTab from '../../components/manager/procurement/VendorManagementTab'
 import PurchaseOrderTab from '../../components/manager/procurement/PurchaseOrderTab'
 import GoodsReceiptNoteTab from '../../components/manager/procurement/GoodsReceiptNoteTab'
+import VendorModal from '../../components/manager/procurement/VendorModal'
 
 function LoadingSpinner() {
   return (
@@ -85,7 +86,7 @@ export default function ManagerProcurementPage() {
         </nav>
       </div>
 
-      {/* TAB CONTENT */}
+      {/* TABS CONTENT */}
       {activeTab === 'vendors' && (
         <VendorManagementTab vendors={data.vendors} loading={loading} refetch={refetch} />
       )}
@@ -98,7 +99,12 @@ export default function ManagerProcurementPage() {
         <GoodsReceiptNoteTab grns={data.grns} loading={loading} refetch={refetch} />
       )}
 
-      {/* Modals will be placed here in the next phases */}
+      {/* Creation Modals */}
+      <VendorModal
+        isOpen={isVendorModalOpen}
+        onClose={() => setIsVendorModalOpen(false)}
+        onSuccess={refetch}
+      />
     </div>
   )
 }
