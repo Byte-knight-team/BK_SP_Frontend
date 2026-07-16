@@ -8,7 +8,7 @@ export default function ProcurementHeader({ onNewVendor, onNewPo, onNewGrn }) {
         <p className="text-gray-500 mt-1">Manage vendors, purchase orders, and goods receipts</p>
       </div>
       <div className="flex gap-3">
-        <button onClick={onNewVendor} className="btn-secondary flex items-center gap-2 bg-white">
+        <button onClick={onNewVendor} className="btn-primary flex items-center gap-2 bg-white text-brand border border-brand hover:bg-brand/5">
           <Plus className="w-4 h-4" />
           Add Vendor
         </button>
