@@ -158,11 +158,15 @@ export default function ManagerInventoryPage() {
       {/* Add Item Modal */}
       <AddInventoryItemModal
         isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false)
-          refetch()
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={async (itemData) => {
+          const success = await handleSaveItem(itemData)
+          if (success) {
+            refetch()
+          }
+          return success
         }}
-        onSave={handleSaveItem}
+        initialData={location.state?.autoFillData}
       />
 
       {/* Update Item Modal */}

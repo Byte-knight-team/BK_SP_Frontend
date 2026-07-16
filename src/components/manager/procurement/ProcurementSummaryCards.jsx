@@ -15,7 +15,7 @@ export default function ProcurementSummaryCards({
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Pending POs',
+      title: 'Active POs',
       value: pendingPos,
       icon: FileText,
       color: 'text-amber-600',

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Modal from '../ui/Modal'
 
 const CATEGORIES = [
@@ -32,10 +32,22 @@ const INITIAL_FORM = {
  * @param {function} onClose - Callback function to close the modal.
  * @param {function} onSave - Async callback to process the form submission.
  */
-export default function AddInventoryItemModal({ isOpen, onClose, onSave }) {
+export default function AddInventoryItemModal({ isOpen, onClose, onSave, initialData }) {
   const [form, setForm] = useState(INITIAL_FORM)
   const [isSuccess, setIsSuccess] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setForm({ ...INITIAL_FORM, ...initialData })
+      } else {
+        setForm(INITIAL_FORM)
+      }
+      setIsSuccess(false)
+      setIsSaving(false)
+    }
+  }, [isOpen, initialData])
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))

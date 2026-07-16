@@ -5,6 +5,8 @@ import { ProcurementService } from '../../../apis/manager/ProcurementService'
 import { InventoryService } from '../../../apis/manager/InventoryService'
 import { useAuth } from '../../../context/AuthContext'
 
+const UNITS = ['kg', 'g', 'Liters', 'Pcs', 'Balls']
+
 export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, selectedChefRequest }) {
   const { user } = useAuth()
   const branchId = user?.branchId
@@ -259,14 +261,16 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
                       {/* Unit */}
                       <div className="sm:col-span-2">
                         <label className="text-xs font-semibold text-gray-500 mb-1 block">Unit *</label>
-                        <input
+                        <select
                           required
-                          type="text"
                           value={item.unit}
                           onChange={(e) => handleLineItemChange(item.id, 'unit', e.target.value)}
                           className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none"
-                          placeholder="kg"
-                        />
+                        >
+                          {UNITS.map(u => (
+                            <option key={u} value={u}>{u}</option>
+                          ))}
+                        </select>
                       </div>
 
                       {/* Unit Price (Optional) */}
