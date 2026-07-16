@@ -56,6 +56,12 @@ export const ProcurementService = {
     return result.data || result
   },
 
+  getPurchaseOrderLogs: async (branchId) => {
+    const response = await authFetch(`${PROCUREMENT_URL}/branches/${branchId}/po-logs?_t=${Date.now()}`)
+    const result = await response.json()
+    return result.data || result
+  },
+
   getPendingChefRequests: async (branchId) => {
     const response = await authFetch(`${PROCUREMENT_URL}/pending-chef-requests?branchId=${branchId}&_t=${Date.now()}`)
     const result = await response.json()

@@ -5,6 +5,7 @@ import ProcurementHeader from '../../components/manager/procurement/ProcurementH
 import ProcurementSummaryCards from '../../components/manager/procurement/ProcurementSummaryCards'
 import VendorManagementTab from '../../components/manager/procurement/VendorManagementTab'
 import PurchaseOrderTab from '../../components/manager/procurement/PurchaseOrderTab'
+import PurchaseOrderLogTable from '../../components/manager/procurement/PurchaseOrderLogTable'
 import GoodsReceiptNoteTab from '../../components/manager/procurement/GoodsReceiptNoteTab'
 import PendingPOsTab from '../../components/manager/procurement/PendingPOsTab'
 import VendorModal from '../../components/manager/procurement/VendorModal'
@@ -142,7 +143,7 @@ export default function ManagerProcurementPage() {
       )}
 
       {activeTab === 'po-log' && (
-        <PurchaseOrderTab purchaseOrders={data.purchaseOrders} loading={loading} refetch={refetch} mode="log" />
+        <PurchaseOrderLogTable poLogs={data.poLogs} loading={loading} />
       )}
       
       {activeTab === 'grns' && (
