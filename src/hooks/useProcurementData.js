@@ -14,11 +14,12 @@ export function useProcurementData() {
   const fetchProcurement = async () => {
     try {
       setLoading(true)
-      const [vendors, purchaseOrders, grns, summary] = await Promise.all([
+      const [vendors, purchaseOrders, grns, summary, pendingChefRequests] = await Promise.all([
         ProcurementService.getVendors(branchId),
         ProcurementService.getPurchaseOrders(branchId),
         ProcurementService.getGrnHistory(branchId),
         ProcurementService.getSummary(branchId),
+        ProcurementService.getPendingChefRequests(branchId),
       ])
 
       setData({
@@ -26,6 +27,7 @@ export function useProcurementData() {
         purchaseOrders: Array.isArray(purchaseOrders) ? purchaseOrders : [],
         grns: Array.isArray(grns) ? grns : [],
         summary: summary && typeof summary === 'object' && !Array.isArray(summary) ? summary : {},
+        pendingChefRequests: Array.isArray(pendingChefRequests) ? pendingChefRequests : [],
       })
       setError(null)
     } catch (err) {

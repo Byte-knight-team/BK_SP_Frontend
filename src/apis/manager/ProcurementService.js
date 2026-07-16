@@ -56,6 +56,12 @@ export const ProcurementService = {
     return result.data || result
   },
 
+  getPendingChefRequests: async (branchId) => {
+    const response = await authFetch(`${PROCUREMENT_URL}/pending-chef-requests?branchId=${branchId}&_t=${Date.now()}`)
+    const result = await response.json()
+    return result.data || result
+  },
+
   createPurchaseOrder: async (poData) => {
     const response = await authFetch(`${PROCUREMENT_URL}/purchase-orders`, {
       method: 'POST',

@@ -5,7 +5,7 @@ import { ProcurementService } from '../../../apis/manager/ProcurementService'
 import { InventoryService } from '../../../apis/manager/InventoryService'
 import { useAuth } from '../../../context/AuthContext'
 
-export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess }) {
+export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, selectedChefRequest }) {
   const { user } = useAuth()
   const branchId = user?.branchId
 
@@ -34,10 +34,35 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess }) {
   // Reset state when opened
   useEffect(() => {
     if (isOpen) {
-      setFormData({ vendorId: '', expectedDeliveryDate: '', notes: '' })
-      setLineItems([{ id: Date.now(), inventoryItemId: '', itemName: '', orderedQuantity: '', unit: 'kg', agreedUnitPrice: '' }])
+      if (selectedChefRequest) {
+        setFormData({ 
+          vendorId: '', 
+          expectedDeliveryDate: '', 
+          notes: `Fulfilling Chef Request for ${selectedChefRequest.item} by ${selectedChefRequest.chefName}` 
+        })
+        
+        // Try to match the chef request item string with our inventory items
+        // Since selectedChefRequest just has a string `item` instead of an ID, we leave ID empty 
+        // unless we can find an exact name match.
+        const matchedItem = inventoryItems.find(inv => inv.name.toLowerCase() === selectedChefRequest.item.toLowerCase())
+        
+        // quantity string is like "5 kg" so we parse the float
+        const qty = parseFloat(selectedChefRequest.quantity) || 1
+        
+        setLineItems([{ 
+          id: Date.now(), 
+          inventoryItemId: matchedItem ? matchedItem.id.toString() : '', 
+          itemName: selectedChefRequest.item, 
+          orderedQuantity: qty.toString(), 
+          unit: matchedItem ? matchedItem.unit : selectedChefRequest.quantity.split(' ').pop(), 
+          agreedUnitPrice: '' 
+        }])
+      } else {
+        setFormData({ vendorId: '', expectedDeliveryDate: '', notes: '' })
+        setLineItems([{ id: Date.now(), inventoryItemId: '', itemName: '', orderedQuantity: '', unit: 'kg', agreedUnitPrice: '' }])
+      }
     }
-  }, [isOpen])
+  }, [isOpen, selectedChefRequest, inventoryItems])
 
   if (!isOpen) return null
 
@@ -87,6 +112,7 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess }) {
         vendorId: parseInt(formData.vendorId),
         expectedDeliveryDate: formData.expectedDeliveryDate || null,
         notes: formData.notes || '',
+        chefRequestId: selectedChefRequest ? selectedChefRequest.id : null,
         items: lineItems.map(item => ({
           inventoryItemId: item.inventoryItemId ? parseInt(item.inventoryItemId) : null,
           itemName: item.itemName,

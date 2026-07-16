@@ -6,6 +6,7 @@ import ProcurementSummaryCards from '../../components/manager/procurement/Procur
 import VendorManagementTab from '../../components/manager/procurement/VendorManagementTab'
 import PurchaseOrderTab from '../../components/manager/procurement/PurchaseOrderTab'
 import GoodsReceiptNoteTab from '../../components/manager/procurement/GoodsReceiptNoteTab'
+import PendingPOsTab from '../../components/manager/procurement/PendingPOsTab'
 import VendorModal from '../../components/manager/procurement/VendorModal'
 import CreatePoModal from '../../components/manager/procurement/CreatePoModal'
 import CreateGrnModal from '../../components/manager/procurement/CreateGrnModal'
@@ -27,6 +28,19 @@ export default function ManagerProcurementPage() {
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false)
   const [isPoModalOpen, setIsPoModalOpen] = useState(false)
   const [isGrnModalOpen, setIsGrnModalOpen] = useState(false)
+  
+  // State for PO creation from Chef Request
+  const [selectedChefRequest, setSelectedChefRequest] = useState(null)
+
+  const handleCreatePoFromRequest = (request) => {
+    setSelectedChefRequest(request)
+    setIsPoModalOpen(true)
+  }
+
+  const handleClosePoModal = () => {
+    setSelectedChefRequest(null)
+    setIsPoModalOpen(false)
+  }
 
   if (loading && !data) return <LoadingSpinner />
 
@@ -68,6 +82,16 @@ export default function ManagerProcurementPage() {
             Vendors
           </button>
           <button
+            onClick={() => setActiveTab('pending-pos')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'pending-pos'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Pending POs
+          </button>
+          <button
             onClick={() => setActiveTab('pos')}
             className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'pos'
@@ -75,7 +99,7 @@ export default function ManagerProcurementPage() {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Purchase Orders
+            Active Purchase Orders
           </button>
           <button
             onClick={() => setActiveTab('grns')}
@@ -95,6 +119,14 @@ export default function ManagerProcurementPage() {
         <VendorManagementTab vendors={data.vendors} loading={loading} refetch={refetch} />
       )}
       
+      {activeTab === 'pending-pos' && (
+        <PendingPOsTab 
+          pendingChefRequests={data.pendingChefRequests} 
+          loading={loading} 
+          onSelectChefRequest={handleCreatePoFromRequest} 
+        />
+      )}
+      
       {activeTab === 'pos' && (
         <PurchaseOrderTab purchaseOrders={data.purchaseOrders} loading={loading} refetch={refetch} />
       )}
@@ -111,9 +143,10 @@ export default function ManagerProcurementPage() {
       />
       <CreatePoModal
         isOpen={isPoModalOpen}
-        onClose={() => setIsPoModalOpen(false)}
+        onClose={handleClosePoModal}
         vendors={data.vendors}
         onSuccess={refetch}
+        selectedChefRequest={selectedChefRequest}
       />
       <CreateGrnModal
         isOpen={isGrnModalOpen}
