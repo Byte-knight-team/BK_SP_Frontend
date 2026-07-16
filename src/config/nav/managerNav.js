@@ -15,5 +15,5 @@ export const managerNav = [
   { label: 'Staff', path: '/manager/staff', icon: Users },
   { label: 'Inventory Management', path: '/manager/inventory', icon: Package },
   { label: 'Procurement & Vendors', path: '/manager/procurement', icon: ShoppingCart },
-  { label: 'Driver Management', path: '/manager/drivers', icon: Truck },
+  { label: 'Delivery Management', path: '/manager/drivers', icon: Truck },
 ]

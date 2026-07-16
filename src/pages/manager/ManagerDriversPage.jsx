@@ -1,6 +1,6 @@
 // React hooks for managing state, side effects, and direct DOM references
 import { useState, useEffect, useRef } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Package, Users, History } from 'lucide-react'
 
 // React Router hook to access the current URL and router state
 import { useLocation } from 'react-router-dom'
@@ -36,11 +36,13 @@ export default function ManagerDriversPage() {
   // Fetch drivers, dispatch orders, and history using our custom hook
   const { data, loading, error, refetch } = useDriversData()
 
-  // Local state to manage the visibility and data of the "Assign Driver" modal
   const [assignModal, setAssignModal] = useState({
     open: false,
     order: null, // Stores the specific order being assigned
   })
+
+  // State to manage active tab
+  const [activeTab, setActiveTab] = useState('dispatch')
 
   // Reference to the DispatchHub DOM element so we can scroll to it programmatically
   const dispatchHubRef = useRef(null)
@@ -57,6 +59,7 @@ export default function ManagerDriversPage() {
   useEffect(() => {
     if (location.state?.scrollToDispatch) {
       setTimeout(() => {
+        setActiveTab('dispatch')
         dispatchHubRef.current?.scrollIntoView({
           behavior: 'smooth',
           block: 'start',
@@ -133,19 +136,58 @@ export default function ManagerDriversPage() {
         pendingDispatch={data.pendingDispatch}
       />
 
-      {/* The Dispatch Hub: Wrapped in a div with a ref so we can scroll to it */}
-      <div ref={dispatchHubRef}>
-        <DispatchHub
-          orders={data.dispatchOrders}
-          onAssignDriver={handleAssignDriver}
-        />
+      {/* Navigation Tabs */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('dispatch')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'dispatch'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Dispatch Hub
+          </button>
+          <button
+            onClick={() => setActiveTab('status')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'status'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Driver Status Board
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'history'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Delivery History
+          </button>
+        </nav>
       </div>
 
-      {/* Table showing real-time status and current tasks of all active drivers */}
-      <DriverStatusBoard drivers={data.drivers} />
+      {activeTab === 'dispatch' && (
+        <div ref={dispatchHubRef}>
+          <DispatchHub
+            orders={data.dispatchOrders}
+            onAssignDriver={handleAssignDriver}
+          />
+        </div>
+      )}
 
-      {/* Table showing a historical log of completed and cancelled deliveries */}
-      <DeliveryHistoryTable history={data.deliveryHistory || []} />
+      {activeTab === 'status' && (
+        <DriverStatusBoard drivers={data.drivers} />
+      )}
+
+      {activeTab === 'history' && (
+        <DeliveryHistoryTable history={data.deliveryHistory || []} />
+      )}
 
       {/* 
         Assign Driver Modal Component
