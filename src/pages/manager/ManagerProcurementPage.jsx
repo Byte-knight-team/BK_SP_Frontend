@@ -7,6 +7,7 @@ import VendorManagementTab from '../../components/manager/procurement/VendorMana
 import PurchaseOrderTab from '../../components/manager/procurement/PurchaseOrderTab'
 import GoodsReceiptNoteTab from '../../components/manager/procurement/GoodsReceiptNoteTab'
 import VendorModal from '../../components/manager/procurement/VendorModal'
+import CreatePoModal from '../../components/manager/procurement/CreatePoModal'
 
 function LoadingSpinner() {
   return (
@@ -103,6 +104,12 @@ export default function ManagerProcurementPage() {
       <VendorModal
         isOpen={isVendorModalOpen}
         onClose={() => setIsVendorModalOpen(false)}
+        onSuccess={refetch}
+      />
+      <CreatePoModal
+        isOpen={isPoModalOpen}
+        onClose={() => setIsPoModalOpen(false)}
+        vendors={data.vendors}
         onSuccess={refetch}
       />
     </div>
