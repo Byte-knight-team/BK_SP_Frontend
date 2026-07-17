@@ -8,7 +8,7 @@ export default function GoodsReceiptNoteTab({ grns, loading, refetch }) {
   const [selectedGrn, setSelectedGrn] = useState(null)
 
   const filteredGrns = (grns || []).filter((grn) => 
-    (grn.grnNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (`GRN-${grn.id}` || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (grn.poNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (grn.vendorName || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -55,13 +55,13 @@ export default function GoodsReceiptNoteTab({ grns, loading, refetch }) {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <PackageCheck className="w-4 h-4 text-brand" />
-                      <span className="font-bold text-gray-900">{grn.grnNumber}</span>
+                      <span className="font-bold text-gray-900">GRN-{grn.id}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-gray-700">{grn.poNumber}</td>
                   <td className="px-6 py-4 text-gray-600">{grn.vendorName}</td>
                   <td className="px-6 py-4 text-right text-gray-500">
-                    {grn.receivedDate ? new Date(grn.receivedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
+                    {grn.receivedAt ? new Date(grn.receivedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
                   </td>
                   <td className="px-6 py-4 text-center font-medium">
                     {grn.items?.length || 0} items

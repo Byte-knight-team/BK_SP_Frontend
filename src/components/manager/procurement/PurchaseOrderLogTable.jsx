@@ -44,7 +44,6 @@ export default function PurchaseOrderLogTable({ poLogs, loading }) {
     <div className="card">
       <div className="p-5 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <History className="h-5 w-5 text-gray-500" />
           <h2 className="text-xl font-bold text-gray-900">Purchase Order Log</h2>
         </div>
         
