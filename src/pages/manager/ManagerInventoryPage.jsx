@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useInventoryData } from '../../hooks/useInventoryData'
 import { InventoryService } from '../../apis/manager/InventoryService'
 import InventoryHeader from '../../components/manager/inventory/InventoryHeader'
@@ -10,6 +10,7 @@ import InventoryUpdateLogTable from '../../components/manager/inventory/Inventor
 import ChefRequestsSection from '../../components/manager/inventory/ChefRequestsSection'
 import AddInventoryItemModal from '../../components/manager/inventory/AddInventoryItemModal'
 import UpdateInventoryItemModal from '../../components/manager/inventory/UpdateInventoryItemModal'
+import LowStockAlertsTable from '../../components/manager/inventory/LowStockAlertsTable'
 
 function LoadingSpinner() {
   return (
@@ -27,6 +28,7 @@ export default function ManagerInventoryPage() {
   const [activeTab, setActiveTab] = useState('current-stock') // 'current-stock', 'update-log', 'chef-requests'
   const chefRequestsRef = useRef(null)
   const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (location.state?.openAddModal) {
@@ -123,6 +125,16 @@ export default function ManagerInventoryPage() {
             Inventory Update Log
           </button>
           <button
+            onClick={() => setActiveTab('low-stock')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'low-stock'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Low Stock Alerts
+          </button>
+          <button
             onClick={() => setActiveTab('chef-requests')}
             className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'chef-requests'
@@ -145,6 +157,15 @@ export default function ManagerInventoryPage() {
       
       {activeTab === 'update-log' && (
         <InventoryUpdateLogTable logs={data.logs} />
+      )}
+
+      {activeTab === 'low-stock' && (
+        <LowStockAlertsTable
+          items={data.stockItems.filter(item => item.status === 'warning')}
+          onCreatePo={(item) => {
+            navigate('/manager/procurement', { state: { openCreatePo: true, autoFillPoItem: item } })
+          }}
+        />
       )}
       
       {activeTab === 'chef-requests' && (
