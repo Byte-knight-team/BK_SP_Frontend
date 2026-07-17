@@ -7,7 +7,7 @@ import { useAuth } from '../../../context/AuthContext'
 
 const UNITS = ['kg', 'g', 'Liters', 'Pcs', 'Balls']
 
-export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, selectedChefRequest }) {
+export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, selectedChefRequest, selectedInventoryItem }) {
   const { user } = useAuth()
   const branchId = user?.branchId
 
@@ -59,12 +59,22 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
           unit: matchedItem ? matchedItem.unit : selectedChefRequest.quantity.split(' ').pop(), 
           agreedUnitPrice: '' 
         }])
+      } else if (selectedInventoryItem) {
+        setFormData({ vendorId: '', expectedDeliveryDate: '', notes: `Restocking low stock item: ${selectedInventoryItem.name}` })
+        setLineItems([{ 
+          id: Date.now(), 
+          inventoryItemId: selectedInventoryItem.id.toString(), 
+          itemName: selectedInventoryItem.name, 
+          orderedQuantity: '', 
+          unit: selectedInventoryItem.unit || 'kg', 
+          agreedUnitPrice: '' 
+        }])
       } else {
         setFormData({ vendorId: '', expectedDeliveryDate: '', notes: '' })
         setLineItems([{ id: Date.now(), inventoryItemId: '', itemName: '', orderedQuantity: '', unit: 'kg', agreedUnitPrice: '' }])
       }
     }
-  }, [isOpen, selectedChefRequest, inventoryItems])
+  }, [isOpen, selectedChefRequest, selectedInventoryItem, inventoryItems])
 
   if (!isOpen) return null
 

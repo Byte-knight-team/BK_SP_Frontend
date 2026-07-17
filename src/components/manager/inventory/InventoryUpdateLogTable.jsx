@@ -96,8 +96,7 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
     <div className="card" ref={tableRef}>
       {/* Header row - Matches CurrentStockTable */}
       <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <History className="h-5 w-5 text-gray-500" />
+        <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900">Inventory Update Log</h2>
           <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
             {logs.length}
@@ -138,7 +137,7 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
       </div>
 
       {/* Table - Matches CurrentStockTable structure */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-hidden">
         <table className="w-full text-sm text-left">
           <thead>
             <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase bg-gray-50/50">

@@ -98,8 +98,7 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
     <div className="card" ref={tableRef}>
       {/* Header row */}
       <div className="p-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <Package className="h-5 w-5 text-gray-500" />
+        <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900">Current Stock</h2>
           <span className="bg-brand rounded-full px-2.5 py-1 text-xs font-bold text-white">
             {items.length}
@@ -140,7 +139,7 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-hidden">
         <table className="w-full text-sm text-left">
           <thead>
             <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase bg-gray-50/50">

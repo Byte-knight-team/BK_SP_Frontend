@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { useProcurementData } from '../../hooks/useProcurementData'
 import ProcurementHeader from '../../components/manager/procurement/ProcurementHeader'
 import ProcurementSummaryCards from '../../components/manager/procurement/ProcurementSummaryCards'
@@ -24,6 +25,7 @@ function LoadingSpinner() {
 export default function ManagerProcurementPage() {
   const { data, loading, error, refetch } = useProcurementData()
   const [activeTab, setActiveTab] = useState('vendors') // 'vendors', 'pos', 'grns'
+  const location = useLocation()
 
   // Modals state
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false)
@@ -32,6 +34,20 @@ export default function ManagerProcurementPage() {
   
   // State for PO creation from Chef Request
   const [selectedChefRequest, setSelectedChefRequest] = useState(null)
+  
+  // State for PO creation from Low Stock Alert
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState(null)
+
+  useEffect(() => {
+    if (location.state?.openCreatePo) {
+      if (location.state?.autoFillPoItem) {
+        setSelectedInventoryItem(location.state.autoFillPoItem)
+      }
+      setIsPoModalOpen(true)
+      // Clear state so it doesn't reopen on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location])
 
   const handleCreatePoFromRequest = (request) => {
     setSelectedChefRequest(request)
@@ -40,6 +56,7 @@ export default function ManagerProcurementPage() {
 
   const handleClosePoModal = () => {
     setSelectedChefRequest(null)
+    setSelectedInventoryItem(null)
     setIsPoModalOpen(false)
   }
 
@@ -162,6 +179,7 @@ export default function ManagerProcurementPage() {
         vendors={data.vendors}
         onSuccess={refetch}
         selectedChefRequest={selectedChefRequest}
+        selectedInventoryItem={selectedInventoryItem}
       />
       <CreateGrnModal
         isOpen={isGrnModalOpen}
