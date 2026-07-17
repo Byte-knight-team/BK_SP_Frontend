@@ -4,11 +4,12 @@ import {
   SlidersHorizontal,
   AlertTriangle,
   CheckCircle,
-  ArrowUpRight,
+  Pencil,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { Package } from 'lucide-react'
 
 const STATUS_CONFIG = {
   warning: {
@@ -100,8 +101,9 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
   return (
     <div className="card" ref={tableRef}>
       {/* Header row */}
-      <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-3">
+      <div className="p-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Package className="h-5 w-5 text-gray-500" />
           <h2 className="text-xl font-bold text-gray-900">Current Stock</h2>
           <span className="bg-brand rounded-full px-2.5 py-1 text-xs font-bold text-white">
             {items.length}
@@ -142,31 +144,32 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
       </div>
 
       {/* Table */}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase">
-            <th className="w-[25%] pb-3 text-left font-semibold">Item Name</th>
-            <th className="w-[15%] pb-3 text-center font-semibold">Category</th>
-            <th className="w-[20%] pb-3 pl-8 text-left font-semibold">
-              Avg. Unit Price
-            </th>
-            <th className="w-[15%] pb-3 text-center font-semibold">
-              Stock Level
-            </th>
-            <th className="w-[15%] pb-3 text-center font-semibold">Status</th>
-            <th className="w-[10%] min-w-[120px] pb-3 text-center font-semibold">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead>
+            <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase bg-gray-50/50">
+              <th className="px-6 py-4 font-semibold w-[25%] text-left">Item Name</th>
+              <th className="px-6 py-4 font-semibold w-[15%] text-center">Category</th>
+              <th className="px-6 py-4 font-semibold w-[20%] text-left">
+                Avg. Unit Price
+              </th>
+              <th className="px-6 py-4 font-semibold w-[15%] text-center">
+                Stock Level
+              </th>
+              <th className="px-6 py-4 font-semibold w-[15%] text-center">Status</th>
+              <th className="px-6 py-4 font-semibold w-[10%] min-w-[120px] text-center">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody
           key={currentPage}
           className="animate-table-fade divide-y divide-gray-50"
         >
           {displayedItems.map((item) => (
             <tr key={item.id} className="transition-colors hover:bg-gray-50/50">
               {/* Item name + ID */}
-              <td className="py-4">
+              <td className="px-6 py-4">
                 <p className="text-sm font-semibold text-gray-900">
                   {item.name}
                 </p>
@@ -174,17 +177,17 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
               </td>
 
               {/* Category */}
-              <td className="py-4 text-center">
+              <td className="px-6 py-4 text-center">
                 <CategoryBadge category={item.category || 'Uncategorized'} />
               </td>
 
               {/* Unit Price */}
-              <td className="py-4 pl-8 text-sm text-gray-700">
+              <td className="px-6 py-4 text-sm text-gray-700">
                 Rs. {(item.unitPrice || 0).toFixed(2)} / {item.unit || 'Unit'}
               </td>
 
               {/* Stock Level */}
-              <td className="py-4 text-center">
+              <td className="px-6 py-4 text-center">
                 <span className="text-sm font-bold text-gray-900">
                   {item.stockLevel}
                 </span>
@@ -192,18 +195,18 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
               </td>
 
               {/* Status */}
-              <td className="py-4 text-center">
+              <td className="px-6 py-4 text-center">
                 <StatusBadge status={item.status} />
               </td>
 
               {/* Action */}
-              <td className="py-4 text-center">
+              <td className="px-6 py-4 text-center">
                 <button
                   onClick={() => onUpdateItem?.(item)}
-                  className="bg-brand hover:bg-brand-hover inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors"
+                  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors inline-flex"
+                  title="Update Stock"
                 >
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                  Update Stock
+                  <Pencil className="w-4 h-4" />
                 </button>
               </td>
             </tr>
@@ -221,7 +224,7 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
             <tr>
               <td
                 colSpan={6}
-                className="py-8 text-center text-sm text-gray-400"
+                className="py-12 text-center text-sm text-gray-400"
               >
                 No items match your search.
               </td>
@@ -229,9 +232,10 @@ export default function CurrentStockTable({ items = [], onUpdateItem }) {
           )}
         </tbody>
       </table>
+      </div>
 
       {/* Pagination Footer */}
-      <div className="mt-6 flex items-center justify-center border-t border-gray-50 pt-5">
+      <div className="flex items-center justify-center border-t border-gray-100 p-5">
         {currentPage === 0 ? (
           filteredItems.length > 5 && (
             <button

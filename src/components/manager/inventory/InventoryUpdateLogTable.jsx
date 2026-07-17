@@ -9,6 +9,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { History } from 'lucide-react'
 import LogDetailModal from './LogDetailModal'
 
 /**
@@ -99,8 +100,9 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
   return (
     <div className="card" ref={tableRef}>
       {/* Header row - Matches CurrentStockTable */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-        <div className="flex items-center gap-3">
+      <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <History className="h-5 w-5 text-gray-500" />
           <h2 className="text-xl font-bold text-gray-900">Inventory Update Log</h2>
           <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
             {logs.length}
@@ -141,16 +143,17 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
       </div>
 
       {/* Table - Matches CurrentStockTable structure */}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
-            <th className="text-left pb-3 font-semibold w-[25%]">Item Name</th>
-            <th className="text-left pb-3 font-semibold w-[20%] pl-8">Updated At</th>
-            <th className="text-center pb-3 font-semibold w-[15%]">Update Type</th>
-            <th className="text-left pb-3 font-semibold w-[40%] pl-8">Update Note</th>
-          </tr>
-        </thead>
-        <tbody
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead>
+            <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase bg-gray-50/50">
+              <th className="px-6 py-4 text-left font-semibold w-[25%]">Item Name</th>
+              <th className="px-6 py-4 text-left font-semibold w-[20%]">Updated At</th>
+              <th className="px-6 py-4 text-center font-semibold w-[15%]">Update Type</th>
+              <th className="px-6 py-4 text-left font-semibold w-[40%]">Update Note</th>
+            </tr>
+          </thead>
+          <tbody
           key={currentPage}
           className="divide-y divide-gray-50 animate-table-fade"
         >
@@ -161,7 +164,7 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
               onClick={() => setSelectedLog(log)}
             >
               {/* Item Name + ID (Matches screenshot style) */}
-              <td className="py-4">
+              <td className="px-6 py-4">
                 <p className="text-sm font-semibold text-gray-900">
                   {log.itemName}
                 </p>
@@ -169,17 +172,17 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
               </td>
 
               {/* Updated At */}
-              <td className="py-4 text-sm text-gray-700 pl-8">
+              <td className="px-6 py-4 text-sm text-gray-700">
                 {log.updatedAt}
               </td>
 
               {/* Update Type Badge */}
-              <td className="py-4 text-center">
+              <td className="px-6 py-4 text-center">
                 <TypeBadge type={log.updateType} />
               </td>
 
               {/* Note */}
-              <td className="py-4 text-sm text-gray-700 pl-8">
+              <td className="px-6 py-4 text-sm text-gray-700">
                 <p className="line-clamp-1 italic">
                   {log.notes || 'No notes provided'}
                 </p>
@@ -199,7 +202,7 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
             <tr>
               <td
                 colSpan={4}
-                className="py-8 text-center text-sm text-gray-400"
+                className="py-12 text-center text-sm text-gray-400"
               >
                 No history matches your search.
               </td>
@@ -207,9 +210,10 @@ export default function InventoryUpdateLogTable({ logs = [] }) {
           )}
         </tbody>
       </table>
+      </div>
 
       {/* Pagination Footer - Matches CurrentStockTable style */}
-      <div className="mt-6 flex items-center justify-center border-t border-gray-50 pt-5">
+      <div className="flex items-center justify-center border-t border-gray-100 p-5">
         {currentPage === 0 ? (
           filteredLogs.length > 5 && (
             <button
