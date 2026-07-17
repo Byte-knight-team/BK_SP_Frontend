@@ -17,6 +17,7 @@ import DriversSummaryCards from '../../components/manager/drivers/DriversSummary
 import DispatchHub from '../../components/manager/drivers/DispatchHub'
 import DriverStatusBoard from '../../components/manager/drivers/DriverStatusBoard'
 import DeliveryHistoryTable from '../../components/manager/drivers/DeliveryHistoryTable'
+import ActiveOrdersTable from '../../components/manager/drivers/ActiveOrdersTable'
 import AssignDriverModal from '../../components/manager/drivers/AssignDriverModal'
 
 /**
@@ -160,6 +161,16 @@ export default function ManagerDriversPage() {
             Driver Status Board
           </button>
           <button
+            onClick={() => setActiveTab('active_orders')}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'active_orders'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Active Orders
+          </button>
+          <button
             onClick={() => setActiveTab('history')}
             className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'history'
@@ -167,7 +178,7 @@ export default function ManagerDriversPage() {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Delivery History
+            Delivery History Log
           </button>
         </nav>
       </div>
@@ -183,6 +194,10 @@ export default function ManagerDriversPage() {
 
       {activeTab === 'status' && (
         <DriverStatusBoard drivers={data.drivers} />
+      )}
+
+      {activeTab === 'active_orders' && (
+        <ActiveOrdersTable drivers={data.drivers || []} />
       )}
 
       {activeTab === 'history' && (
