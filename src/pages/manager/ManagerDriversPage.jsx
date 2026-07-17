@@ -131,10 +131,10 @@ export default function ManagerDriversPage() {
 
       {/* Top Row: Quick stat cards showing online vs busy drivers */}
       <DriversSummaryCards
-        driversOnline={data.driversOnline}
-        available={data.available}
-        busy={data.busy}
         pendingDispatch={data.pendingDispatch}
+        available={data.available}
+        activeDeliveries={data.activeDeliveries}
+        deliveryAlerts={0} // Hardcoded until backend alerts module is ready
       />
 
       {/* Navigation Tabs */}

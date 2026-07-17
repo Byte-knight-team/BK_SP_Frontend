@@ -1,4 +1,4 @@
-import { Users, Navigation, Timer } from 'lucide-react'
+import { Users, Navigation, Timer, AlertTriangle } from 'lucide-react'
 
 function SummaryCard({ icon, iconBg, label, children, subtitle }) {
   return (
@@ -14,43 +14,56 @@ function SummaryCard({ icon, iconBg, label, children, subtitle }) {
 }
 
 export default function DriversSummaryCards({
-  driversOnline,
-  available,
-  busy,
   pendingDispatch,
+  available,
+  activeDeliveries,
+  deliveryAlerts = 0,
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-      <SummaryCard
-        icon={<Users className="w-6 h-6 text-brand" />}
-        iconBg="bg-brand-light"
-        label="Drivers Online"
-        subtitle="Total drivers online"
-      >
-        <p className="text-3xl font-extrabold text-gray-900">{driversOnline}</p>
-      </SummaryCard>
-
-      <SummaryCard
-        icon={<Navigation className="w-6 h-6 text-brand" />}
-        iconBg="bg-brand-light"
-        label="Available / Busy"
-        subtitle="Total available & busy drivers"
-      >
-        <p className="text-3xl font-extrabold">
-          <span className="text-green-600">{available}</span>
-          <span className="text-gray-400">/</span>
-          <span className="text-brand">{busy}</span>
-        </p>
-      </SummaryCard>
-
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* 1. Pending Dispatch */}
       <SummaryCard
         icon={<Timer className="w-6 h-6 text-brand" />}
         iconBg="bg-brand-light"
         label="Pending Dispatch"
-        subtitle="Total pending orders to dispatch"
+        subtitle="Orders waiting to be assigned"
       >
         <p className="text-3xl font-extrabold text-gray-900">
-          {pendingDispatch}
+          {pendingDispatch || 0}
+        </p>
+      </SummaryCard>
+
+      {/* 2. Available Drivers */}
+      <SummaryCard
+        icon={<Users className="w-6 h-6 text-green-600" />}
+        iconBg="bg-green-50"
+        label="Available Drivers"
+        subtitle="Drivers ready for orders"
+      >
+        <p className="text-3xl font-extrabold text-gray-900">{available || 0}</p>
+      </SummaryCard>
+
+      {/* 3. Active Deliveries */}
+      <SummaryCard
+        icon={<Navigation className="w-6 h-6 text-blue-600" />}
+        iconBg="bg-blue-50"
+        label="Active Deliveries"
+        subtitle="Orders currently in progress"
+      >
+        <p className="text-3xl font-extrabold text-gray-900">
+          {activeDeliveries || 0}
+        </p>
+      </SummaryCard>
+
+      {/* 4. Delivery Alerts */}
+      <SummaryCard
+        icon={<AlertTriangle className="w-6 h-6 text-red-600" />}
+        iconBg="bg-red-50"
+        label="Delivery Alerts"
+        subtitle="Issues requiring attention"
+      >
+        <p className="text-3xl font-extrabold text-red-600">
+          {deliveryAlerts}
         </p>
       </SummaryCard>
     </div>
