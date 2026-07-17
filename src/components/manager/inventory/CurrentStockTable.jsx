@@ -13,28 +13,24 @@ import { Package } from 'lucide-react'
 
 const STATUS_CONFIG = {
   warning: {
-    label: 'Warning',
-    icon: AlertTriangle,
-    className: 'bg-amber-50 text-amber-600',
+    label: 'WARNING',
+    className: 'bg-amber-50 text-amber-700 border border-amber-200',
   },
   good: {
-    label: 'Good',
-    icon: CheckCircle,
-    className: 'bg-green-50 text-green-600',
+    label: 'GOOD',
+    className: 'bg-green-50 text-green-700 border border-green-200',
   },
 }
 
 function StatusBadge({ status }) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.good
-  const Icon = config.icon
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
+        'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium tracking-wide',
         config.className,
       )}
     >
-      <Icon className="h-3.5 w-3.5" />
       {config.label}
     </span>
   )

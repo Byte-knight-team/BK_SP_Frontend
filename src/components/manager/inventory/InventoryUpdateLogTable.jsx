@@ -17,19 +17,16 @@ import LogDetailModal from './LogDetailModal'
  */
 const TYPE_CONFIG = {
   RESTOCK: {
-    label: 'Restock',
-    icon: PlusCircle,
-    className: 'bg-green-50 text-green-600',
+    label: 'RESTOCK',
+    className: 'bg-green-50 text-green-700 border border-green-200',
   },
   WASTAGE: {
-    label: 'Wastage',
-    icon: Trash2,
-    className: 'bg-red-50 text-red-600',
+    label: 'WASTAGE',
+    className: 'bg-red-50 text-red-700 border border-red-200',
   },
   CORRECTION: {
-    label: 'Correction',
-    icon: Pencil,
-    className: 'bg-amber-50 text-amber-600',
+    label: 'CORRECTION',
+    className: 'bg-amber-50 text-amber-700 border border-amber-200',
   },
 }
 
@@ -38,15 +35,13 @@ const TYPE_CONFIG = {
  */
 function TypeBadge({ type }) {
   const config = TYPE_CONFIG[type] || TYPE_CONFIG.RESTOCK
-  const Icon = config.icon
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full',
+        'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium tracking-wide',
         config.className,
       )}
     >
-      <Icon className="w-3.5 h-3.5" />
       {config.label}
     </span>
   )
