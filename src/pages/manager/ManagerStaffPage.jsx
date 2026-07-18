@@ -35,7 +35,8 @@ export default function ManagerStaffPage() {
       <StaffHeader branchName={data?.branchName} />
       
       <StaffSummaryCards 
-        kitchenCount={data?.kitchenCount || 0}
+        chefCount={data?.chefCount || 0}
+        lineChefCount={data?.lineChefCount || 0}
         deliveryCount={data?.deliveryCount || 0}
         receptionistCount={data?.receptionistCount || 0}
       />
