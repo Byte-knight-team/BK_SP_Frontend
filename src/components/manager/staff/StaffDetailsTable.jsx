@@ -8,7 +8,7 @@ export default function StaffDetailsTable({ staff = [] }) {
   const [currentPage, setCurrentPage] = useState(0)
   const PAGE_SIZE = 8
 
-  const filters = ['All Roles', 'Kitchen Staff', 'Delivery Driver', 'Receptionist', 'Manager']
+  const filters = ['All Roles', 'Main Chef', 'Line Chef', 'Delivery Driver', 'Receptionist', 'Manager']
 
   const filteredStaff = useMemo(() => {
     return staff.filter(member => {
