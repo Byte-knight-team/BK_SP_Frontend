@@ -92,10 +92,9 @@ export default function StaffDetailsTable({ staff = [] }) {
             <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase bg-gray-50/50">
               <th className="px-6 py-4 font-semibold w-[25%]">Staff Member</th>
               <th className="px-6 py-4 font-semibold w-[15%] text-center">Role</th>
-              <th className="px-6 py-4 font-semibold w-[15%]">Hire Date</th>
-              <th className="px-6 py-4 font-semibold w-[20%]">Contact</th>
-              <th className="px-6 py-4 font-semibold w-[15%]">Salary</th>
-              <th className="px-6 py-4 font-semibold w-[10%] text-center">Status</th>
+              <th className="px-6 py-4 font-semibold w-[20%]">Joined Date</th>
+              <th className="px-6 py-4 font-semibold w-[25%]">Contact</th>
+              <th className="px-6 py-4 font-semibold w-[15%] text-center">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -111,13 +110,10 @@ export default function StaffDetailsTable({ staff = [] }) {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  {member.hireDate}
+                  {member.joinedDate}
                 </td>
                 <td className="px-6 py-4 text-sm font-bold text-gray-900">
                   {member.contactNumber}
-                </td>
-                <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                  Rs. {Number(member.salary || 0).toLocaleString()}
                 </td>
                 <td className="px-6 py-4 text-center">
                   <Badge status={(member.status || 'ACTIVE').toLowerCase()} />
@@ -129,13 +125,13 @@ export default function StaffDetailsTable({ staff = [] }) {
             {emptyRowsCount > 0 &&
               Array.from({ length: emptyRowsCount }).map((_, idx) => (
                 <tr key={`empty-${idx}`} className="h-[73px]">
-                  <td colSpan={6}>&nbsp;</td>
+                  <td colSpan={5}>&nbsp;</td>
                 </tr>
               ))}
 
             {displayedItems.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-sm text-gray-400">
+                <td colSpan={5} className="py-8 text-center text-sm text-gray-400">
                   No staff members match your search.
                 </td>
               </tr>
