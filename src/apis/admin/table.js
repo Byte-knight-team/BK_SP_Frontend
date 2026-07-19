@@ -27,6 +27,12 @@ export const getTablesAPI = async () => {
   return Array.isArray(rows) ? rows : [];
 };
 
+export const getTableByIdAPI = async (tableId) => {
+  const response = await authFetch(`${TABLE_BASE}/${tableId}`);
+  const payload = await parseResponse(response, 'Unable to get table details.');
+  return payload?.data ?? payload;
+};
+
 export const updateTableAPI = async (tableId, tablePayload) => {
   const response = await authFetch(`${TABLE_BASE}/${tableId}`, {
     method: 'PUT',
