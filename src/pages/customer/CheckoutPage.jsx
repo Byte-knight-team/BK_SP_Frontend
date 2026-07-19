@@ -211,6 +211,7 @@ export default function CheckoutPage() {
       } catch (calcError) {
         if (active) {
           setError(calcError.message || 'Unable to calculate checkout totals.');
+          toast.error(calcError.message || 'Unable to calculate checkout totals.');
         }
       } finally {
         if (active) {
