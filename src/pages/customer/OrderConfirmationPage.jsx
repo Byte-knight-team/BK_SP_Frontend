@@ -140,19 +140,26 @@ export default function OrderConfirmationPage() {
 
   // Subscribe to real-time status updates via WebSocket
   useOrderStatusWebSocket(orderId, (update) => {
-    if (update && update.orderStatus) {
+    if (update) {
       setOrder((prev) => {
         if (!prev) return prev;
-        // Don't update if the status is the same
-        if (prev.orderStatus === update.orderStatus) return prev;
-        return {
-          ...prev,
-          orderStatus: update.orderStatus,
-        };
+        
+        const next = { ...prev };
+        let changed = false;
+
+        if (update.orderStatus && prev.orderStatus !== update.orderStatus) {
+          next.orderStatus = update.orderStatus;
+          changed = true;
+          lastKnownStatus.current = update.orderStatus;
+        }
+
+        if (update.paymentStatus && prev.paymentStatus !== update.paymentStatus) {
+          next.paymentStatus = update.paymentStatus;
+          changed = true;
+        }
+
+        return changed ? next : prev;
       });
-
-
-      lastKnownStatus.current = update.orderStatus;
     }
   });
 
