@@ -14,9 +14,11 @@ export const placeCustomerOrder = async (payload) => {
   });
 };
 
-export const updateCustomerPayment = async (orderId, payload) => {
-  return customerAuthFetch(`/api/v1/orders/${orderId}/payment`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
+
+
+export const createPaymentIntent = async (amount, orderId, reservationId) => {
+  return customerAuthFetch('/api/v1/customer/payments/create-intent', {
+    method: 'POST',
+    body: JSON.stringify({ amount, orderId, reservationId }),
   });
 };

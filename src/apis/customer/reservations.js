@@ -32,9 +32,4 @@ export const cancelReservation = async (id, reason) => {
   });
 };
 
-export const payReservation = async (id, transactionReference) => {
-  return customerAuthFetch(`/api/v1/customer/reservations/${id}/pay`, {
-    method: 'POST',
-    body: JSON.stringify({ transactionReference }),
-  });
-};
+
