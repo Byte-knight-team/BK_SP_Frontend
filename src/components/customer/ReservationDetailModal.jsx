@@ -47,7 +47,7 @@ export default function ReservationDetailModal({ isOpen, onClose, reservationId 
       }
     },
     onSuccess: () => {
-      toast.success('Reservation cancelled successfully');
+      // toast.success('Reservation cancelled successfully'); // Removed to avoid duplicate toast with global websocket Notification
       setShowCancelModal(false);
       queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] });
       queryClient.invalidateQueries({ queryKey: ['myReservations'] });
