@@ -14,15 +14,18 @@ import LowStockAlertsTable from '../../components/manager/inventory/LowStockAler
 
 function LoadingSpinner() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Loader2 className="w-10 h-10 text-brand animate-spin" />
-      <p className="text-gray-500 font-medium animate-pulse">Loading inventory records...</p>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+      <Loader2 className="text-brand h-10 w-10 animate-spin" />
+      <p className="animate-pulse font-medium text-gray-500">
+        Loading inventory records...
+      </p>
     </div>
   )
 }
 
 export default function ManagerInventoryPage() {
-  const { data, loading, error, refetch, resolveChefRequest } = useInventoryData()
+  const { data, loading, error, refetch, resolveChefRequest } =
+    useInventoryData()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [updateModal, setUpdateModal] = useState({ open: false, item: null })
   const [activeTab, setActiveTab] = useState('current-stock') // 'current-stock', 'update-log', 'chef-requests'
@@ -46,12 +49,11 @@ export default function ManagerInventoryPage() {
 
   if (error || !data) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="text-red-500 font-medium">Failed to load inventory: {error || 'Unknown error'}</div>
-        <button 
-          onClick={refetch}
-          className="btn-primary"
-        >
+      <div className="flex min-h-100 flex-col items-center justify-center space-y-4">
+        <div className="font-medium text-red-500">
+          Failed to load inventory: {error || 'Unknown error'}
+        </div>
+        <button onClick={refetch} className="btn-primary">
           Try Again
         </button>
       </div>
@@ -89,7 +91,7 @@ export default function ManagerInventoryPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl space-y-6">
       <InventoryHeader
         branch={data.summary.branch}
         onAddItem={() => setIsAddModalOpen(true)}
@@ -100,46 +102,46 @@ export default function ManagerInventoryPage() {
         lowStockAlerts={data.summary.lowStockAlerts}
         onPendingDraftsClick={scrollToChefRequests}
       />
-      
+
       {/* TABS */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('current-stock')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'current-stock'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Current Stock
           </button>
           <button
             onClick={() => setActiveTab('update-log')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'update-log'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Inventory Update Log
           </button>
           <button
             onClick={() => setActiveTab('low-stock')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'low-stock'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Low Stock Alerts
           </button>
           <button
             onClick={() => setActiveTab('chef-requests')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'chef-requests'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Chef Requests
@@ -154,24 +156,26 @@ export default function ManagerInventoryPage() {
           onUpdateItem={(item) => setUpdateModal({ open: true, item })}
         />
       )}
-      
+
       {activeTab === 'update-log' && (
         <InventoryUpdateLogTable logs={data.logs} />
       )}
 
       {activeTab === 'low-stock' && (
         <LowStockAlertsTable
-          items={data.stockItems.filter(item => item.status === 'warning')}
+          items={data.stockItems.filter((item) => item.status === 'warning')}
           onCreatePo={(item) => {
-            navigate('/manager/procurement', { state: { openCreatePo: true, autoFillPoItem: item } })
+            navigate('/manager/procurement', {
+              state: { openCreatePo: true, autoFillPoItem: item },
+            })
           }}
         />
       )}
-      
+
       {activeTab === 'chef-requests' && (
-        <ChefRequestsSection 
-          requests={data.chefRequests} 
-          scrollRef={chefRequestsRef} 
+        <ChefRequestsSection
+          requests={data.chefRequests}
+          scrollRef={chefRequestsRef}
           resolveChefRequest={resolveChefRequest}
         />
       )}

@@ -77,9 +77,11 @@ function DashHeader() {
  */
 function LoadingSpinner() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Loader2 className="w-10 h-10 text-brand animate-spin" />
-      <p className="text-gray-500 font-medium animate-pulse">Calculating dashboard metrics...</p>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+      <Loader2 className="text-brand h-10 w-10 animate-spin" />
+      <p className="animate-pulse font-medium text-gray-500">
+        Calculating dashboard metrics...
+      </p>
     </div>
   )
 }
@@ -100,7 +102,7 @@ export default function ManagerDashboardPage() {
   // 2. Error State: Show an error message and a retry button if the API request failed or returned no data
   if (error || !data) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
+      <div className="flex min-h-100 flex-col items-center justify-center space-y-4">
         <div className="font-medium text-red-500">
           Failed to load dashboard: {error || 'Unknown error'}
         </div>

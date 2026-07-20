@@ -7,7 +7,14 @@ import ChannelDistributionChart from '../../components/manager/reports/ChannelDi
 import PeakHoursChart from '../../components/manager/reports/PeakHoursChart'
 import TopSellingItemsTable from '../../components/manager/reports/TopSellingItemsTable'
 import InventoryHealthChart from '../../components/manager/reports/InventoryHealthChart'
-import { AlertCircle, RefreshCw, Loader2, Calendar, FileText, BarChart3 } from 'lucide-react'
+import {
+  AlertCircle,
+  RefreshCw,
+  Loader2,
+  Calendar,
+  FileText,
+  BarChart3,
+} from 'lucide-react'
 
 /**
  * LoadingSpinner Component
@@ -15,9 +22,11 @@ import { AlertCircle, RefreshCw, Loader2, Calendar, FileText, BarChart3 } from '
  */
 function LoadingSpinner() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Loader2 className="w-10 h-10 text-brand animate-spin" />
-      <p className="text-gray-500 font-medium animate-pulse">Generating reports...</p>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+      <Loader2 className="text-brand h-10 w-10 animate-spin" />
+      <p className="animate-pulse font-medium text-gray-500">
+        Generating reports...
+      </p>
     </div>
   )
 }
@@ -34,7 +43,7 @@ export default function ManagerReportsPage() {
 
   const handleDateChange = (e) => {
     const { name, value } = e.target
-    setDateRange(prev => ({ ...prev, [name]: value }))
+    setDateRange((prev) => ({ ...prev, [name]: value }))
   }
 
   const setPreset = (days) => {
@@ -43,17 +52,17 @@ export default function ManagerReportsPage() {
     if (days > 0) {
       start.setDate(end.getDate() - (days - 1))
     }
-    
+
     setDateRange({
       startDate: start.toISOString().split('T')[0],
-      endDate: end.toISOString().split('T')[0]
+      endDate: end.toISOString().split('T')[0],
     })
   }
 
   const presets = [
     { label: 'Today', days: 1 },
     { label: 'Last 7D', days: 7 },
-    { label: 'Last 30D', days: 30 }
+    { label: 'Last 30D', days: 30 },
   ]
 
   if (loading && !data) {
@@ -82,39 +91,39 @@ export default function ManagerReportsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="animate-in fade-in slide-in-from-bottom-2 mx-auto max-w-7xl space-y-8 pb-12 duration-500">
       <ReportsHeader />
 
       {/* 1. Summary Stats */}
       <AnalyticsStats data={data} />
 
       {/* Tab Navigation and Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-gray-200 gap-4 min-h-[60px]">
+      <div className="flex min-h-15 flex-col justify-between gap-4 border-b border-gray-200 sm:flex-row sm:items-end">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'analytics'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Analytics
           </button>
-          
+
           <button
             onClick={() => setActiveTab('reports')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'reports'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Reports
           </button>
         </nav>
 
-        <div className="flex flex-wrap items-center gap-4 pb-3 sm:pb-3 min-h-[46px]">
+        <div className="flex min-h-11.5 flex-wrap items-center gap-4 pb-3 sm:pb-3">
           {activeTab === 'analytics' && (
             <>
               <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1">
@@ -122,7 +131,7 @@ export default function ManagerReportsPage() {
                   <button
                     key={preset.label}
                     onClick={() => setPreset(preset.days)}
-                    className="rounded-lg px-3 py-1.5 text-xs font-bold transition-all hover:text-gray-900 text-gray-500"
+                    className="rounded-lg px-3 py-1.5 text-xs font-bold text-gray-500 transition-all hover:text-gray-900"
                   >
                     {preset.label}
                   </button>
@@ -137,7 +146,7 @@ export default function ManagerReportsPage() {
                     name="startDate"
                     value={dateRange.startDate}
                     onChange={handleDateChange}
-                    className="bg-transparent text-sm font-bold text-gray-700 outline-none cursor-pointer"
+                    className="cursor-pointer bg-transparent text-sm font-bold text-gray-700 outline-none"
                   />
                 </div>
                 <div className="h-4 w-px bg-gray-200" />
@@ -147,7 +156,7 @@ export default function ManagerReportsPage() {
                     name="endDate"
                     value={dateRange.endDate}
                     onChange={handleDateChange}
-                    className="bg-transparent text-sm font-bold text-gray-700 outline-none cursor-pointer"
+                    className="cursor-pointer bg-transparent text-sm font-bold text-gray-700 outline-none"
                   />
                 </div>
               </div>
@@ -181,9 +190,12 @@ export default function ManagerReportsPage() {
       ) : (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-24 text-center">
           <FileText className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-semibold text-gray-900">Report Generation</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Report Generation
+          </h3>
           <p className="mt-2 max-w-sm text-sm text-gray-500">
-            Advanced report generation options and downloads will be implemented here soon.
+            Advanced report generation options and downloads will be implemented
+            here soon.
           </p>
         </div>
       )}

@@ -26,9 +26,11 @@ import AssignDriverModal from '../../components/manager/drivers/AssignDriverModa
  */
 function LoadingSpinner() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Loader2 className="w-10 h-10 text-brand animate-spin" />
-      <p className="text-gray-500 font-medium animate-pulse">Loading driver information...</p>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+      <Loader2 className="text-brand h-10 w-10 animate-spin" />
+      <p className="animate-pulse font-medium text-gray-500">
+        Loading driver information...
+      </p>
     </div>
   )
 }
@@ -77,7 +79,7 @@ export default function ManagerDriversPage() {
   // 2. Error State: Display an error message and a retry button if the API fails
   if (error || !data) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
+      <div className="flex min-h-100 flex-col items-center justify-center space-y-4">
         <div className="font-medium text-red-500">
           Failed to load drivers: {error || 'Unknown error'}
         </div>
@@ -138,44 +140,44 @@ export default function ManagerDriversPage() {
       />
 
       {/* Navigation Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="mb-6 border-b border-gray-200">
         <nav className="-mb-px flex space-x-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab('dispatch')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'dispatch'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Dispatch Hub
           </button>
           <button
             onClick={() => setActiveTab('status')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'status'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Driver Status Board
           </button>
           <button
             onClick={() => setActiveTab('active_orders')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'active_orders'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Active Orders
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'history'
                 ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Delivery History Log
@@ -192,9 +194,7 @@ export default function ManagerDriversPage() {
         </div>
       )}
 
-      {activeTab === 'status' && (
-        <DriverStatusBoard drivers={data.drivers} />
-      )}
+      {activeTab === 'status' && <DriverStatusBoard drivers={data.drivers} />}
 
       {activeTab === 'active_orders' && (
         <ActiveOrdersTable drivers={data.drivers || []} />
