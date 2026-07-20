@@ -22,6 +22,7 @@ For domain rules and deeper architecture details, refer to the backend (https://
 - Framer Motion (Animations)
 - Recharts (Analytics Charts)
 - StompJS / SockJS (WebSockets)
+- Stripe React SDK (Secure Payments)
 - ESLint + Prettier
 - Vitest + Testing Library
 
@@ -65,6 +66,9 @@ Defined in .env.example:
 - VITE_GOOGLE_MAPS_CUSTOMER_API_KEY
   - Google Maps API Key used for the customer location picker.
   - If omitted, the location picker map will not display.
+
+- VITE_STRIPE_PUBLISHABLE_KEY
+  - Stripe publishable key (pk_test_...) used for secure payment element rendering.
 
 ## Available Scripts
 
