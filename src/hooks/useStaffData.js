@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ManagerStaffService } from '../apis/manager/ManagerStaffService'
 import { useAuth } from '../context/AuthContext'
+import useWebSocket from './useWebSocket'
 
 export function useStaffData() {
   const [data, setData] = useState(null)
@@ -28,6 +29,13 @@ export function useStaffData() {
   useEffect(() => {
     fetchStaffData()
   }, [fetchStaffData])
+
+  // Subscribe to the manager-notifications topic and silently refetch staff data
+  // whenever an event fires (e.g. a staff member's availability status changes)
+  const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
+  useWebSocket(branchId, topic, () => {
+    fetchStaffData()
+  })
 
   return { data, loading, error, refetch: fetchStaffData }
 }

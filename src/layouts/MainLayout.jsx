@@ -15,8 +15,8 @@ const MainLayout = ({ Sidebar, Header }) => {
         <Header />
 
         {/* Main content for every page */}
-        <main className="custom-scrollbar flex-1 overflow-y-auto">
-          <div className="min-h-full px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <main className="custom-scrollbar flex-1 overflow-y-scroll">
+          <div className="min-h-[calc(100%+1px)] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
             {/* Show the SectionHeader if the page provides info */}
             {headerInfo && (
               <SectionHeader

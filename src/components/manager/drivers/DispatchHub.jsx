@@ -7,40 +7,43 @@ const STATUS_STYLES = {
   'Cooking...': 'bg-amber-50 text-amber-600',
 }
 
+import { Clock } from 'lucide-react'
+
 function DispatchOrderCard({ order, onAssign }) {
   return (
-    <div className="min-w-[280px] flex-1 rounded-2xl border border-gray-100 p-5">
-      {/* Order ID + Status */}
-      <div className="mb-3 flex items-center gap-3">
-        <span className="text-sm font-bold text-gray-900">{order.id}</span>
-        <span
-          className={clsx(
-            'rounded-full px-2.5 py-0.5 text-xs font-semibold',
-            STATUS_STYLES[order.status] || 'bg-gray-100 text-gray-500',
-          )}
-        >
+    <div className="min-w-[280px] flex-1 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      {/* Badge & Distance (mimicking the time) */}
+      <div className="mb-4 flex items-center justify-between">
+        <span className="rounded-full bg-[#fff7e6] px-3 py-1 text-xs font-bold text-[#d48806]">
           {order.status}
         </span>
       </div>
 
-      {/* Customer */}
-      <div className="mb-1.5 flex items-center gap-2 text-sm text-gray-600">
-        <User className="h-3.5 w-3.5 text-gray-400" />
-        {order.customerName}
+      {/* Customer Name & Zone */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-gray-900">{order.customerName}</h3>
+        <p className="text-sm text-gray-500 font-medium mt-1">Zone: {order.zone}</p>
       </div>
 
-      {/* Zone */}
-      <div className="mb-4 flex items-center gap-2 text-sm text-gray-400">
-        <MapPin className="h-3.5 w-3.5" />
-        {order.zone}
+      {/* Customer Initial and Order ID in gray box */}
+      <div className="mb-4 flex items-center gap-3 rounded-lg bg-gray-50 p-2">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f97316] text-xs font-bold text-white">
+          {order.customerName?.charAt(0)?.toUpperCase() || 'O'}
+        </div>
+        <span className="text-sm font-medium text-gray-500">{order.id}</span>
       </div>
 
-      {/* Assign button */}
+      {/* Italic note with orange border */}
+      <div className="mb-5 flex items-center gap-2 border-l-[2px] border-[#f97316] pl-3">
+        <span className="text-sm italic text-gray-500">"Pending assignment"</span>
+      </div>
+
+      {/* Assign Button */}
       <button
         onClick={() => onAssign(order)}
-        className="bg-brand hover:bg-brand-hover inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors"
+        className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] py-2.5 text-sm font-bold text-white shadow-sm transition-colors"
       >
-        Assign Driver <ArrowRight className="h-3.5 w-3.5" />
+        <span>+</span> Assign Driver
       </button>
     </div>
   )

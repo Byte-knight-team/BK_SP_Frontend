@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import Modal from '../ui/Modal'
 import {
   Plus,
@@ -6,6 +6,7 @@ import {
   Pencil,
   CheckCircle,
   AlertTriangle,
+  ChevronDown,
 } from 'lucide-react'
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -537,6 +538,21 @@ export default function UpdateInventoryItemModal({
     reorderLevel: '',
     notes: '',
   })
+  
+  const scrollRef = useRef(null)
+  const [showScrollArrow, setShowScrollArrow] = useState(false)
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current
+      setShowScrollArrow(scrollHeight > clientHeight && scrollHeight - scrollTop - clientHeight > 10)
+    }
+  }
+
+  // Re-check scroll state when form changes
+  useEffect(() => {
+    setTimeout(handleScroll, 50)
+  }, [updateType])
 
   /**
    * When the modal opens with a new item, reset all form states
@@ -645,32 +661,46 @@ export default function UpdateInventoryItemModal({
         />
 
         {/* ── Dynamic Form Area (keyed for smooth transition on type change) ── */}
-        <div key={updateType || 'empty'} className="animate-table-fade">
-          {!updateType && <EmptyStatePlaceholder />}
+        <div className="relative">
+          <div 
+            key={updateType || 'empty'} 
+            className="animate-table-fade h-[360px] overflow-y-auto custom-scrollbar pr-2"
+            ref={scrollRef}
+            onScroll={handleScroll}
+          >
+            {!updateType && <EmptyStatePlaceholder />}
 
-          {updateType === 'restock' && (
-            <RestockForm
-              form={restockForm}
-              onChange={createChangeHandler(setRestockForm)}
-              currentStock={item.stockLevel}
-              unit={item.unit}
-            />
-          )}
+            {updateType === 'restock' && (
+              <RestockForm
+                form={restockForm}
+                onChange={createChangeHandler(setRestockForm)}
+                currentStock={item.stockLevel}
+                unit={item.unit}
+              />
+            )}
 
-          {updateType === 'remove' && (
-            <RemoveForm
-              form={removeForm}
-              onChange={createChangeHandler(setRemoveForm)}
-              currentStock={item.stockLevel}
-              unit={item.unit}
-            />
-          )}
+            {updateType === 'remove' && (
+              <RemoveForm
+                form={removeForm}
+                onChange={createChangeHandler(setRemoveForm)}
+                currentStock={item.stockLevel}
+                unit={item.unit}
+              />
+            )}
 
-          {updateType === 'correction' && (
-            <CorrectionForm
-              form={correctionForm}
-              onChange={createChangeHandler(setCorrectionForm)}
-            />
+            {updateType === 'correction' && (
+              <CorrectionForm
+                form={correctionForm}
+                onChange={createChangeHandler(setCorrectionForm)}
+              />
+            )}
+          </div>
+          
+          {/* Scroll Indicator */}
+          {showScrollArrow && (
+            <div className="absolute bottom-0 left-0 right-0 flex justify-center bg-gradient-to-t from-white via-white/80 to-transparent pt-10 pb-2 pointer-events-none rounded-b-xl">
+              <ChevronDown className="w-5 h-5 text-brand animate-bounce" />
+            </div>
           )}
         </div>
 

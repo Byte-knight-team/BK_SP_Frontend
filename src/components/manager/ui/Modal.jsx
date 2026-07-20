@@ -37,15 +37,15 @@ export default function Modal({ isOpen, onClose, title, subtitle, children }) {
           <div>
             <h2 className="text-xl font-bold text-gray-900">{title}</h2>
             {subtitle && (
-              <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
+              <p className="mt-1 text-sm text-gray-400">{subtitle}</p>
             )}
           </div>
           <button
             id="modal-close-btn"
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 

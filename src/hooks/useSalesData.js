@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ManagerSalesService } from '../apis/manager/ManagerSalesService'
 import { useAuth } from '../context/AuthContext'
+import useWebSocket from './useWebSocket'
 
 export function useSalesData() {
   const [data, setData] = useState(null)
@@ -28,6 +29,13 @@ export function useSalesData() {
   useEffect(() => {
     fetchSalesData()
   }, [fetchSalesData])
+
+  // Subscribe to the manager-notifications topic and silently refetch sales data
+  // whenever an event fires (e.g. a delivery order is completed, updating revenue)
+  const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
+  useWebSocket(branchId, topic, () => {
+    fetchSalesData()
+  })
 
   return { data, loading, error, refetch: fetchSalesData, user }
 }
