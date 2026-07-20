@@ -88,8 +88,8 @@ export default function ManagerReportsPage() {
       {/* 1. Summary Stats */}
       <AnalyticsStats data={data} />
 
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
+      {/* Tab Navigation and Filters */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-gray-200 gap-4 min-h-[60px]">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           <button
             onClick={() => setActiveTab('analytics')}
@@ -113,48 +113,51 @@ export default function ManagerReportsPage() {
             Reports
           </button>
         </nav>
+
+        <div className="flex flex-wrap items-center gap-4 pb-3 sm:pb-3 min-h-[46px]">
+          {activeTab === 'analytics' && (
+            <>
+              <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1">
+                {presets.map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => setPreset(preset.days)}
+                    className="rounded-lg px-3 py-1.5 text-xs font-bold transition-all hover:text-gray-900 text-gray-500"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm">
+                <div className="flex items-center gap-2 px-2 py-1">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={dateRange.startDate}
+                    onChange={handleDateChange}
+                    className="bg-transparent text-sm font-bold text-gray-700 outline-none cursor-pointer"
+                  />
+                </div>
+                <div className="h-4 w-px bg-gray-200" />
+                <div className="px-2 py-1">
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={dateRange.endDate}
+                    onChange={handleDateChange}
+                    className="bg-transparent text-sm font-bold text-gray-700 outline-none cursor-pointer"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {activeTab === 'analytics' ? (
         <div className="space-y-6">
-          {/* Date Range Selection (Moved to Analytics Tab, Aligned Left) */}
-          <div className="flex flex-wrap items-center justify-start gap-4 mb-2">
-            <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1">
-              {presets.map((preset) => (
-                <button
-                  key={preset.label}
-                  onClick={() => setPreset(preset.days)}
-                  className="rounded-lg px-3 py-1.5 text-xs font-bold transition-all hover:text-gray-900 text-gray-500"
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm">
-              <div className="flex items-center gap-2 px-2 py-1">
-                <Calendar className="h-4 w-4 text-gray-400" />
-                <input
-                  type="date"
-                  name="startDate"
-                  value={dateRange.startDate}
-                  onChange={handleDateChange}
-                  className="bg-transparent text-sm font-bold text-gray-700 outline-none cursor-pointer"
-                />
-              </div>
-              <div className="h-4 w-px bg-gray-200" />
-              <div className="px-2 py-1">
-                <input
-                  type="date"
-                  name="endDate"
-                  value={dateRange.endDate}
-                  onChange={handleDateChange}
-                  className="bg-transparent text-sm font-bold text-gray-700 outline-none cursor-pointer"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* 2. Charts Section */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Revenue Trend - Spans 2 columns */}
