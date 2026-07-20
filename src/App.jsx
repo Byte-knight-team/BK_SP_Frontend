@@ -86,7 +86,8 @@ import MenuUpdateRequestsPage from './pages/admin/MenuUpdateRequestsPage'
 import AddCategoryPage from './pages/admin/AddCategoryPage'
 import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
 import TableManagementPage from './pages/admin/TableManagementPage'
-import AddTablePage from './pages/admin/AddTablePage'
+import TableDetailsPage from './pages/admin/TableDetailsPage'
+import AddTablePage from './components/admin/AddTablePage'
 import TableQrPage from './pages/admin/TableQrPage'
 import CouponsPage from './pages/admin/CouponsPage'
 
@@ -274,6 +275,7 @@ export default function App() {
 
           <Route path="tables" element={<TableManagementPage />} />
           <Route path="tables/add" element={<AddTablePage />} />
+          <Route path="tables/:id" element={<TableDetailsPage />} />
           <Route path="tables/:tableId/qr" element={<TableQrPage />} />
           <Route path="menu" element={<MenuManagementPage />} />
           <Route path="menu/category/add" element={<AddCategoryPage />} />
