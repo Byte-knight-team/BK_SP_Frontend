@@ -18,6 +18,7 @@ const CARDS = [
     bg: 'bg-orange-50',
     qrKey: 'newQR',
     pickupKey: 'newPickup',
+    deliveryKey: 'newDelivery',
   },
   {
     key: 'kitchen',
@@ -27,6 +28,7 @@ const CARDS = [
     bg: 'bg-blue-50',
     qrKey: 'kitchenQR',
     pickupKey: 'kitchenPickup',
+    deliveryKey: 'kitchenDelivery',
   },
   {
     key: 'ready',
@@ -36,6 +38,7 @@ const CARDS = [
     bg: 'bg-green-50',
     qrKey: 'readyQR',
     pickupKey: 'readyPickup',
+    deliveryKey: 'readyDelivery',
   },
   {
     key: 'served',
@@ -76,6 +79,7 @@ function StatCard({ card, stats, loading }) {
   const Icon = card.icon
   const qrVal = stats?.[card.qrKey]
   const pickupVal = stats?.[card.pickupKey]
+  const deliveryVal = card.deliveryKey ? stats?.[card.deliveryKey] : undefined
 
   if (loading) {
     return (
@@ -101,7 +105,7 @@ function StatCard({ card, stats, loading }) {
           <p className="text-2xl font-black text-gray-800">
             {formatValue((qrVal ?? 0) + (pickupVal ?? 0), true)}
           </p>
-          <div className="mt-2 flex gap-3 text-xs font-semibold text-gray-400">
+          <div className="mt-2 flex items-center gap-x-2 whitespace-nowrap text-[10px] font-semibold text-gray-400">
             <span>QR: {formatValue(qrVal, true)}</span>
             <span className="text-gray-200">|</span>
             <span>Pickup: {formatValue(pickupVal, true)}</span>
@@ -110,12 +114,18 @@ function StatCard({ card, stats, loading }) {
       ) : (
         <div className="mt-3">
           <p className="text-2xl font-black text-gray-800">
-            {(qrVal ?? 0) + (pickupVal ?? 0)}
+            {(qrVal ?? 0) + (pickupVal ?? 0) + (deliveryVal ?? 0)}
           </p>
-          <div className="mt-2 flex gap-3 text-xs font-semibold text-gray-400">
+          <div className="mt-2 flex items-center gap-x-2 whitespace-nowrap text-[10px] font-semibold text-gray-400">
             <span>QR: {qrVal ?? 0}</span>
             <span className="text-gray-200">|</span>
             <span>Pickup: {pickupVal ?? 0}</span>
+            {card.deliveryKey && (
+              <>
+                <span className="text-gray-200">|</span>
+                <span>Delivery: {deliveryVal ?? 0}</span>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -123,21 +133,18 @@ function StatCard({ card, stats, loading }) {
   )
 }
 
-const ReceptionistStats = () => {
+const ReceptionistStats = ({ refreshKey = 0 }) => {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
-      setLoading(true)
       const { data } = await getDashboardStatsAPI()
       if (data) setStats(data)
       setLoading(false)
     }
     fetchStats()
-    const interval = setInterval(() => fetchStats(), 60000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [refreshKey])
 
   return (
     <>

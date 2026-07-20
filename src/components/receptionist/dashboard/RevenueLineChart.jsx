@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
 import { TrendingUp } from 'lucide-react'
+import DashboardLineChart from '../../common/DashboardLineChart'
 import { getRevenueByTypeAPI } from '../../../apis/receptionist/dashboard'
+
+// Revenue lines (order types). Data + formatting are receptionist-specific;
+// the drawing is delegated to the shared DashboardLineChart.
+const REVENUE_SERIES = [
+  { dataKey: 'qrRevenue', name: 'QR', color: '#f97316' },
+  { dataKey: 'pickupRevenue', name: 'Pickup', color: '#3b82f6' },
+]
 
 const RevenueLineChart = () => {
   const [data, setData] = useState([])
@@ -35,7 +33,7 @@ const RevenueLineChart = () => {
           </div>
           <div>
             <h2 className="text-sm font-bold text-gray-800">Revenue by Order Type</h2>
-            <p className="text-xs text-gray-400">Last 7 days — cash collected</p>
+            <p className="text-xs text-gray-400">Last 7 days, cash collected</p>
           </div>
         </div>
       </div>
@@ -46,56 +44,16 @@ const RevenueLineChart = () => {
           <div className="h-full rounded-xl bg-gray-50" />
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={data} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis
-              dataKey="day"
-              tick={{ fontSize: 11, fill: '#9ca3af', fontWeight: 600 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: '#9ca3af', fontWeight: 600 }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v) => `Rs ${v}`}
-              width={60}
-            />
-            <Tooltip
-              formatter={(value) => [`Rs ${Number(value).toFixed(2)}`, undefined]}
-              contentStyle={{
-                borderRadius: '12px',
-                border: '1px solid #f3f4f6',
-                fontSize: '12px',
-                fontWeight: 600,
-              }}
-            />
-            <Legend
-              iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ fontSize: '11px', fontWeight: 600, paddingTop: '8px' }}
-            />
-            <Line
-              type="monotone"
-              dataKey="qrRevenue"
-              name="QR"
-              stroke="#f97316"
-              strokeWidth={2.5}
-              dot={{ r: 3, fill: '#f97316' }}
-              activeDot={{ r: 5 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="pickupRevenue"
-              name="Pickup"
-              stroke="#3b82f6"
-              strokeWidth={2.5}
-              dot={{ r: 3, fill: '#3b82f6' }}
-              activeDot={{ r: 5 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="flex-1 min-h-0">
+          <DashboardLineChart
+            data={data}
+            xKey="day"
+            series={REVENUE_SERIES}
+            yTickFormatter={(v) => `Rs ${v}`}
+            tooltipFormatter={(v) => `Rs ${Number(v).toFixed(2)}`}
+            yWidth={60}
+          />
+        </div>
       )}
     </div>
   )

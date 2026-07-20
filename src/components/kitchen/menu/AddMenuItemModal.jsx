@@ -3,9 +3,15 @@ import { UtensilsCrossed, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import IngredientPicker from './IngredientPicker'
 import CloudinaryImageUpload from './CloudinaryImageUpload'
+import Dropdown from '../../common/Dropdown'
+import { getSubCategoriesAPI } from '../../../apis/kitchen/menu'
+
+// Sentinel value for "type a new sub-category instead of picking one"
+const NEW_SUBCATEGORY = '__NEW__'
 
 // AddMenuItemModal — lets a chef submit a new menu item (lands in PENDING status)
 // After the item is created, the parent saves the ingredient list using the returned item ID
+// `categories` (ACTIVE only) is fetched by the parent page via getActiveCategoriesAPI
 const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventoryItems = [] }) => {
   const [form, setForm] = useState({
     name: '',
@@ -18,6 +24,11 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
   })
   const [ingredients, setIngredients] = useState([])
   const [loading, setLoading] = useState(false)
+
+  // Existing sub-category names for the selected category, so the chef can
+  // reuse one instead of accidentally creating a near-duplicate
+  const [subCategoryOptions, setSubCategoryOptions] = useState([])
+  const [subCategoryChoice, setSubCategoryChoice] = useState('') // Dropdown value, or NEW_SUBCATEGORY
 
   // Reset form and ingredients every time the modal opens
   useEffect(() => {
@@ -32,8 +43,19 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
         imageUrl: '',
       })
       setIngredients([])
+      setSubCategoryOptions([])
+      setSubCategoryChoice('')
     }
   }, [isOpen])
+
+  // Re-fetch the distinct sub-categories whenever the chosen category changes
+  useEffect(() => {
+    if (!isOpen || !form.categoryId) {
+      setSubCategoryOptions([])
+      return
+    }
+    getSubCategoriesAPI(form.categoryId).then(({ data }) => setSubCategoryOptions(data || []))
+  }, [isOpen, form.categoryId])
 
   if (!isOpen) return null
 
@@ -41,9 +63,16 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
+  // Dropdown selection for sub-category: either an existing name, or the
+  // NEW_SUBCATEGORY sentinel which reveals a free-text input instead
+  const handleSubCategoryChoice = (val) => {
+    setSubCategoryChoice(val)
+    setForm((prev) => ({ ...prev, subCategory: val === NEW_SUBCATEGORY ? '' : val }))
+  }
+
   const handleSubmit = async () => {
-    if (!form.name || !form.categoryId || !form.price || !form.preparationTime) {
-      toast.warning('Please fill in all required fields!')
+    if (!form.name || !form.categoryId || !form.subCategory.trim() || !form.price || !form.preparationTime || !form.imageUrl) {
+      toast.warning('Please fill in all required fields, including the item image!')
       return
     }
     if (parseFloat(form.price) <= 0) {
@@ -55,15 +84,15 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
       return
     }
 
-    // Build payload matching CreateMenuItemRequest on the backend
+    // Build payload matching CreateKitchenMenuItemRequest on the backend
     const payload = {
       name: form.name.trim(),
       description: form.description.trim() || null,
       categoryId: parseInt(form.categoryId),
-      subCategory: form.subCategory.trim() || null,
+      subCategory: form.subCategory.trim(),
       price: parseFloat(form.price),
       preparationTime: parseInt(form.preparationTime),
-      imageUrl: form.imageUrl.trim() || null,
+      imageUrl: form.imageUrl.trim(),
     }
 
     setLoading(true)
@@ -82,7 +111,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
           <div className="p-2.5 bg-orange-100 text-orange-600 rounded-2xl">
             <UtensilsCrossed size={20} />
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="cursor-pointer text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
         </div>
@@ -109,25 +138,38 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
             rows={2}
             className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
           />
-          <select
-            name="categoryId"
+          <Dropdown
             value={form.categoryId}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
-          >
-            <option value="">Select Category *</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            name="subCategory"
-            placeholder="Sub-category (optional, e.g. Starters)"
-            value={form.subCategory}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+            onChange={(val) => {
+              setForm((prev) => ({ ...prev, categoryId: val, subCategory: '' }))
+              setSubCategoryChoice('')
+            }}
+            options={categories.map((cat) => ({ value: String(cat.id), label: cat.name }))}
+            placeholder="Select Category *"
           />
+
+          {/* Sub-category: pick one already used in this branch/category, or type a new one */}
+          <Dropdown
+            value={subCategoryChoice}
+            onChange={handleSubCategoryChoice}
+            options={[
+              ...subCategoryOptions.map((s) => ({ value: s, label: s })),
+              { value: NEW_SUBCATEGORY, label: '+ Type a new sub-category' },
+            ]}
+            placeholder={form.categoryId ? 'Select Sub-category *' : 'Select a category first'}
+            disabled={!form.categoryId}
+          />
+          {subCategoryChoice === NEW_SUBCATEGORY && (
+            <input
+              type="text"
+              name="subCategory"
+              placeholder="New sub-category name *"
+              value={form.subCategory}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
+              autoFocus
+            />
+          )}
           <div className="flex gap-2">
             <input
               type="number"
@@ -148,6 +190,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
               className="w-full px-4 py-3 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
+          <p className="px-1 text-xs font-bold text-gray-500">Item Image *</p>
           <CloudinaryImageUpload
             value={form.imageUrl}
             onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
@@ -167,7 +210,7 @@ const AddMenuItemModal = ({ isOpen, onClose, onSubmit, categories = [], inventor
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 text-sm font-bold text-gray-400 hover:bg-gray-50 rounded-2xl transition-all"
+            className="flex-1 cursor-pointer py-3 text-sm font-bold text-gray-400 hover:bg-gray-50 rounded-2xl transition-all"
           >
             Cancel
           </button>

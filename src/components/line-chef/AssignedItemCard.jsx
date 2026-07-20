@@ -46,7 +46,7 @@ const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
           <button
             onClick={() => onStart(item.itemId)}
             disabled={isLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-2.5 text-sm font-bold text-white shadow-md shadow-orange-100 transition-all hover:bg-orange-600 disabled:bg-gray-300 disabled:shadow-none"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-2.5 text-sm font-bold text-white shadow-md shadow-orange-100 transition-all hover:bg-orange-600 disabled:bg-gray-300 disabled:shadow-none disabled:cursor-not-allowed"
           >
             <Play size={14} /> Start Cooking
           </button>
@@ -55,7 +55,7 @@ const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
           <button
             onClick={() => onComplete(item.itemId)}
             disabled={isLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-500 py-2.5 text-sm font-bold text-white shadow-md shadow-green-100 transition-all hover:bg-green-600 disabled:bg-gray-300 disabled:shadow-none"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-500 py-2.5 text-sm font-bold text-white shadow-md shadow-green-100 transition-all hover:bg-green-600 disabled:bg-gray-300 disabled:shadow-none disabled:cursor-not-allowed"
           >
             <CheckCircle2 size={14} /> Mark Ready
           </button>

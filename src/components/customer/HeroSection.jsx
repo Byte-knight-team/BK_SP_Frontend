@@ -34,18 +34,12 @@ export default function HeroSection() {
 							Start Ordering
 							<ArrowRight size={18} />
 						</Link>
-					</div>
-
-					<div className="mt-8 grid max-w-md grid-cols-2 gap-3">
-						{[
-							{ value: 'Hygiene', label: 'Certified'},
-							{ value: '24/7', label: 'Support' },
-						].map((stat) => (
-							<div key={stat.label} className="rounded-xl border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
-								<p className="text-xl font-bold text-white">{stat.value}</p>
-								<p className="text-xs text-slate-300">{stat.label}</p>
-							</div>
-						))}
+						<Link
+							to="/reservations"
+							className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-md border border-white/20 transition-all hover:-translate-y-0.5 hover:bg-white/20"
+						>
+							Book a Table
+						</Link>
 					</div>
 				</div>
 

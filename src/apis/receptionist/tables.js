@@ -27,6 +27,21 @@ export const occupyTableAPI = async (tableId, guestCount) => {
   }
 }
 
+export const updateGuestCountAPI = async (tableId, guestCount) => {
+  try {
+    const response = await authFetch(buildApiUrl(`${BASE}/${tableId}/guest-count`), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guestCount }),
+    })
+    const result = await response.json()
+    if (!response.ok) return { data: null, error: result.message || 'Failed to update guest count' }
+    return { data: result.data, error: null }
+  } catch (error) {
+    return { data: null, error: error.message }
+  }
+}
+
 export const clearTableAPI = async (tableId) => {
   try {
     const response = await authFetch(buildApiUrl(`${BASE}/${tableId}/clear`), {

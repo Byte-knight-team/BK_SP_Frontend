@@ -37,7 +37,7 @@ const OrderTypePieChart = () => {
         </div>
         <div>
           <h2 className="text-sm font-bold text-gray-800">Order Type Breakdown</h2>
-          <p className="text-xs text-gray-400">Last 7 days — completed orders</p>
+          <p className="text-xs text-gray-400">Last 7 days, completed orders</p>
         </div>
       </div>
 
@@ -51,14 +51,15 @@ const OrderTypePieChart = () => {
           <p className="text-xs font-medium">No completed orders yet</p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={220}>
+        <div className="flex flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
-              cy="45%"
-              innerRadius={55}
-              outerRadius={85}
+              cy="50%"
+              innerRadius={85}
+              outerRadius={130}
               paddingAngle={3}
               dataKey="value"
             >
@@ -77,11 +78,12 @@ const OrderTypePieChart = () => {
             />
             <Legend
               iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ fontSize: '11px', fontWeight: 600 }}
+              iconSize={10}
+              wrapperStyle={{ fontSize: '12px', fontWeight: 600 }}
             />
           </PieChart>
         </ResponsiveContainer>
+        </div>
       )}
     </div>
   )

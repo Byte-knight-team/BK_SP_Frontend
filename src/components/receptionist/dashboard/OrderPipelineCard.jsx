@@ -24,20 +24,20 @@ function PipelineColumn({ icon: Icon, label, color, bg, orders }) {
           {orders.length}
         </span>
       </div>
-      <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[180px] pr-0.5">
+      <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[220px] pr-0.5">
         {orders.length === 0 ? (
-          <p className="py-3 text-center text-[10px] font-semibold text-gray-300">Empty</p>
+          <p className="py-4 text-center text-[10px] font-semibold text-gray-300">Empty</p>
         ) : (
           orders.map(o => (
-            <div key={o.id} className="rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm">
+            <div key={o.id} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <div className="flex items-center justify-between gap-1">
-                <span className="text-xs font-black text-gray-800">#{o.id}</span>
-                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${TYPE_BADGE[o.orderType] || ''}`}>
+                <span className="text-sm font-black text-gray-800">{o.orderNumber || `#${o.id}`}</span>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${TYPE_BADGE[o.orderType] || ''}`}>
                   {TYPE_LABEL[o.orderType] || o.orderType}
                 </span>
               </div>
-              {o.customerName && (
-                <p className="mt-0.5 truncate text-[10px] text-gray-400 font-medium">{o.customerName}</p>
+              {o.orderType === 'QR' && o.tableNumber != null && (
+                <p className="mt-1 text-xs font-bold text-gray-400">Table #{o.tableNumber}</p>
               )}
             </div>
           ))
@@ -47,7 +47,7 @@ function PipelineColumn({ icon: Icon, label, color, bg, orders }) {
   )
 }
 
-const OrderPipelineCard = () => {
+const OrderPipelineCard = ({ refreshKey = 0 }) => {
   const [newOrders, setNewOrders] = useState([])
   const [kitchenOrders, setKitchenOrders] = useState([])
   const [readyOrders, setReadyOrders] = useState([])
@@ -55,12 +55,11 @@ const OrderPipelineCard = () => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      setLoading(true)
       const [newRes, pendingRes, preparingRes, readyRes] = await Promise.all([
-        getReceptionistOrdersAPI('NEW'),
-        getReceptionistOrdersAPI('KITCHEN'),
+        getReceptionistOrdersAPI('PLACED'),
+        getReceptionistOrdersAPI('PENDING'),
         getReceptionistOrdersAPI('PREPARING'),
-        getReceptionistOrdersAPI('READY'),
+        getReceptionistOrdersAPI('COMPLETED'),
       ])
       setNewOrders(newRes.data || [])
       setKitchenOrders([...(pendingRes.data || []), ...(preparingRes.data || [])])
@@ -68,9 +67,7 @@ const OrderPipelineCard = () => {
       setLoading(false)
     }
     fetchAll()
-    const interval = setInterval(fetchAll, 30000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [refreshKey])
 
   return (
     <div className="flex h-full flex-col">
@@ -85,13 +82,13 @@ const OrderPipelineCard = () => {
       </div>
 
       {loading ? (
-        <div className="flex gap-3">
+        <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className="flex-1 h-40 animate-pulse rounded-xl bg-gray-100" />
+            <div key={i} className="h-40 animate-pulse rounded-xl bg-gray-100" />
           ))}
         </div>
       ) : (
-        <div className="flex gap-3">
+        <div className="grid grid-cols-3 gap-4">
           <PipelineColumn
             icon={ShoppingBag}
             label="New"

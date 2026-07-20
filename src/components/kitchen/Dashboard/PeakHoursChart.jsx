@@ -1,7 +1,11 @@
-import { BarChart } from '../BarChart'
+import DashboardLineChart from '../../common/DashboardLineChart'
 import { getPeakHoursAPI } from '../../../apis/kitchen/dashboard'
 import { useState, useEffect } from 'react'
+import { TrendingUp } from 'lucide-react'
 import { toast } from "react-toastify";
+
+// Single orange line — orders approved (sent to kitchen) per time slot
+const PEAK_SERIES = [{ dataKey: 'ordersCount', name: 'Orders', color: '#f97316' }]
 
 const PeakHoursChart = () => {
   const [graphData, setGraphData] = useState([])
@@ -31,54 +35,44 @@ const PeakHoursChart = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-6">
-        {/* Header Skeleton */}
-        <div className="flex items-center justify-between">
-          <div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
-          <div className="h-4 w-20 animate-pulse rounded bg-gray-50" />
+      <div className="flex h-full flex-col">
+        {/* Header skeleton (matches the icon-box header below) */}
+        <div className="mb-4 flex items-center gap-2">
+          <div className="h-9 w-9 animate-pulse rounded-xl bg-gray-100" />
+          <div className="space-y-1.5">
+            <div className="h-3.5 w-24 animate-pulse rounded bg-gray-100" />
+            <div className="h-2.5 w-32 animate-pulse rounded bg-gray-50" />
+          </div>
         </div>
 
-        {/* Bar Chart Skeleton */}
-        <div className="flex h-[200px] items-end justify-between gap-3 px-2">
-          {/* create 7 bars with random heights */}
-          {[60, 40, 85, 50, 70, 30, 90].map((height, i) => (
-            <div
-              key={i}
-              style={{ height: `${height}%` }}
-              className="w-full animate-pulse rounded-t-lg bg-gray-100/80"
-            />
-          ))}
-        </div>
-
-        {/* X-Axis labels skeleton */}
-        <div className="flex justify-between px-1">
-          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="h-2 w-8 animate-pulse rounded bg-gray-50" />
-          ))}
-        </div>
+        {/* Chart area placeholder */}
+        <div className="min-h-0 flex-1 animate-pulse rounded-2xl bg-gray-50" />
       </div>
     )
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold text-gray-800">Peak Hours</h2>
-        <span className="text-sm font-medium text-gray-400">Past 7 Days</span>
+    <div className="flex h-full flex-col">
+      <div className="mb-4 flex items-center gap-2">
+        <div className="flex items-center justify-center rounded-xl bg-orange-50 p-2">
+          <TrendingUp size={18} className="text-orange-500" />
+        </div>
+        <div>
+          <h2 className="text-sm font-bold text-gray-800">Peak Hours</h2>
+          <p className="text-xs text-gray-400">Orders per slot · past 7 days</p>
+        </div>
       </div>
 
-      <div className="mt-2 w-full">
-        <BarChart
-          data={graphData} // array of objects to display as bars
-          index="time" // key used for X-axis labels (bottom of chart)
-          categories={['ordersCount']} // key used for bar heights (Y-axis values)
-          colors={['orange']} // bar color for each category
-          showLegend={false} // hide the legend (only one category, not needed)
-          showXAxis={false} // hide X-axis labels (time slot labels are too long)
-          className="h-[300px]" // chart height
+      <div className="flex-1 min-h-0 w-full">
+        <DashboardLineChart
+          data={graphData}
+          xKey="time" // time-slot labels on the X-axis
+          series={PEAK_SERIES} // single orders line
+          showLegend={false} // only one line
+          showXAxis={true} // time slots are short enough to show on a line chart
         />
       </div>
-    </>
+    </div>
   )
 }
 

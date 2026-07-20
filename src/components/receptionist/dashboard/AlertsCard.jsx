@@ -68,7 +68,7 @@ const AlertsCard = ({ refreshKey }) => {
           <p className="text-xs font-medium">No active alerts</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2 overflow-y-auto max-h-[180px] pr-1">
+        <div className="flex flex-1 flex-col gap-2 overflow-y-auto min-h-0 pr-1">
           {active.map(alert => {
             const config = TYPE_CONFIG[alert.type] || TYPE_CONFIG.INFO
             return (

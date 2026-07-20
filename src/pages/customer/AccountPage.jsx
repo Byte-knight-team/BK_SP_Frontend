@@ -8,7 +8,7 @@ import EditableSection from '../../components/customer/EditableSection';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import { useCart } from '../../context/CartContext';
-import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile, createProfilePicturePresignUrl, updateProfilePictureKey, removeProfilePicture } from '../../apis/customer/profile';
+import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile, createProfilePicturePresignUrl, updateProfilePictureKey, removeProfilePicture, requestEmailVerification } from '../../apis/customer/profile';
 import { uploadFileToPresignedUrl } from '../../apis/customer/orders';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
@@ -26,6 +26,7 @@ export default function AccountPage() {
   
   const fileInputRef = useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
 
   const { data: profile, isLoading, error: queryError, refetch } = useQuery({
     queryKey: ['customerProfile'],
@@ -120,6 +121,20 @@ export default function AccountPage() {
       toast.error(err.message || 'Failed to remove picture');
     } finally {
       setIsUploadingImage(false);
+    }
+  };
+
+  const handleRequestVerification = async () => {
+    setIsSendingVerification(true);
+    try {
+      const res = await requestEmailVerification();
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload?.message || 'Failed to send verification email.');
+      toast.success(payload?.message || 'Verification email sent successfully!');
+    } catch (err) {
+      toast.error(err.message || 'Failed to send verification email.');
+    } finally {
+      setIsSendingVerification(false);
     }
   };
 
@@ -335,7 +350,7 @@ export default function AccountPage() {
               </button>
             </div>
 
-            {/* Static Email Section*/}
+              {/* Static Email Section*/}
               <div className="px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -343,12 +358,36 @@ export default function AccountPage() {
                       <Mail size={18} className="text-slate-600" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Email Address</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Email Address</p>
+                        {profile.email && (
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${profile.emailVerified ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {profile.emailVerified ? 'Verified' : 'Unverified'}
+                          </span>
+                        )}
+                      </div>
                       <p className="mt-1 truncate text-sm text-slate-900 leading-relaxed">
                         {profile.email || 'No email linked'}
                       </p>
                     </div>
                   </div>
+                  
+                  {profile.email && !profile.emailVerified && (
+                    <button
+                      onClick={handleRequestVerification}
+                      disabled={isSendingVerification}
+                      className="ml-4 flex items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-orange-600 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {isSendingVerification ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        'Verify Email'
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
 

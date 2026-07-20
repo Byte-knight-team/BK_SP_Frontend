@@ -25,7 +25,7 @@ const SendToKitchenModal = ({ isOpen, onClose, onConfirm, orderNumber, isOnHold,
             Cancel
           </button>
           <button onClick={onConfirm} disabled={isLoading}
-            className="flex-1 rounded-2xl bg-orange-500 py-3 text-sm font-bold text-white disabled:bg-gray-300">
+            className="flex-1 rounded-2xl bg-orange-500 py-3 text-sm font-bold text-white disabled:bg-gray-300 disabled:cursor-not-allowed">
             {isLoading ? 'Sending...' : 'Confirm'}
           </button>
         </div>
