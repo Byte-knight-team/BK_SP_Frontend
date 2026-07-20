@@ -170,6 +170,7 @@ export default function OrderConfirmationPage() {
   const isCancelled = order?.orderStatus === 'CANCELLED' || order?.orderStatus === 'REJECTED';
   const isReviewable = order?.orderStatus === 'SERVED' && !order?.isReviewed;
   const isCancellable = !isCancelled && ['PLACED', 'PENDING', 'ON_HOLD'].includes(order?.orderStatus);
+  const canRetryPayment = isCancellable && order?.paymentMethod === 'CARD' && (order?.paymentStatus === 'PENDING' || order?.paymentStatus === 'FAILED');
 
   // Pick the correct timeline for pickup vs delivery orders.
   const statusFlow = useMemo(() => getStatusFlow(orderType), [orderType]);
@@ -457,11 +458,32 @@ export default function OrderConfirmationPage() {
                 <span className="font-semibold text-slate-900">{order.paymentMethod || '—'}</span>
               </div>
             </div>
+            {canRetryPayment && (
+              <div className="mt-4 rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-100 leading-relaxed">
+                <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">Action Required</span>
+                Your order will be automatically cancelled if payment is not completed within 15 minutes.
+              </div>
+            )}
           </div>
 
           {/* Review is only available after serving; cancel is only available before processing starts. */}
           <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div className="space-y-2">
+              {canRetryPayment && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/payment', {
+                    state: {
+                      orderId: order.orderId,
+                      finalAmount: order.finalTotal,
+                      returnUrl: '/order-confirmation'
+                    }
+                  })}
+                  className="w-full rounded-[10px] bg-orange-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:bg-orange-600 transition-colors"
+                >
+                  Retry Payment
+                </button>
+              )}
               <button
                 type="button"
                 disabled={!isReviewable}

@@ -193,6 +193,7 @@ export default function OrdersPage() {
     const TypeIcon = typeInfo.icon;
 
     const isCancellable = state.activeTab === 'active' && ['PLACED', 'PENDING', 'ON_HOLD'].includes(order.orderStatus);
+    const canRetryPayment = isCancellable && order?.paymentMethod === 'CARD' && (order?.paymentStatus === 'PENDING' || order?.paymentStatus === 'FAILED');
 
     return (
       <div className="bg-white rounded-3xl p-6 shadow-[0_14px_30px_rgba(15,23,42,0.06)] mb-5 transition-all hover:shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
@@ -256,6 +257,14 @@ export default function OrdersPage() {
               >
                 <ExternalLink size={16} /> Track Details
               </button>
+              {canRetryPayment && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); navigate('/payment', { state: { orderId: order.orderId, finalAmount: order.finalTotal, returnUrl: '/orders' } }); }}
+                  className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-orange-500 text-white py-2.5 rounded-xl text-sm font-bold shadow-md shadow-orange-500/20 hover:bg-orange-600 transition-colors"
+                >
+                  <CreditCard size={16} /> Pay Now
+                </button>
+              )}
               {state.activeTab === 'previous' && order.orderStatus === 'SERVED' && !order.isReviewed && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); dispatch({ type: 'OPEN_REVIEW_MODAL', payload: order }); }}
