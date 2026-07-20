@@ -449,8 +449,8 @@ export default function OrderConfirmationPage() {
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-slate-600">Status:</span>
-                <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${order.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-700' : 'bg-orange-50 text-orange-700'}`}>
-                  {order.paymentStatus || 'UNKNOWN'}
+                <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${order.paymentStatus === 'PAID' || order.paymentStatus === 'REFUNDED' ? 'bg-emerald-50 text-emerald-700' : order.paymentStatus === 'REFUND_FAILED' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'}`}>
+                  {order.paymentStatus === 'REFUND_FAILED' ? 'REFUND PROCESSING' : order.paymentStatus || 'UNKNOWN'}
                 </span>
               </div>
               <div className="flex items-center justify-between">

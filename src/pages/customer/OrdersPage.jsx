@@ -218,8 +218,8 @@ export default function OrdersPage() {
           <div className="flex flex-row md:flex-col items-center md:items-end justify-between">
             <div className="text-left md:text-right">
               <p className="text-xl font-extrabold text-slate-900 mb-1">LKR {order.finalTotal?.toLocaleString()}</p>
-              <span className={`inline-flex items-center gap-1.5 text-[0.7rem] font-bold px-2 py-0.5 rounded-full ${order.paymentStatus === 'PAID' ? 'text-green-700 bg-green-50 border border-green-200' : 'text-orange-700 bg-orange-50 border border-orange-200'}`}>
-                <CreditCard size={12} /> {order.paymentStatus === 'PAID' ? 'PAID' : 'UNPAID'}
+              <span className={`inline-flex items-center gap-1.5 text-[0.7rem] font-bold px-2 py-0.5 rounded-full ${order.paymentStatus === 'PAID' || order.paymentStatus === 'REFUNDED' ? 'text-green-700 bg-green-50 border border-green-200' : order.paymentStatus === 'REFUND_FAILED' ? 'text-blue-700 bg-blue-50 border border-blue-200' : 'text-orange-700 bg-orange-50 border border-orange-200'}`}>
+                <CreditCard size={12} /> {order.paymentStatus === 'PAID' ? 'PAID' : order.paymentStatus === 'REFUNDED' ? 'REFUNDED' : order.paymentStatus === 'REFUND_FAILED' ? 'REFUND PROCESSING' : 'UNPAID'}
               </span>
             </div>
             <div className="ml-4 md:ml-0 md:mt-3 bg-slate-50 p-1.5 rounded-full text-slate-400">
