@@ -9,12 +9,11 @@ export default function StatCard({
   iconBg = 'bg-brand-light',
 }) {
   return (
-    <div className="card flex items-center gap-4">
-      <div className={clsx('p-3 rounded-2xl shrink-0', iconBg)}>{icon}</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-base text-gray-500 font-medium">{label}</p>
-        <div className="flex items-center gap-3 mt-1.5">
-          <span className="text-2xl font-extrabold text-gray-900 whitespace-nowrap">{value}</span>
+    <div className="card flex items-center justify-between p-6">
+      <div>
+        <p className="mb-1 text-sm font-medium text-gray-500">{label}</p>
+        <div className="flex items-center gap-3">
+          <h3 className="text-2xl font-bold text-gray-900 whitespace-nowrap">{value}</h3>
           {badge && (
             <span
               className={clsx(
@@ -28,6 +27,7 @@ export default function StatCard({
         </div>
         {subtitle && <p className="text-sm text-gray-400 mt-1.5">{subtitle}</p>}
       </div>
+      <div className={clsx('rounded-xl p-4 shrink-0', iconBg)}>{icon}</div>
     </div>
   )
 }

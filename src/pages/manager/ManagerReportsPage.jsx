@@ -14,7 +14,19 @@ import {
   Calendar,
   FileText,
   BarChart3,
+  CircleDollarSign,
+  TrendingUp,
+  Star,
+  ShoppingBag,
+  Truck,
+  CalendarDays,
+  Package,
+  ShoppingCart,
+  Users,
+  MessageSquare
 } from 'lucide-react'
+import ReportCard from '../../components/manager/reports/ReportCard'
+import { ReportService } from '../../apis/manager/ReportService'
 
 /**
  * LoadingSpinner Component
@@ -188,15 +200,86 @@ export default function ManagerReportsPage() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-24 text-center">
-          <FileText className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-semibold text-gray-900">
-            Report Generation
-          </h3>
-          <p className="mt-2 max-w-sm text-sm text-gray-500">
-            Advanced report generation options and downloads will be implemented
-            here soon.
-          </p>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <ReportCard
+            title="Sales Report"
+            description="Comprehensive breakdown of gross sales, refunds, net sales, taxes, and payment methods."
+            icon={CircleDollarSign}
+            onDownload={ReportService.downloadSalesReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
+          <ReportCard
+            title="Revenue Trend"
+            description="Daily revenue analysis, order volumes, and average order values over time."
+            icon={TrendingUp}
+            onDownload={ReportService.downloadRevenueTrendReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
+          <ReportCard
+            title="Top Selling Items"
+            description="Ranked list of menu items by quantity sold and total revenue generated."
+            icon={Star}
+            onDownload={ReportService.downloadTopSellingItemsReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
+          <ReportCard
+            title="Order Summary"
+            description="Insights on order statuses, cancellation reasons, and peak ordering hours."
+            icon={ShoppingBag}
+            onDownload={ReportService.downloadOrderSummaryReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
+          <ReportCard
+            title="Delivery Performance"
+            description="Driver statistics, average delivery times, and cancellation rates."
+            icon={Truck}
+            onDownload={ReportService.downloadDeliveryPerformanceReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
+          <ReportCard
+            title="Reservations"
+            description="Daily reservation volumes, status breakdowns, and deposit revenue."
+            icon={CalendarDays}
+            onDownload={ReportService.downloadReservationReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
+          <ReportCard
+            title="Inventory Status"
+            description="Current stock levels, low stock alerts, and inventory transaction history."
+            icon={Package}
+            onDownload={ReportService.downloadInventoryStatusReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
+          <ReportCard
+            title="Procurement & POs"
+            description="Purchase order statuses, vendor spend analysis, and GRN summaries."
+            icon={ShoppingCart}
+            onDownload={ReportService.downloadProcurementReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
+          <ReportCard
+            title="Staff Details"
+            description="Current directory of all staff members, roles, and employment status."
+            icon={Users}
+            onDownload={ReportService.downloadStaffDetailsReport}
+            hasDateFilter={false}
+          />
+          <ReportCard
+            title="Customer Reviews"
+            description="Rating distributions and a summary of recent customer feedback."
+            icon={MessageSquare}
+            onDownload={ReportService.downloadCustomerReviewsReport}
+            hasDateFilter={true}
+            defaultDateRange={dateRange}
+          />
         </div>
       )}
     </div>
