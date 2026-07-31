@@ -5,6 +5,7 @@ import {
   Users,
   Package,
   Truck,
+  ShoppingCart,
 } from 'lucide-react'
 
 export const managerNav = [
@@ -13,5 +14,6 @@ export const managerNav = [
   { label: 'Reports & Analytics', path: '/manager/reports', icon: BarChart3 },
   { label: 'Staff', path: '/manager/staff', icon: Users },
   { label: 'Inventory Management', path: '/manager/inventory', icon: Package },
-  { label: 'Driver Management', path: '/manager/drivers', icon: Truck },
+  { label: 'Procurement & Vendors', path: '/manager/procurement', icon: ShoppingCart },
+  { label: 'Delivery Management', path: '/manager/drivers', icon: Truck },
 ]

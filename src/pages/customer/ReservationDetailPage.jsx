@@ -42,7 +42,7 @@ export default function ReservationDetailPage() {
       }
     },
     onSuccess: () => {
-      toast.success('Reservation cancelled successfully');
+      // toast.success('Reservation cancelled successfully'); // Removed to avoid duplicate toast with global websocket Notification
       setShowCancelModal(false);
       queryClient.invalidateQueries({ queryKey: ['reservation', id] });
     },

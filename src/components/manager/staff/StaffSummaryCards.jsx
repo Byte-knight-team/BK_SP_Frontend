@@ -1,44 +1,60 @@
-import { ChefHat, Truck, UserRound } from 'lucide-react'
+import { ChefHat, Truck, UserRound, Flame } from 'lucide-react'
 
-function SummaryCard({ icon, iconBg, label, value, subtitle }) {
-  return (
-    <div className="card flex items-start justify-between text-left w-full">
-      <div>
-        <p className="text-sm text-gray-500 font-medium">{label}</p>
-        <p className="text-3xl font-extrabold mt-2 text-gray-900">
-          {value}
-        </p>
-        <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
-      </div>
-      <div className={`p-3 rounded-xl ${iconBg}`}>{icon}</div>
-    </div>
-  )
-}
+export default function StaffSummaryCards({ 
+  chefCount = 0, 
+  lineChefCount = 0, 
+  deliveryCount = 0, 
+  receptionistCount = 0 
+}) {
+  const cards = [
+    {
+      title: 'Main Chefs',
+      value: `${chefCount} Staff`,
+      icon: ChefHat,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100',
+    },
+    {
+      title: 'Line Chefs',
+      value: `${lineChefCount} Staff`,
+      icon: Flame,
+      color: 'text-rose-600',
+      bgColor: 'bg-rose-100',
+    },
+    {
+      title: 'Delivery Fleet',
+      value: `${deliveryCount} Riders`,
+      icon: Truck,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
+    },
+    {
+      title: 'Receptionists',
+      value: `${receptionistCount} Staff`,
+      icon: UserRound,
+      color: 'text-brand',
+      bgColor: 'bg-brand-light',
+    },
+  ]
 
-export default function StaffSummaryCards({ kitchenCount = 0, deliveryCount = 0, receptionistCount = 0 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-      <SummaryCard
-        icon={<ChefHat className="w-6 h-6 text-orange-500" />}
-        iconBg="bg-orange-50"
-        label="Kitchen team"
-        value={`${kitchenCount} Staff`}
-        subtitle="Active Kitchen Staff"
-      />
-      <SummaryCard
-        icon={<Truck className="w-6 h-6 text-blue-600" />}
-        iconBg="bg-blue-50"
-        label="Delivery Fleet"
-        value={`${deliveryCount} Riders`}
-        subtitle="Active Delivery Fleet"
-      />
-      <SummaryCard
-        icon={<UserRound className="w-6 h-6 text-brand" />}
-        iconBg="bg-brand-light"
-        label="Receptionists"
-        value={`${receptionistCount} Staff`}
-        subtitle="Active Receptionists"
-      />
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {cards.map((card, idx) => {
+        const Icon = card.icon
+        return (
+          <div key={idx} className="card flex items-center justify-between p-6">
+            <div>
+              <p className="mb-1 text-sm font-medium text-gray-500">
+                {card.title}
+              </p>
+              <h3 className="text-2xl font-bold text-gray-900">{card.value}</h3>
+            </div>
+            <div className={`rounded-xl p-4 ${card.bgColor}`}>
+              <Icon className={`h-6 w-6 ${card.color}`} />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

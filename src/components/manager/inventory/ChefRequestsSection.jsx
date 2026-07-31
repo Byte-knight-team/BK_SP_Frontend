@@ -1,60 +1,64 @@
 import React, { useState, useRef } from 'react'
-import { Eye, ChevronDown, ChevronUp } from 'lucide-react'
+import { Eye, ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import ResolveChefRequestModal from './ResolveChefRequestModal'
 
 const INITIAL_VISIBLE = 3
 
 function ChefRequestCard({ request, onViewRequest }) {
+  // Map RequestType to readable badge text
+  const badgeText = request.requestType === 'REFILL_STOCK' ? 'Refill Stock' : 
+                    request.requestType === 'ADD_NEW_ITEM' ? 'New Item' : request.requestType || 'Request'
+
   // Generate initials for the avatar
   const initials = request.chefName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
+    ?.split(' ')
+    ?.map((n) => n[0])
+    ?.join('')
+    ?.slice(0, 2)
+    ?.toUpperCase() || 'C'
 
   return (
-    <div className="border border-gray-200 shadow-sm rounded-2xl p-5 min-w-[280px] flex-1 hover:shadow-md transition-shadow relative overflow-hidden bg-white">
-      {/* Request Type Badge */}
-      <div className="absolute top-0 right-0 px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-bl-xl border-b border-l border-gray-200">
-        {request.requestType === 'REFILL_STOCK' ? 'Refill Stock' : 
-         request.requestType === 'ADD_NEW_ITEM' ? 'New Item' : request.requestType || 'Request'}
+    <div className="min-w-[280px] flex-1 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      {/* Badge & Time */}
+      <div className="mb-4 flex items-center justify-between">
+        <span className="rounded-full bg-[#fff7e6] px-3 py-1 text-xs font-bold text-[#d48806]">
+          {badgeText}
+        </span>
+        <div className="flex items-center gap-1 text-xs font-medium text-gray-400">
+          <Clock className="h-3.5 w-3.5" />
+          <span>{request.time || '00:00'}</span>
+        </div>
       </div>
 
-      {/* Chef info header */}
-      <div className="flex items-center gap-3 mb-4 mt-2">
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
-          style={{ backgroundColor: request.avatarColor }}
+      {/* Item Name & Quantity */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-gray-900">{request.item}</h3>
+        <p className="text-sm text-gray-500 font-medium mt-1">Quantity: {request.quantity}</p>
+      </div>
+
+      {/* Chef Initial and Name in gray box */}
+      <div className="mb-4 flex items-center gap-3 rounded-lg bg-gray-50 p-2">
+        <div 
+          className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
+          style={{ backgroundColor: request.avatarColor || '#f97316' }}
         >
           {initials}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">
-            {request.chefName}
-          </p>
-        </div>
-        <span className="text-xs text-gray-400">{request.time}</span>
+        <span className="text-sm font-medium text-gray-500">{request.chefName}</span>
       </div>
 
-      {/* Item details */}
-      <div className="mb-3">
-        <p className="text-sm font-bold text-gray-900">{request.item}</p>
-        <p className="text-base font-bold text-brand">{request.quantity}</p>
+      {/* Italic note with orange border */}
+      <div className="mb-5 flex items-center gap-2 border-l-[2px] border-[#f97316] pl-3">
+        <span className="text-sm italic text-gray-500 line-clamp-2">"{request.note || 'No special note'}"</span>
       </div>
 
-      {/* Note */}
-      <p className="text-xs text-gray-400 italic mb-4">"{request.note}"</p>
-
-      {/* Actions */}
-      <div className="flex items-center gap-2 mt-2">
-        <button 
-          onClick={() => onViewRequest(request)}
-          className="w-full inline-flex justify-center items-center gap-1.5 bg-brand/10 text-brand text-sm font-bold px-4 py-2 rounded-xl hover:bg-brand hover:text-white transition-all"
-        >
-          <Eye className="w-4 h-4" />
-          View Request
-        </button>
-      </div>
+      {/* View Request Button */}
+      <button
+        onClick={() => onViewRequest(request)}
+        className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] py-2.5 text-sm font-bold text-white shadow-sm transition-colors"
+      >
+        <span>+</span> View Request
+      </button>
     </div>
   )
 }

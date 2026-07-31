@@ -1,10 +1,6 @@
 import React from 'react'
-import StatCard from '../ui/StatCard'
 import { DollarSign, ShoppingBag, Clock, Package } from 'lucide-react'
 
-/**
- * Grid of summary statistic cards for the reports page.
- */
 export default function AnalyticsStats({ data }) {
   if (!data) return null
 
@@ -12,47 +8,58 @@ export default function AnalyticsStats({ data }) {
 
   const stats = [
     {
-      label: 'Net Revenue',
+      title: 'Net Revenue',
       value: formatCurrency(data.netRevenue),
-      icon: <DollarSign className="h-6 w-6 text-brand" />,
-      iconBg: 'bg-brand-light',
-      subtitle: 'Total earnings in period'
+      subtitle: 'Total earnings in period',
+      icon: DollarSign,
+      color: 'text-brand',
+      bgColor: 'bg-brand-light',
     },
     {
-      label: 'Order Volume',
+      title: 'Order Volume',
       value: data.orderCount?.toLocaleString() || '0',
-      icon: <ShoppingBag className="h-6 w-6 text-blue-600" />,
-      iconBg: 'bg-blue-50',
-      subtitle: 'Completed orders'
+      subtitle: 'Completed orders',
+      icon: ShoppingBag,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
     },
     {
-      label: 'Avg. Prep Time',
+      title: 'Avg. Prep Time',
       value: `${data.avgPrepTimeMinutes?.toFixed(1) || '0.0'}m`,
-      icon: <Clock className="h-6 w-6 text-emerald-600" />,
-      iconBg: 'bg-emerald-50',
-      subtitle: 'Kitchen efficiency'
+      subtitle: 'Kitchen efficiency',
+      icon: Clock,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-100',
     },
     {
-      label: 'Inventory Value',
+      title: 'Inventory Value',
       value: formatCurrency(data.totalInventoryValue),
-      icon: <Package className="h-6 w-6 text-amber-600" />,
-      iconBg: 'bg-amber-50',
-      subtitle: 'Current stock worth'
+      subtitle: 'Current stock worth',
+      icon: Package,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-100',
     }
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, idx) => (
-        <StatCard 
-          key={idx}
-          label={stat.label}
-          value={stat.value}
-          icon={stat.icon}
-          iconBg={stat.iconBg}
-          subtitle={stat.subtitle}
-        />
-      ))}
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {stats.map((card, idx) => {
+        const Icon = card.icon
+        return (
+          <div key={idx} className="card flex items-center justify-between p-6">
+            <div>
+              <p className="mb-1 text-sm font-medium text-gray-500">
+                {card.title}
+              </p>
+              <h3 className="text-2xl font-bold text-gray-900">{card.value}</h3>
+              <p className="mt-1 text-xs text-gray-400">{card.subtitle}</p>
+            </div>
+            <div className={`rounded-xl p-4 ${card.bgColor}`}>
+              <Icon className={`h-6 w-6 ${card.color}`} />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

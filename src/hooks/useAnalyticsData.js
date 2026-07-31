@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ManagerAnalyticsService } from '../apis/manager/ManagerAnalyticsService'
 import { useAuth } from '../context/AuthContext'
+import useWebSocket from './useWebSocket'
 
 /**
  * Custom hook to manage Manager Analytics data fetching and state.
@@ -50,6 +51,13 @@ export function useAnalyticsData() {
   useEffect(() => {
     fetchAnalyticsData()
   }, [fetchAnalyticsData])
+
+  // Subscribe to the manager-notifications topic and silently refetch analytics data
+  // whenever an event fires (e.g. an order is completed, updating revenue analytics)
+  const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
+  useWebSocket(branchId, topic, () => {
+    fetchAnalyticsData()
+  })
 
   return { 
     data, 

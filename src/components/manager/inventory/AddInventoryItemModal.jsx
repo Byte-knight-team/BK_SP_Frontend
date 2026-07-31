@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Modal from '../ui/Modal'
 
 const CATEGORIES = [
@@ -21,10 +21,38 @@ const INITIAL_FORM = {
   lowStockThreshold: '',
 }
 
-export default function AddInventoryItemModal({ isOpen, onClose, onSave }) {
+/**
+ * AddInventoryItemModal Component
+ *
+ * Provides a UI for managers to add new items to the branch's inventory.
+ * Contains a controlled form to capture item details (name, category, price, threshold)
+ * and handles the API submission state, showing a success screen upon completion.
+ *
+ * @param {boolean} isOpen - Controls whether the modal is visible.
+ * @param {function} onClose - Callback function to close the modal.
+ * @param {function} onSave - Async callback to process the form submission.
+ */
+export default function AddInventoryItemModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+}) {
   const [form, setForm] = useState(INITIAL_FORM)
   const [isSuccess, setIsSuccess] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setForm({ ...INITIAL_FORM, ...initialData })
+      } else {
+        setForm(INITIAL_FORM)
+      }
+      setIsSuccess(false)
+      setIsSaving(false)
+    }
+  }, [isOpen, initialData])
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
@@ -172,7 +200,7 @@ export default function AddInventoryItemModal({ isOpen, onClose, onSave }) {
               value={form.lowStockThreshold}
               onChange={handleChange('lowStockThreshold')}
             />
-            <p className="text-xs text-brand mt-2">
+            <p className="text-brand mt-2 text-xs">
               System will alert when stock falls below this level.
             </p>
           </div>
@@ -183,7 +211,7 @@ export default function AddInventoryItemModal({ isOpen, onClose, onSave }) {
               id="add-item-cancel-btn"
               type="button"
               onClick={handleClose}
-              className="px-8 py-2.5 rounded-full border border-brand text-brand text-sm font-semibold hover:bg-brand-light transition-colors"
+              className="border-brand text-brand hover:bg-brand-light rounded-full border px-8 py-2.5 text-sm font-semibold transition-colors"
             >
               Cancel
             </button>
@@ -191,32 +219,32 @@ export default function AddInventoryItemModal({ isOpen, onClose, onSave }) {
               id="add-item-save-btn"
               type="submit"
               disabled={isSaving}
-              className="px-8 py-2.5 rounded-full bg-brand text-white text-sm font-semibold hover:bg-brand-hover transition-colors disabled:opacity-50"
+              className="bg-brand hover:bg-brand-hover rounded-full px-8 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save Item'}
             </button>
           </div>
         </form>
       ) : (
-        <div className="flex flex-col items-center text-center py-6 animate-scaleIn">
+        <div className="animate-scaleIn flex flex-col items-center py-6 text-center">
           <img
             src="/assets/success_mark.png"
             alt="Success"
-            className="w-24 h-24 mb-6"
+            className="mb-6 h-24 w-24"
           />
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-gray-900">
             New Inventory Item Added!
           </h2>
 
-          <p className="text-gray-500 text-sm mb-8 max-w-[300px] leading-relaxed">
+          <p className="mb-8 max-w-75 text-sm leading-relaxed text-gray-500">
             "The Item Is Now Available In Your Catalog. You Can Continue Adding
             More Products Or View The Updated List Now."
           </p>
 
           <button
             onClick={handleClose}
-            className="px-12 py-3 rounded-full bg-brand text-white font-bold hover:bg-brand-hover transition-colors shadow-lg shadow-brand/20"
+            className="bg-brand hover:bg-brand-hover shadow-brand/20 rounded-full px-12 py-3 font-bold text-white shadow-lg transition-colors"
           >
             Finish
           </button>

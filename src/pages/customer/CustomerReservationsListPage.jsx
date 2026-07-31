@@ -111,7 +111,7 @@ export default function CustomerReservationsListPage() {
       }
     },
     onSuccess: () => {
-      toast.success('Reservation cancelled successfully');
+      // toast.success('Reservation cancelled successfully'); // Removed to avoid duplicate toast with global websocket Notification
       queryClient.invalidateQueries({ queryKey: ['myReservations'] });
     },
     onError: (err) => {
