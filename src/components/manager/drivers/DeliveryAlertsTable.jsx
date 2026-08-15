@@ -113,10 +113,10 @@ export default function DeliveryAlertsTable({ alerts, onAssignDriver }) {
                   <button
                     onClick={() =>
                       onAssignDriver({
-                        id: alert.orderId,
-                        orderNumber: alert.orderNumber,
+                        orderId: alert.orderId,
+                        id: alert.orderNumber,
                         customerName: alert.customerName,
-                        deliveryAddress: alert.deliveryAddress,
+                        zone: alert.deliveryAddress,
                       })
                     }
                     className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 focus:ring-4 focus:ring-red-300 focus:outline-none"

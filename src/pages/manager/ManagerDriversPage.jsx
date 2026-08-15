@@ -73,6 +73,9 @@ export default function ManagerDriversPage() {
 
       // Clear the router state so refreshing the page doesn't scroll again
       window.history.replaceState({}, document.title)
+    } else if (location.state?.tab) {
+      setActiveTab(location.state.tab)
+      window.history.replaceState({}, document.title)
     }
   }, [location])
 

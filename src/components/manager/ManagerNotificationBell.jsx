@@ -31,6 +31,8 @@ export default function ManagerNotificationBell() {
       navigate('/manager/inventory') // Assuming chef requests are handled in inventory
     } else if (notification.type === 'NEW_DELIVERY') {
       navigate('/manager/drivers') // Assuming deliveries are dispatched here
+    } else if (notification.type === 'DELIVERY_ALERT') {
+      navigate('/manager/drivers', { state: { tab: 'alerts' } }) // Navigate to drivers page with alerts tab
     }
   }
 
@@ -90,7 +92,11 @@ export default function ManagerNotificationBell() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-orange-600 mb-1">
-                          {notification.type === 'CHEF_REQUEST' ? 'Kitchen Request' : 'New Delivery'}
+                          {notification.type === 'CHEF_REQUEST' 
+                            ? 'Kitchen Request' 
+                            : notification.type === 'DELIVERY_ALERT'
+                              ? 'Delivery Alert'
+                              : 'New Delivery'}
                         </p>
                         <p className="text-sm text-gray-800 wrap-break-word line-clamp-2">
                           {notification.message}
@@ -109,7 +115,7 @@ export default function ManagerNotificationBell() {
                         className="flex items-center gap-1.5 text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         <ExternalLink className="w-3 h-3" />
-                        View
+                        {notification.type === 'DELIVERY_ALERT' ? 'Re Assign' : 'View'}
                       </button>
                       <button
                         type="button"
