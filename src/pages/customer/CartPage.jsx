@@ -108,8 +108,9 @@ export default function CartPage() {
 
       {/* ───── Summary & Checkout ───── */}
       {cartItems.length > 0 && (
-        <div className="px-6 pb-7 max-md:px-4 max-md:pb-5 max-w-[800px] mx-auto w-full">
-          <div className="bg-white border border-slate-200 rounded-[14px] p-5 px-6 mb-4">
+        <div className="sticky bottom-0 w-full pt-2 pb-7 px-6 max-md:px-4 max-md:pb-5 z-[90]">
+          <div className="max-w-[800px] mx-auto w-full">
+            <div className="bg-white border border-slate-200 rounded-[14px] p-4 px-6 mb-4 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
             <div className="flex justify-between items-center">
               <span className="text-[0.9rem] text-slate-500">Subtotal</span>
               <span className="text-[0.9rem] text-slate-500">LKR {subtotal.toLocaleString()}</span>
@@ -123,6 +124,7 @@ export default function CartPage() {
           <button className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-orange-500 py-4 font-heading text-[1.05rem] font-bold text-white shadow-sm transition-colors duration-300 hover:bg-orange-600" onClick={() => navigate('/checkout')}>
             Proceed to Checkout <ChevronRight size={18} />
           </button>
+          </div>
         </div>
       )}
     </div>
