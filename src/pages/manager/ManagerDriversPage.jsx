@@ -20,6 +20,8 @@ import DeliveryHistoryTable from '../../components/manager/drivers/DeliveryHisto
 import ActiveOrdersTable from '../../components/manager/drivers/ActiveOrdersTable'
 import AssignDriverModal from '../../components/manager/drivers/AssignDriverModal'
 
+import DeliveryAlertsTable from '../../components/manager/drivers/DeliveryAlertsTable'
+
 /**
  * LoadingSpinner Component
  * Displays a spinning loader while the data is being fetched.
@@ -73,6 +75,14 @@ export default function ManagerDriversPage() {
       window.history.replaceState({}, document.title)
     }
   }, [location])
+
+  // Switch to alerts tab automatically if there are open alerts on initial load
+  useEffect(() => {
+    if (data?.deliveryAlerts > 0 && activeTab === 'dispatch') {
+      setActiveTab('alerts')
+    }
+  }, [data?.deliveryAlerts])
+
   // 1. Loading State: Display the spinner while waiting for the API
   if (loading) return <LoadingSpinner />
 
@@ -136,7 +146,8 @@ export default function ManagerDriversPage() {
         pendingDispatch={data.pendingDispatch}
         available={data.available}
         activeDeliveries={data.activeDeliveries}
-        deliveryAlerts={0} // Hardcoded until backend alerts module is ready
+        deliveryAlerts={data.deliveryAlerts || 0}
+        onAlertsClick={() => setActiveTab('alerts')}
       />
 
       {/* Navigation Tabs */}
@@ -152,6 +163,23 @@ export default function ManagerDriversPage() {
           >
             Dispatch Hub
           </button>
+
+          <button
+            onClick={() => setActiveTab('alerts')}
+            className={`flex items-center gap-2 border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === 'alerts'
+                ? 'border-red-600 text-red-600'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            }`}
+          >
+            Delivery Alerts
+            {data.deliveryAlerts > 0 && (
+              <span className="flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-red-100 text-xs text-red-600">
+                {data.deliveryAlerts}
+              </span>
+            )}
+          </button>
+
           <button
             onClick={() => setActiveTab('status')}
             className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
@@ -192,6 +220,13 @@ export default function ManagerDriversPage() {
             onAssignDriver={handleAssignDriver}
           />
         </div>
+      )}
+
+      {activeTab === 'alerts' && (
+        <DeliveryAlertsTable
+          alerts={data.deliveryAlertList || []}
+          onAssignDriver={handleAssignDriver}
+        />
       )}
 
       {activeTab === 'status' && <DriverStatusBoard drivers={data.drivers} />}

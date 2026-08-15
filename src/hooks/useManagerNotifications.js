@@ -43,11 +43,18 @@ export function useManagerNotifications() {
     // When a ping comes in from the backend, fetch the latest unread notifications
     // We can also trigger a toast so the manager immediately notices it
     if (payload?.message === 'NEW_NOTIFICATION') {
-       const toastMsg = payload.type === 'CHEF_REQUEST' 
-          ? "New chef request received" 
-          : "New completed order ready to dispatch"
+       if (payload.type === 'DELIVERY_ALERT') {
+         toast.error(
+           `🚨 Delivery Alert — Order needs re-assignment. Driver cancelled mid-delivery.`,
+           { id: 'delivery-alert-ping', autoClose: 8000 }
+         )
+       } else {
+         const toastMsg = payload.type === 'CHEF_REQUEST' 
+            ? "New chef request received" 
+            : "New completed order ready to dispatch"
+         toast.success(toastMsg, { id: 'manager-notification-ping' })
+       }
        
-       toast.success(toastMsg, { id: 'manager-notification-ping' })
        fetchNotifications()
     } else if (payload?.message === 'NOTIFICATION_RESOLVED') {
        // Silently fetch to update the bell count/list
