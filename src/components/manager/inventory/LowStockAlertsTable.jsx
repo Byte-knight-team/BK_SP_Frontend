@@ -1,5 +1,11 @@
 import { useState, useMemo, useRef } from 'react'
-import { Search, AlertTriangle, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Search,
+  AlertTriangle,
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import clsx from 'clsx'
 
 const STATUS_CONFIG = {
@@ -72,10 +78,10 @@ export default function LowStockAlertsTable({ items = [], onCreatePo }) {
   return (
     <div className="card" ref={tableRef}>
       {/* Header row */}
-      <div className="p-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-gray-100">
+      <div className="flex flex-col justify-between gap-4 border-b border-gray-100 p-5 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900">Low Stock Alerts</h2>
-          <span className="bg-red-500 rounded-full px-2.5 py-1 text-xs font-bold text-white">
+          <span className="rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white">
             {items.length}
           </span>
         </div>
@@ -97,19 +103,25 @@ export default function LowStockAlertsTable({ items = [], onCreatePo }) {
 
       {/* Table */}
       <div className="overflow-x-auto overflow-y-hidden">
-        <table className="w-full text-sm text-left">
+        <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-xs tracking-wider text-gray-400 uppercase bg-gray-50/50">
-              <th className="px-6 py-4 font-semibold w-[25%] text-left">Item Name</th>
-              <th className="px-6 py-4 font-semibold w-[15%] text-center">Category</th>
-              <th className="px-6 py-4 font-semibold w-[20%] text-left">
+            <tr className="border-b border-gray-100 bg-gray-50/50 text-xs tracking-wider text-gray-400 uppercase">
+              <th className="w-[25%] px-6 py-4 text-left font-semibold">
+                Item Name
+              </th>
+              <th className="w-[15%] px-6 py-4 text-center font-semibold">
+                Category
+              </th>
+              <th className="w-[20%] px-6 py-4 text-left font-semibold">
                 Avg. Unit Price
               </th>
-              <th className="px-6 py-4 font-semibold w-[15%] text-center">
+              <th className="w-[15%] px-6 py-4 text-center font-semibold">
                 Current Stock
               </th>
-              <th className="px-6 py-4 font-semibold w-[15%] text-center">Status</th>
-              <th className="px-6 py-4 font-semibold w-[10%] min-w-[120px] text-center">
+              <th className="w-[15%] px-6 py-4 text-center font-semibold">
+                Status
+              </th>
+              <th className="w-[10%] min-w-30 px-6 py-4 text-center font-semibold">
                 Action
               </th>
             </tr>
@@ -119,7 +131,10 @@ export default function LowStockAlertsTable({ items = [], onCreatePo }) {
             className="animate-table-fade divide-y divide-gray-50"
           >
             {displayedItems.map((item) => (
-              <tr key={item.id} className="transition-colors hover:bg-gray-50/50">
+              <tr
+                key={item.id}
+                className="transition-colors hover:bg-gray-50/50"
+              >
                 {/* Item name + ID */}
                 <td className="px-6 py-4">
                   <p className="text-sm font-semibold text-gray-900">
@@ -143,7 +158,9 @@ export default function LowStockAlertsTable({ items = [], onCreatePo }) {
                   <span className="text-sm font-bold text-red-600">
                     {item.stockLevel}
                   </span>
-                  <span className="ml-1 text-xs text-gray-400">{item.unit}</span>
+                  <span className="ml-1 text-xs text-gray-400">
+                    {item.unit}
+                  </span>
                 </td>
 
                 {/* Status */}
@@ -155,10 +172,10 @@ export default function LowStockAlertsTable({ items = [], onCreatePo }) {
                 <td className="px-6 py-4 text-center">
                   <button
                     onClick={() => onCreatePo?.(item)}
-                    className="p-1.5 text-gray-400 hover:text-brand hover:bg-brand/10 rounded transition-colors inline-flex"
+                    className="hover:text-brand hover:bg-brand/10 inline-flex rounded p-1.5 text-gray-400 transition-colors"
                     title="Create PO"
                   >
-                    <ShoppingCart className="w-4 h-4" />
+                    <ShoppingCart className="h-4 w-4" />
                   </button>
                 </td>
               </tr>
@@ -167,7 +184,7 @@ export default function LowStockAlertsTable({ items = [], onCreatePo }) {
             {/* Static Height Padding */}
             {emptyRowsCount > 0 &&
               Array.from({ length: emptyRowsCount }).map((_, idx) => (
-                <tr key={`empty-${idx}`} className="h-[73px]">
+                <tr key={`empty-${idx}`} className="h-18.25">
                   <td colSpan={6}>&nbsp;</td>
                 </tr>
               ))}
