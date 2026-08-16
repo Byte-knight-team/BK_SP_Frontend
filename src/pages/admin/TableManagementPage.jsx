@@ -136,7 +136,7 @@ export default function TableManagementPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'AVAILABLE': return 'text-green-500 bg-green-50';
+      case 'AVAILABLE': return 'text-purple-500 bg-purple-50';
       case 'OCCUPIED': return 'text-orange-500 bg-orange-50';
       case 'RESERVED': return 'text-blue-500 bg-blue-50';
       default: return 'text-gray-500 bg-gray-50';
@@ -145,7 +145,7 @@ export default function TableManagementPage() {
 
   const getStatusDotColor = (status) => {
     switch (status) {
-      case 'AVAILABLE': return 'bg-green-500';
+      case 'AVAILABLE': return 'bg-purple-500';
       case 'OCCUPIED': return 'bg-orange-500';
       case 'RESERVED': return 'bg-blue-500';
       default: return 'bg-gray-500';
@@ -199,12 +199,12 @@ export default function TableManagementPage() {
           type="button"
           onClick={() => setActiveStatusFilter('AVAILABLE')}
           className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center text-left transition-all ${activeStatusFilter === 'AVAILABLE'
-              ? 'bg-green-100 border-green-200 ring-2 ring-green-200/80'
-              : 'bg-green-50 border-green-100/50 hover:border-green-200'
+              ? 'bg-purple-100 border-purple-200 ring-2 ring-purple-200/80'
+              : 'bg-purple-50 border-purple-100/50 hover:border-purple-200'
             }`}
         >
-          <div className="text-[11px] font-bold text-green-500 uppercase tracking-wider mb-2">AVAILABLE</div>
-          <div className="text-3xl font-extrabold text-green-600">{availableTables}</div>
+          <div className="text-[11px] font-bold text-purple-500 uppercase tracking-wider mb-2">AVAILABLE</div>
+          <div className="text-3xl font-extrabold text-purple-600">{availableTables}</div>
         </button>
         <button
           type="button"
@@ -406,7 +406,7 @@ export default function TableManagementPage() {
                 <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600">
                   <span className={`w-2 h-2 rounded-full ${getStatusDotColor(table.status)}`}></span>
                   <span className={
-                    table.status === 'AVAILABLE' ? 'text-green-500' :
+                    table.status === 'AVAILABLE' ? 'text-purple-500' :
                       table.status === 'OCCUPIED' ? 'text-orange-500' :
                         table.status === 'RESERVED' ? 'text-blue-500' :
                           'text-gray-500'
