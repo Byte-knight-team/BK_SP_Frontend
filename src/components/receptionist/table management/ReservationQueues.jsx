@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
-import { Inbox, CalendarClock, Loader2 } from 'lucide-react'
+import { Inbox, CalendarClock, CalendarCheck, Loader2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
   getRequestedReservationsAPI,
@@ -126,6 +126,19 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
 
   return (
     <div className="mt-8">
+      {/* Section heading */}
+      <div className="mb-4 flex items-center gap-2.5">
+        <div className="flex items-center justify-center rounded-xl bg-purple-50 p-2">
+          <CalendarCheck size={18} className="text-purple-600" />
+        </div>
+        <div>
+          <h2 className="text-base font-bold text-gray-800">Reservations</h2>
+          <p className="text-xs text-gray-400">
+            Review new requests and manage confirmed bookings.
+          </p>
+        </div>
+      </div>
+
       {/* Toggle */}
       <div className="mb-3 flex items-center gap-2">
         <TabBtn value="REQUESTED" label="Requested" count={requested.length} Icon={Inbox} />
