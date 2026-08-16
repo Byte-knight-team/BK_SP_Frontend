@@ -5,9 +5,11 @@ import {
   getAllInventoryAPI,
   createInventoryRequestAPI,
   updateInventoryStockAPI,
+  updateDailyRequiredStockAPI,
 } from '../../../apis/kitchen/inventory'
 import InventoryRequestModal from './InventoryRequestModal'
 import UpdateStockModal from './UpdateStockModal'
+import UpdateDailyRequiredStockModal from './UpdateDailyRequiredStockModal'
 import { toast } from 'react-toastify'
 
 const InventoryTable = () => {
@@ -21,14 +23,12 @@ const InventoryTable = () => {
   const [updateItemName, setUpdateItemName] = useState('')
   const [updateUnit, setUpdateUnit] = useState('')
   const [updateCurrentQty, setUpdateCurrentQty] = useState('')
-  const [updateMaxStock, setUpdateMaxStock] = useState('')
 
   // function to open the update modal
   const handleOpenUpdateModal = (item) => {
     setUpdateItemName(item.name)
     setUpdateUnit(item.unit)
     setUpdateCurrentQty(item.quantity)
-    setUpdateMaxStock(item.maxStock)
     setIsUpdateModalOpen(true)
   }
 
@@ -41,6 +41,31 @@ const InventoryTable = () => {
     } else {
       toast.success(data.message)
       setIsUpdateModalOpen(false)
+      fetchInventory(false)
+    }
+  }
+
+  //-------------- Update Daily Required Stock Modal --------------
+  const [isDailyRequiredModalOpen, setIsDailyRequiredModalOpen] = useState(false)
+  const [dailyRequiredItemName, setDailyRequiredItemName] = useState('')
+  const [dailyRequiredUnit, setDailyRequiredUnit] = useState('')
+  const [dailyRequiredCurrentValue, setDailyRequiredCurrentValue] = useState('')
+
+  const handleOpenDailyRequiredModal = (item) => {
+    setDailyRequiredItemName(item.name)
+    setDailyRequiredUnit(item.unit)
+    setDailyRequiredCurrentValue(item.dailyRequiredStock)
+    setIsDailyRequiredModalOpen(true)
+  }
+
+  const handleDailyRequiredSubmit = async (updateData) => {
+    const { data, error } = await updateDailyRequiredStockAPI(updateData)
+
+    if (error) {
+      toast.error('Failed to update daily required stock: ' + error)
+    } else {
+      toast.success(data.message)
+      setIsDailyRequiredModalOpen(false)
       fetchInventory(false)
     }
   }
@@ -148,7 +173,7 @@ const InventoryTable = () => {
               <th className="px-6 pb-2 text-left">
                 Stock Status (Current Qty)
               </th>
-              <th className="px-6 pb-2 text-center">Max Stock</th>
+              <th className="px-6 pb-2 text-center">Daily Required</th>
               <th className="px-6 pb-2 text-center">Level</th>
               <th className="px-6 pb-2 text-center">Actions</th>
             </tr>
@@ -189,8 +214,13 @@ const InventoryTable = () => {
                     </div>
                   </td>
 
-                  <td className="px-4 py-3 text-sm font-bold text-gray-400">
-                    {item.maxStock}
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => handleOpenDailyRequiredModal(item)}
+                      className="rounded-lg px-2 py-1 text-sm font-bold text-gray-500 hover:bg-orange-50 hover:text-orange-600"
+                    >
+                      {item.dailyRequiredStock}
+                    </button>
                   </td>
 
                   {/* status */}
@@ -262,7 +292,16 @@ const InventoryTable = () => {
         itemName={updateItemName}
         unit={updateUnit}
         currentQuantity={updateCurrentQty}
-        maxStock={updateMaxStock}
+      />
+
+      {/* the Update Daily Required Stock Modal */}
+      <UpdateDailyRequiredStockModal
+        isOpen={isDailyRequiredModalOpen}
+        onClose={() => setIsDailyRequiredModalOpen(false)}
+        onSubmit={handleDailyRequiredSubmit}
+        itemName={dailyRequiredItemName}
+        unit={dailyRequiredUnit}
+        currentDailyRequiredStock={dailyRequiredCurrentValue}
       />
     </div>
   )

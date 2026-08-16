@@ -5,7 +5,9 @@ import {
   RiEyeOffLine,
   RiArrowLeftLine,
   RiLockPasswordLine,
+  RiRestaurantLine,
   RiShieldCheckLine,
+  RiStore2Line,
 } from "@remixicon/react";
 
 import { changeStaffPassword } from "../../services/authService";
@@ -160,8 +162,52 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8">
-      <div className="w-full max-w-md overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm">
+    <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f4ef] px-4 py-8">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-30"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 12% 16%, rgba(249, 115, 22, 0.22), transparent 29%), radial-gradient(circle at 88% 84%, rgba(15, 23, 42, 0.16), transparent 31%), linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 247, 237, 0.72))",
+        }}
+      />
+
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 opacity-45"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px)",
+          backgroundSize: "42px 42px",
+        }}
+      />
+
+      <div
+        aria-hidden="true"
+        className="absolute -left-24 top-1/3 -z-10 h-72 w-72 rounded-full bg-orange-300/30 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute -right-20 bottom-1/4 -z-10 h-80 w-80 rounded-full bg-slate-700/15 blur-3xl"
+      />
+
+      <div
+        aria-hidden="true"
+        className="absolute left-[8%] top-[18%] -z-10 hidden h-32 w-32 rotate-[-8deg] items-center justify-center rounded-[2rem] border border-orange-200/70 bg-white/45 text-orange-500/55 shadow-lg shadow-orange-100/40 backdrop-blur-sm lg:flex"
+      >
+        <RiStore2Line size={52} />
+      </div>
+
+      <div
+        aria-hidden="true"
+        className="absolute bottom-[11%] right-[8%] -z-10 hidden h-48 w-48 items-center justify-center rounded-full border border-slate-300/60 bg-white/35 shadow-xl shadow-slate-300/20 backdrop-blur-sm lg:flex"
+      >
+        <div className="flex h-36 w-36 items-center justify-center rounded-full border border-orange-200/70 bg-orange-50/50 text-orange-500/45">
+          <RiRestaurantLine size={64} />
+        </div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-md overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 shadow-2xl shadow-slate-900/15 ring-1 ring-white/70 backdrop-blur-sm">
         <div className="border-b border-gray-100 bg-gradient-to-r from-orange-50 to-white p-6">
           <button
             type="button"

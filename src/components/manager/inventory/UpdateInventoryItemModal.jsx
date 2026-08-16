@@ -11,7 +11,14 @@ import {
 
 // ─── Constants ──────────────────────────────────────────────────────
 // Reusable category and unit lists (shared with AddInventoryItemModal)
-const CATEGORIES = ['Spices', 'Beverages', 'Dairy', 'Vegetables', 'Grains', 'Meat']
+const CATEGORIES = [
+  'Spices',
+  'Beverages',
+  'Dairy',
+  'Vegetables',
+  'Grains',
+  'Meat',
+]
 const UNITS = ['kg', 'g', 'Liters', 'Pcs', 'Balls']
 
 /**
@@ -79,14 +86,14 @@ function ItemInfoHeader({ item }) {
   const StatusIcon = statusConfig.icon
 
   return (
-    <div className="flex items-start justify-between gap-4 mb-6">
+    <div className="mb-6 flex items-start justify-between gap-4">
       {/* Left: Item name + category */}
       <div>
-        <p className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-1">
+        <p className="mb-1 text-xs font-bold tracking-wider text-gray-500 uppercase">
           Item Name
         </p>
-        <p className="text-2xl font-bold text-brand">{item.name}</p>
-        <p className="text-xs font-bold tracking-wider text-gray-500 uppercase mt-3 mb-1">
+        <p className="text-brand text-2xl font-bold">{item.name}</p>
+        <p className="mt-3 mb-1 text-xs font-bold tracking-wider text-gray-500 uppercase">
           Category
         </p>
         <p className="text-base font-semibold text-gray-800">
@@ -95,21 +102,21 @@ function ItemInfoHeader({ item }) {
       </div>
 
       {/* Right: Current stock level card */}
-      <div className="border border-gray-200 rounded-xl px-5 py-3 min-w-[160px] text-center">
-        <p className="text-sm text-gray-500 font-medium mb-1">
+      <div className="min-w-40 rounded-xl border border-gray-200 px-5 py-3 text-center">
+        <p className="mb-1 text-sm font-medium text-gray-500">
           Current Stock Level
         </p>
         <div className="flex items-center justify-center gap-2">
           <span
-            className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${statusConfig.className}`}
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${statusConfig.className}`}
           >
-            <StatusIcon className="w-3 h-3" />
+            <StatusIcon className="h-3 w-3" />
             {statusConfig.label}
           </span>
           <span className="text-3xl font-extrabold text-gray-900">
             {item.stockLevel ?? 0}
           </span>
-          <span className="text-sm text-gray-400 font-medium">
+          <span className="text-sm font-medium text-gray-400">
             {item.unit || 'kg'}
           </span>
         </div>
@@ -125,7 +132,7 @@ function ItemInfoHeader({ item }) {
 function UpdateTypeSelector({ selectedType, onSelect }) {
   return (
     <div className="mb-6">
-      <p className="text-sm font-bold text-gray-800 mb-3">
+      <p className="mb-3 text-sm font-bold text-gray-800">
         1. Select Update Type
       </p>
       <div className="grid grid-cols-3 gap-3">
@@ -138,22 +145,22 @@ function UpdateTypeSelector({ selectedType, onSelect }) {
               key={type.key}
               type="button"
               onClick={() => onSelect(type.key)}
-              className={`relative flex flex-col items-center text-center p-4 rounded-xl border-2 transition-all cursor-pointer ${
+              className={`relative flex cursor-pointer flex-col items-center rounded-xl border-2 p-4 text-center transition-all ${
                 isSelected
                   ? `${type.selectedBorder} ${type.selectedBg}`
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
               {/* Checkmark icon in top-right corner when selected */}
               {isSelected && (
                 <CheckCircle
-                  className={`absolute top-2 right-2 w-4 h-4 ${type.selectedText}`}
+                  className={`absolute top-2 right-2 h-4 w-4 ${type.selectedText}`}
                 />
               )}
 
               {/* Card icon */}
               <Icon
-                className={`w-5 h-5 mb-1.5 ${
+                className={`mb-1.5 h-5 w-5 ${
                   isSelected ? type.selectedText : 'text-gray-400'
                 }`}
               />
@@ -169,7 +176,7 @@ function UpdateTypeSelector({ selectedType, onSelect }) {
 
               {/* Card subtitle */}
               <p
-                className={`text-[10px] mt-0.5 ${
+                className={`mt-0.5 text-[10px] ${
                   isSelected ? type.selectedText : 'text-gray-400'
                 }`}
               >
@@ -189,8 +196,8 @@ function UpdateTypeSelector({ selectedType, onSelect }) {
  */
 function EmptyStatePlaceholder() {
   return (
-    <div className="border border-gray-200 rounded-xl p-10 text-center mb-6">
-      <p className="text-sm font-bold tracking-wider text-gray-400 uppercase mb-1">
+    <div className="mb-6 rounded-xl border border-gray-200 p-10 text-center">
+      <p className="mb-1 text-sm font-bold tracking-wider text-gray-400 uppercase">
         Select an Update Type
       </p>
       <p className="text-xs text-gray-400">
@@ -264,7 +271,7 @@ function RestockForm({ form, onChange, currentStock, unit }) {
         </label>
         <textarea
           id="restock-notes"
-          className="modal-input min-h-[100px] resize-none"
+          className="modal-input min-h-25 resize-none"
           placeholder="Add optional notes about this update.."
           value={form.notes}
           onChange={onChange('notes')}
@@ -274,23 +281,23 @@ function RestockForm({ form, onChange, currentStock, unit }) {
       {/* Read-only calculated fields: New Quantity + Total Cost */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold tracking-wider text-brand uppercase mb-2">
+          <label className="text-brand mb-2 block text-xs font-bold tracking-wider uppercase">
             New Quantity
           </label>
           <input
             type="text"
-            className="modal-input bg-gray-50 cursor-not-allowed"
+            className="modal-input cursor-not-allowed bg-gray-50"
             value={`${newQuantity}`}
             readOnly
           />
         </div>
         <div>
-          <label className="block text-xs font-bold tracking-wider text-brand uppercase mb-2">
+          <label className="text-brand mb-2 block text-xs font-bold tracking-wider uppercase">
             Total Cost
           </label>
           <input
             type="text"
-            className="modal-input bg-gray-50 cursor-not-allowed"
+            className="modal-input cursor-not-allowed bg-gray-50"
             value={`${totalCost}`}
             readOnly
           />
@@ -339,7 +346,7 @@ function RemoveForm({ form, onChange, currentStock, unit }) {
           <label className="modal-label">New Quantity</label>
           <input
             type="text"
-            className="modal-input bg-gray-50 cursor-not-allowed"
+            className="modal-input cursor-not-allowed bg-gray-50"
             value={`${newQuantity}`}
             readOnly
           />
@@ -353,7 +360,7 @@ function RemoveForm({ form, onChange, currentStock, unit }) {
         </label>
         <textarea
           id="remove-reason"
-          className="modal-input min-h-[120px] resize-none"
+          className="modal-input min-h-30 resize-none"
           placeholder="Briefly explain the reason for removal.."
           value={form.reason}
           onChange={onChange('reason')}
@@ -479,7 +486,7 @@ function CorrectionForm({ form, onChange }) {
           value={form.reorderLevel}
           onChange={onChange('reorderLevel')}
         />
-        <p className="text-xs text-brand mt-2">
+        <p className="text-brand mt-2 text-xs">
           System will alert when stock falls below this level.
         </p>
       </div>
@@ -491,7 +498,7 @@ function CorrectionForm({ form, onChange }) {
         </label>
         <textarea
           id="correct-notes"
-          className="modal-input min-h-[80px] resize-none"
+          className="modal-input min-h-20 resize-none"
           placeholder="Add optional notes about this correction.."
           value={form.notes}
           onChange={onChange('notes')}
@@ -538,14 +545,17 @@ export default function UpdateInventoryItemModal({
     reorderLevel: '',
     notes: '',
   })
-  
+
   const scrollRef = useRef(null)
   const [showScrollArrow, setShowScrollArrow] = useState(false)
 
   const handleScroll = () => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current
-      setShowScrollArrow(scrollHeight > clientHeight && scrollHeight - scrollTop - clientHeight > 10)
+      setShowScrollArrow(
+        scrollHeight > clientHeight &&
+          scrollHeight - scrollTop - clientHeight > 10,
+      )
     }
   }
 
@@ -652,7 +662,7 @@ export default function UpdateInventoryItemModal({
         <ItemInfoHeader item={item} />
 
         {/* ── Divider ── */}
-        <div className="border-t border-gray-100 my-4" />
+        <div className="my-4 border-t border-gray-100" />
 
         {/* ── Update Type Selector ── */}
         <UpdateTypeSelector
@@ -662,9 +672,9 @@ export default function UpdateInventoryItemModal({
 
         {/* ── Dynamic Form Area (keyed for smooth transition on type change) ── */}
         <div className="relative">
-          <div 
-            key={updateType || 'empty'} 
-            className="animate-table-fade h-[360px] overflow-y-auto custom-scrollbar pr-2"
+          <div
+            key={updateType || 'empty'}
+            className="animate-table-fade custom-scrollbar h-90 overflow-y-auto pr-2"
             ref={scrollRef}
             onScroll={handleScroll}
           >
@@ -695,11 +705,11 @@ export default function UpdateInventoryItemModal({
               />
             )}
           </div>
-          
+
           {/* Scroll Indicator */}
           {showScrollArrow && (
-            <div className="absolute bottom-0 left-0 right-0 flex justify-center bg-gradient-to-t from-white via-white/80 to-transparent pt-10 pb-2 pointer-events-none rounded-b-xl">
-              <ChevronDown className="w-5 h-5 text-brand animate-bounce" />
+            <div className="pointer-events-none absolute right-0 bottom-0 left-0 flex justify-center rounded-b-xl bg-linear-to-t from-white via-white/80 to-transparent pt-10 pb-2">
+              <ChevronDown className="text-brand h-5 w-5 animate-bounce" />
             </div>
           )}
         </div>
@@ -710,7 +720,7 @@ export default function UpdateInventoryItemModal({
             id="update-item-cancel-btn"
             type="button"
             onClick={handleClose}
-            className="px-8 py-2.5 rounded-full border border-red-500 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors"
+            className="rounded-full border border-red-500 px-8 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
           >
             Cancel
           </button>
@@ -721,7 +731,7 @@ export default function UpdateInventoryItemModal({
               id="update-item-confirm-btn"
               type="submit"
               disabled={isSaving}
-              className={`px-8 py-2.5 rounded-full text-white text-sm font-semibold transition-colors disabled:opacity-50 ${activeType.buttonBg}`}
+              className={`rounded-full px-8 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50 ${activeType.buttonBg}`}
             >
               {isSaving ? 'Saving...' : activeType.buttonLabel}
             </button>

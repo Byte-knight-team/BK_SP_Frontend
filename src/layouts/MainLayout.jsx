@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import SectionHeader from "../components/common/SectionHeader";
 
-const MainLayout = ({ Sidebar, Header }) => {
+const MainLayout = ({ Sidebar, Header, contentClassName = "" }) => {
   const [headerInfo, setHeaderInfo] = useState(null);
 
   return (
@@ -16,7 +16,9 @@ const MainLayout = ({ Sidebar, Header }) => {
 
         {/* Main content for every page */}
         <main className="custom-scrollbar flex-1 overflow-y-scroll">
-          <div className="min-h-[calc(100%+1px)] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+          <div
+            className={`min-h-[calc(100%+1px)] px-4 py-5 sm:px-6 lg:px-8 lg:py-7 ${contentClassName}`}
+          >
             {/* Show the SectionHeader if the page provides info */}
             {headerInfo && (
               <SectionHeader

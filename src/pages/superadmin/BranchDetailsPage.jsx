@@ -393,7 +393,7 @@ export default function BranchDetailsPage() {
   if (loading) {
     return (
       <div className="w-full">
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+        <div className="flex min-h-[clamp(24rem,calc(100vh-15rem),44rem)] items-center justify-center rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
           <BranchDetailsState
             Icon={RiBuilding2Line}
             title="Loading branch details"

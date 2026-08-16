@@ -221,7 +221,7 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
   const ongoingBlock = hasOngoing && (
     <div className="space-y-2">
       <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-600">
-        <CalendarClock size={12} /> Ongoing
+        <CalendarClock size={12} /> Ongoing Reservation
       </p>
       <div className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50 p-4">
         <p className="text-sm font-bold text-amber-800">{table.seatedReservation.customerName}</p>
@@ -363,15 +363,22 @@ const TableActionModal = ({ isOpen, onClose, table, onUpdate }) => {
             <>
               <button
                 onClick={handleSeatReservation}
-                disabled={!!loadingAction || !activeReservation}
+                disabled={!!loadingAction || !activeReservation || activeReservation.status !== 'PAID'}
+                title={activeReservation && activeReservation.status !== 'PAID' ? 'Awaiting payment' : undefined}
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-500 py-4 text-sm font-bold text-white shadow-lg shadow-green-500/30 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingAction === 'SEAT' ? <Loader2 className="animate-spin" size={18} /> : 'SEAT THIS RESERVATION'}
               </button>
               {activeReservation && (
-                <p className="text-center text-[11px] font-semibold text-gray-400">
-                  Seating {activeReservation.customerName} · {formatTime(activeReservation.reservationTime)} – {formatTime(activeReservation.endTime)}
-                </p>
+                activeReservation.status !== 'PAID' ? (
+                  <p className="text-center text-[11px] font-semibold text-amber-500">
+                    Awaiting payment
+                  </p>
+                ) : (
+                  <p className="text-center text-[11px] font-semibold text-gray-400">
+                    Seating {activeReservation.customerName} · {formatTime(activeReservation.reservationTime)} – {formatTime(activeReservation.endTime)}
+                  </p>
+                )
               )}
             </>
           )}

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { RefreshCcw, X } from "lucide-react";
 import { toast } from "react-toastify";
 
-const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQuantity, maxStock }) => {
+const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQuantity }) => {
   const [newQuantity, setNewQuantity] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,12 +27,6 @@ const UpdateStockModal = ({ isOpen, onClose, onSubmit, itemName, unit, currentQu
     // convert input to a number. (user can enter float values also)
     const numericQuantity = parseFloat(newQuantity);
 
-    // check if it's greater than max stock
-    if (numericQuantity > maxStock) {
-      toast.error(`Error: Quantity cannot exceed the maximum stock limit of ${maxStock} ${unit}!`);
-      return;
-    }
-    
     // check for negative numbers
     if (numericQuantity < 0) {
       toast.error("Error: Quantity cannot be negative!");

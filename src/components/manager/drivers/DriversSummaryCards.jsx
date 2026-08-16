@@ -1,14 +1,19 @@
 import { Users, Navigation, Timer, AlertTriangle } from 'lucide-react'
 
-function SummaryCard({ icon, iconBg, label, children, subtitle }) {
+function SummaryCard({ icon, iconBg, label, children, subtitle, onClick, animate }) {
   return (
-    <div className="card flex items-start justify-between">
+    <div 
+      className={`card flex items-start justify-between ${onClick ? 'cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md' : ''}`}
+      onClick={onClick}
+    >
       <div>
         <p className="text-sm text-gray-500 font-medium">{label}</p>
         <div className="mt-2">{children}</div>
         <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
       </div>
-      <div className={`p-3 rounded-xl ${iconBg}`}>{icon}</div>
+      <div className={`p-3 rounded-xl ${iconBg} ${animate ? 'animate-pulse ring-4 ring-red-100' : ''}`}>
+        {icon}
+      </div>
     </div>
   )
 }
@@ -18,7 +23,10 @@ export default function DriversSummaryCards({
   available,
   activeDeliveries,
   deliveryAlerts = 0,
+  onAlertsClick,
 }) {
+  const hasAlerts = deliveryAlerts > 0;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       {/* 1. Pending Dispatch */}
@@ -60,7 +68,9 @@ export default function DriversSummaryCards({
         icon={<AlertTriangle className="w-6 h-6 text-red-600" />}
         iconBg="bg-red-50"
         label="Delivery Alerts"
-        subtitle="Issues requiring attention"
+        subtitle={hasAlerts ? "Click to re-assign drivers" : "Issues requiring attention"}
+        onClick={hasAlerts ? onAlertsClick : undefined}
+        animate={hasAlerts}
       >
         <p className="text-3xl font-extrabold text-red-600">
           {deliveryAlerts}
