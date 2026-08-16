@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ManagerDashboardService } from '../apis/manager/ManagerDashboardService'
 import { useAuth } from '../context/AuthContext'
+import useWebSocket from './useWebSocket'
 
 export function useDashboardData() {
   const [data, setData] = useState(null)
@@ -28,6 +29,13 @@ export function useDashboardData() {
   useEffect(() => {
     fetchDashboardData()
   }, [fetchDashboardData])
+
+  // Subscribe to the manager-notifications topic and silently refetch dashboard
+  // data whenever any event fires (new order, completed delivery, chef request etc.)
+  const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
+  useWebSocket(branchId, topic, () => {
+    fetchDashboardData()
+  })
 
   return { data, loading, error, refetch: fetchDashboardData }
 }

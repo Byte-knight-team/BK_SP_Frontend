@@ -41,6 +41,8 @@ export default function useWebSocket(branchId, topic, onMessage) {
         Authorization: token ? `Bearer ${token}` : '',
       },
       reconnectDelay: 5000,
+      heartbeatIncoming: 10000, // expect a heartbeat from the server every 10s
+      heartbeatOutgoing: 10000, // send a heartbeat to the server every 10s
 
       onConnect: () => {
         console.log('[WebSocket] Connected — subscribing to', topics)
@@ -48,6 +50,7 @@ export default function useWebSocket(branchId, topic, onMessage) {
           client.subscribe(t, (message) => {
             try {
               const parsed = JSON.parse(message.body)
+              console.log('[WebSocket] Message received on', t, '→', parsed)
               onMessageRef.current?.(parsed, t)
             } catch (e) {
               console.error('[WebSocket] Failed to parse message:', e)

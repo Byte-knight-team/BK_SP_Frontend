@@ -98,7 +98,23 @@ export default function GlobalNotificationProvider() {
         client.subscribe(`/topic/user/${userId}/orders`, (message) => {
           try {
             const update = JSON.parse(message.body);
-            const { orderStatus, orderNumber, orderId } = update;
+            const { orderStatus, paymentStatus, orderNumber, orderId } = update;
+
+            const displayOrderNumber = orderNumber || `#${orderId}`;
+
+            // Handle Payment Status updates
+            if (paymentStatus) {
+              if (paymentStatus === 'REFUNDED') {
+                toast.success(`Order ${displayOrderNumber}: Payment has been refunded`, {
+                  icon: <Package size={20} />,
+                  onClick: () => {
+                    navigate('/order-confirmation', { state: { orderId: Number(orderId) } });
+                  },
+                  style: { cursor: 'pointer' },
+                });
+              }
+              return;
+            }
 
             if (!orderStatus) return;
 
@@ -111,8 +127,6 @@ export default function GlobalNotificationProvider() {
               icon: Package,
               type: 'info',
             };
-
-            const displayOrderNumber = orderNumber || `#${orderId}`;
 
             // Show an actionable toast that navigates to the order when clicked
             const toastFn =

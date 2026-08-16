@@ -8,33 +8,35 @@ export default function SalesTargetCard({ current, goal }) {
   const remaining = Math.max(0, goalNum - currentNum)
 
   return (
-    <div className="card">
-      <div className="mb-4 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-brand-light rounded-xl p-3">
-            <Target className="text-brand h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-base font-semibold text-gray-900">
-              Daily Sales Target
-            </p>
-            <p className="text-sm text-gray-400">
-              Goal: Rs.{goalNum.toLocaleString()}
-            </p>
+    <div className="card flex flex-col p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <p className="mb-1 text-sm font-medium text-gray-500">
+            Daily Sales Target
+          </p>
+          <div className="flex items-end gap-3">
+            <h3 className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+              Rs.{currentNum.toLocaleString()}
+            </h3>
+            <span className="mb-1 text-sm font-semibold text-gray-400">
+              / Rs.{goalNum.toLocaleString()}
+            </span>
           </div>
         </div>
-        <span className="text-3xl font-extrabold text-gray-900">
-          Rs.{currentNum.toLocaleString()}
-        </span>
+        <div className="bg-brand-light shrink-0 rounded-xl p-4">
+          <Target className="text-brand h-6 w-6" />
+        </div>
       </div>
-      <ProgressBar value={currentNum} max={goalNum} />
-      <div className="mt-3 flex justify-between">
-        <span className="text-sm font-medium text-green-500">
-          {pct}% Achieved
-        </span>
-        <span className="text-sm text-gray-400">
-          Rs.{remaining.toLocaleString()} more to reach daily goalx
-        </span>
+      <div>
+        <ProgressBar value={currentNum} max={goalNum} />
+        <div className="mt-3 flex justify-between">
+          <span className="text-sm font-medium text-green-500">
+            {pct}% Achieved
+          </span>
+          <span className="text-sm text-gray-400">
+            Rs.{remaining.toLocaleString()} more to reach daily goal
+          </span>
+        </div>
       </div>
     </div>
   )

@@ -95,6 +95,11 @@ export const authFetch = async (url, options = {}) => {
     }
   }
 
+  if (!response.ok) {
+    const errorData = await response.clone().json().catch(() => null);
+    throw new Error(errorData?.message || `HTTP Error ${response.status}`);
+  }
+
   return response;
 };
 

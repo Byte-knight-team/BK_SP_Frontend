@@ -94,9 +94,9 @@ export default function RecentOrdersTable({ orders = [] }) {
   }
 
   return (
-    <div className="card" ref={tableRef}>
+    <div className="card overflow-hidden" ref={tableRef}>
       {/* Header section: Contains title, count badge, search bar, and status filter */}
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 border-b border-gray-100 p-5 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
           <span className="bg-brand rounded-full px-2.5 py-1 text-xs font-bold text-white">
@@ -144,36 +144,36 @@ export default function RecentOrdersTable({ orders = [] }) {
       </div>
 
       {/* Main Table Display */}
-      <div className="overflow-x-auto">
-        <table className="w-full table-fixed text-base">
+      <div className="overflow-x-auto overflow-y-hidden">
+        <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-sm tracking-wider text-gray-400 uppercase">
-              <th className="w-[20%] pb-3 text-left font-medium">Order ID</th>
-              <th className="w-[20%] pb-3 text-left font-medium">Type</th>
-              <th className="w-[20%] pb-3 text-left font-medium">Status</th>
-              <th className="w-[20%] pb-3 text-center font-medium">
+            <tr className="bg-gray-50/50 text-xs tracking-wider text-gray-400 uppercase border-b border-gray-100">
+              <th className="px-6 py-4 text-left font-semibold w-[20%]">Order ID</th>
+              <th className="px-6 py-4 text-left font-semibold w-[20%]">Type</th>
+              <th className="px-6 py-4 text-left font-semibold w-[20%]">Status</th>
+              <th className="px-6 py-4 text-center font-semibold w-[20%]">
                 Order Amount
               </th>
-              <th className="w-[20%] pb-3 text-right font-medium">Placed On</th>
+              <th className="px-6 py-4 text-right font-semibold w-[20%]">Placed On</th>
             </tr>
           </thead>
-          <tbody className="min-h-[450px] divide-y divide-gray-50">
+          <tbody className="animate-table-fade divide-y divide-gray-50 min-h-[450px]">
             {displayedOrders.map((order) => (
-              <tr key={order.id} className="transition-colors hover:bg-gray-50">
-                <td className="truncate py-4 font-medium text-gray-800">
+              <tr key={order.id} className="transition-colors hover:bg-gray-50/50">
+                <td className="px-6 py-4 font-medium text-gray-900">
                   {order.id}
                 </td>
-                <td className="py-4 text-sm tracking-wide text-gray-500 uppercase">
+                <td className="px-6 py-4 text-sm font-semibold tracking-wide text-gray-500 uppercase">
                   {order.type}
                 </td>
-                <td className="py-4">
+                <td className="px-6 py-4 text-left">
                   {/* Status Badge component for visual status representation */}
                   <Badge status={order.status.toLowerCase()} />
                 </td>
-                <td className="py-4 text-center font-medium text-gray-900">
-                  Rs.{Number(order.amount).toLocaleString()}
+                <td className="px-6 py-4 text-center font-bold text-gray-900">
+                  Rs. {Number(order.amount).toLocaleString()}
                 </td>
-                <td className="py-4 text-right text-sm font-medium text-gray-900">
+                <td className="px-6 py-4 text-right text-sm font-medium text-gray-900">
                   {/* Relative time provided by backend */}
                   {order.timer}
                 </td>
@@ -213,7 +213,7 @@ export default function RecentOrdersTable({ orders = [] }) {
       </div>
 
       {/* Pagination Footer: Toggles between "View All" and page navigation controls */}
-      <div className="mt-6 flex items-center justify-center border-t border-gray-50 pt-5">
+      <div className="flex items-center justify-center border-t border-gray-100 bg-white px-6 py-4">
         {currentPage === 0 ? (
           // Mini-view footer
           filteredOrders.length > 5 && (

@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Search, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useMemo, Fragment } from 'react'
+import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightIcon } from 'lucide-react'
 import clsx from 'clsx'
 
 const FILTER_OPTIONS = ['All Status', 'DELIVERED', 'CANCELLED']
@@ -36,6 +36,7 @@ export default function DeliveryHistoryTable({ history = [] }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All Status')
   const [currentPage, setCurrentPage] = useState(0)
+  const [expandedRowId, setExpandedRowId] = useState(null)
 
   const filteredHistory = useMemo(() => {
     return history.filter((item) => {
@@ -61,6 +62,10 @@ export default function DeliveryHistoryTable({ history = [] }) {
 
   const handleViewMore = () => {
     setCurrentPage(1)
+  }
+
+  const toggleExpand = (orderId) => {
+    setExpandedRowId((prev) => (prev === orderId ? null : orderId))
   }
 
   return (
@@ -121,27 +126,64 @@ export default function DeliveryHistoryTable({ history = [] }) {
               <th className="w-1/4 pb-3 text-left font-semibold">Order ID</th>
               <th className="w-1/4 pb-3 text-left font-semibold">Status</th>
               <th className="w-1/4 pb-3 text-left font-semibold">Driver</th>
-              <th className="w-1/4 pb-3 text-right font-semibold">Completed At</th>
+              <th className="w-1/4 pb-3 text-right font-semibold">Resolved At</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {displayedHistory.map((item, index) => (
-              <tr
-                key={`${item.orderId}-${index}`}
-                className="transition-colors hover:bg-gray-50/50"
-              >
-                <td className="py-4 font-medium text-gray-800">{item.orderId}</td>
-                <td className="py-4">
-                  <StatusBadge status={item.deliveryStatus} />
-                </td>
-                <td className="py-4 text-sm text-gray-600 font-medium">
-                  {item.driverName}
-                </td>
-                <td className="py-4 text-right text-sm font-medium text-gray-500">
-                  {item.completedAt}
-                </td>
-              </tr>
-            ))}
+            {displayedHistory.map((item, index) => {
+              const isExpanded = expandedRowId === item.orderId
+              const canExpand = item.deliveryStatus === 'CANCELLED'
+
+              return (
+                <Fragment key={`${item.orderId}-${index}`}>
+                  <tr className="transition-colors hover:bg-gray-50/50">
+                    <td className="py-4 font-medium text-gray-800 flex items-center gap-2">
+                      {canExpand ? (
+                        <button
+                          onClick={() => toggleExpand(item.orderId)}
+                          className="p-1 rounded-md hover:bg-gray-200 text-gray-500 transition-colors focus:outline-none"
+                          title="View rejection reason"
+                        >
+                          {isExpanded ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRightIcon className="w-4 h-4" />
+                          )}
+                        </button>
+                      ) : (
+                        <div className="w-6" /> // Placeholder for alignment
+                      )}
+                      {item.orderId}
+                    </td>
+                    <td className="py-4">
+                      <StatusBadge status={item.deliveryStatus} />
+                    </td>
+                    <td className="py-4 text-sm text-gray-600 font-medium">
+                      {item.driverName}
+                    </td>
+                    <td className="py-4 text-right text-sm font-medium text-gray-500">
+                      {item.resolvedAt || 'N/A'}
+                    </td>
+                  </tr>
+                  
+                  {/* Expanded Rejection Reason Row */}
+                  {canExpand && isExpanded && (
+                    <tr className="bg-red-50/30">
+                      <td colSpan={4} className="py-3 px-10">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-bold text-red-600 uppercase tracking-wider">
+                            Rejection Reason
+                          </span>
+                          <span className="text-sm text-gray-700 italic">
+                            "{item.cancelledReason || 'No reason provided.'}"
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              )
+            })}
 
             {displayedHistory.length === 0 && (
               <tr>
