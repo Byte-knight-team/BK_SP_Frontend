@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { useAuth } from '../../context/AuthContext';
+import useWebSocket from '../../hooks/useWebSocket';
 import {
   getAdminDashboardOrderFlowAPI,
   getAdminDashboardRevenueTrendAPI,
@@ -13,6 +15,9 @@ import {
 
 // Admin landing page that summarizes key business metrics.
 export default function AdminDashboardPage() {
+  const { user, hydrated } = useAuth();
+  const branchId = user?.branchId;
+
   // Core dashboard metrics shown in the summary cards.
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -32,36 +37,33 @@ export default function AdminDashboardPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [revenueDays, setRevenueDays] = useState(7);
 
+  const fetchStatsAndFlow = React.useCallback(async () => {
+    const [
+      { data: statsData, error: statsError },
+      { data: flowData, error: flowError },
+    ] = await Promise.all([
+      getAdminDashboardStatsAPI(),
+      getAdminDashboardOrderFlowAPI(),
+    ]);
+
+    if (statsError) console.error('Error fetching admin dashboard stats:', statsError);
+    if (flowError) console.error('Error fetching admin dashboard order flow:', flowError);
+
+    if (statsData) setStats(statsData);
+    if (flowData) setOrderFlow(flowData);
+    setStatsLoading(false);
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
+    if (isMounted) fetchStatsAndFlow();
+    return () => { isMounted = false; };
+  }, [fetchStatsAndFlow]);
 
-    const loadStatsAndFlow = async () => {
-      const [
-        { data: statsData, error: statsError },
-        { data: flowData, error: flowError },
-      ] = await Promise.all([
-        getAdminDashboardStatsAPI(),
-        getAdminDashboardOrderFlowAPI(),
-      ]);
-
-      if (statsError) console.error('Error fetching admin dashboard stats:', statsError);
-      if (flowError) console.error('Error fetching admin dashboard order flow:', flowError);
-
-      if (!isMounted) return;
-
-      if (statsData) setStats(statsData);
-      if (flowData) setOrderFlow(flowData);
-      setStatsLoading(false);
-    };
-
-    loadStatsAndFlow();
-    const intervalId = window.setInterval(loadStatsAndFlow, 10000);
-
-    return () => {
-      isMounted = false;
-      window.clearInterval(intervalId);
-    };
-  }, []);
+  const topic = branchId ? `/topic/branch/${branchId}/admin-notifications` : null;
+  useWebSocket(branchId, topic, () => {
+    fetchStatsAndFlow();
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -76,7 +78,7 @@ export default function AdminDashboardPage() {
     };
 
     loadRevenueData();
-    const intervalId = window.setInterval(loadRevenueData, 10000);
+    const intervalId = window.setInterval(loadRevenueData, 60000);
 
     return () => {
       isMounted = false;

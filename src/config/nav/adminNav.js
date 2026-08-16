@@ -50,9 +50,4 @@ export const adminNav = [
     path: "/admin/menu-requests",
     icon: ClipboardList,
   },
-  {
-    label: "Coupons",
-    path: "/admin/coupons",
-    icon: Settings2Icon,
-  },
 ];
