@@ -54,6 +54,7 @@ import BranchDetailsPage from './pages/superadmin/BranchDetailsPage'
 import EditBranchPage from './pages/superadmin/EditBranchPage'
 import SystemConfigPage from './pages/superadmin/SystemConfigPage'
 import AuditLogsPage from './pages/superadmin/AuditLogsPage'
+import ReportsPage from './pages/superadmin/ReportsPage'
 import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
 import CustomerManagement from "./pages/superadmin/CustomerManagement";
@@ -216,6 +217,7 @@ export default function App() {
               <MainLayout
                 Sidebar={SuperAdminSidebar}
                 Header={SuperAdminHeader}
+                contentClassName="[&>*]:mx-auto"
               />
             </ProtectedRoute>
           }
@@ -244,6 +246,7 @@ export default function App() {
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
 
           <Route path="*" element={<Navigate to="/staff" replace />} />
         </Route>

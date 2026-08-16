@@ -16,7 +16,13 @@ export default function SuperAdminSidebar() {
     <AppSidebar
       navItems={superAdminNav}
       branchName={user?.branchName || "Global Access"}
-      userName={user?.username || user?.email || "User"}
+      userName={
+        user?.fullName ||
+        user?.name ||
+        user?.username ||
+        user?.email ||
+        "User"
+      }
       roleLabel={user?.roleName || "STAFF"}
       profilePath="/staff/profile"
       onLogout={handleLogout}

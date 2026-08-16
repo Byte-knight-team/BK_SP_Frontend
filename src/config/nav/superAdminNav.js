@@ -5,6 +5,7 @@ import {
   RiBuildingLine,
   RiSettings3Line,
   RiFileList3Line,
+  RiFileChartLine,
   RiLayoutGridLine,
 } from "@remixicon/react";
 
@@ -17,4 +18,5 @@ export const superAdminNav = [
   { label: "Category Management", path: "/staff/categories", icon: RiLayoutGridLine },
   { label: "System Configuration", path: "/staff/config", icon: RiSettings3Line },
   { label: "Audit Logs", path: "/staff/audit", icon: RiFileList3Line },
+  { label: "Reports", path: "/staff/reports", icon: RiFileChartLine },
 ];
