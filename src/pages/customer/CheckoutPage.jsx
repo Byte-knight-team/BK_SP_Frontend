@@ -65,6 +65,7 @@ function readCheckoutSeed() {
     paymentMethod: saved.paymentMethod || 'CASH',
     branchId: Number(qrClaims?.branch_id || saved.branchId || 1),
     tableId: qrClaims?.table_id || saved.tableId || null,
+    tableNumber: qrClaims?.table_number || saved.tableNumber || null,
     qrSessionId: qrClaims?.session_id || null,
     contact: {
       username: saved.contact?.username || '',
@@ -95,6 +96,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState(seed.paymentMethod)
   const [branchId] = useState(seed.branchId)
   const [tableId] = useState(seed.tableId)
+  const [tableNumber] = useState(seed.tableNumber)
   const [contact, setContact] = useState(seed.contact)
   const [couponDraft, setCouponDraft] = useState(seed.couponDraft)
   const [appliedCouponCode, setAppliedCouponCode] = useState(
@@ -169,6 +171,7 @@ export default function CheckoutPage() {
       paymentMethod,
       branchId,
       tableId,
+      tableNumber,
       contact,
       couponDraft,
       appliedCouponCode,
@@ -183,6 +186,7 @@ export default function CheckoutPage() {
     paymentMethod,
     branchId,
     tableId,
+    tableNumber,
     contact,
     couponDraft,
     appliedCouponCode,
@@ -899,8 +903,8 @@ export default function CheckoutPage() {
               )}
               {/* Contextual Table Details - Only show if QR Session */}
               {isQrCustomer && (
-                <div className="rounded-[14px] border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700 md:col-span-2">
-                  Table ID: {tableId || 'Not assigned'} • Branch ID: {branchId}
+                <div className="rounded-[14px] border border-orange-200 bg-[#FFF7F2] p-4 text-[0.95rem] font-bold text-[#EA580C] md:col-span-2 flex items-center justify-center">
+                  Table {tableNumber || tableId || 'Not assigned'}
                 </div>
               )}
             </div>
