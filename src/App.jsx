@@ -119,6 +119,7 @@ import MenuItemPage from './pages/kitchen/MenuItemPage'
 
 // Line Chef pages
 import LineChefDashboard from './pages/line-chef/LineChefDashboard'
+import LineChefHistoryPage from './pages/line-chef/LineChefHistoryPage'
 
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
@@ -488,6 +489,7 @@ export default function App() {
           }
         >
           <Route index element={<LineChefDashboard />} />
+          <Route path="history" element={<LineChefHistoryPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/line-chef" replace />} />

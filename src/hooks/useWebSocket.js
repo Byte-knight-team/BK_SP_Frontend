@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { getAuthToken } from '../utils/authToken'
+import { buildApiUrl } from '../apis/apiHelper'
 
 /**
  * useWebSocket hook
@@ -36,7 +37,7 @@ export default function useWebSocket(branchId, topic, onMessage) {
     const token = getAuthToken()
 
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS(buildApiUrl('/ws')),
       connectHeaders: {
         Authorization: token ? `Bearer ${token}` : '',
       },

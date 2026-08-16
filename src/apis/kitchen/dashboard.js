@@ -1,9 +1,9 @@
-import { authFetch } from "../apiHelper";
+import { authFetch, buildApiUrl } from "../apiHelper";
 
 //get dashboard stats details
 export const getDashboardOrderStatsAPI = async () => {
   try {
-    const response = await authFetch("http://localhost:8080/api/v1/kitchen/stats");
+    const response = await authFetch(buildApiUrl("/api/v1/kitchen/stats"));
     const result = await response.json();
 
     return { data: result.data, error: null }; //return an object
@@ -17,7 +17,7 @@ export const getDashboardOrderStatsAPI = async () => {
 export const getDashboardPopularMealsAPI = async () => {
   try {
     const response = await authFetch(
-      "http://localhost:8080/api/v1/kitchen/popular-meals",
+      buildApiUrl("/api/v1/kitchen/popular-meals"),
     );
     const result = await response.json();
 
@@ -32,7 +32,7 @@ export const getDashboardPopularMealsAPI = async () => {
 export const getPeakHoursAPI = async () => {
   try {
     const response = await authFetch(
-      "http://localhost:8080/api/v1/kitchen/peak-hours",
+      buildApiUrl("/api/v1/kitchen/peak-hours"),
     );
     const result = await response.json();
     return { data: result.data, error: null };
@@ -46,7 +46,7 @@ export const getPeakHoursAPI = async () => {
 export const getInventoryAlertsAPI = async () => {
   try {
     const response = await authFetch(
-      "http://localhost:8080/api/v1/kitchen/inventory-alerts",
+      buildApiUrl("/api/v1/kitchen/inventory-alerts"),
     );
     const result = await response.json();
     return { data: result.data, error: null };
@@ -60,7 +60,7 @@ export const getInventoryAlertsAPI = async () => {
 export const getOrderCardsAPI = async (orderStatus) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/order-cards?status=${orderStatus}`,
+      buildApiUrl(`/api/v1/kitchen/order-cards?status=${orderStatus}`),
     );
     const result = await response.json();
     return { data: result.data, error: null };

@@ -63,7 +63,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
     else {
       toast.success('Order sent to kitchen!')
       setIsKitchenOpen(false)
-      fetchDetail(false)
+      await fetchDetail(false)
       onTabChange('KITCHEN')
     }
     setIsActing(false)
@@ -76,7 +76,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
     else {
       toast.success('Order put on hold.')
       setIsHoldOpen(false)
-      fetchDetail(false)
+      await fetchDetail(false)
       onTabChange('ON_HOLD')
     }
     setIsActing(false)
@@ -89,7 +89,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
     else {
       toast.success('Order cancelled.')
       setIsCancelOpen(false)
-      fetchDetail(false)
+      await fetchDetail(false)
       onTabChange('CANCELLED')
     }
     setIsActing(false)
@@ -114,7 +114,7 @@ const OrderDetailPanel = ({ orderId, activeTab, onTabChange, refreshKey = 0 }) =
     if (error) { toast.error(error) }
     else {
       toast.success('Order handed over!')
-      fetchDetail(false)
+      await fetchDetail(false)
       onTabChange('SERVED')
     }
     setIsActing(false)

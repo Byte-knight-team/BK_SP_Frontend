@@ -35,6 +35,19 @@ export default function KitchenNotifier() {
   }, [])
   useWebSocket(branchId, itemTopic, handleItem)
 
+  // Ingredient stock just dropped into LOW or CRITICAL — fires on any kitchen page.
+  const inventoryAlertTopic = branchId ? `/topic/branch/${branchId}/inventory-alert` : null
+  const handleInventoryAlert = useCallback((msg) => {
+    if (!msg?.itemName) return
+    const qty = `${msg.quantity} ${msg.unit || ''}`.trim()
+    if (msg.level === 'CRITICAL') {
+      toast.error(`${msg.itemName} stock is CRITICAL: ${qty} left.`, { autoClose: 8000 })
+    } else {
+      toast.warning(`${msg.itemName} stock is LOW: ${qty} left.`, { autoClose: 6000 })
+    }
+  }, [])
+  useWebSocket(branchId, inventoryAlertTopic, handleInventoryAlert)
+
   // Menu update approval notification sent to the chef
   const menuUpdateApprovalTopic = user?.id ? `/topic/chef/${user.id}/menu-update-approval` : null
   const handleMenuUpdateApproval = useCallback((msg) => {
