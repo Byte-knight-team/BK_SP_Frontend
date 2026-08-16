@@ -1,5 +1,6 @@
 // React hooks for managing state, side effects, and direct DOM references
 import { useState, useEffect, useRef } from 'react'
+import { Loader2, Package, Users, History } from 'lucide-react'
 
 // React Router hook to access the current URL and router state
 import { useLocation } from 'react-router-dom'
@@ -16,26 +17,22 @@ import DriversSummaryCards from '../../components/manager/drivers/DriversSummary
 import DispatchHub from '../../components/manager/drivers/DispatchHub'
 import DriverStatusBoard from '../../components/manager/drivers/DriverStatusBoard'
 import DeliveryHistoryTable from '../../components/manager/drivers/DeliveryHistoryTable'
+import ActiveOrdersTable from '../../components/manager/drivers/ActiveOrdersTable'
 import AssignDriverModal from '../../components/manager/drivers/AssignDriverModal'
 
+import DeliveryAlertsTable from '../../components/manager/drivers/DeliveryAlertsTable'
+
 /**
- * LoadingSkeleton Component
- * Displays a pulsing placeholder layout while the data is being fetched.
- * Enhances user experience by providing immediate visual feedback.
+ * LoadingSpinner Component
+ * Displays a spinning loader while the data is being fetched.
  */
-function LoadingSkeleton() {
+function LoadingSpinner() {
   return (
-    <div className="animate-pulse space-y-5">
-      <div className="h-10 w-72 rounded bg-gray-200" />
-      <div className="grid grid-cols-3 gap-5">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-32 rounded-2xl bg-gray-200" />
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-5">
-        <div className="h-64 rounded-2xl bg-gray-200" />
-        <div className="h-64 rounded-2xl bg-gray-200" />
-      </div>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+      <Loader2 className="text-brand h-10 w-10 animate-spin" />
+      <p className="animate-pulse font-medium text-gray-500">
+        Loading driver information...
+      </p>
     </div>
   )
 }
@@ -44,11 +41,13 @@ export default function ManagerDriversPage() {
   // Fetch drivers, dispatch orders, and history using our custom hook
   const { data, loading, error, refetch } = useDriversData()
 
-  // Local state to manage the visibility and data of the "Assign Driver" modal
   const [assignModal, setAssignModal] = useState({
     open: false,
     order: null, // Stores the specific order being assigned
   })
+
+  // State to manage active tab
+  const [activeTab, setActiveTab] = useState('dispatch')
 
   // Reference to the DispatchHub DOM element so we can scroll to it programmatically
   const dispatchHubRef = useRef(null)
@@ -65,6 +64,7 @@ export default function ManagerDriversPage() {
   useEffect(() => {
     if (location.state?.scrollToDispatch) {
       setTimeout(() => {
+        setActiveTab('dispatch')
         dispatchHubRef.current?.scrollIntoView({
           behavior: 'smooth',
           block: 'start',
@@ -73,15 +73,26 @@ export default function ManagerDriversPage() {
 
       // Clear the router state so refreshing the page doesn't scroll again
       window.history.replaceState({}, document.title)
+    } else if (location.state?.tab) {
+      setActiveTab(location.state.tab)
+      window.history.replaceState({}, document.title)
     }
   }, [location])
-  // 1. Loading State: Display the skeleton UI while waiting for the API
-  if (loading) return <LoadingSkeleton />
+
+  // Switch to alerts tab automatically if there are open alerts on initial load
+  useEffect(() => {
+    if (data?.deliveryAlerts > 0 && activeTab === 'dispatch') {
+      setActiveTab('alerts')
+    }
+  }, [data?.deliveryAlerts])
+
+  // 1. Loading State: Display the spinner while waiting for the API
+  if (loading) return <LoadingSpinner />
 
   // 2. Error State: Display an error message and a retry button if the API fails
   if (error || !data) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
+      <div className="flex min-h-100 flex-col items-center justify-center space-y-4">
         <div className="font-medium text-red-500">
           Failed to load drivers: {error || 'Unknown error'}
         </div>
@@ -135,25 +146,101 @@ export default function ManagerDriversPage() {
 
       {/* Top Row: Quick stat cards showing online vs busy drivers */}
       <DriversSummaryCards
-        driversOnline={data.driversOnline}
-        available={data.available}
-        busy={data.busy}
         pendingDispatch={data.pendingDispatch}
+        available={data.available}
+        activeDeliveries={data.activeDeliveries}
+        deliveryAlerts={data.deliveryAlerts || 0}
+        onAlertsClick={() => setActiveTab('alerts')}
       />
 
-      {/* The Dispatch Hub: Wrapped in a div with a ref so we can scroll to it */}
-      <div ref={dispatchHubRef}>
-        <DispatchHub
-          orders={data.dispatchOrders}
-          onAssignDriver={handleAssignDriver}
-        />
+      {/* Navigation Tabs */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('dispatch')}
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === 'dispatch'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            }`}
+          >
+            Dispatch Hub
+          </button>
+
+          <button
+            onClick={() => setActiveTab('alerts')}
+            className={`flex items-center gap-2 border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === 'alerts'
+                ? 'border-red-600 text-red-600'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            }`}
+          >
+            Delivery Alerts
+            {data.deliveryAlerts > 0 && (
+              <span className="flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-red-100 text-xs text-red-600">
+                {data.deliveryAlerts}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('status')}
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === 'status'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            }`}
+          >
+            Driver Status Board
+          </button>
+          <button
+            onClick={() => setActiveTab('active_orders')}
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === 'active_orders'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            }`}
+          >
+            Active Orders
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === 'history'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            }`}
+          >
+            Delivery History Log
+          </button>
+        </nav>
       </div>
 
-      {/* Table showing real-time status and current tasks of all active drivers */}
-      <DriverStatusBoard drivers={data.drivers} />
+      {activeTab === 'dispatch' && (
+        <div ref={dispatchHubRef}>
+          <DispatchHub
+            orders={data.dispatchOrders}
+            onAssignDriver={handleAssignDriver}
+          />
+        </div>
+      )}
 
-      {/* Table showing a historical log of completed and cancelled deliveries */}
-      <DeliveryHistoryTable history={data.deliveryHistory || []} />
+      {activeTab === 'alerts' && (
+        <DeliveryAlertsTable
+          alerts={data.deliveryAlertList || []}
+          onAssignDriver={handleAssignDriver}
+        />
+      )}
+
+      {activeTab === 'status' && <DriverStatusBoard drivers={data.drivers} />}
+
+      {activeTab === 'active_orders' && (
+        <ActiveOrdersTable drivers={data.drivers || []} />
+      )}
+
+      {activeTab === 'history' && (
+        <DeliveryHistoryTable history={data.deliveryHistory || []} />
+      )}
 
       {/* 
         Assign Driver Modal Component

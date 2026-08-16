@@ -1,55 +1,52 @@
-import { useState } from "react";
-import craveHouseLogo from "../../assets/Crave House logo.png";
-import { Link, useLocation } from "react-router-dom";
-import {
-  RiLogoutBoxRLine,
-  RiUser3Line,
-} from "@remixicon/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import LogoutConfirmModal from "./LogoutConfirmModal";
+import { useState } from 'react'
+import craveHouseLogo from '../../assets/Crave House logo.png'
+import { Link, useLocation } from 'react-router-dom'
+import { RiLogoutBoxRLine, RiUser3Line } from '@remixicon/react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import LogoutConfirmModal from './LogoutConfirmModal'
 
 export default function AppSidebar({
   navItems = [],
-  branchName = "Global Access",
-  userName = "User",
-  roleLabel = "STAFF",
-  profilePath = "/staff/profile",
+  branchName = 'Global Access',
+  userName = 'User',
+  roleLabel = 'STAFF',
+  profilePath = '/staff/profile',
   onLogout,
 }) {
-  const location = useLocation();
+  const location = useLocation()
 
-  const [collapsed, setCollapsed] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [collapsed, setCollapsed] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   /*
     Checks whether a navigation item
     matches the current route.
   */
   const isActive = (item) => {
-    const [itemPath, itemSearch] = (item.path || "").split("?");
-    
-    let matchPath = false;
+    const [itemPath, itemSearch] = (item.path || '').split('?')
+
+    let matchPath = false
     if (item.exact) {
-      matchPath = location.pathname === itemPath;
+      matchPath = location.pathname === itemPath
     } else {
-      matchPath = location.pathname.startsWith(itemPath);
+      matchPath = location.pathname.startsWith(itemPath)
     }
 
     if (itemSearch) {
-      const currentParams = new URLSearchParams(location.search);
-      const itemParams = new URLSearchParams(itemSearch);
+      const currentParams = new URLSearchParams(location.search)
+      const itemParams = new URLSearchParams(itemSearch)
       for (const [key, value] of itemParams.entries()) {
-        if (currentParams.get(key) !== value) return false;
+        if (currentParams.get(key) !== value) return false
       }
-      return matchPath;
+      return matchPath
     }
 
     if (item.exactSearch) {
-      return matchPath && !location.search;
+      return matchPath && !location.search
     }
 
-    return matchPath;
-  };
+    return matchPath
+  }
 
   /*
     Clean displayed username.
@@ -58,33 +55,31 @@ export default function AppSidebar({
     john@gmail.com -> john
   */
   const displayUserName =
-    userName && userName.includes("@")
-      ? userName.split("@")[0]
-      : userName;
+    userName && userName.includes('@') ? userName.split('@')[0] : userName
 
   /*
     Example:
     SUPER_ADMIN -> SUPER ADMIN
   */
-  const formattedRoleLabel = roleLabel.replace(/_/g, " ");
+  const formattedRoleLabel = roleLabel.replace(/_/g, ' ')
 
   /*
     Confirms logout and calls the logout
     function supplied by the parent layout.
   */
   const handleConfirmLogout = () => {
-    setShowLogoutConfirm(false);
+    setShowLogoutConfirm(false)
 
-    if (typeof onLogout === "function") {
-      onLogout();
+    if (typeof onLogout === 'function') {
+      onLogout()
     }
-  };
+  }
 
   return (
     <>
       <aside
         className={`${
-          collapsed ? "w-20" : "w-67.5"
+          collapsed ? 'w-20' : 'w-67.5'
         } relative z-40 flex h-screen flex-col justify-between border-r border-gray-100 bg-white transition-all duration-300 ease-in-out`}
       >
         {/* Top area */}
@@ -92,7 +87,7 @@ export default function AppSidebar({
           {/* Logo, branch and collapse controls */}
           <div
             className={`flex items-center border-b border-gray-100 px-4 py-5 ${
-              collapsed ? "flex-col gap-3" : "gap-3"
+              collapsed ? 'flex-col gap-3' : 'gap-3'
             }`}
           >
             {/* Expanded sidebar button */}
@@ -125,7 +120,7 @@ export default function AppSidebar({
                   </div>
 
                   <div className="truncate text-xs text-gray-500">
-                    {branchName || "Global Access"}
+                    {branchName || 'Global Access'}
                   </div>
                 </div>
 
@@ -143,30 +138,24 @@ export default function AppSidebar({
             )}
           </div>
 
-        {/* Navigation */}
-        <nav
-          className={`space-y-1 py-4 ${
-            collapsed ? "px-3" : "px-4"
-          }`}
-        >
+          {/* Navigation */}
+          <nav className={`space-y-1 py-4 ${collapsed ? 'px-3' : 'px-4'}`}>
             {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item);
+              const Icon = item.icon
+              const active = isActive(item)
 
               return (
                 <div key={item.path}>
                   <Link
                     to={item.path}
                     className={`group relative flex items-center rounded-2xl py-3 transition-all ${
-                      collapsed
-                        ? "justify-center px-2"
-                        : "gap-3 px-4"
+                      collapsed ? 'justify-center px-2' : 'gap-3 px-4'
                     } ${
                       active && !item.subItems
-                        ? "bg-orange-500 text-white shadow-md shadow-orange-200"
+                        ? 'bg-orange-500 text-white shadow-md shadow-orange-200'
                         : active && item.subItems
-                        ? "bg-orange-50 text-orange-600"
-                        : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
+                          ? 'bg-orange-50 text-orange-600'
+                          : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'
                     }`}
                   >
                     {/* Navigation icon */}
@@ -180,52 +169,58 @@ export default function AppSidebar({
                         </span>
 
                         {item.count !== undefined && (
-                          <span className={`px-2 py-0.5 ml-2 text-[10px] font-bold rounded-full ${active ? 'bg-white text-orange-600' : 'bg-orange-100 text-orange-600'}`}>
+                          <span
+                            className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${active ? 'bg-white text-orange-600' : 'bg-orange-100 text-orange-600'}`}
+                          >
                             {item.count}
                           </span>
                         )}
 
-                        {active && !item.subItems && item.count === undefined && (
-                          <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                        )}
+                        {active &&
+                          !item.subItems &&
+                          item.count === undefined && (
+                            <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                          )}
                       </>
                     )}
 
                     {/* Collapsed floating label */}
                     {collapsed && (
-                      <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+                      <div className="pointer-events-none absolute top-1/2 left-full z-50 ml-3 translate-x-1 -translate-y-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold whitespace-nowrap text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
                         {item.label}
                       </div>
                     )}
                   </Link>
 
                   {item.subItems && !collapsed && (
-                    <div className="ml-9 mt-1 space-y-1">
+                    <div className="mt-1 ml-9 space-y-1">
                       {item.subItems.map((sub) => {
-                        const subActive = isActive(sub);
+                        const subActive = isActive(sub)
                         return (
                           <Link
                             key={sub.path}
                             to={sub.path}
-                            className={`flex items-center justify-between px-4 py-2 text-sm rounded-xl transition-all ${
+                            className={`flex items-center justify-between rounded-xl px-4 py-2 text-sm transition-all ${
                               subActive
-                                ? "text-orange-600 bg-orange-100 font-medium"
-                                : "text-gray-500 hover:text-orange-600 hover:bg-orange-50"
+                                ? 'bg-orange-100 font-medium text-orange-600'
+                                : 'text-gray-500 hover:bg-orange-50 hover:text-orange-600'
                             }`}
                           >
                             <span>{sub.label}</span>
                             {sub.count !== undefined && (
-                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${subActive ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-600'}`}>
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${subActive ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-600'}`}
+                              >
                                 {sub.count}
                               </span>
                             )}
                           </Link>
-                        );
+                        )
                       })}
                     </div>
                   )}
                 </div>
-              );
+              )
             })}
           </nav>
         </div>
@@ -251,7 +246,7 @@ export default function AppSidebar({
                 </div>
 
                 {/* Profile floating label */}
-                <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+                <div className="pointer-events-none absolute top-1/2 left-full z-50 ml-3 translate-x-1 -translate-y-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold whitespace-nowrap text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
                   Profile
                 </div>
               </Link>
@@ -266,7 +261,7 @@ export default function AppSidebar({
                 <RiLogoutBoxRLine size={18} />
 
                 {/* Logout floating label */}
-                <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+                <div className="pointer-events-none absolute top-1/2 left-full z-50 ml-3 translate-x-1 -translate-y-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold whitespace-nowrap text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
                   Logout
                 </div>
               </button>
@@ -304,7 +299,7 @@ export default function AppSidebar({
               <button
                 type="button"
                 onClick={() => setShowLogoutConfirm(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-[13px] font-semibold text-red-600 transition-all hover:border-red-200 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-[13px] font-semibold text-red-600 transition-all hover:border-red-200 hover:bg-red-100 focus:ring-2 focus:ring-red-200 focus:outline-none"
                 title="Logout"
                 aria-label="Logout"
               >
@@ -324,5 +319,5 @@ export default function AppSidebar({
         />
       )}
     </>
-  );
+  )
 }

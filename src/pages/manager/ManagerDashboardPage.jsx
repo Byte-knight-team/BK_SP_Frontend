@@ -10,7 +10,7 @@ import StaffAvailability from '../../components/manager/dashboard/StaffAvailabil
 import FleetTrackerBanner from '../../components/manager/dashboard/FleetTrackerBanner'
 
 // Import icons from the lucide-react library used in the header buttons
-import { Plus, UserCheck } from 'lucide-react'
+import { Plus, UserCheck, Loader2 } from 'lucide-react'
 
 // Import routing hook for navigation and authentication hook for user context
 import { useNavigate } from 'react-router-dom'
@@ -71,19 +71,17 @@ function DashHeader() {
 }
 
 /**
- * LoadingSkeleton Component
- * Provides a visual placeholder (shimmer effect) while the dashboard data is being fetched.
- * This improves perceived performance by preventing a blank screen during API calls.
+ * LoadingSpinner Component
+ * Provides a visual loading circle while the dashboard data is being fetched.
+ * This ensures consistency across all manager pages.
  */
-function LoadingSkeleton() {
+function LoadingSpinner() {
   return (
-    <div className="animate-pulse space-y-4">
-      <div className="h-8 w-64 rounded bg-gray-200" />
-      <div className="grid grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-gray-200" />
-        ))}
-      </div>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+      <Loader2 className="text-brand h-10 w-10 animate-spin" />
+      <p className="animate-pulse font-medium text-gray-500">
+        Calculating dashboard metrics...
+      </p>
     </div>
   )
 }
@@ -98,13 +96,13 @@ export default function ManagerDashboardPage() {
   // Destructures the data, loading state, error state, and a function to manually refresh
   const { data, loading, error, refetch } = useDashboardData()
 
-  // 1. Loading State: Show the skeleton animation if data is still being fetched
-  if (loading) return <LoadingSkeleton />
+  // 1. Loading State: Show the spinner animation if data is still being fetched
+  if (loading) return <LoadingSpinner />
 
   // 2. Error State: Show an error message and a retry button if the API request failed or returned no data
   if (error || !data) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
+      <div className="flex min-h-100 flex-col items-center justify-center space-y-4">
         <div className="font-medium text-red-500">
           Failed to load dashboard: {error || 'Unknown error'}
         </div>
