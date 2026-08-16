@@ -154,13 +154,14 @@ export default function LineChefDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredItems.map((item) => (
+          {filteredItems.map((item, idx) => (
             <AssignedItemCard
               key={item.itemId}
               item={item}
               onStart={handleStart}
               onComplete={handleComplete}
               isLoading={loadingItemIds.has(item.itemId)}
+              queueNumber={activeTab !== 'READY' ? idx + 1 : null}
             />
           ))}
         </div>

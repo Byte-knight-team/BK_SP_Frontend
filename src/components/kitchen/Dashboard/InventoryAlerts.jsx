@@ -16,7 +16,7 @@ const formatInventoryAlertsDetails = (apiData) => {
     itemName: item.name,
     percentage: item.percentage,
     color: BAR_COLORS[item.warningLevel],
-    maxStock: item.maxStock,
+    dailyRequiredStock: item.dailyRequiredStock,
     availableCount: item.quantity,
     unit: item.unit,
     warningLevel: item.warningLevel,
@@ -103,7 +103,7 @@ const InventoryAlerts = () => {
               itemName={item.itemName}
               percentage={item.percentage}
               color={item.color}
-              maxStock={item.maxStock}
+              dailyRequiredStock={item.dailyRequiredStock}
               quantity={item.availableCount}
               unit={item.unit}
               warningLevel={item.warningLevel}

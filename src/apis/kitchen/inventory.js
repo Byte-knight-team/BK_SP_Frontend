@@ -1,11 +1,11 @@
-import { authFetch } from "../apiHelper";
+import { authFetch, buildApiUrl } from "../apiHelper";
 
 // we use authFetch to automatically include the JWT security token in the request header
 
 // get all inventory items for the table
 export const getAllInventoryAPI = async () => {
   try {
-    const response = await authFetch("http://localhost:8080/api/v1/kitchen/inventory/all");
+    const response = await authFetch(buildApiUrl("/api/v1/kitchen/inventory/all"));
     const result = await response.json();
 
     return { data: result.data, error: null };
@@ -18,7 +18,7 @@ export const getAllInventoryAPI = async () => {
 // get the logged-in chef's own inventory requests (with manager status)
 export const getMyInventoryRequestsAPI = async () => {
   try {
-    const response = await authFetch("http://localhost:8080/api/v1/kitchen/inventory/my-requests");
+    const response = await authFetch(buildApiUrl("/api/v1/kitchen/inventory/my-requests"));
     const result = await response.json();
 
     if (!response.ok) {
@@ -35,7 +35,7 @@ export const getMyInventoryRequestsAPI = async () => {
 export const createInventoryRequestAPI = async (requestData) => {
   try {
     const response = await authFetch(
-      "http://localhost:8080/api/v1/kitchen/inventory/request",
+      buildApiUrl("/api/v1/kitchen/inventory/request"),
       {
         method: "POST",
         headers: {
@@ -45,7 +45,7 @@ export const createInventoryRequestAPI = async (requestData) => {
         body: JSON.stringify(requestData),
       }
     );
-    
+
     // convert the response to json (String -> Object)
     const result = await response.json();
     return { data: result, error: null };
@@ -57,13 +57,13 @@ export const createInventoryRequestAPI = async (requestData) => {
 // send a direct database update for stock quantity
 export const updateInventoryStockAPI = async (updateData) => {
   try {
-    const response = await authFetch("http://localhost:8080/api/v1/kitchen/inventory/update", {
+    const response = await authFetch(buildApiUrl("/api/v1/kitchen/inventory/update"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       }
     );
-    
+
     const result = await response.json();
 
     if (!response.ok) {
@@ -78,4 +78,24 @@ export const updateInventoryStockAPI = async (updateData) => {
   }
 };
 
+// update the daily required stock (par level) for an item
+export const updateDailyRequiredStockAPI = async (updateData) => {
+  try {
+    const response = await authFetch(buildApiUrl("/api/v1/kitchen/inventory/daily-required-stock"), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+      }
+    );
 
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { data: null, error: result.message || "Something went wrong" };
+    }
+
+    return { data: result, error: null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};

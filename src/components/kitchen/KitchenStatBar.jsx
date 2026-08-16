@@ -12,7 +12,7 @@ const KitchenStatBar = ({
   percentage,
   color,
   count,
-  maxStock,
+  dailyRequiredStock,
   quantity,
   unit,
   warningLevel,
@@ -24,8 +24,8 @@ const KitchenStatBar = ({
           {itemName || mealName}
         </div>
         <div className="text-sm font-bold text-gray-800">
-          {maxStock && quantity
-            ? `${quantity} / ${maxStock}` //availableCount + " / " + maxStock
+          {dailyRequiredStock && quantity
+            ? `${quantity} / ${dailyRequiredStock}` //availableCount + " / " + dailyRequiredStock
             : count}
         </div>
       </div>
