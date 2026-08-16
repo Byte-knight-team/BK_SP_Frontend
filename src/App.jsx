@@ -85,7 +85,8 @@ import TableManagementPage from './pages/admin/TableManagementPage'
 import TableDetailsPage from './pages/admin/TableDetailsPage'
 import AddTablePage from './components/admin/AddTablePage'
 import TableQrPage from './pages/admin/TableQrPage'
-import CouponsPage from './pages/admin/CouponsPage'
+import CouponsPage from './pages/superadmin/CouponsPage'
+import CouponDetailsPage from './pages/superadmin/CouponDetailsPage'
 
 // Customer pages
 import HomePage from './pages/customer/HomePage'
@@ -241,6 +242,8 @@ export default function App() {
           <Route path="categories/create" element={<CreateCategoryPage />} />
           <Route path="categories/:id" element={<CategoryDetailsPage />} />
           <Route path="categories/:id/edit" element={<EditCategoryPage />} />
+          <Route path="coupons" element={<CouponsPage />} />
+          <Route path="coupons/:id" element={<CouponDetailsPage />} />
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
@@ -277,7 +280,6 @@ export default function App() {
           <Route path="menu/category/add" element={<AddCategoryPage />} />
           <Route path="menu/:id" element={<MenuItemDetailsPage />} />
           <Route path="menu-requests" element={<MenuUpdateRequestsPage />} />
-          <Route path="coupons" element={<CouponsPage />} />
 
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Route>

@@ -396,50 +396,94 @@ export default function MenuManagementPage() {
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
             {/* Categories Panel */}
-            <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-base font-semibold text-gray-900">Categories</h2>
-              </div>
-
-              <div className="space-y-2">
+            <section className="rounded-2xl bg-white pr-2 py-4 shadow-sm w-full" style={{ border: 'none' }}>
+              <div className="space-y-4">
+                {/* All Categories */}
                 <button
                   type="button"
                   onClick={() => {
                     setActiveCategory('');
                     setActiveSubCategory('All Sub Categories');
                   }}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${activeCategory === '' ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                  className={`flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left transition-colors ${activeCategory === '' ? 'bg-[#fff4ed] text-[#ff5722]' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
                 >
-                  <span className="flex items-center gap-3 text-sm font-medium">
+                  <span className="flex items-center gap-3 text-[15px] font-bold">
                     All Categories
                   </span>
-                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${activeCategory === '' ? 'bg-white text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
-                    {menuItems.length}
+                  <span className={`rounded-full px-3 py-1 text-sm ${activeCategory === '' ? 'bg-white text-[#ff5722]' : 'bg-gray-100 text-gray-500'}`}>
+                    {categoryOptions.length}
                   </span>
                 </button>
-                {categoryOptions.map((category) => {
-                  const isActive = activeCategory === category.name;
 
-                  return (
-                    <button
-                      key={category.id}
-                      type="button"
-                      onClick={() => setActiveCategory(category.name)}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors ${isActive ? 'bg-orange-50 text-orange-600' : 'bg-white text-gray-700 hover:bg-gray-50'
-                        }`}
-                    >
-                      <span className="flex items-center gap-2 text-sm font-medium">
-                        <span className="truncate max-w-[120px]">{category.name}</span>
-                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded ${category.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
-                          {category.isActive ? 'ACTIVE' : 'INACTIVE'}
-                        </span>
-                      </span>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${isActive ? 'bg-white text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
-                        {categoryCounts[category.name] || 0}
-                      </span>
-                    </button>
-                  );
-                })}
+                <div className="w-full h-px font-bold bg-gray-100 my-4" style={{ marginLeft: '16px', width: 'calc(100% - 32px)' }}></div>
+
+                {/* Active Categories */}
+                <div className="px-1">
+                  <div className="flex items-center justify-between mb-4 px-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <h3 className="text-xs font-bold text-emerald-800 tracking-wide">ACTIVE CATEGORIES</h3>
+                    </div>
+                    <span className="rounded-full px-2.5 py-1 text-xs bg-emerald-100/90 text-emerald-800 border border-emerald-200">
+                      {categoryOptions.filter(c => c.isActive).length}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {categoryOptions.filter(c => c.isActive).map((category) => {
+                      const isActive = activeCategory === category.name;
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => setActiveCategory(category.name)}
+                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors ${isActive ? 'bg-emerald-50' : 'bg-white hover:bg-gray-50'}`}
+                        >
+                          <span className="flex items-center gap-4 text-[15px] font-semibold text-emerald-900">
+                            <span className="truncate max-w-[120px]">{category.name}</span>
+                          </span>
+                          <span className={`rounded-full px-3 py-1 text-xs ${isActive ? 'bg-white text-emerald-800 border border-emerald-200' : 'bg-emerald-100/90 text-emerald-800 border border-emerald-200'}`}>
+                            {categoryCounts[category.name] || 0}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-gray-100 my-4" style={{ marginLeft: '16px', width: 'calc(100% - 32px)' }}></div>
+
+                {/* Inactive Categories */}
+                <div className="px-1">
+                  <div className="flex items-center justify-between mb-4 px-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                      <h3 className="text-xs text-red-800 font-bold tracking-wide">INACTIVE CATEGORIES</h3>
+                    </div>
+                    <span className="rounded-full px-2.5 py-1 text-xs bg-red-100/90 text-red-800 border border-red-200">
+                      {categoryOptions.filter(c => !c.isActive).length}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {categoryOptions.filter(c => !c.isActive).map((category) => {
+                      const isActive = activeCategory === category.name;
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => setActiveCategory(category.name)}
+                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors ${isActive ? 'bg-red-50' : 'bg-white hover:bg-gray-50'}`}
+                        >
+                          <span className="flex items-center gap-4 text-[15px] font-medium text-red-900/70">
+                            <span className="truncate max-w-[120px]">{category.name}</span>
+                          </span>
+                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${isActive ? 'bg-white text-red-800 border border-red-200' : 'bg-red-100/90 text-red-800 border border-red-200'}`}>
+                            {categoryCounts[category.name] || 0}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </section>
 
