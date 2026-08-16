@@ -4,8 +4,8 @@ import { ImagePlus, X, Loader2 } from 'lucide-react'
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_BYTES = 5 * 1024 * 1024
 
-const CLOUD_NAME    = import.meta.env.VITE_KITCHEN_CLOUDINARY_CLOUD_NAME
-const UPLOAD_PRESET = import.meta.env.VITE_KITCHEN_CLOUDINARY_UPLOAD_PRESET
+const CLOUD_NAME    = import.meta.env.VITE_KITCHEN_CLOUDINARY_CLOUD_NAME || import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+const UPLOAD_PRESET = import.meta.env.VITE_KITCHEN_CLOUDINARY_UPLOAD_PRESET || import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
 /*
   CloudinaryImageUpload — kitchen-scoped image picker.
