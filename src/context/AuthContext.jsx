@@ -4,8 +4,10 @@ import {
   clearAuthStorage,
   getAuthToken,
   getCurrentUserFromToken,
+  getSavedAuthUser,
   isTokenExpired,
   saveAuthToken,
+  saveAuthUser,
 } from "../utils/authToken";
 
 const AuthContext = createContext(null);
@@ -16,8 +18,10 @@ export function AuthProvider({ children }) {
   const [hydrated, setHydrated] = useState(false);
 
   /*
-    Restore auth state from JWT only.No longer restore user details from localStorage.authUser.
-    Only the JWT token is stored.
+    Restore auth state from JWT + lightweight saved user profile.
+
+    JWT is still used for authentication/expiry.
+    authUser is only used for UI display fields such as username/fullName.
   */
   useEffect(() => {
     const savedToken = getAuthToken();
@@ -31,14 +35,23 @@ export function AuthProvider({ children }) {
     }
 
     const decodedUser = getCurrentUserFromToken(savedToken);
+    const savedUser = getSavedAuthUser();
+
+    const restoredUser = {
+      ...decodedUser,
+      ...savedUser,
+    };
 
     setToken(savedToken);
-    setUser(decodedUser);
+    setUser(restoredUser);
     setHydrated(true);
   }, []);
 
   /*
-    Login stores only JWT token.
+    Login stores JWT token and lightweight user profile from login response.
+
+    This avoids depending on JWT subject for username, because in this system
+    JWT subject is usually the email.
   */
   const login = async (credentials) => {
     const data = await loginStaff(credentials);
@@ -55,15 +68,23 @@ export function AuthProvider({ children }) {
     const mergedUser = {
       ...decodedUser,
 
-      /*
-        Keep this only in React memory.
-        Do not store it in localStorage.
-      */
+      id: data.id ?? data.userId ?? decodedUser?.id,
+      username: data.username ?? decodedUser?.username,
+      email: data.email ?? decodedUser?.email,
+      fullName: data.fullName ?? data.name ?? decodedUser?.fullName,
+
+      roleName: data.roleName ?? data.role ?? decodedUser?.roleName,
+
+      branchId: data.branchId ?? decodedUser?.branchId,
+      branchName: data.branchName ?? decodedUser?.branchName,
+
       passwordChanged:
         data.passwordChanged !== undefined
           ? data.passwordChanged
           : decodedUser?.passwordChanged,
     };
+
+    saveAuthUser(mergedUser);
 
     setToken(accessToken);
     setUser(mergedUser);

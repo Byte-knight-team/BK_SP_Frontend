@@ -1,5 +1,5 @@
 const TOKEN_KEY = "token";
-const LEGACY_USER_KEY = "authUser";
+const USER_KEY = "authUser";
 
 /*
   Safely decode a JWT payload.
@@ -45,32 +45,56 @@ export function isTokenExpired(token) {
 }
 
 /*
-  Store only JWT token.
-
-  We also remove old authUser if it exists from previous versions.
+  Store JWT token only.
 */
 export function saveAuthToken(token) {
   localStorage.setItem(TOKEN_KEY, token);
-  localStorage.removeItem(LEGACY_USER_KEY);
 }
 
 export function getAuthToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+/*
+  Store lightweight authenticated user data from the login response.
+
+  This avoids using JWT subject/email as username.
+  Do not store sensitive data here.
+*/
+export function saveAuthUser(user) {
+  if (!user) {
+    localStorage.removeItem(USER_KEY);
+    return;
+  }
+
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+/*
+  Restore lightweight authenticated user data.
+
+  If the saved object is invalid, ignore it.
+*/
+export function getSavedAuthUser() {
+  try {
+    const saved = localStorage.getItem(USER_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.error("Failed to restore saved auth user:", error);
+    return null;
+  }
+}
+
 export function clearAuthStorage() {
   localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(LEGACY_USER_KEY);
+  localStorage.removeItem(USER_KEY);
 }
 
 /*
   Convert JWT claims into the small current-user object needed by frontend.
 
-  The backend JWT should ideally include:
-  - roleName or role
-  - branchId for ADMIN/staff branch logic
-  - branchName optional
-  - passwordChanged optional
+  Important:
+  Do NOT use payload.sub as username because in this system sub is email.
 */
 export function getCurrentUserFromToken(token = getAuthToken()) {
   const payload = decodeJwtPayload(token);
@@ -89,7 +113,7 @@ export function getCurrentUserFromToken(token = getAuthToken()) {
   return {
     id: payload.id || payload.userId || payload.staffId || null,
     email: payload.email || payload.sub || "",
-    username: payload.username || payload.sub || "",
+    username: payload.username || payload.preferred_username || "",
     fullName: payload.fullName || payload.name || "",
     roleName,
     branchId: payload.branchId || null,
@@ -110,6 +134,7 @@ export function getQrSessionClaims(sessionToken) {
   }
 
   const payload = decodeJwtPayload(sessionToken);
+
   if (!payload) {
     return null;
   }
@@ -127,12 +152,12 @@ export function getQrSessionClaims(sessionToken) {
 
 /*
   SECURE: Validate customer JWT by checking claims, not just existence.
-  
+
   Returns decoded claims if valid:
   - Token not expired
   - Has 'CUSTOMER' role in roles array
   - Has valid customer ID (sub)
-  
+
   Returns null if invalid, expired, or missing required claims.
   Frontend only—signature verification is backend responsibility.
 */
@@ -142,36 +167,35 @@ export function validateCustomerJwt(token) {
   }
 
   const payload = decodeJwtPayload(token);
+
   if (!payload) {
-    return null; // Malformed
+    return null;
   }
 
-  // Check expiry
   if (payload.exp && payload.exp * 1000 < Date.now()) {
-    return null; // Expired
+    return null;
   }
 
-  // Check CUSTOMER role exists
   const roles = Array.isArray(payload.roles) ? payload.roles : [];
-  if (!roles.includes('CUSTOMER')) {
-    return null; // Not a customer token
+
+  if (!roles.includes("CUSTOMER")) {
+    return null;
   }
 
-  // Check customer ID (sub)
   if (!payload.sub) {
-    return null; // No customer ID
+    return null;
   }
 
-  return payload; // Valid
+  return payload;
 }
 
 /*
   SECURE: Validate QR session token by checking claims, not just existence.
-  
+
   Returns decoded claims if valid:
   - Token not expired
   - Has 'session_id' claim
-  
+
   Returns null if invalid, expired, or missing session_id.
   Frontend only—signature verification is backend responsibility.
 */
@@ -181,21 +205,20 @@ export function validateQrSessionToken(token) {
   }
 
   const payload = decodeJwtPayload(token);
+
   if (!payload) {
-    return null; // Malformed
+    return null;
   }
 
-  // Check expiry
   if (payload.exp && payload.exp * 1000 < Date.now()) {
-    return null; // Expired
+    return null;
   }
 
-  // Check session_id exists
   if (!payload.session_id) {
-    return null; // No session ID
+    return null;
   }
 
-  return payload; // Valid
+  return payload;
 }
 
 /*
