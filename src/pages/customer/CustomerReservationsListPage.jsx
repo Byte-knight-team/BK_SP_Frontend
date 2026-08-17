@@ -139,47 +139,67 @@ export default function CustomerReservationsListPage() {
         >
           <ArrowLeft size={16} /> Back Home
         </button>
-        <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] mb-6">
-          <div className="bg-orange-500 px-6 py-8 text-center text-white flex flex-col items-center">
-            <BrandLogo />
-            <h1 className="mt-3 text-3xl font-bold">My Reservations</h1>
-          </div>
+        {/* Header Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 p-6 sm:p-8 text-white shadow-xl shadow-orange-500/15 mb-6">
+          {/* Subtle Clean Decorative White Glow Overlays */}
+          <div className="pointer-events-none absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/10 blur-2xl"></div>
+          <div className="pointer-events-none absolute right-1/4 -bottom-10 h-40 w-40 rounded-full bg-white/10 blur-xl"></div>
+          <div className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-black/5 blur-xl"></div>
 
-          <div className="p-4 flex flex-col md:flex-row gap-4 justify-between items-center bg-white border-b border-slate-100">
-            <div className="flex w-full md:w-auto bg-slate-50 rounded-xl p-1 overflow-x-auto hide-scrollbar">
-              <button
-                onClick={() => setActiveTab('requests')}
-                className={`flex-none px-6 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                  activeTab === 'requests' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                Requests / Payment
-              </button>
-              <button
-                onClick={() => setActiveTab('upcoming')}
-                className={`flex-none px-6 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                  activeTab === 'upcoming' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                Upcoming
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`flex-none px-6 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                  activeTab === 'history' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                History
-              </button>
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-inner border border-white/30">
+              <BrandLogo />
             </div>
-            
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-xs">
+              My Reservations
+            </h1>
+            <p className="text-xs sm:text-sm text-orange-100 font-medium max-w-sm mt-1.5 leading-relaxed">
+              Manage table bookings, check confirmation status & reserve new tables
+            </p>
+          </div>
+        </div>
+
+        {/* Controls Bar: Requests / Upcoming / History Tabs & Book Table Action */}
+        <div className="rounded-2xl bg-white p-3 sm:p-4 shadow-sm border border-slate-100 mb-6 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center">
+          <div className="flex w-full sm:w-auto bg-slate-100/80 rounded-xl p-1 overflow-x-auto scrollbar-none">
             <button
-              onClick={() => setIsDrawerOpen(true)}
-              className="flex items-center gap-2 bg-orange-50 text-orange-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-orange-100 transition-colors shrink-0"
+              onClick={() => setActiveTab('requests')}
+              className={`flex-1 sm:flex-none px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+                activeTab === 'requests' 
+                  ? 'bg-white text-orange-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
             >
-              <Plus size={18} /> Book Table
+              Requests & Payment
+            </button>
+            <button
+              onClick={() => setActiveTab('upcoming')}
+              className={`flex-1 sm:flex-none px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+                activeTab === 'upcoming' 
+                  ? 'bg-white text-orange-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Upcoming
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`flex-1 sm:flex-none px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+                activeTab === 'history' 
+                  ? 'bg-white text-orange-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              History
             </button>
           </div>
+          
+          <button
+            onClick={() => setIsDrawerOpen(true)}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-md hover:shadow-orange-500/20 active:scale-[0.98] transition-all shrink-0"
+          >
+            <Plus size={16} /> Book Table
+          </button>
         </div>
 
         {loading ? (

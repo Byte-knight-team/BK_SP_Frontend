@@ -167,9 +167,9 @@ export default function StatisticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           
           {/* Columns 1 & 2: Spending Trend Graph */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 flex flex-col justify-between">
+          <motion.div variants={itemVariants} className="lg:col-span-2 bg-white rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-100 min-w-0 flex flex-col justify-between">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-orange-500" />
                 Spending Trend (Last 6 Months)
               </h3>
@@ -177,9 +177,9 @@ export default function StatisticsPage() {
             </div>
 
             {hasSpendingTrend ? (
-              <div className="h-[260px] w-full flex-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.spendingTrend} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+              <div className="w-full h-[240px] sm:h-[260px] min-h-[240px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minHeight={240} minWidth={0}>
+                  <AreaChart data={data.spendingTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
@@ -191,15 +191,15 @@ export default function StatisticsPage() {
                       dataKey="month"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      tick={{ fill: '#64748b', fontSize: 11 }}
                       dy={10}
                     />
                     <YAxis
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      tick={{ fill: '#64748b', fontSize: 11 }}
                       tickFormatter={(value) => `Rs.${value}`}
-                      width={70}
+                      width={55}
                     />
                     <Tooltip
                       formatter={(value) => [formatCurrency(value), 'Spend']}
@@ -210,7 +210,7 @@ export default function StatisticsPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-[260px] flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-2xl">
+              <div className="h-[240px] flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-2xl">
                 <AlertCircle className="w-8 h-8 mb-2 opacity-50" />
                 <p>Not enough data to show trend.</p>
               </div>
@@ -218,7 +218,7 @@ export default function StatisticsPage() {
           </motion.div>
 
           {/* Column 3: 3 Summary Cards Stacked Vertically */}
-          <div className="lg:col-span-1 flex flex-col justify-between gap-4">
+          <div className="lg:col-span-1 flex flex-col justify-between gap-4 min-w-0">
             <motion.div variants={itemVariants} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center gap-4 flex-1 transition-all hover:border-orange-200 hover:shadow-md">
               <div className="bg-orange-100 p-3.5 rounded-2xl text-orange-600 flex-shrink-0">
                 <Wallet className="w-6 h-6" />
@@ -256,8 +256,8 @@ export default function StatisticsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           
           {/* Column 1: Your Favorite Dishes */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-            <h3 className="text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
+          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-w-0">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
               <Utensils className="w-5 h-5 text-orange-500" />
               Your Favorite Dishes
             </h3>
@@ -294,22 +294,22 @@ export default function StatisticsPage() {
           </motion.div>
 
           {/* Column 2: How You Order */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-            <h3 className="text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
+          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-w-0">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
               <Package2 className="w-5 h-5 text-orange-500" />
               How You Order
             </h3>
 
             {hasOrderTypes ? (
-              <div className="h-[220px] w-full flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="w-full h-[220px] min-h-[220px] flex items-center justify-center min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minHeight={220} minWidth={0}>
                   <PieChart>
                     <Pie
                       data={orderTypeData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={50}
-                      outerRadius={70}
+                      innerRadius={48}
+                      outerRadius={68}
                       paddingAngle={5}
                       dataKey="value"
                     >
@@ -334,9 +334,9 @@ export default function StatisticsPage() {
           </motion.div>
 
           {/* Column 3: Loyalty Points */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-w-0">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Award className="w-5 h-5 text-orange-500" />
                 Loyalty Points
               </h3>
@@ -346,12 +346,12 @@ export default function StatisticsPage() {
               </div>
             </div>
 
-            <div className="h-[200px] w-full mt-2">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="w-full h-[200px] min-h-[200px] mt-2 min-w-0">
+              <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={0}>
                 <BarChart data={loyaltyData} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }} />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} width={60} />
                   <Tooltip
                     cursor={{ fill: '#f8fafc' }}
                     formatter={(value) => [`${value} Points`, '']}

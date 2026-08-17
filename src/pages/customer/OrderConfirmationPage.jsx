@@ -258,33 +258,58 @@ export default function OrderConfirmationPage() {
   }
 
   const items = Array.isArray(order.items) ? order.items : [];
+  const rawOrderNum = String(order.orderNumber || order.orderId || '');
+  const orderDisplayId = rawOrderNum.startsWith('#') ? rawOrderNum : `#${rawOrderNum}`;
+  const isDineIn = isQr || orderType === 'DINE_IN';
+  const OrderTypeIcon = isDelivery ? Truck : isDineIn ? Utensils : ShoppingBag;
+  const orderTypeLabel = isDelivery ? 'Delivery' : isDineIn ? 'Dine-In' : 'Pickup';
 
   return (
     <CustomerPageShell maxWidth="max-w-6xl" className="pb-32">
-      {/* TOP HEADER - Back button and Order # on LEFT, Title on RIGHT */}
-      <div className="mb-8 flex items-start justify-between gap-8">
+      {/* TOP HEADER - Back button, Order Meta & Status Capsule */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Left Side: Back Navigation & Order Badge */}
         <div className="flex flex-col gap-2">
           <button
             type="button"
             onClick={() => navigate('/menu')}
-            className="w-fit inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300"
+            className="w-fit inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-xs transition-all hover:border-orange-200 hover:text-orange-600 active:scale-95"
           >
             <ArrowLeft size={14} />
             Back to Menu
           </button>
-          <div>
-            <p className="text-sm font-bold text-slate-900">Order {order.orderNumber || order.orderId}</p>
-            {/*!isCancelled && <p className="text-xs text-slate-500">Est. delivery: {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}</p>*/}
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-extrabold text-xl sm:text-2xl text-slate-900 tracking-tight">
+              Order {orderDisplayId}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-orange-500 text-white text-[11px] font-bold tracking-wider uppercase shadow-xs shadow-orange-500/20">
+              <OrderTypeIcon size={13} className="text-white" />
+              {orderTypeLabel}
+            </span>
           </div>
         </div>
-        <div className="text-right">
-          <div className="mb-2 flex justify-end">
-            <div className={`flex h-14 w-14 items-center justify-center rounded-full ${isCancelled ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-              {isCancelled ? <XCircle size={32} /> : <CheckCircle2 size={32} />}
-            </div>
+
+        {/* Right Side: Modern Status Highlight Capsule */}
+        <div className="flex items-center gap-3.5 rounded-2xl bg-white border border-slate-100 px-5 py-3.5 shadow-sm">
+          <div className={`relative flex h-11 w-11 items-center justify-center rounded-xl flex-shrink-0 ${
+            isCancelled ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+          }`}>
+            {!isCancelled && (
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 ring-2 ring-white"></span>
+              </span>
+            )}
+            {isCancelled ? <XCircle size={22} /> : <CheckCircle2 size={22} />}
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Placed'}</h1>
-          <p className="mt-1 text-xs text-slate-600">{isCancelled ? 'Cancelled order' : 'You will be notified of each step'}</p>
+          <div className="text-left">
+            <h1 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
+              {isCancelled ? 'Order Cancelled' : 'Order Placed'}
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              {isCancelled ? 'This order has been cancelled' : 'You will be notified as each step updates'}
+            </p>
+          </div>
         </div>
       </div>
 
