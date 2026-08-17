@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import Modal from '../ui/Modal'
+import { nameSchema, quantitySchema, priceSchema } from '../../../utils/validators'
 
 const CATEGORIES = [
   'Spices',
@@ -12,14 +16,23 @@ const CATEGORIES = [
 
 const UNITS = ['kg', 'g', 'Liters', 'Pcs', 'Balls']
 
-const INITIAL_FORM = {
-  name: '',
-  category: '',
-  unit: 'kg',
-  initialQuantity: '',
-  unitPrice: '',
-  lowStockThreshold: '',
-}
+const schema = z.object({
+  name: nameSchema,
+  category: z.string().min(1, 'Category is required'),
+  customCategory: z.string().optional(),
+  unit: z.string().min(1, 'Unit is required'),
+  initialQuantity: quantitySchema,
+  unitPrice: priceSchema,
+  lowStockThreshold: quantitySchema,
+}).superRefine((data, ctx) => {
+  if (data.category === 'Other' && (!data.customCategory || data.customCategory.trim() === '')) {
+    ctx.addIssue({
+      path: ['customCategory'],
+      message: 'Custom category is required',
+      code: z.ZodIssueCode.custom,
+    });
+  }
+});
 
 /**
  * AddInventoryItemModal Component
@@ -39,43 +52,63 @@ export default function AddInventoryItemModal({
   initialData,
   existingCategories = [],
 }) {
-  const [form, setForm] = useState(INITIAL_FORM)
-  const [customCategory, setCustomCategory] = useState('')
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: '',
+      category: '',
+      customCategory: '',
+      unit: 'kg',
+      initialQuantity: '',
+      unitPrice: '',
+      lowStockThreshold: '',
+    },
+  })
+
   const [isSuccess, setIsSuccess] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   const allCategories = Array.from(new Set([...CATEGORIES, ...existingCategories]))
+  const categoryValue = watch('category')
 
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
-        setForm({ ...INITIAL_FORM, ...initialData })
+        reset({ ...initialData, customCategory: '' })
       } else {
-        setForm(INITIAL_FORM)
+        reset({
+          name: '',
+          category: '',
+          customCategory: '',
+          unit: 'kg',
+          initialQuantity: '',
+          unitPrice: '',
+          lowStockThreshold: '',
+        })
       }
-      setCustomCategory('')
       setIsSuccess(false)
       setIsSaving(false)
     }
-  }, [isOpen, initialData])
+  }, [isOpen, initialData, reset])
 
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const onSubmit = async (data) => {
     setIsSaving(true)
 
-    const finalCategory = form.category === 'Other' ? customCategory.trim() : form.category
+    const finalCategory = data.category === 'Other' ? data.customCategory.trim() : data.category
 
     const success = await onSave({
-      name: form.name,
+      name: data.name,
       category: finalCategory,
-      quantity: parseFloat(form.initialQuantity) || 0,
-      unit: form.unit,
-      reorderLevel: parseFloat(form.lowStockThreshold) || 0,
-      unitPrice: parseFloat(form.unitPrice) || 0,
+      quantity: data.initialQuantity,
+      unit: data.unit,
+      reorderLevel: data.lowStockThreshold,
+      unitPrice: data.unitPrice,
     })
 
     setIsSaving(false)
@@ -85,8 +118,7 @@ export default function AddInventoryItemModal({
   }
 
   const handleClose = () => {
-    setForm(INITIAL_FORM)
-    setCustomCategory('')
+    reset()
     setIsSuccess(false)
     onClose()
   }
@@ -98,7 +130,7 @@ export default function AddInventoryItemModal({
       title={!isSuccess ? 'Add New Inventory Item' : ''}
     >
       {!isSuccess ? (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Item Name */}
           <div>
             <label htmlFor="item-name" className="modal-label">
@@ -109,10 +141,9 @@ export default function AddInventoryItemModal({
               type="text"
               className="modal-input"
               placeholder="e.g., Premium Pizza Flour"
-              value={form.name}
-              onChange={handleChange('name')}
-              required
+              {...register('name')}
             />
+            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>}
           </div>
 
           {/* Category + Unit (side by side) */}
@@ -124,9 +155,7 @@ export default function AddInventoryItemModal({
               <select
                 id="item-category"
                 className="modal-select"
-                value={form.category}
-                onChange={handleChange('category')}
-                required
+                {...register('category')}
               >
                 <option value="" disabled>
                   Select Category
@@ -138,15 +167,18 @@ export default function AddInventoryItemModal({
                 ))}
                 <option value="Other">Other (Add New)</option>
               </select>
-              {form.category === 'Other' && (
-                <input
-                  type="text"
-                  className="modal-input mt-3"
-                  placeholder="Type new category..."
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
-                  required
-                />
+              {errors.category && <p className="mt-1 text-sm text-red-500">{errors.category.message}</p>}
+              
+              {categoryValue === 'Other' && (
+                <div>
+                  <input
+                    type="text"
+                    className="modal-input mt-3"
+                    placeholder="Type new category..."
+                    {...register('customCategory')}
+                  />
+                  {errors.customCategory && <p className="mt-1 text-sm text-red-500">{errors.customCategory.message}</p>}
+                </div>
               )}
             </div>
 
@@ -157,8 +189,7 @@ export default function AddInventoryItemModal({
               <select
                 id="item-unit"
                 className="modal-select"
-                value={form.unit}
-                onChange={handleChange('unit')}
+                {...register('unit')}
               >
                 {UNITS.map((u) => (
                   <option key={u} value={u}>
@@ -166,6 +197,7 @@ export default function AddInventoryItemModal({
                   </option>
                 ))}
               </select>
+              {errors.unit && <p className="mt-1 text-sm text-red-500">{errors.unit.message}</p>}
             </div>
           </div>
 
@@ -182,9 +214,9 @@ export default function AddInventoryItemModal({
                 min="0"
                 className="modal-input"
                 placeholder="0.00"
-                value={form.initialQuantity}
-                onChange={handleChange('initialQuantity')}
+                {...register('initialQuantity')}
               />
+              {errors.initialQuantity && <p className="mt-1 text-sm text-red-500">{errors.initialQuantity.message}</p>}
             </div>
 
             <div>
@@ -198,9 +230,9 @@ export default function AddInventoryItemModal({
                 min="0"
                 className="modal-input"
                 placeholder="0.00"
-                value={form.unitPrice}
-                onChange={handleChange('unitPrice')}
+                {...register('unitPrice')}
               />
+              {errors.unitPrice && <p className="mt-1 text-sm text-red-500">{errors.unitPrice.message}</p>}
             </div>
           </div>
 
@@ -216,9 +248,9 @@ export default function AddInventoryItemModal({
               min="0"
               className="modal-input"
               placeholder="e.g., 5.00"
-              value={form.lowStockThreshold}
-              onChange={handleChange('lowStockThreshold')}
+              {...register('lowStockThreshold')}
             />
+            {errors.lowStockThreshold && <p className="mt-1 text-sm text-red-500">{errors.lowStockThreshold.message}</p>}
             <p className="text-brand mt-2 text-xs">
               System will alert when stock falls below this level.
             </p>

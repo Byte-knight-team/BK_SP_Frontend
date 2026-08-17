@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { z } from 'zod'
 import Modal from '../ui/Modal'
 
 export default function AssignDriverModal({
@@ -9,16 +10,30 @@ export default function AssignDriverModal({
   onConfirm,
 }) {
   const [selectedDriverId, setSelectedDriverId] = useState('')
+  const [errors, setErrors] = useState({})
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!selectedDriverId) return
+    setErrors({})
+    
+    const assignSchema = z.object({
+      driverId: z.string().min(1, 'Please select a driver'),
+    })
+
+    const result = assignSchema.safeParse({ driverId: selectedDriverId })
+
+    if (!result.success) {
+      setErrors({ driverId: result.error.issues[0].message })
+      return
+    }
+
     onConfirm(order?.orderId, Number(selectedDriverId))
     setSelectedDriverId('')
   }
 
   const handleClose = () => {
     setSelectedDriverId('')
+    setErrors({})
     onClose()
   }
 
@@ -66,6 +81,7 @@ export default function AssignDriverModal({
               </option>
             ))}
           </select>
+          {errors.driverId && <p className="text-red-500 text-xs mt-1">{errors.driverId}</p>}
         </div>
 
         {/* Action buttons */}

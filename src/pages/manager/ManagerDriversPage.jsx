@@ -46,8 +46,8 @@ export default function ManagerDriversPage() {
     order: null, // Stores the specific order being assigned
   })
 
-  // State to manage active tab (defaults to alerts since it's the first tab now)
-  const [activeTab, setActiveTab] = useState('alerts')
+  // State to manage active tab (defaults to dispatch)
+  const [activeTab, setActiveTab] = useState('dispatch')
 
   // Reference to the DispatchHub DOM element so we can scroll to it programmatically
   const dispatchHubRef = useRef(null)
@@ -152,6 +152,17 @@ export default function ManagerDriversPage() {
       <div className="mb-6 border-b border-gray-200">
         <nav className="-mb-px flex space-x-8 overflow-x-auto">
           <button
+            onClick={() => setActiveTab('dispatch')}
+            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === 'dispatch'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            }`}
+          >
+            Dispatch Hub
+          </button>
+
+          <button
             onClick={() => setActiveTab('alerts')}
             className={`flex items-center gap-2 border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'alerts'
@@ -165,17 +176,6 @@ export default function ManagerDriversPage() {
                 {data.deliveryAlerts}
               </span>
             )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('dispatch')}
-            className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTab === 'dispatch'
-                ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-            }`}
-          >
-            Dispatch Hub
           </button>
 
           <button

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { z } from 'zod'
 import { X, Search, Plus, Trash2, Calendar, FileText, CheckCircle2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { ProcurementService } from '../../../apis/manager/ProcurementService'
@@ -13,6 +14,7 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
 
   const [loading, setLoading] = useState(false)
   const [inventoryItems, setInventoryItems] = useState([])
+  const [errors, setErrors] = useState({})
   
   const [formData, setFormData] = useState({
     vendorId: '',
@@ -111,11 +113,40 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setErrors({})
     
-    // Validation
-    if (!formData.vendorId) return toast.error('Please select a vendor')
-    if (lineItems.some(item => !item.itemName || !item.orderedQuantity || !item.unit)) {
-      return toast.error('Please fill all required fields for line items (Name, Qty, Unit)')
+    // Zod Schema
+    const poSchema = z.object({
+      vendorId: z.string().min(1, 'Please select a vendor'),
+      items: z.array(z.object({
+        itemName: z.string().min(1, 'Item name is required'),
+        orderedQuantity: z.number().positive('Quantity must be positive'),
+        unit: z.string().min(1, 'Unit is required'),
+        agreedUnitPrice: z.number().positive('Price must be positive').optional().or(z.literal('')),
+      })).min(1, 'At least one line item is required')
+    })
+
+    const payloadToValidate = {
+      vendorId: formData.vendorId,
+      items: lineItems.map(item => ({
+        itemName: item.itemName,
+        orderedQuantity: parseFloat(item.orderedQuantity),
+        unit: item.unit,
+        agreedUnitPrice: item.agreedUnitPrice ? parseFloat(item.agreedUnitPrice) : '',
+      }))
+    }
+
+    const result = poSchema.safeParse(payloadToValidate)
+
+    if (!result.success) {
+      const fieldErrors = {}
+      result.error.issues.forEach(issue => {
+        const path = issue.path.join('.')
+        fieldErrors[path] = issue.message
+      })
+      setErrors(fieldErrors)
+      toast.error('Please fix the errors in the form')
+      return
     }
 
     setLoading(true)
@@ -180,6 +211,7 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
                     <option key={v.id} value={v.id}>{v.name} ({v.category})</option>
                   ))}
                 </select>
+                {errors.vendorId && <p className="text-red-500 text-xs mt-1">{errors.vendorId}</p>}
               </div>
 
               <div className="space-y-1">
@@ -251,6 +283,7 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
                           className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none"
                           placeholder="e.g. Tomatoes"
                         />
+                        {errors[`items.${index}.itemName`] && <p className="text-red-500 text-[10px] mt-1">{errors[`items.${index}.itemName`]}</p>}
                       </div>
 
                       {/* Quantity */}
@@ -266,6 +299,7 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
                           className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none"
                           placeholder="10"
                         />
+                        {errors[`items.${index}.orderedQuantity`] && <p className="text-red-500 text-[10px] mt-1">{errors[`items.${index}.orderedQuantity`]}</p>}
                       </div>
 
                       {/* Unit */}
@@ -281,6 +315,7 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
                             <option key={u} value={u}>{u}</option>
                           ))}
                         </select>
+                        {errors[`items.${index}.unit`] && <p className="text-red-500 text-[10px] mt-1">{errors[`items.${index}.unit`]}</p>}
                       </div>
 
                       {/* Unit Price (Optional) */}
@@ -295,6 +330,7 @@ export default function CreatePoModal({ isOpen, onClose, vendors, onSuccess, sel
                           className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none"
                           placeholder="0.00"
                         />
+                        {errors[`items.${index}.agreedUnitPrice`] && <p className="text-red-500 text-[10px] mt-1">{errors[`items.${index}.agreedUnitPrice`]}</p>}
                       </div>
                     </div>
                     
