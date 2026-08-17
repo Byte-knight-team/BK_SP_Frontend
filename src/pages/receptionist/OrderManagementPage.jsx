@@ -73,9 +73,15 @@ const OrderManagementPage = () => {
     })
   }, [setHeaderInfo])
 
+  // Tab switch (user-initiated) shows the loading state; a WebSocket-triggered
+  // refresh (listRefreshKey) stays silent so the list doesn't flash/disappear.
   useEffect(() => {
-    fetchOrders()
-  }, [activeTab, listRefreshKey])
+    fetchOrders(false)
+  }, [activeTab])
+
+  useEffect(() => {
+    if (listRefreshKey > 0) fetchOrders(true)
+  }, [listRefreshKey])
 
   const fetchCounts = useCallback(async () => {
     const [{ data: readyData }, { data: holdData }] = await Promise.all([
@@ -90,8 +96,8 @@ const OrderManagementPage = () => {
     fetchCounts()
   }, [])
 
-  const fetchOrders = async () => {
-    setIsLoading(true)
+  const fetchOrders = async (silent = false) => {
+    if (!silent) setIsLoading(true)
     const statuses = STATUS_MAP[activeTab]
     const results = await Promise.all(statuses.map((s) => getReceptionistOrdersAPI(s)))
     const combined = results.flatMap((r) => r.data || [])
@@ -111,8 +117,20 @@ const OrderManagementPage = () => {
     setIsLoading(false)
   }
 
-  // WebSocket: kitchen item updates (line chef starts/completes items)
+  // WebSocket: a customer placed a new order — the toast is shown globally by
+  // ReceptionistNotifier; here we only refresh the list so it shows up live in the New tab
+  // without requiring the receptionist to click the toast or switch tabs manually.
   const branchId = user?.branchId
+  const newOrderTopic = branchId ? `/topic/branch/${branchId}/new-order` : null
+
+  const handleNewOrder = useCallback(() => {
+    setListRefreshKey((prev) => prev + 1)
+    fetchCounts()
+  }, [fetchCounts])
+
+  useWebSocket(branchId, newOrderTopic, handleNewOrder)
+
+  // WebSocket: kitchen item updates (line chef starts/completes items)
   const kitchenItemTopic = branchId ? `/topic/branch/${branchId}/kitchen-item-update` : null
 
   const handleKitchenItemUpdate = useCallback((msg) => {

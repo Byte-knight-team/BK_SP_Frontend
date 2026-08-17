@@ -11,7 +11,7 @@ import {
 import { getBranchTablesAPI } from '../../apis/receptionist/tables'
 import Dropdown from '../../components/common/Dropdown'
 import DatePicker from '../../components/receptionist/table management/DatePicker'
-import ConfirmReservationModal from '../../components/receptionist/table management/ConfirmReservationModal'
+import ConfirmSeatingModal from '../../components/receptionist/table management/ConfirmSeatingModal'
 
 const PAGE_SIZE = 10
 
@@ -57,9 +57,6 @@ export default function ReservationsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalElements, setTotalElements] = useState(0)
 
-  // Confirm (assign tables) modal target — the whole reservation row
-  const [confirmTarget, setConfirmTarget] = useState(null)
-
   // Inline reason rows
   const [cancelTargetId, setCancelTargetId] = useState(null)
   const [cancelReason, setCancelReason] = useState('')
@@ -69,6 +66,7 @@ export default function ReservationsPage() {
   const [rejectLoading, setRejectLoading] = useState(false)
 
   const [seatingId, setSeatingId] = useState(null)
+  const [seatTarget, setSeatTarget] = useState(null)
 
   useEffect(() => {
     setHeaderInfo({
@@ -144,6 +142,8 @@ export default function ReservationsPage() {
     setSeatingId(null)
     if (error) return toast.error(error)
     toast.success('Reservation seated')
+    setSeatTarget(null)
+    setRows((prev) => prev.filter((r) => r.id !== id))
     load(true)
   }
 
@@ -230,7 +230,7 @@ export default function ReservationsPage() {
                       <td className="px-4 py-3 text-gray-600">{fmtDate(r.reservationTime)}</td>
                       <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.reservationTime)}</td>
                       <td className="px-4 py-3 text-center text-gray-600">{fmtTime(r.endTime)}</td>
-                      <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{r.notes || '-'}</td>
+                      <td className="max-w-[160px] break-words px-4 py-3 text-gray-500">{r.notes || '-'}</td>
                       <td className="px-4 py-3">
                         {r.totalCharge != null ? (
                           <>
@@ -253,16 +253,15 @@ export default function ReservationsPage() {
                         <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${STATUS_STYLES[r.status] || 'bg-gray-100 text-gray-400'}`}>
                           {r.status}
                         </span>
+                        {r.cancelReason && (
+                          <p className="mx-auto mt-1 max-w-[140px] break-words text-[11px] text-gray-400">
+                            {r.cancelReason}
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {r.status === 'REQUESTED' ? (
                           <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => setConfirmTarget(r)}
-                              className={`${btn} border-purple-200 text-purple-600 hover:bg-purple-50`}
-                            >
-                              Confirm
-                            </button>
                             <button
                               onClick={() => { setRejectTargetId(r.id); setRejectReason(''); setCancelTargetId(null) }}
                               className={`${btn} border-red-100 text-red-500 hover:bg-red-50`}
@@ -273,7 +272,7 @@ export default function ReservationsPage() {
                         ) : r.status === 'PAID' ? (
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => handleSeat(r.id)}
+                              onClick={() => setSeatTarget(r)}
                               disabled={seatingId === r.id}
                               className={`${btn} border-green-200 text-green-600 hover:bg-green-50`}
                             >
@@ -392,12 +391,12 @@ export default function ReservationsPage() {
         </>
       )}
 
-      {/* Confirm (assign tables) modal */}
-      <ConfirmReservationModal
-        isOpen={!!confirmTarget}
-        onClose={() => setConfirmTarget(null)}
-        reservation={confirmTarget}
-        onConfirmed={() => load(true)}
+      <ConfirmSeatingModal
+        isOpen={!!seatTarget}
+        onClose={() => setSeatTarget(null)}
+        onConfirm={() => handleSeat(seatTarget.id)}
+        reservation={seatTarget}
+        isLoading={seatTarget != null && seatingId === seatTarget.id}
       />
     </div>
   )

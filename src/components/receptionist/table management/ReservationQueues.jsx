@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
 import { Inbox, CalendarClock, CalendarCheck, Loader2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
@@ -9,6 +9,7 @@ import {
   rejectReservationAPI,
 } from '../../../apis/receptionist/reservations'
 import ReservationAvailabilityPanel from './ReservationAvailabilityPanel'
+import ConfirmSeatingModal from './ConfirmSeatingModal'
 import useWebSocket from '../../../hooks/useWebSocket'
 
 const fmtTime = (dt) =>
@@ -40,13 +41,32 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
   const [cancelReason, setCancelReason] = useState('')
   const [cancelLoading, setCancelLoading] = useState(false)
   const [seatingId, setSeatingId] = useState(null)
+  const [seatTarget, setSeatTarget] = useState(null)
+
+  // In-flight guard: an action's own afterChange() and the WebSocket echo of that same change
+  // (broadcast back from the server moments later) both call load(true) for the same event.
+  // Two overlapping fetches can resolve out of order and briefly restore a row that was just
+  // removed. Coalesce them: only one fetch runs at a time; anything that arrives while it's in
+  // flight schedules a single silent follow-up instead of firing its own overlapping request.
+  const loadingRef = useRef(false)
+  const pendingRef = useRef(false)
 
   const load = useCallback((silent = false) => {
+    if (loadingRef.current) {
+      pendingRef.current = true
+      return
+    }
+    loadingRef.current = true
     if (!silent) setLoading(true)
     Promise.all([getRequestedReservationsAPI(), getUpcomingQueueAPI()]).then(([r1, r2]) => {
       setRequested(r1.data || [])
       setUpcoming(r2.data || [])
       setLoading(false)
+      loadingRef.current = false
+      if (pendingRef.current) {
+        pendingRef.current = false
+        load(true)
+      }
     })
   }, [])
 
@@ -89,6 +109,7 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
     setSeatingId(null)
     if (error) return toast.error(error)
     toast.success('Reservation seated')
+    setSeatTarget(null)
     setUpcoming((prev) => prev.filter((r) => r.id !== id))
     afterChange()
   }
@@ -300,12 +321,12 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => handleSeat(r.id)}
+                              onClick={() => setSeatTarget(r)}
                               disabled={!paid || seatingId === r.id}
                               title={paid ? 'Seat the arrived party' : 'Awaiting payment'}
                               className="rounded-lg border border-green-200 px-3 py-1.5 text-xs font-bold text-green-600 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                              {seatingId === r.id ? 'Seating…' : 'Confirm Seating'}
+                              {seatingId === r.id ? 'Seating…' : 'Seat'}
                             </button>
                             <button
                               onClick={() => { setCancelId(r.id); setCancelReason('') }}
@@ -352,6 +373,14 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
           </div>
         )}
       </div>
+
+      <ConfirmSeatingModal
+        isOpen={!!seatTarget}
+        onClose={() => setSeatTarget(null)}
+        onConfirm={() => handleSeat(seatTarget.id)}
+        reservation={seatTarget}
+        isLoading={seatTarget != null && seatingId === seatTarget.id}
+      />
     </div>
   )
 }
