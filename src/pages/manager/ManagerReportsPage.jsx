@@ -77,6 +77,25 @@ export default function ManagerReportsPage() {
     { label: 'Last 30D', days: 30 },
   ]
 
+  const getActivePreset = () => {
+    const today = new Date();
+    const endDateStr = today.toISOString().split('T')[0];
+    
+    if (dateRange.endDate !== endDateStr) return null;
+
+    const start = new Date(dateRange.startDate);
+    const end = new Date(dateRange.endDate);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    if (diffDays === 1) return 'Today';
+    if (diffDays === 7) return 'Last 7D';
+    if (diffDays === 30) return 'Last 30D';
+    return null;
+  }
+  
+  const activePreset = getActivePreset();
+
   if (loading && !data) {
     return <LoadingSpinner />
   }
@@ -143,7 +162,11 @@ export default function ManagerReportsPage() {
                   <button
                     key={preset.label}
                     onClick={() => setPreset(preset.days)}
-                    className="rounded-lg px-3 py-1.5 text-xs font-bold text-gray-500 transition-all hover:text-gray-900"
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                      activePreset === preset.label
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
                   >
                     {preset.label}
                   </button>
