@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { z } from 'zod'
 import { X, Search, CheckCircle2, AlertTriangle, FileText, PackageCheck, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -9,6 +10,7 @@ export default function CreateGrnModal({ isOpen, onClose, purchaseOrders, onSucc
   const [loading, setLoading] = useState(false)
   const [selectedPoId, setSelectedPoId] = useState('')
   const [unlinkedItemsWarning, setUnlinkedItemsWarning] = useState(null)
+  const [errors, setErrors] = useState({})
   
   const [formData, setFormData] = useState({
     invoiceReference: '',
@@ -77,12 +79,33 @@ export default function CreateGrnModal({ isOpen, onClose, purchaseOrders, onSucc
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setErrors({})
     
-    if (!selectedPoId) return toast.error('Please select a Purchase Order')
-    
-    // Validate quantities (can't be negative)
-    if (lineItems.some(item => parseFloat(item.receivedQuantity) < 0)) {
-      return toast.error('Received quantities cannot be negative')
+    const grnSchema = z.object({
+      purchaseOrderId: z.string().min(1, 'Please select a Purchase Order'),
+      items: z.array(z.object({
+        receivedQuantity: z.number().min(0, 'Received quantity cannot be negative'),
+      })).min(1, 'At least one line item is required')
+    })
+
+    const payloadToValidate = {
+      purchaseOrderId: selectedPoId,
+      items: lineItems.map(item => ({
+        receivedQuantity: parseFloat(item.receivedQuantity) || 0,
+      }))
+    }
+
+    const result = grnSchema.safeParse(payloadToValidate)
+
+    if (!result.success) {
+      const fieldErrors = {}
+      result.error.issues.forEach(issue => {
+        const path = issue.path.join('.')
+        fieldErrors[path] = issue.message
+      })
+      setErrors(fieldErrors)
+      toast.error('Please fix the errors in the form')
+      return
     }
 
     setLoading(true)
@@ -218,6 +241,7 @@ export default function CreateGrnModal({ isOpen, onClose, purchaseOrders, onSucc
                         <option key={po.id} value={po.id}>{po.poNumber} ({po.vendorName})</option>
                       ))}
                     </select>
+                    {errors.purchaseOrderId && <p className="text-red-500 text-xs mt-1">{errors.purchaseOrderId}</p>}
                   </div>
 
                   <div className="space-y-1">
@@ -261,7 +285,7 @@ export default function CreateGrnModal({ isOpen, onClose, purchaseOrders, onSucc
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {lineItems.map(item => (
+                          {lineItems.map((item, index) => (
                             <tr key={item.purchaseOrderItemId} className="hover:bg-gray-50/50 transition-colors">
                               <td className="p-4">
                                 <span className="font-semibold text-gray-900 block">{item.itemName}</span>
@@ -287,6 +311,7 @@ export default function CreateGrnModal({ isOpen, onClose, purchaseOrders, onSucc
                                   onChange={(e) => handleLineItemChange(item.purchaseOrderItemId, 'receivedQuantity', e.target.value)}
                                   className="w-full px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-lg outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                                 />
+                                {errors[`items.${index}.receivedQuantity`] && <p className="text-red-500 text-[10px] mt-1">{errors[`items.${index}.receivedQuantity`]}</p>}
                               </td>
                               <td className="p-4">
                                 <select

@@ -22,24 +22,43 @@ const CouponTable = ({ coupons, isLoading, onEdit, onToggleStatus, isToggling })
     return end.getTime() < new Date().getTime();
   };
 
+  const isScheduled = (coupon) => {
+    if (!coupon.startDate) return false;
+    const start = new Date(coupon.startDate.replace('T', ' ').replace(/-/g, '/').replace('Z', ''));
+    return start.getTime() > new Date().getTime();
+  };
+
   // Memoized filtering
   const filteredCoupons = useMemo(() => {
-    return coupons.filter(c => {
+    const filtered = coupons.filter(c => {
       const matchesSearch = !search || 
         (c.code && c.code.toLowerCase().includes(search.toLowerCase())) ||
         (c.description && c.description.toLowerCase().includes(search.toLowerCase()));
       
       const expired = isExpired(c);
+      const scheduled = c.status === 'SCHEDULED' || (c.status === 'ACTIVE' && isScheduled(c));
+      
       let matchesStatus = false;
       if (statusFilter === 'ALL') {
         matchesStatus = true;
       } else if (statusFilter === 'EXPIRED') {
         matchesStatus = expired;
-      } else {
-        matchesStatus = c.status === statusFilter && !expired;
+      } else if (statusFilter === 'SCHEDULED') {
+        matchesStatus = scheduled && !expired;
+      } else if (statusFilter === 'ACTIVE') {
+        matchesStatus = c.status === 'ACTIVE' && !scheduled && !expired;
+      } else if (statusFilter === 'INACTIVE') {
+        matchesStatus = c.status === 'INACTIVE' && !expired;
       }
       
       return matchesSearch && matchesStatus;
+    });
+
+    // Sort newly created coupons first (descending by createdAt)
+    return filtered.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt.replace('T', ' ').replace(/-/g, '/').replace('Z', '')).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt.replace('T', ' ').replace(/-/g, '/').replace('Z', '')).getTime() : 0;
+      return dateB - dateA;
     });
   }, [coupons, search, statusFilter]);
 
@@ -82,6 +101,7 @@ const CouponTable = ({ coupons, isLoading, onEdit, onToggleStatus, isToggling })
           >
             <option value="ALL">All Status</option>
             <option value="ACTIVE">Active</option>
+            <option value="SCHEDULED">Scheduled</option>
             <option value="INACTIVE">Inactive</option>
             <option value="EXPIRED">Expired</option>
           </select>
@@ -143,6 +163,10 @@ const CouponTable = ({ coupons, isLoading, onEdit, onToggleStatus, isToggling })
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500">
                           Expired
                         </span>
+                      ) : (coupon.status === 'SCHEDULED' || (coupon.status === 'ACTIVE' && isScheduled(coupon))) ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700">
+                          Scheduled
+                        </span>
                       ) : (
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
                           coupon.status === 'ACTIVE' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
@@ -154,19 +178,14 @@ const CouponTable = ({ coupons, isLoading, onEdit, onToggleStatus, isToggling })
                     <td className="px-5 py-4 pr-6 align-middle text-right">
                       <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
                         <ToggleSwitch 
-                          checked={coupon.status === 'ACTIVE'} 
+                          checked={(coupon.status === 'ACTIVE' || coupon.status === 'SCHEDULED') && !isExpired(coupon)} 
                           onChange={() => onToggleStatus(coupon)} 
-                          disabled={isToggling}
+                          disabled={isToggling || isExpired(coupon)}
                         />
                         <button 
                           onClick={() => onEdit(coupon)}
-                          disabled={coupon.status !== 'ACTIVE' && !isExpired(coupon)}
-                          className={`inline-flex items-center justify-center rounded-lg border p-1.5 transition-colors ${
-                            coupon.status !== 'ACTIVE' && !isExpired(coupon)
-                              ? 'border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed'
-                              : 'border-gray-200 bg-white text-gray-400 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600'
-                          }`}
-                          title={coupon.status !== 'ACTIVE' && !isExpired(coupon) ? "Cannot edit an inactive coupon" : "Edit Coupon"}
+                          className="inline-flex items-center justify-center rounded-lg border p-1.5 transition-colors border-gray-200 bg-white text-gray-400 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
+                          title="Edit Coupon"
                         >
                           <Pencil size={16} />
                         </button>

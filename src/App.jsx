@@ -114,6 +114,7 @@ import CustomerReservationDetailPage from './pages/customer/ReservationDetailPag
 // Kitchen pages
 import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
 import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
+import KitchenOrderHistoryPage from './pages/kitchen/KitchenOrderHistoryPage'
 import ChefsPage from './pages/kitchen/ChefsPage'
 import InventoryPage from './pages/kitchen/InventoryPage'
 import InventoryRequestsPage from './pages/kitchen/InventoryRequestsPage'
@@ -127,6 +128,7 @@ import LineChefHistoryPage from './pages/line-chef/LineChefHistoryPage'
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
 import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
 import OrderManagementPage from './pages/receptionist/OrderManagementPage'
+import OrderHistoryPage from './pages/receptionist/OrderHistoryPage'
 import ReservationsPage from './pages/receptionist/ReservationsPage'
 
 
@@ -451,6 +453,7 @@ export default function App() {
         >
           <Route index element={<KitchenDashboardPage />} />
           <Route path="orders" element={<KitchenOrdersPage />} />
+          <Route path="order-history" element={<KitchenOrderHistoryPage />} />
           <Route path="chefs" element={<ChefsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="requests" element={<InventoryRequestsPage />} />
@@ -476,6 +479,7 @@ export default function App() {
           <Route index element={<ReceptionistDashboardPage />} />
           <Route path="tables" element={<ReceptionistTablePage />} />
           <Route path="orders" element={<OrderManagementPage />} />
+          <Route path="order-history" element={<OrderHistoryPage />} />
           <Route path="reservations" element={<ReservationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
@@ -499,6 +503,16 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/line-chef" replace />} />
         </Route>
+
+        {/* DELIVERY area */}
+        <Route
+          path="/delivery"
+          element={
+            <ProtectedRoute allowedRoles={["DELIVERY"]}>
+              <ComingSoonPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

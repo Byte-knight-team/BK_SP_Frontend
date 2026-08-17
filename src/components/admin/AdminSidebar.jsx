@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import AppSidebar from "../common/AppSidebar";
 import { adminNav } from "../../config/nav/adminNav";
 import { getMenuItemsAPI } from "../../apis/admin/menu";
@@ -10,26 +11,19 @@ export default function AdminSidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const [menuItems, setMenuItems] = useState([]);
-  const [pendingUpdateRequestsCount, setPendingUpdateRequestsCount] = useState(0);
+  const { data: menuItems = [] } = useQuery({
+    queryKey: ['menuItems'],
+    queryFn: getMenuItemsAPI,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    let isMounted = true;
-    
-    Promise.all([
-      getMenuItemsAPI(),
-      getMenuUpdateRequestsAPI('PENDING')
-    ])
-      .then(([items, requests]) => {
-        if (isMounted) {
-          setMenuItems(items);
-          setPendingUpdateRequestsCount(requests.length);
-        }
-      })
-      .catch((error) => console.error("Failed to fetch sidebar data:", error));
-      
-    return () => { isMounted = false; };
-  }, []);
+  const { data: updateRequests = [] } = useQuery({
+    queryKey: ['menuUpdateRequests', 'PENDING'],
+    queryFn: () => getMenuUpdateRequestsAPI('PENDING'),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const pendingUpdateRequestsCount = updateRequests.length;
 
   const dynamicNav = useMemo(() => {
     const pendingCount = menuItems.filter(
@@ -44,6 +38,9 @@ export default function AdminSidebar() {
         return {
           ...item,
           subItems: item.subItems.map((sub) => {
+            if (sub.label === "All Menu Items") {
+              return { ...sub, count: menuItems.length };
+            }
             if (sub.label === "Pending Menu Items") {
               return { ...sub, count: pendingCount };
             }

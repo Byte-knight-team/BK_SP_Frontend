@@ -29,7 +29,14 @@ export default function CouponDetailsPage() {
     return end.getTime() < new Date().getTime();
   };
 
-  const canEdit = coupon && (coupon.status === 'ACTIVE' || isExpired(coupon));
+  const isScheduled = (c) => {
+    if (!c?.startDate) return false;
+    const start = new Date(c.startDate.replace('T', ' ').replace(/-/g, '/').replace('Z', ''));
+    return start.getTime() > new Date().getTime();
+  };
+
+  const isActuallyScheduled = coupon && (coupon.status === 'SCHEDULED' || (coupon.status === 'ACTIVE' && isScheduled(coupon)));
+  const canEdit = !!coupon;
 
   if (isLoading) {
     return (
@@ -67,11 +74,21 @@ export default function CouponDetailsPage() {
           <div>
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
               Coupon Details
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                coupon.status === 'ACTIVE' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-              }`}>
-                {coupon.status === 'ACTIVE' ? 'Active' : 'Inactive'}
-              </span>
+              {isExpired(coupon) ? (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500">
+                  Expired
+                </span>
+              ) : isActuallyScheduled ? (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700">
+                  Scheduled
+                </span>
+              ) : (
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                  coupon.status === 'ACTIVE' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                }`}>
+                  {coupon.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                </span>
+              )}
             </h2>
           </div>
         </div>

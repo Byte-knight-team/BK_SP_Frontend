@@ -126,10 +126,13 @@ export const createEditRequestAPI = async (menuItemId, chefNote) => {
   }
 }
 
-// My own edit requests (any status), newest first — for the My Requests page
-export const getMyEditRequestsAPI = async () => {
+// My own edit requests (any status), newest first — for the My Requests page, paged
+export const getMyEditRequestsAPI = async ({ page = 0, size = 10, date, status } = {}) => {
   try {
-    const response = await authFetch(buildApiUrl(`${BASE}/edit-requests`))
+    const params = new URLSearchParams({ page, size })
+    if (date) params.set('date', date)
+    if (status && status !== 'ALL') params.set('status', status)
+    const response = await authFetch(buildApiUrl(`${BASE}/edit-requests?${params.toString()}`))
     const result = await response.json()
     if (!response.ok) return { data: null, error: result.message || 'Failed to load edit requests' }
     return { data: result.data, error: null }

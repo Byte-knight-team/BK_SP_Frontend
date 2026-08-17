@@ -28,7 +28,7 @@ export default function ManagerNotificationBell() {
 
     // 2. Navigate based on type
     if (notification.type === 'CHEF_REQUEST') {
-      navigate('/manager/inventory') // Assuming chef requests are handled in inventory
+      navigate('/manager/inventory', { state: { tab: 'chef-requests' } }) // Navigate to inventory page with chef-requests tab
     } else if (notification.type === 'NEW_DELIVERY') {
       navigate('/manager/drivers') // Assuming deliveries are dispatched here
     } else if (notification.type === 'DELIVERY_ALERT') {

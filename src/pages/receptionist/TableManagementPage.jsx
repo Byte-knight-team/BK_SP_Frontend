@@ -40,6 +40,15 @@ const TableManagementPage = () => {
     fetchTables(true)
   }, [])
 
+  // Safety net: WebSocket pushes can be missed (e.g. connection drop while the
+  // scheduler locks a table for an upcoming reservation) with no retry/replay, so the
+  // grid can silently go stale until something else triggers a refetch. A silent poll
+  // independent of any push guarantees it self-corrects within a minute either way.
+  useEffect(() => {
+    const interval = setInterval(() => fetchTables(false), 60000)
+    return () => clearInterval(interval)
+  }, [])
+
   const branchId = user?.branchId
 
   // WebSocket: silent refresh when any table changes (occupy, clear, new QR order)

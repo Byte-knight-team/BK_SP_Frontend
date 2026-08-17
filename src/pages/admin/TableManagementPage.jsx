@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { getTablesAPI, updateTableAPI } from '../../apis/admin/table';
 import AddTableModal from '../../components/admin/modal/AddTableModal';
+import { showSuccessToast, showErrorToast } from '../../utils/toast';
 
 
 // Admin page for managing table records, status, and QR actions.
@@ -109,25 +110,41 @@ export default function TableManagementPage() {
           payload: { capacity: editingTable.capacity, tableNumber: editingTable.tableNumber }
         },
         {
-          onSuccess: () => setEditingTable(null)
+          onSuccess: () => {
+            setEditingTable(null);
+            showSuccessToast('Table details updated successfully');
+          }
         }
       );
     }
   };
 
-  const handleToggleClick = (table) => {
+    const handleToggleClick = (table) => {
+    if (table.isAvailable !== false && (table.status === 'OCCUPIED' || table.status === 'RESERVED')) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Error',
+        message: 'Occupied and reserved tables cannot be inactive.',
+        type: 'error',
+      });
+      return;
+    }
     setToggleConfirmModal({ isOpen: true, table: table });
   };
 
   const confirmToggle = async () => {
     const tableToToggle = toggleConfirmModal.table;
     if (tableToToggle) {
+      const newStatus = tableToToggle.isAvailable === false ? true : false;
       updateTableMutation.mutate(
         {
           id: tableToToggle.id,
-          payload: { isAvailable: tableToToggle.isAvailable === false ? true : false }
+          payload: { isAvailable: newStatus }
         },
         {
+          onSuccess: () => {
+            showSuccessToast(`Table marked as ${newStatus ? 'Active' : 'Inactive'}`);
+          },
           onSettled: () => setToggleConfirmModal({ isOpen: false, table: null })
         }
       );

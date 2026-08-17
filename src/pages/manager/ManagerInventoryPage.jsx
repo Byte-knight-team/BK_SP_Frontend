@@ -39,6 +39,13 @@ export default function ManagerInventoryPage() {
       // Clear state so it doesn't reopen on refresh
       window.history.replaceState({}, document.title)
     }
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab)
+      // Optionally clear it from history if you don't want it to stick on refresh, 
+      // but usually replacing state entirely here wipes out other states. 
+      // A safe way is to just let it be, or carefully merge.
+      // We will just set the tab.
+    }
   }, [location])
 
   const scrollToChefRequests = () => {
@@ -89,6 +96,10 @@ export default function ManagerInventoryPage() {
       return false
     }
   }
+
+  const uniqueCategories = data?.stockItems
+    ? Array.from(new Set(data.stockItems.map((item) => item.category))).filter(Boolean)
+    : []
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -184,6 +195,7 @@ export default function ManagerInventoryPage() {
       <AddInventoryItemModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        existingCategories={uniqueCategories}
         onSave={async (itemData) => {
           const success = await handleSaveItem(itemData)
           if (success) {
@@ -198,6 +210,7 @@ export default function ManagerInventoryPage() {
       <UpdateInventoryItemModal
         isOpen={updateModal.open}
         item={updateModal.item}
+        existingCategories={uniqueCategories}
         onClose={() => {
           setUpdateModal({ open: false, item: null })
           refetch()
