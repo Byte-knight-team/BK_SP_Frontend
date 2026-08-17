@@ -18,13 +18,15 @@ import {
   XCircle,
   Soup,
   HandCoins,
-  Handshake
+  Handshake,
+  Star
 } from 'lucide-react';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import ReviewModal from '../../components/customer/modal/ReviewModal';
 import { toast } from 'react-toastify';
 import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
+import BranchLocationModal from '../../components/customer/modal/BranchLocationModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 import useOrderStatusWebSocket from '../../hooks/useOrderStatusWebSocket';
 
@@ -78,6 +80,7 @@ export default function OrderConfirmationPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -143,7 +146,7 @@ export default function OrderConfirmationPage() {
     if (update) {
       setOrder((prev) => {
         if (!prev) return prev;
-        
+
         const next = { ...prev };
         let changed = false;
 
@@ -270,7 +273,7 @@ export default function OrderConfirmationPage() {
             Back to Menu
           </button>
           <div>
-            <p className="text-sm font-bold text-slate-900">Order #{order.orderNumber || order.orderId}</p>
+            <p className="text-sm font-bold text-slate-900">Order {order.orderNumber || order.orderId}</p>
             {/*!isCancelled && <p className="text-xs text-slate-500">Est. delivery: {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}</p>*/}
           </div>
         </div>
@@ -414,8 +417,21 @@ export default function OrderConfirmationPage() {
             {order.branchDetails && (
               <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
                 <h4 className="mb-3 font-bold text-slate-900">{isPickup ? 'Pickup Details' : 'Branch Details'}</h4>
-                <p className="text-sm font-semibold text-slate-900">{order.branchDetails.name}</p>
-                <p className="mt-1 text-xs text-slate-600">{order.branchDetails.address}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{order.branchDetails.name}</p>
+                    <p className="mt-1 text-xs text-slate-600">{order.branchDetails.address}</p>
+                  </div>
+                  {isPickup && (
+                    <button
+                      type="button"
+                      onClick={() => setLocationModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-3.5 py-2 text-xs font-semibold text-orange-600 transition-colors hover:bg-orange-100 shrink-0"
+                    >
+                      <MapPin size={14} /> View Map
+                    </button>
+                  )}
+                </div>
                 <div className="mt-3 space-y-1 text-xs text-slate-500">
                   <p className="flex items-center gap-2"><Phone size={12} /> {order.branchDetails.contactNumber}</p>
                   <p className="flex items-center gap-2"><Mail size={12} /> {order.branchDetails.email}</p>
@@ -441,10 +457,9 @@ export default function OrderConfirmationPage() {
                   </div>
                 )}
 
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Customer</p>
-                  <p className="mt-1 text-slate-600">{order.contactName || '—'}</p>
-                  <p className="mt-1 text-slate-500">{order.contactPhone || '—'}</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-slate-900">{order.contactName || '—'}</p>
+                  <p className="text-slate-500">{order.contactPhone || '—'}</p>
                 </div>
               </div>
             </div>
@@ -475,7 +490,7 @@ export default function OrderConfirmationPage() {
 
           {/* Review is only available after serving; cancel is only available before processing starts. */}
           <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {canRetryPayment && (
                 <button
                   type="button"
@@ -491,15 +506,30 @@ export default function OrderConfirmationPage() {
                   Retry Payment
                 </button>
               )}
-              <button
-                type="button"
-                disabled={!isReviewable}
-                onClick={() => setReviewModalOpen(true)}
-                className="w-full rounded-[10px] bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-500 border border-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                Review Order
-              </button>
-              {isCancellable ? (
+
+              {isReviewable ? (
+                <button
+                  type="button"
+                  onClick={() => setReviewModalOpen(true)}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98]"
+                >
+                  <Star size={14} className="fill-white" /> Review Order
+                </button>
+              ) : order?.isReviewed ? (
+                <div className="w-full rounded-xl bg-emerald-50 border border-emerald-200 py-2.5 text-center text-xs font-semibold text-emerald-700">
+                  ✓ Order Reviewed
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-400 border border-slate-200 cursor-not-allowed opacity-70"
+                >
+                  Review Order
+                </button>
+              )}
+
+              {isCancellable && (
                 <button
                   type="button"
                   onClick={() => setCancelModalOpen(true)}
@@ -507,8 +537,10 @@ export default function OrderConfirmationPage() {
                 >
                   Cancel Order
                 </button>
-              ) : (
-                <p className="text-xs text-slate-500 text-center">No actions available</p>
+              )}
+
+              {!isCancellable && !isReviewable && !canRetryPayment && !order?.isReviewed && (
+                <p className="text-xs text-slate-400 text-center pt-1">No actions available</p>
               )}
             </div>
           </div>
@@ -557,6 +589,13 @@ export default function OrderConfirmationPage() {
           }}
           onConfirm={handleCancelOrder}
           isSubmitting={isCancelling}
+        />
+      )}
+
+      {locationModalOpen && order?.branchDetails && (
+        <BranchLocationModal
+          branchDetails={order.branchDetails}
+          onClose={() => setLocationModalOpen(false)}
         />
       )}
     </CustomerPageShell>
