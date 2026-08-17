@@ -57,6 +57,10 @@ function CheckoutForm({ orderId, reservationId, finalAmount, returnUrl }) {
 
       // 2. Trust the Webhook: Payment succeeded, just redirect!
       if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Wait 2 seconds to give the backend Webhook time to update the database to PAID
+        // This prevents the race condition where the user sees 'PENDING' on the next page
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         if (orderId) {
           navigate(returnUrl || '/order-confirmation', {
             replace: true,

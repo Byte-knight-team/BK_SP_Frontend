@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -15,16 +15,19 @@ import {
   Phone,
   ShoppingBag,
   Truck,
+  Utensils,
   XCircle,
   Soup,
   HandCoins,
-  Handshake
+  Handshake,
+  Star
 } from 'lucide-react';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import ReviewModal from '../../components/customer/modal/ReviewModal';
 import { toast } from 'react-toastify';
 import CancelOrderModal from '../../components/customer/modal/CancelOrderModal';
+import BranchLocationModal from '../../components/customer/modal/BranchLocationModal';
 import { cancelCustomerOrder, getCustomerOrder } from '../../apis/customer/orders';
 import useOrderStatusWebSocket from '../../hooks/useOrderStatusWebSocket';
 
@@ -69,7 +72,16 @@ function isTerminalOrderStatus(status) {
 export default function OrderConfirmationPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { orderId } = location.state || {};
+  const [searchParams] = useSearchParams();
+
+  // Multi-source fallback resolution for orderId so refreshes/direct navigations never show a blank screen
+  const orderId =
+    location.state?.orderId ||
+    searchParams.get('orderId') ||
+    searchParams.get('id') ||
+    searchParams.get('order_id') ||
+    sessionStorage.getItem('last_viewed_order_id') ||
+    localStorage.getItem('last_placed_order_id');
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -78,10 +90,17 @@ export default function OrderConfirmationPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (orderId) {
+      sessionStorage.setItem('last_viewed_order_id', String(orderId));
+    }
+  }, [orderId]);
 
   useEffect(() => {
     if (!orderId) {
-      setError('No order session found.');
+      setError('No active order session found.');
       setLoading(false);
       return;
     }
@@ -143,7 +162,7 @@ export default function OrderConfirmationPage() {
     if (update) {
       setOrder((prev) => {
         if (!prev) return prev;
-        
+
         const next = { ...prev };
         let changed = false;
 
@@ -255,33 +274,58 @@ export default function OrderConfirmationPage() {
   }
 
   const items = Array.isArray(order.items) ? order.items : [];
+  const rawOrderNum = String(order.orderNumber || order.orderId || '');
+  const orderDisplayId = rawOrderNum.startsWith('#') ? rawOrderNum : `#${rawOrderNum}`;
+  const isDineIn = isQr || orderType === 'DINE_IN';
+  const OrderTypeIcon = isDelivery ? Truck : isDineIn ? Utensils : ShoppingBag;
+  const orderTypeLabel = isDelivery ? 'Delivery' : isDineIn ? 'Dine-In' : 'Pickup';
 
   return (
     <CustomerPageShell maxWidth="max-w-6xl" className="pb-32">
-      {/* TOP HEADER - Back button and Order # on LEFT, Title on RIGHT */}
-      <div className="mb-8 flex items-start justify-between gap-8">
+      {/* TOP HEADER - Back button, Order Meta & Status Capsule */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Left Side: Back Navigation & Order Badge */}
         <div className="flex flex-col gap-2">
           <button
             type="button"
             onClick={() => navigate('/menu')}
-            className="w-fit inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300"
+            className="w-fit inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-xs transition-all hover:border-orange-200 hover:text-orange-600 active:scale-95"
           >
             <ArrowLeft size={14} />
             Back to Menu
           </button>
-          <div>
-            <p className="text-sm font-bold text-slate-900">Order #{order.orderNumber || order.orderId}</p>
-            {/*!isCancelled && <p className="text-xs text-slate-500">Est. delivery: {formatTime(estimatedStart)} - {formatTime(estimatedEnd)}</p>*/}
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-extrabold text-xl sm:text-2xl text-slate-900 tracking-tight">
+              Order {orderDisplayId}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-orange-500 text-white text-[11px] font-bold tracking-wider uppercase shadow-xs shadow-orange-500/20">
+              <OrderTypeIcon size={13} className="text-white" />
+              {orderTypeLabel}
+            </span>
           </div>
         </div>
-        <div className="text-right">
-          <div className="mb-2 flex justify-end">
-            <div className={`flex h-14 w-14 items-center justify-center rounded-full ${isCancelled ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-              {isCancelled ? <XCircle size={32} /> : <CheckCircle2 size={32} />}
-            </div>
+
+        {/* Right Side: Modern Status Highlight Capsule */}
+        <div className="flex items-center gap-3.5 rounded-2xl bg-white border border-slate-100 px-5 py-3.5 shadow-sm">
+          <div className={`relative flex h-11 w-11 items-center justify-center rounded-xl flex-shrink-0 ${
+            isCancelled ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+          }`}>
+            {!isCancelled && (
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 ring-2 ring-white"></span>
+              </span>
+            )}
+            {isCancelled ? <XCircle size={22} /> : <CheckCircle2 size={22} />}
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900">{isCancelled ? 'Order Cancelled' : 'Order Placed'}</h1>
-          <p className="mt-1 text-xs text-slate-600">{isCancelled ? 'Cancelled order' : 'You will be notified of each step'}</p>
+          <div className="text-left">
+            <h1 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
+              {isCancelled ? 'Order Cancelled' : 'Order Placed'}
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              {isCancelled ? 'This order has been cancelled' : 'You will be notified as each step updates'}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -414,8 +458,21 @@ export default function OrderConfirmationPage() {
             {order.branchDetails && (
               <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
                 <h4 className="mb-3 font-bold text-slate-900">{isPickup ? 'Pickup Details' : 'Branch Details'}</h4>
-                <p className="text-sm font-semibold text-slate-900">{order.branchDetails.name}</p>
-                <p className="mt-1 text-xs text-slate-600">{order.branchDetails.address}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{order.branchDetails.name}</p>
+                    <p className="mt-1 text-xs text-slate-600">{order.branchDetails.address}</p>
+                  </div>
+                  {isPickup && (
+                    <button
+                      type="button"
+                      onClick={() => setLocationModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-3.5 py-2 text-xs font-semibold text-orange-600 transition-colors hover:bg-orange-100 shrink-0"
+                    >
+                      <MapPin size={14} /> View Map
+                    </button>
+                  )}
+                </div>
                 <div className="mt-3 space-y-1 text-xs text-slate-500">
                   <p className="flex items-center gap-2"><Phone size={12} /> {order.branchDetails.contactNumber}</p>
                   <p className="flex items-center gap-2"><Mail size={12} /> {order.branchDetails.email}</p>
@@ -441,10 +498,9 @@ export default function OrderConfirmationPage() {
                   </div>
                 )}
 
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Customer</p>
-                  <p className="mt-1 text-slate-600">{order.contactName || '—'}</p>
-                  <p className="mt-1 text-slate-500">{order.contactPhone || '—'}</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-slate-900">{order.contactName || '—'}</p>
+                  <p className="text-slate-500">{order.contactPhone || '—'}</p>
                 </div>
               </div>
             </div>
@@ -475,7 +531,7 @@ export default function OrderConfirmationPage() {
 
           {/* Review is only available after serving; cancel is only available before processing starts. */}
           <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {canRetryPayment && (
                 <button
                   type="button"
@@ -491,15 +547,30 @@ export default function OrderConfirmationPage() {
                   Retry Payment
                 </button>
               )}
-              <button
-                type="button"
-                disabled={!isReviewable}
-                onClick={() => setReviewModalOpen(true)}
-                className="w-full rounded-[10px] bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-500 border border-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                Review Order
-              </button>
-              {isCancellable ? (
+
+              {isReviewable ? (
+                <button
+                  type="button"
+                  onClick={() => setReviewModalOpen(true)}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98]"
+                >
+                  <Star size={14} className="fill-white" /> Review Order
+                </button>
+              ) : order?.isReviewed ? (
+                <div className="w-full rounded-xl bg-emerald-50 border border-emerald-200 py-2.5 text-center text-xs font-semibold text-emerald-700">
+                  ✓ Order Reviewed
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-400 border border-slate-200 cursor-not-allowed opacity-70"
+                >
+                  Review Order
+                </button>
+              )}
+
+              {isCancellable && (
                 <button
                   type="button"
                   onClick={() => setCancelModalOpen(true)}
@@ -507,8 +578,10 @@ export default function OrderConfirmationPage() {
                 >
                   Cancel Order
                 </button>
-              ) : (
-                <p className="text-xs text-slate-500 text-center">No actions available</p>
+              )}
+
+              {!isCancellable && !isReviewable && !canRetryPayment && !order?.isReviewed && (
+                <p className="text-xs text-slate-400 text-center pt-1">No actions available</p>
               )}
             </div>
           </div>
@@ -557,6 +630,13 @@ export default function OrderConfirmationPage() {
           }}
           onConfirm={handleCancelOrder}
           isSubmitting={isCancelling}
+        />
+      )}
+
+      {locationModalOpen && order?.branchDetails && (
+        <BranchLocationModal
+          branchDetails={order.branchDetails}
+          onClose={() => setLocationModalOpen(false)}
         />
       )}
     </CustomerPageShell>
