@@ -51,7 +51,7 @@ export function useManagerNotifications() {
     if (payload?.message === 'NEW_NOTIFICATION') {
        if (payload.type === 'DELIVERY_ALERT') {
          toast.error(
-           `🚨 Delivery Alert — Order needs re-assignment. Driver cancelled mid-delivery.`,
+           `Delivery Alert - Order needs re-assignment. `,
            { id: 'delivery-alert-ping', autoClose: 8000 }
          )
        } else {
