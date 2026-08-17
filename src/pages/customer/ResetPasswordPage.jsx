@@ -80,10 +80,14 @@ export default function ResetPasswordPage() {
 
       <div className="relative z-10 mx-auto w-full max-w-[380px]">
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
-            <BrandLogo />
-            <h1 className="text-2xl font-bold mt-2">New Password</h1>
-            <p className="mt-2 text-sm text-orange-100">Secure your account with a new password</p>
+          <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-xl pointer-events-none" />
+            <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-black/10 blur-xl pointer-events-none" />
+            <div className="relative z-10 mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xs shrink-0">
+              <BrandLogo />
+            </div>
+            <h1 className="relative z-10 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">New Password</h1>
+            <p className="relative z-10 mt-1.5 text-xs sm:text-sm text-orange-50/90 font-medium">Secure your account with a new password</p>
           </div>
 
           <div className="px-6 py-8">

@@ -22,6 +22,15 @@ export default function LoginPage() {
     if (urlError) setError(urlError);
   }, [searchParams]);
 
+  const redirectParam = searchParams.get('redirect');
+  const redirectTo = redirectParam && !['/login', '/signup', '/signup/address', '/forgot-password', '/reset-password'].includes(redirectParam)
+    ? redirectParam
+    : '/menu';
+
+  const handleBack = () => {
+    navigate(redirectTo);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -56,9 +65,6 @@ export default function LoginPage() {
       localStorage.removeItem('qr_branch_id');
       localStorage.removeItem('qr_table_id');
 
-      const redirectSearchParams = new URLSearchParams(location.search);
-      const redirectTo = redirectSearchParams.get('redirect') || '/menu';
-
       toast('Successfully logged in!', {
         className: 'toast-orange-auth font-semibold shadow-lg',
         icon: '👋',
@@ -81,7 +87,7 @@ export default function LoginPage() {
       <div className="relative z-10 mx-auto w-full max-w-[360px]">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="mb-5 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
         >
           <ArrowLeft size={16} />
@@ -89,10 +95,14 @@ export default function LoginPage() {
         </button>
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
-            <BrandLogo />
-            <h1 className="text-3xl font-bold">Welcome Back!</h1>
-            <p className="mt-2 text-sm text-orange-100">Sign in to continue ordering</p>
+          <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-xl pointer-events-none" />
+            <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-black/10 blur-xl pointer-events-none" />
+            <div className="relative z-10 mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xs shrink-0">
+              <BrandLogo />
+            </div>
+            <h1 className="relative z-10 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Welcome Back!</h1>
+            <p className="relative z-10 mt-1.5 text-xs sm:text-sm text-orange-50/90 font-medium">Sign in to continue ordering</p>
           </div>
 
           <form className="space-y-5 px-6 pb-10 pt-6" onSubmit={handleLogin}>
@@ -138,7 +148,7 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center justify-end text-sm">
-              <Link to="/forgot-password" className="font-semibold text-orange-500 hover:text-orange-600 transition-colors">
+              <Link to={`/forgot-password?redirect=${encodeURIComponent(redirectTo)}`} className="font-semibold text-orange-500 hover:text-orange-600 transition-colors">
                 Forgot password?
               </Link>
             </div>
@@ -153,7 +163,11 @@ export default function LoginPage() {
 
             <p className="pt-1 text-center text-sm text-slate-600">
               Don't have an account?{' '}
-              <Link to="/signup" className="font-semibold text-orange-500 hover:text-orange-600">
+              <Link
+                to={`/signup?redirect=${encodeURIComponent(redirectTo)}`}
+                replace
+                className="font-semibold text-orange-500 hover:text-orange-600"
+              >
                 Create Account
               </Link>
             </p>

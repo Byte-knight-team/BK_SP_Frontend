@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, User, Mail, Phone, Lock, Eye, EyeOff } from 'lucide-react';
@@ -12,7 +12,14 @@ export default function SignupPersonalPage() {
   const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get('redirect') || '/menu';
+  const redirectParam = searchParams.get('redirect');
+  const redirectTo = redirectParam && !['/login', '/signup', '/signup/address', '/forgot-password', '/reset-password'].includes(redirectParam)
+    ? redirectParam
+    : '/menu';
+
+  const handleBack = () => {
+    navigate(redirectTo);
+  };
   
   const {
     register,
@@ -45,18 +52,22 @@ export default function SignupPersonalPage() {
       <div className="relative z-10 mx-auto w-full max-w-[360px]">
         <button
           type="button"
-          onClick={() => navigate(`/login?redirect=${encodeURIComponent(redirectTo)}`)}
+          onClick={handleBack}
           className="mb-5 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
         >
           <ArrowLeft size={16} />
-          Back to Login
+          Back
         </button>
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-9 text-center text-white flex flex-col justify-center items-center">
-            <BrandLogo />
-            <h1 className="text-3xl font-bold">Create Account</h1>
-            <p className="mt-2 text-sm text-orange-100">Step 1 of 2: Personal Details</p>
+          <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-xl pointer-events-none" />
+            <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-black/10 blur-xl pointer-events-none" />
+            <div className="relative z-10 mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xs shrink-0">
+              <BrandLogo />
+            </div>
+            <h1 className="relative z-10 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Create Account</h1>
+            <p className="relative z-10 mt-1.5 text-xs sm:text-sm text-orange-50/90 font-medium">Step 1 of 2: Personal Details</p>
           </div>
 
           <form className="space-y-4 px-6 pb-10 pt-6" onSubmit={handleSubmit(onSubmit)}>
@@ -130,6 +141,17 @@ export default function SignupPersonalPage() {
             >
               Next: Address Details
             </button>
+
+            <p className="pt-2 text-center text-sm text-slate-600">
+              Already have an account?{' '}
+              <Link
+                to={`/login?redirect=${encodeURIComponent(redirectTo)}`}
+                replace
+                className="font-semibold text-orange-500 hover:text-orange-600"
+              >
+                Sign In
+              </Link>
+            </p>
           </form>
         </div>
       </div>
