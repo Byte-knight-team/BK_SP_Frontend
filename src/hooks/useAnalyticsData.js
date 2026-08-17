@@ -27,11 +27,11 @@ export function useAnalyticsData() {
   const branchId = user?.branchId
   const userId = user?.id
 
-  const fetchAnalyticsData = useCallback(async () => {
+  const fetchAnalyticsData = useCallback(async (silent = false) => {
     if (!hydrated || !branchId || !userId) return
     
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
       setError(null)
       const summary = await ManagerAnalyticsService.getSummary(
         branchId, 
@@ -44,7 +44,7 @@ export function useAnalyticsData() {
       console.error('Failed to fetch analytics data:', err)
       setError(err.message || 'Failed to load analytics data')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [branchId, userId, hydrated, dateRange])
 
@@ -56,7 +56,7 @@ export function useAnalyticsData() {
   // whenever an event fires (e.g. an order is completed, updating revenue analytics)
   const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
   useWebSocket(branchId, topic, () => {
-    fetchAnalyticsData()
+    fetchAnalyticsData(true)
   })
 
   return { 

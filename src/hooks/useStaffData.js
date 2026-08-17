@@ -10,11 +10,11 @@ export function useStaffData() {
   const { user, hydrated } = useAuth()
   const branchId = user?.branchId
 
-  const fetchStaffData = useCallback(async () => {
+  const fetchStaffData = useCallback(async (silent = false) => {
     if (!hydrated) return
 
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
       setError(null)
       const result = await ManagerStaffService.getStaffSummary(branchId)
       setData(result)
@@ -22,7 +22,7 @@ export function useStaffData() {
       console.error('Failed to fetch staff data:', err)
       setError(err.message || 'Failed to load staff data')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [branchId, hydrated])
 
@@ -34,7 +34,7 @@ export function useStaffData() {
   // whenever an event fires (e.g. a staff member's availability status changes)
   const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
   useWebSocket(branchId, topic, () => {
-    fetchStaffData()
+    fetchStaffData(true)
   })
 
   return { data, loading, error, refetch: fetchStaffData }

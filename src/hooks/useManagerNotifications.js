@@ -12,9 +12,9 @@ export function useManagerNotifications() {
   const { user, hydrated } = useAuth()
   const branchId = user?.branchId
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (silent = false) => {
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
       const data = await ManagerNotificationService.getUnreadNotifications(branchId)
       setNotifications(data || [])
       setError(null)
@@ -22,7 +22,7 @@ export function useManagerNotifications() {
       console.error('Failed to fetch manager notifications:', err)
       setError(err.message || 'Failed to fetch data')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
@@ -61,10 +61,10 @@ export function useManagerNotifications() {
          toast.success(toastMsg, { id: 'manager-notification-ping' })
        }
        
-       fetchNotifications()
+       fetchNotifications(true)
     } else if (payload?.message === 'NOTIFICATION_RESOLVED') {
        // Silently fetch to update the bell count/list
-       fetchNotifications()
+       fetchNotifications(true)
     }
   })
 
