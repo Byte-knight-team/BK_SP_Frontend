@@ -1,4 +1,4 @@
-import { Play, CheckCircle2, MessageSquare } from 'lucide-react'
+import { Play, CheckCircle2, UtensilsCrossed, ClipboardList } from 'lucide-react'
 
 const statusConfig = {
   PENDING: { label: 'To Cook', style: 'bg-orange-50 text-orange-500 border border-orange-100' },
@@ -7,11 +7,18 @@ const statusConfig = {
   SERVED: { label: 'Done', style: 'bg-green-50 text-green-500 border border-green-100' },
 }
 
-const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
+const AssignedItemCard = ({ item, onStart, onComplete, isLoading, queueNumber }) => {
   const statusConf = statusConfig[item.status] || { label: item.status, style: 'bg-gray-50 text-gray-500' }
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="relative rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+      {/* cook-order badge: 1 = oldest/next up */}
+      {queueNumber != null && (
+        <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-xs font-black text-white shadow-md">
+          {queueNumber}
+        </span>
+      )}
+
       {/* top row: item name + status badge */}
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-base font-bold text-gray-800 leading-tight">{item.itemName}</h3>
@@ -31,12 +38,12 @@ const AssignedItemCard = ({ item, onStart, onComplete, isLoading }) => {
       {/* kitchen notes */}
       {item.itemKitchenNotes && (
         <p className="mt-2 flex items-center gap-1 text-[11px] font-medium text-orange-500">
-          <MessageSquare size={10} /> {item.itemKitchenNotes}
+          <UtensilsCrossed size={10} /> Item note: {item.itemKitchenNotes}
         </p>
       )}
       {item.orderKitchenNotes && (
         <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-orange-400">
-          <MessageSquare size={10} /> Order: {item.orderKitchenNotes}
+          <ClipboardList size={10} /> Order note: {item.orderKitchenNotes}
         </p>
       )}
 

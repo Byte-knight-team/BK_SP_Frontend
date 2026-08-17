@@ -12,6 +12,7 @@ import {
   getAdminDashboardRevenueTrendAPI,
   getAdminDashboardStatsAPI,
 } from '../../apis/admin/dashboard';
+import { showSuccessToast, showErrorToast } from '../../utils/toast';
 
 // Admin landing page that summarizes key business metrics.
 export default function AdminDashboardPage() {
@@ -46,8 +47,14 @@ export default function AdminDashboardPage() {
       getAdminDashboardOrderFlowAPI(),
     ]);
 
-    if (statsError) console.error('Error fetching admin dashboard stats:', statsError);
-    if (flowError) console.error('Error fetching admin dashboard order flow:', flowError);
+    if (statsError) {
+      console.error('Error fetching admin dashboard stats:', statsError);
+      showErrorToast('Failed to fetch dashboard stats');
+    }
+    if (flowError) {
+      console.error('Error fetching admin dashboard order flow:', flowError);
+      showErrorToast('Failed to fetch order flow');
+    }
 
     if (statsData) setStats(statsData);
     if (flowData) setOrderFlow(flowData);
@@ -61,8 +68,9 @@ export default function AdminDashboardPage() {
   }, [fetchStatsAndFlow]);
 
   const topic = branchId ? `/topic/branch/${branchId}/admin-notifications` : null;
-  useWebSocket(branchId, topic, () => {
+  useWebSocket(branchId, topic, (msg) => {
     fetchStatsAndFlow();
+    showSuccessToast(msg?.message || 'Dashboard updated with new data');
   });
 
   useEffect(() => {
@@ -71,7 +79,10 @@ export default function AdminDashboardPage() {
     const loadRevenueData = async () => {
       const { data, error } = await getAdminDashboardRevenueTrendAPI(revenueDays);
 
-      if (error) console.error('Error fetching admin dashboard revenue trend:', error);
+      if (error) {
+        console.error('Error fetching admin dashboard revenue trend:', error);
+        showErrorToast('Failed to fetch revenue trend');
+      }
 
       if (!isMounted) return;
       if (data) setRevenueTrend(data);
@@ -311,7 +322,10 @@ export default function AdminDashboardPage() {
               </div>
               <select
                 value={revenueDays}
-                onChange={(e) => setRevenueDays(Number(e.target.value))}
+                onChange={(e) => {
+                  setRevenueDays(Number(e.target.value));
+                  showSuccessToast(`Updating revenue trend for last ${e.target.value} days...`);
+                }}
                 className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-orange-500 focus:border-orange-500 block p-1.5 outline-none cursor-pointer"
               >
                 <option value={3}>Last 3 Days</option>

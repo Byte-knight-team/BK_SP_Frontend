@@ -79,6 +79,7 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
     setRejectLoading(false)
     if (error) return toast.error(error)
     toast.success('Request rejected')
+    setRequested((prev) => prev.filter((r) => r.id !== id))
     afterChange()
   }
 
@@ -88,6 +89,7 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
     setSeatingId(null)
     if (error) return toast.error(error)
     toast.success('Reservation seated')
+    setUpcoming((prev) => prev.filter((r) => r.id !== id))
     afterChange()
   }
 
@@ -98,6 +100,7 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
     setCancelLoading(false)
     if (error) return toast.error(error)
     toast.success('Reservation cancelled')
+    setUpcoming((prev) => prev.filter((r) => r.id !== id))
     afterChange()
   }
 
