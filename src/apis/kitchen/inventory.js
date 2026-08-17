@@ -15,10 +15,13 @@ export const getAllInventoryAPI = async () => {
   }
 };
 
-// get the logged-in chef's own inventory requests (with manager status)
-export const getMyInventoryRequestsAPI = async () => {
+// get the logged-in chef's own inventory requests (with manager status), paged
+export const getMyInventoryRequestsAPI = async ({ page = 0, size = 10, date, status } = {}) => {
   try {
-    const response = await authFetch(buildApiUrl("/api/v1/kitchen/inventory/my-requests"));
+    const params = new URLSearchParams({ page, size });
+    if (date) params.set("date", date);
+    if (status && status !== "ALL") params.set("status", status);
+    const response = await authFetch(buildApiUrl(`/api/v1/kitchen/inventory/my-requests?${params.toString()}`));
     const result = await response.json();
 
     if (!response.ok) {

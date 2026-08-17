@@ -92,6 +92,15 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
     onTablesChanged?.()
   }
 
+  // Passed into the availability panel as onDone: it fires after that panel's own
+  // confirm OR reject succeeds, so drop the row from Requested locally right away
+  // instead of waiting on the afterChange() background refetch to catch up — same
+  // instant-removal pattern handleReject/handleCancel/handleSeat already use below.
+  const removeFromRequested = (id) => {
+    setRequested((prev) => prev.filter((r) => r.id !== id))
+    afterChange()
+  }
+
   const handleReject = async (id) => {
     if (!rejectReason.trim()) return toast.error('Please enter a reason')
     setRejectLoading(true)
@@ -229,7 +238,7 @@ const ReservationQueues = ({ branchId, onTablesChanged }) => {
                       {expanded && expanded.id === r.id && expanded.mode === 'AVAIL' && (
                         <tr className="bg-gray-50/40">
                           <td colSpan={8} className="px-4 py-3">
-                            <ReservationAvailabilityPanel reservation={r} onDone={afterChange} />
+                            <ReservationAvailabilityPanel reservation={r} onDone={() => removeFromRequested(r.id)} />
                           </td>
                         </tr>
                       )}
