@@ -500,6 +500,16 @@ export default function App() {
           <Route path="*" element={<Navigate to="/line-chef" replace />} />
         </Route>
 
+        {/* DELIVERY area */}
+        <Route
+          path="/delivery"
+          element={
+            <ProtectedRoute allowedRoles={["DELIVERY"]}>
+              <ComingSoonPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

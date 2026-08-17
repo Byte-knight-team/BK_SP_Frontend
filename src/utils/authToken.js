@@ -4,9 +4,8 @@ const USER_KEY = "authUser";
 /*
   Safely decode a JWT payload.
 
-  This does NOT verify the token signature.
-  Frontend decoding is only for UI/route decisions.
-  Real security is still enforced by the backend.
+  Frontend decoding is only used for UI and routing.
+  Real JWT validation/security is performed by the backend.
 */
 export function decodeJwtPayload(token) {
   if (!token || !token.includes(".")) {
@@ -15,12 +14,18 @@ export function decodeJwtPayload(token) {
 
   try {
     const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+
+    const base64 = base64Url
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
 
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split("")
-        .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .map(
+          (char) =>
+            `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`
+        )
         .join("")
     );
 
@@ -32,7 +37,27 @@ export function decodeJwtPayload(token) {
 }
 
 /*
-  Check JWT expiry using the exp claim.
+  Normalize backend role values.
+
+  Examples:
+  SUPER_ADMIN      -> SUPER_ADMIN
+  ROLE_SUPER_ADMIN -> SUPER_ADMIN
+  line_chef        -> LINE_CHEF
+*/
+export function normalizeStaffRole(roleName) {
+  const normalized = String(roleName || "")
+    .trim()
+    .toUpperCase();
+
+  if (normalized.startsWith("ROLE_")) {
+    return normalized.substring(5);
+  }
+
+  return normalized;
+}
+
+/*
+  Check JWT expiry.
 */
 export function isTokenExpired(token) {
   const payload = decodeJwtPayload(token);
@@ -45,7 +70,7 @@ export function isTokenExpired(token) {
 }
 
 /*
-  Store JWT token only.
+  Store staff JWT.
 */
 export function saveAuthToken(token) {
   localStorage.setItem(TOKEN_KEY, token);
@@ -56,10 +81,7 @@ export function getAuthToken() {
 }
 
 /*
-  Store lightweight authenticated user data from the login response.
-
-  This avoids using JWT subject/email as username.
-  Do not store sensitive data here.
+  Store lightweight user information used by the frontend UI.
 */
 export function saveAuthUser(user) {
   if (!user) {
@@ -67,66 +89,104 @@ export function saveAuthUser(user) {
     return;
   }
 
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  localStorage.setItem(
+    USER_KEY,
+    JSON.stringify(user)
+  );
 }
 
 /*
-  Restore lightweight authenticated user data.
-
-  If the saved object is invalid, ignore it.
+  Restore lightweight authenticated user.
 */
 export function getSavedAuthUser() {
   try {
     const saved = localStorage.getItem(USER_KEY);
-    return saved ? JSON.parse(saved) : null;
+
+    return saved
+      ? JSON.parse(saved)
+      : null;
   } catch (error) {
-    console.error("Failed to restore saved auth user:", error);
+    console.error(
+      "Failed to restore saved auth user:",
+      error
+    );
+
     return null;
   }
 }
 
+/*
+  Clear complete staff authentication state.
+*/
 export function clearAuthStorage() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
 }
 
 /*
-  Convert JWT claims into the small current-user object needed by frontend.
-
-  Important:
-  Do NOT use payload.sub as username because in this system sub is email.
+  Convert JWT claims into the small user object
+  required by the frontend.
 */
-export function getCurrentUserFromToken(token = getAuthToken()) {
+export function getCurrentUserFromToken(
+  token = getAuthToken()
+) {
   const payload = decodeJwtPayload(token);
 
   if (!payload) {
     return null;
   }
 
-  const roleName =
+  const rawRole =
     payload.roleName ||
     payload.role ||
     payload.authority ||
-    payload.authorities?.[0]?.replace("ROLE_", "") ||
+    payload.authorities?.[0] ||
     "";
 
+  const roleName = normalizeStaffRole(rawRole);
+
   return {
-    id: payload.id || payload.userId || payload.staffId || null,
-    email: payload.email || payload.sub || "",
-    username: payload.username || payload.preferred_username || "",
-    fullName: payload.fullName || payload.name || "",
+    id:
+      payload.id ||
+      payload.userId ||
+      payload.staffId ||
+      null,
+
+    email:
+      payload.email ||
+      payload.sub ||
+      "",
+
+    username:
+      payload.username ||
+      payload.preferred_username ||
+      "",
+
+    fullName:
+      payload.fullName ||
+      payload.name ||
+      "",
+
     roleName,
-    branchId: payload.branchId || null,
-    branchName: payload.branchName || "",
-    passwordChanged: payload.passwordChanged,
-    exp: payload.exp,
+
+    branchId:
+      payload.branchId ||
+      null,
+
+    branchName:
+      payload.branchName ||
+      "",
+
+    passwordChanged:
+      payload.passwordChanged,
+
+    exp:
+      payload.exp,
   };
 }
 
 /*
-  Decode QR session claims from the session token.
-  Returns the claim values, NOT storing them anywhere.
-  Use this at point-of-use (e.g., API calls, UI display).
+  Decode QR session claims.
 */
 export function getQrSessionClaims(sessionToken) {
   if (!sessionToken) {
@@ -151,15 +211,7 @@ export function getQrSessionClaims(sessionToken) {
 }
 
 /*
-  SECURE: Validate customer JWT by checking claims, not just existence.
-
-  Returns decoded claims if valid:
-  - Token not expired
-  - Has 'CUSTOMER' role in roles array
-  - Has valid customer ID (sub)
-
-  Returns null if invalid, expired, or missing required claims.
-  Frontend only—signature verification is backend responsibility.
+  Validate customer JWT claims.
 */
 export function validateCustomerJwt(token) {
   if (!token) {
@@ -172,11 +224,17 @@ export function validateCustomerJwt(token) {
     return null;
   }
 
-  if (payload.exp && payload.exp * 1000 < Date.now()) {
+  if (
+    payload.exp &&
+    payload.exp * 1000 < Date.now()
+  ) {
     return null;
   }
 
-  const roles = Array.isArray(payload.roles) ? payload.roles : [];
+  const roles =
+    Array.isArray(payload.roles)
+      ? payload.roles
+      : [];
 
   if (!roles.includes("CUSTOMER")) {
     return null;
@@ -190,14 +248,7 @@ export function validateCustomerJwt(token) {
 }
 
 /*
-  SECURE: Validate QR session token by checking claims, not just existence.
-
-  Returns decoded claims if valid:
-  - Token not expired
-  - Has 'session_id' claim
-
-  Returns null if invalid, expired, or missing session_id.
-  Frontend only—signature verification is backend responsibility.
+  Validate QR session token.
 */
 export function validateQrSessionToken(token) {
   if (!token) {
@@ -210,7 +261,10 @@ export function validateQrSessionToken(token) {
     return null;
   }
 
-  if (payload.exp && payload.exp * 1000 < Date.now()) {
+  if (
+    payload.exp &&
+    payload.exp * 1000 < Date.now()
+  ) {
     return null;
   }
 
@@ -222,10 +276,16 @@ export function validateQrSessionToken(token) {
 }
 
 /*
-  Central dashboard redirect logic.
+  Central WEB staff dashboard redirect logic.
+
+  DELIVERY is intentionally not included because
+  delivery personnel use the Delivery mobile application,
+  not the web staff dashboard.
 */
 export function getDashboardPathByRole(roleName) {
-  switch (roleName) {
+  const role = normalizeStaffRole(roleName);
+
+  switch (role) {
     case "SUPER_ADMIN":
       return "/staff";
 
@@ -243,9 +303,6 @@ export function getDashboardPathByRole(roleName) {
 
     case "LINE_CHEF":
       return "/line-chef";
-
-    case "DELIVERY":
-      return "/delivery";
 
     default:
       return "/staff/login";
