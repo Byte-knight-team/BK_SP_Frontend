@@ -2,13 +2,38 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { ArrowLeft, User, Mail, Phone, Lock, MapPin, Zap, Save, X, LogOut, Loader2, Camera, Trash2, BarChart3 } from 'lucide-react';
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  Lock,
+  MapPin,
+  Zap,
+  Save,
+  X,
+  LogOut,
+  Loader2,
+  Camera,
+  Trash2,
+  BarChart3,
+  ChevronRight,
+  CheckCircle2
+} from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import EditableSection from '../../components/customer/EditableSection';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import { useCart } from '../../context/CartContext';
-import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile, createProfilePicturePresignUrl, updateProfilePictureKey, removeProfilePicture, requestEmailVerification } from '../../apis/customer/profile';
+import {
+  getCustomerProfile,
+  updateCustomerPassword,
+  updateCustomerProfile,
+  createProfilePicturePresignUrl,
+  updateProfilePictureKey,
+  removeProfilePicture,
+  requestEmailVerification
+} from '../../apis/customer/profile';
 import { uploadFileToPresignedUrl } from '../../apis/customer/orders';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
@@ -269,39 +294,35 @@ export default function AccountPage() {
         {/* Profile Card */}
         {profile && (
           <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)] mb-4">
+            {/* Top Brand Banner */}
             <div className="bg-orange-500 px-6 py-8 text-center text-white flex flex-col items-center">
               <BrandLogo />
               <h1 className="mt-3 text-3xl font-bold">My Account</h1>
             </div>
 
             {/* Account Summary */}
-            <div className="border-b border-slate-200 px-6 py-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xl font-bold text-slate-900">{profile.username}</p>
-                  <p className="mt-1 text-xs text-slate-400">Member since {profile.memberSince}</p>
-                </div>
-                <div className="flex flex-col items-end">
+            <div className="border-b border-slate-200/80 px-6 py-6 bg-slate-50/40">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  {/* Avatar with Ring & Camera Button */}
                   <div 
-                    className="relative group cursor-pointer" 
+                    className="relative group cursor-pointer shrink-0" 
                     onClick={handleAvatarClick}
                     title="Change profile picture"
                   >
-                    <div className="flex h-16 w-16 overflow-hidden items-center justify-center rounded-full bg-orange-100 border-2 border-transparent group-hover:border-orange-300 transition-all shadow-sm">
+                    <div className="flex h-16 w-16 overflow-hidden items-center justify-center rounded-2xl bg-orange-100 border-2 border-white shadow-md group-hover:ring-2 group-hover:ring-orange-400 transition-all">
                       {isUploadingImage ? (
-                         <Loader2 size={24} className="text-orange-500 animate-spin" />
+                        <Loader2 size={24} className="text-orange-500 animate-spin" />
                       ) : profile.profilePictureUrl ? (
-                         <img src={profile.profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
+                        <img src={profile.profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
                       ) : (
-                         <User size={28} className="text-orange-500" />
+                        <User size={28} className="text-orange-500" />
                       )}
                     </div>
-                    
-                    {/* Camera Icon Overlay on Hover */}
-                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Camera size={20} className="text-white" />
+                    {/* Camera overlay icon */}
+                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera size={18} className="text-white" />
                     </div>
-
                     <input 
                       type="file" 
                       ref={fileInputRef} 
@@ -310,88 +331,101 @@ export default function AccountPage() {
                       onChange={handleFileChange}
                     />
                   </div>
-                  
-                  {/* Remove button if picture exists */}
-                  {profile.profilePictureUrl && !isUploadingImage && (
-                    <button 
-                      onClick={handleRemovePicture}
-                      className="flex items-center gap-1 mt-1 mr-2 text-[10px] font-medium text-slate-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 size={10} /> Remove
-                    </button>
-                  )}
+
+                  {/* Name & Handle */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-lg font-bold text-slate-900 truncate">{profile.username}</p>
+                      {profile.emailVerified && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/80">
+                          <CheckCircle2 size={10} /> Verified
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-xs text-slate-500 font-medium">Member since {profile.memberSince || '—'}</p>
+                    
+                    {profile.profilePictureUrl && !isUploadingImage && (
+                      <button 
+                        onClick={handleRemovePicture}
+                        className="inline-flex items-center gap-1 mt-1 text-[11px] font-medium text-slate-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={11} /> Remove photo
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Loyalty Points Section */}
-            <div className="border-b border-slate-200 px-6 py-5">
-              <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100">
-                    <Zap size={20} className="text-orange-500" />
+            <div className="border-b border-slate-200/80 px-6 py-5">
+              <div className="flex items-center justify-between rounded-2xl border border-orange-200/80 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-100/40 p-4 shadow-xs">
+                <div className="flex items-center gap-3.5">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20">
+                    <Zap size={22} className="fill-white" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-slate-600">Loyalty Points</p>
-                    <p className="text-2xl font-bold text-slate-900">{profile.loyaltyPoints || 0}</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-orange-600">Loyalty Points</p>
+                    <p className="text-2xl font-extrabold text-slate-900 tracking-tight">{profile.loyaltyPoints || 0}</p>
                   </div>
                 </div>
-                <span className="text-xs font-medium text-orange-600 bg-orange-100 px-3 py-1 rounded-full">
+                <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700 border border-orange-200/60 shadow-xs">
                   Active
                 </span>
               </div>
               
               <button 
                 onClick={() => navigate('/statistics')}
-                className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                className="mt-3.5 w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs transition-all hover:bg-orange-50 hover:border-orange-200 hover:text-orange-600 active:scale-[0.99]"
               >
-                <BarChart3 size={18} className="text-slate-500" />
+                <BarChart3 size={15} className="text-slate-400 group-hover:text-orange-500" />
                 View Advanced Statistics
+                <ChevronRight size={14} className="text-slate-400" />
               </button>
             </div>
 
-              {/* Static Email Section*/}
-              <div className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                      <Mail size={18} className="text-slate-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Email Address</p>
-                        {profile.email && (
-                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${profile.emailVerified ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {profile.emailVerified ? 'Verified' : 'Unverified'}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 truncate text-sm text-slate-900 leading-relaxed">
-                        {profile.email || 'No email linked'}
-                      </p>
-                    </div>
+            {/* Static Email Section*/}
+            <div className="px-6 py-4 transition-colors hover:bg-slate-50/50">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 flex-1 items-start gap-3.5">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 shadow-xs">
+                    <Mail size={18} />
                   </div>
-                  
-                  {profile.email && !profile.emailVerified && (
-                    <button
-                      onClick={handleRequestVerification}
-                      disabled={isSendingVerification}
-                      className="ml-4 flex items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-orange-600 disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                      {isSendingVerification ? (
-                        <>
-                          <Loader2 size={14} className="animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        'Verify Email'
+                  <div className="min-w-0 flex-1 pt-0.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Email Address</p>
+                      {profile.email && (
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-md border ${profile.emailVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : 'bg-red-50 text-red-700 border-red-200/80'}`}>
+                          {profile.emailVerified ? '✓ Verified' : 'Unverified'}
+                        </span>
                       )}
-                    </button>
-                  )}
+                    </div>
+                    <p className="mt-0.5 truncate text-sm font-medium text-slate-900 leading-normal">
+                      {profile.email || 'No email linked'}
+                    </p>
+                  </div>
                 </div>
+                
+                {profile.email && !profile.emailVerified && (
+                  <button
+                    onClick={handleRequestVerification}
+                    disabled={isSendingVerification}
+                    className="ml-3 flex-shrink-0 inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isSendingVerification ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      'Verify Email'
+                    )}
+                  </button>
+                )}
               </div>
+            </div>
 
-              <div className="space-y-0 divide-y divide-slate-200">
+            <div className="space-y-0 divide-y divide-slate-200/70">
 
               {/*EditableSections*/}
 
@@ -442,32 +476,32 @@ export default function AccountPage() {
               />
 
               {/* Password Section */}
-              <div className="px-6 py-4">
+              <div className="px-6 py-4 transition-colors hover:bg-slate-50/50">
                 {editingSection !== 'password' ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100">
-                        <Lock size={18} className="text-slate-600" />
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex min-w-0 flex-1 items-start gap-3.5">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 shadow-xs">
+                        <Lock size={18} />
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">Password</p>
-                        <p className="text-xs text-slate-500">••••••••</p>
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Password</p>
+                        <p className="mt-0.5 text-sm font-medium text-slate-900">••••••••••••</p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleEdit('password')}
-                      className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200"
+                      className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition-all hover:bg-orange-50 hover:border-orange-200 hover:text-orange-600 active:scale-95"
                     >
                       Change
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-orange-100">
-                        <Lock size={18} className="text-orange-500" />
+                  <div className="space-y-3.5 rounded-2xl bg-orange-50/40 p-4 border border-orange-200/70">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
+                        <Lock size={16} />
                       </div>
-                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Change Password</p>
+                      <p className="text-xs font-bold text-orange-950 uppercase tracking-wider">Change Password</p>
                     </div>
                     <input
                       type="password"
@@ -475,7 +509,7 @@ export default function AccountPage() {
                       placeholder="Current Password"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
-                      className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
+                      className="w-full rounded-xl border border-orange-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition-all focus:border-orange-500 focus:ring-3 focus:ring-orange-100 placeholder:text-slate-400 shadow-xs"
                     />
                     <input
                       type="password"
@@ -483,7 +517,7 @@ export default function AccountPage() {
                       placeholder="New Password"
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
-                      className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
+                      className="w-full rounded-xl border border-orange-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition-all focus:border-orange-500 focus:ring-3 focus:ring-orange-100 placeholder:text-slate-400 shadow-xs"
                     />
                     <input
                       type="password"
@@ -491,22 +525,22 @@ export default function AccountPage() {
                       placeholder="Confirm New Password"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
-                      className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-orange-400"
+                      className="w-full rounded-xl border border-orange-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition-all focus:border-orange-500 focus:ring-3 focus:ring-orange-100 placeholder:text-slate-400 shadow-xs"
                     />
-                    <div className="flex gap-2 justify-end pt-2">
+                    <div className="flex gap-2 justify-end pt-1">
                       <button
                         onClick={handleCancel}
                         disabled={isSaving}
-                        className="flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition-colors hover:bg-slate-100 disabled:opacity-50"
                       >
-                        <X size={14} /> Cancel
+                        <X size={13} /> Cancel
                       </button>
                       <button
                         onClick={handleSavePassword}
                         disabled={isSaving}
-                        className="flex items-center gap-1 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-orange-600 disabled:opacity-70"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
                       >
-                        {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
                         Save
                       </button>
                     </div>
@@ -520,9 +554,9 @@ export default function AccountPage() {
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-base font-medium text-red-600 transition-colors hover:bg-red-100"
+          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50/70 px-4 py-3.5 text-sm font-bold text-red-600 shadow-xs transition-all hover:bg-red-100 hover:border-red-300 active:scale-[0.99]"
         >
-          <LogOut size={18} />
+          <LogOut size={16} />
           Sign Out
         </button>
       </div>
