@@ -2,27 +2,28 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { MapPin, Phone, Mail, Calendar, Clock, Users, ArrowRight, ArrowLeft, CheckCircle, X } from 'lucide-react';
+import { MapPin, Phone, Mail, Calendar, Clock, Users, ArrowRight, ArrowLeft, CheckCircle, X, Plus, Minus, Info, Store, Check, Sparkles, ShieldCheck, MessageSquare, Receipt } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  getActiveReservationBranches, 
-  previewReservationCharge, 
-  createReservationRequest 
+import CustomerDatePicker from './CustomerDatePicker';
+import {
+  getActiveReservationBranches,
+  previewReservationCharge,
+  createReservationRequest
 } from '../../apis/customer/reservations';
 
 export default function CreateReservationDrawer({ isOpen, onClose }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [step, setStep] = useState(1); // 1: Branch, 2: Details, 3: Review
   const [selectedBranch, setSelectedBranch] = useState(null);
-  
+
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [guestCount, setGuestCount] = useState(2);
   const [customerNote, setCustomerNote] = useState('');
-  
+
   const [chargePreview, setChargePreview] = useState(null);
 
   const { data: branches = [], isLoading: loadingBranches } = useQuery({
@@ -67,7 +68,7 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
         setChargePreview(null);
       }
     };
-    
+
     const timer = setTimeout(fetchPreview, 300);
     return () => clearTimeout(timer);
   }, [selectedBranch, date, startTime, endTime, guestCount]);
@@ -182,7 +183,7 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="p-8 bg-white">
                   <h2 className="text-3xl font-bold text-slate-900 mb-6">{selectedBranch.name}</h2>
                   <div className="grid grid-cols-2 gap-6">
@@ -195,7 +196,7 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
                         <p className="text-sm text-slate-600 leading-relaxed">{selectedBranch.address}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start gap-4">
                       <div className="p-3 bg-orange-50 text-orange-500 rounded-xl shrink-0">
                         <Phone size={24} />
@@ -238,25 +239,50 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
 
             <div className="flex-1 overflow-y-auto p-6">
               {/* Stepper */}
-              <div className="flex items-center justify-between mb-8 px-2 relative">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-100 -z-10 rounded-full" />
-                <div 
-                  className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-orange-500 -z-10 rounded-full transition-all duration-300"
-                  style={{ width: `${((step - 1) / 2) * 100}%` }}
-                />
-                
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="flex flex-col items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-colors duration-300 ${
-                      step >= i ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30' : 'bg-white border-2 border-slate-200 text-slate-400'
-                    }`}>
-                      {step > i ? <CheckCircle size={16} /> : i}
+              <div className="relative flex items-center justify-between mb-7 px-4">
+                {/* Track Container spanning Step 1 center to Step 3 center */}
+                <div className="absolute top-4 left-8 right-8 h-0.5 bg-slate-200 -translate-y-1/2 z-0 overflow-hidden rounded-full">
+                  <div
+                    className="h-full bg-orange-500 rounded-full transition-all duration-300 ease-out"
+                    style={{
+                      width: step === 1 ? '0%' : step === 2 ? '50%' : '100%'
+                    }}
+                  />
+                </div>
+
+                {[
+                  { id: 1, label: 'Location' },
+                  { id: 2, label: 'Details' },
+                  { id: 3, label: 'Review' }
+                ].map(({ id, label }) => {
+                  const isCompleted = step > id;
+                  const isCurrent = step === id;
+
+                  return (
+                    <div key={id} className="relative z-10 flex flex-col items-center">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-200 ${isCompleted
+                            ? 'bg-orange-500 text-white shadow-sm ring-4 ring-white'
+                            : isCurrent
+                              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30 ring-4 ring-orange-100 scale-105'
+                              : 'bg-white border-2 border-slate-200 text-slate-400 ring-4 ring-white'
+                          }`}
+                      >
+                        {isCompleted ? <CheckCircle size={15} strokeWidth={2.5} /> : id}
+                      </div>
+                      <span
+                        className={`text-[10px] mt-1.5 font-bold uppercase tracking-wider transition-colors ${isCurrent
+                            ? 'text-orange-600'
+                            : isCompleted
+                              ? 'text-slate-800'
+                              : 'text-slate-400'
+                          }`}
+                      >
+                        {label}
+                      </span>
                     </div>
-                    <span className={`text-[10px] mt-1.5 font-bold uppercase tracking-wider ${step >= i ? 'text-slate-800' : 'text-slate-400'}`}>
-                      {i === 1 ? 'Location' : i === 2 ? 'Details' : 'Review'}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <AnimatePresence mode="wait">
@@ -267,74 +293,110 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <h3 className="text-lg font-bold text-slate-800 mb-4">Select a Location</h3>
-                    
-                    <div className="bg-orange-50/50 border border-orange-100 rounded-2xl p-4 mb-6">
-                      <h4 className="font-semibold text-orange-800 mb-2 text-sm">Reservation Guidelines</h4>
-                      <ul className="text-xs text-orange-700 space-y-1 list-disc list-inside">
-                        {selectedBranch ? (
-                          <>
-                            <li>Reservations must be made at least {selectedBranch.reservationMinLeadHours} hours in advance.</li>
-                            <li>Requests are reviewed by our staff during working hours.</li>
-                            <li>Once confirmed, you will have {selectedBranch.reservationPaymentWindowMinutes} minutes to pay the reservation fee to lock it in.</li>
-                            <li>Cancellations after payment will forfeit the handling fee.</li>
-                          </>
-                        ) : (
-                          <>
-                            <li>Reservations must be made in advance.</li>
-                            <li>Requests are reviewed by our staff during working hours.</li>
-                            <li>Once confirmed, you will have a limited time to pay the reservation fee to lock it in.</li>
-                            <li>Cancellations after payment will forfeit the handling fee.</li>
-                          </>
-                        )}
-                      </ul>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-bold text-slate-900">Select a Location</h3>
+                      <span className="text-xs text-slate-500 font-medium">
+                        {branches.length} {branches.length === 1 ? 'branch' : 'branches'} available
+                      </span>
                     </div>
 
                     {loadingBranches ? (
-                      <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" /></div>
+                      <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" /></div>
                     ) : branches.length === 0 ? (
-                      <div className="text-center p-8 text-slate-500 bg-slate-50 rounded-2xl">
+                      <div className="text-center p-8 text-slate-500 bg-slate-50 rounded-2xl border border-slate-100">
                         No branches are currently accepting reservations.
                       </div>
                     ) : (
-                      <div className="grid gap-3">
-                        {branches.map(branch => (
-                          <div 
-                            key={branch.id}
-                            onClick={() => setSelectedBranch(branch)}
-                            className={`cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200 ${
-                              selectedBranch?.id === branch.id 
-                                ? 'border-orange-500 bg-orange-50/30 shadow-md shadow-orange-500/10' 
-                                : 'border-slate-100 hover:border-orange-200 hover:bg-slate-50'
-                            }`}
-                          >
-                            <h3 className="font-bold text-base text-slate-900 mb-1.5">{branch.name}</h3>
-                            <div className="space-y-1 text-xs text-slate-600">
-                              <div className="flex items-center gap-2"><MapPin size={14} className="text-slate-400" /> {branch.address}</div>
-                              <div className="flex items-center gap-2"><Phone size={14} className="text-slate-400" /> {branch.contactNumber}</div>
-                            </div>
-                            
-                            {selectedBranch?.id === branch.id && (
-                              <div className="mt-4 lg:hidden rounded-xl overflow-hidden h-40 relative">
-                                {branch.latitude && branch.longitude ? (
-                                  <iframe
-                                    width="100%"
-                                    height="100%"
-                                    frameBorder="0"
-                                    style={{ border: 0 }}
-                                    src={`https://maps.google.com/maps?q=${branch.latitude},${branch.longitude}&z=15&output=embed`}
-                                    allowFullScreen
-                                  />
-                                ) : (
-                                  <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-100/50">
-                                    <MapPin size={20} className="mb-2 opacity-50" />
-                                    <p className="font-medium text-xs">No map available</p>
+                      <div className="space-y-2.5">
+                        {branches.map(branch => {
+                          const isSelected = selectedBranch?.id === branch.id;
+                          return (
+                            <div
+                              key={branch.id}
+                              onClick={() => setSelectedBranch(branch)}
+                              className={`group relative cursor-pointer rounded-2xl border-2 p-3.5 transition-all duration-200 ${
+                                isSelected
+                                  ? 'border-orange-500 bg-orange-50/40 shadow-sm shadow-orange-500/10 ring-1 ring-orange-500/20'
+                                  : 'border-slate-100 bg-white hover:border-orange-200 hover:bg-slate-50/60'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                {/* Store Icon Badge */}
+                                <div className={`p-2.5 rounded-xl transition-colors shrink-0 ${
+                                  isSelected
+                                    ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/25'
+                                    : 'bg-slate-100 text-slate-500 group-hover:bg-orange-100 group-hover:text-orange-600'
+                                }`}>
+                                  <Store size={18} />
+                                </div>
+
+                                {/* Branch Info */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <h4 className="font-bold text-sm text-slate-900 truncate">{branch.name}</h4>
+                                    {/* Selection Radio Circle */}
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                                      isSelected
+                                        ? 'bg-orange-500 text-white scale-105'
+                                        : 'border-2 border-slate-200 bg-white group-hover:border-slate-300'
+                                    }`}>
+                                      {isSelected && <Check size={12} strokeWidth={3} />}
+                                    </div>
                                   </div>
-                                )}
+
+                                  <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1 truncate">
+                                    <MapPin size={13} className="text-slate-400 shrink-0" />
+                                    <span className="truncate">{branch.address}</span>
+                                  </div>
+
+                                  <div className="flex items-center gap-3 mt-2">
+                                    <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+                                      <Phone size={12} className="text-slate-400" />
+                                      <span>{branch.contactNumber}</span>
+                                    </div>
+
+                                    {branch.reservationMinLeadHours > 0 && (
+                                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/50">
+                                        {branch.reservationMinLeadHours}h advance notice
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                            )}
-                          </div>
-                        ))}
+
+                              {/* Mobile Map Preview */}
+                              {isSelected && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: 'auto' }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="mt-3 lg:hidden"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div className="rounded-xl overflow-hidden h-36 relative border border-orange-200/80 shadow-inner bg-slate-100">
+                                    {branch.latitude && branch.longitude ? (
+                                      <iframe
+                                        width="100%"
+                                        height="100%"
+                                        frameBorder="0"
+                                        style={{ border: 0 }}
+                                        src={`https://maps.google.com/maps?q=${branch.latitude},${branch.longitude}&z=15&output=embed`}
+                                        allowFullScreen
+                                        title={`${branch.name} location map`}
+                                      />
+                                    ) : (
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+                                        <MapPin size={20} className="mb-1 opacity-50" />
+                                        <p className="font-medium text-xs">Map location not available</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </motion.div>
@@ -347,43 +409,41 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <h3 className="text-lg font-bold text-slate-800 mb-6">Reservation Details</h3>
-                    
-                    <div className="space-y-5">
+                    <h3 className="text-base font-bold text-slate-900 mb-4">Reservation Details</h3>
+
+                    <div className="space-y-4">
+                      {/* Date */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                          <input 
-                            type="date" 
-                            min={new Date().toISOString().split('T')[0]}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-sm"
-                            value={date}
-                            onChange={e => setDate(e.target.value)}
-                          />
-                        </div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Date</label>
+                        <CustomerDatePicker
+                          value={date}
+                          onChange={setDate}
+                          minLeadHours={selectedBranch?.reservationMinLeadHours || 0}
+                          placeholder="Select date"
+                        />
                       </div>
 
+                      {/* Time Slots */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Start Time</label>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1">Start Time</label>
                           <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input 
-                              type="time" 
-                              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-sm"
+                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={15} />
+                            <input
+                              type="time"
+                              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-sm font-medium text-slate-800"
                               value={startTime}
                               onChange={e => setStartTime(e.target.value)}
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1.5">End Time</label>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1">End Time</label>
                           <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input 
-                              type="time" 
-                              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-sm"
+                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={15} />
+                            <input
+                              type="time"
+                              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-sm font-medium text-slate-800"
                               value={endTime}
                               onChange={e => setEndTime(e.target.value)}
                             />
@@ -391,27 +451,42 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
                         </div>
                       </div>
 
+                      {/* Guest Count */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Number of Guests</label>
-                        <div className="relative">
-                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                          <input 
-                            type="number" 
-                            min="1"
-                            max="50"
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-sm"
-                            value={guestCount}
-                            onChange={e => setGuestCount(Number(e.target.value))}
-                          />
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Number of Guests</label>
+                        <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}
+                            disabled={guestCount <= 1}
+                            className="w-8 h-8 flex items-center justify-center bg-white rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 disabled:opacity-30 transition-all shadow-sm border border-slate-100"
+                          >
+                            <Minus size={14} />
+                          </button>
+
+                          <div className="flex items-center gap-1.5 text-sm font-bold text-slate-800">
+                            <Users size={16} className="text-orange-500" />
+                            <span>{guestCount} {guestCount === 1 ? 'Guest' : 'Guests'}</span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setGuestCount(prev => Math.min(50, prev + 1))}
+                            disabled={guestCount >= 50}
+                            className="w-8 h-8 flex items-center justify-center bg-white rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 disabled:opacity-30 transition-all shadow-sm border border-slate-100"
+                          >
+                            <Plus size={14} />
+                          </button>
                         </div>
                       </div>
 
+                      {/* Special Requests */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Special Requests (Optional)</label>
-                        <textarea 
-                          rows={3}
-                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-sm resize-none"
-                          placeholder="Any dietary requirements or special occasions?"
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Special Requests (Optional)</label>
+                        <textarea
+                          rows={2}
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-sm resize-none"
+                          placeholder="Dietary requirements or special notes..."
                           value={customerNote}
                           onChange={e => setCustomerNote(e.target.value)}
                         />
@@ -426,61 +501,103 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
+                    className="space-y-3.5"
                   >
-                    <h3 className="text-lg font-bold text-slate-800 mb-6">Review & Confirm</h3>
-                    
-                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 mb-6">
-                      <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <MapPin size={18} className="text-orange-500" />
-                        {selectedBranch?.name}
-                      </h4>
-                      
-                      <div className="space-y-3 text-sm">
-                        <div className="flex justify-between items-center pb-3 border-b border-slate-200">
-                          <span className="text-slate-500 flex items-center gap-2"><Calendar size={16} /> Date</span>
-                          <span className="font-semibold text-slate-900">{date}</span>
+                    <h3 className="text-base font-bold text-slate-900 mb-1">Review & Confirm</h3>
+
+                    {/* Booking Overview Card */}
+                    <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
+                      {/* Branch Header */}
+                      <div className="flex items-start gap-3 pb-3 border-b border-slate-100">
+                        <div className="p-2 rounded-xl bg-orange-50 text-orange-600 shrink-0">
+                          <Store size={18} />
                         </div>
-                        <div className="flex justify-between items-center pb-3 border-b border-slate-200">
-                          <span className="text-slate-500 flex items-center gap-2"><Clock size={16} /> Time</span>
-                          <span className="font-semibold text-slate-900">{startTime} - {endTime}</span>
-                        </div>
-                        <div className="flex justify-between items-center pb-3 border-b border-slate-200">
-                          <span className="text-slate-500 flex items-center gap-2"><Users size={16} /> Guests</span>
-                          <span className="font-semibold text-slate-900">{guestCount} People</span>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-sm text-slate-900 truncate">{selectedBranch?.name}</h4>
+                          <p className="text-xs text-slate-500 truncate flex items-center gap-1 mt-0.5">
+                            <MapPin size={12} className="text-slate-400 shrink-0" />
+                            {selectedBranch?.address}
+                          </p>
                         </div>
                       </div>
 
+                      {/* Grid Specs */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-slate-50 rounded-xl p-2.5 text-center">
+                          <div className="flex items-center justify-center gap-1 text-[11px] text-slate-500 font-medium mb-0.5">
+                            <Calendar size={12} className="text-orange-500" /> Date
+                          </div>
+                          <p className="font-bold text-xs text-slate-800 truncate">{date}</p>
+                        </div>
+
+                        <div className="bg-slate-50 rounded-xl p-2.5 text-center">
+                          <div className="flex items-center justify-center gap-1 text-[11px] text-slate-500 font-medium mb-0.5">
+                            <Clock size={12} className="text-orange-500" /> Time
+                          </div>
+                          <p className="font-bold text-xs text-slate-800 truncate">{startTime} - {endTime}</p>
+                        </div>
+
+                        <div className="bg-slate-50 rounded-xl p-2.5 text-center">
+                          <div className="flex items-center justify-center gap-1 text-[11px] text-slate-500 font-medium mb-0.5">
+                            <Users size={12} className="text-orange-500" /> Guests
+                          </div>
+                          <p className="font-bold text-xs text-slate-800 truncate">{guestCount} {guestCount === 1 ? 'Person' : 'People'}</p>
+                        </div>
+                      </div>
+
+                      {/* Customer Note if present */}
                       {customerNote && (
-                        <div className="mt-4 pt-4 border-t border-slate-200">
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Note</span>
-                          <p className="text-sm text-slate-700 bg-white p-3 rounded-lg border border-slate-100">{customerNote}</p>
+                        <div className="pt-0.5">
+                          <div className="flex items-start gap-2 p-2.5 bg-slate-50 rounded-xl text-xs">
+                            <MessageSquare size={13} className="text-slate-400 shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold text-slate-600 block text-[10px] uppercase tracking-wider mb-0.5">Special Requests</span>
+                              <p className="text-slate-700 italic break-words">"{customerNote}"</p>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100 mb-6">
-                      <h4 className="font-bold text-orange-900 mb-4 text-sm uppercase tracking-wider">Payment Preview</h4>
-                      
+                    {/* Payment Breakdown Card */}
+                    <div className="bg-amber-50/40 rounded-2xl p-4 border border-amber-200/60 shadow-sm space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-orange-500 text-white">
+                          <Receipt size={14} />
+                        </div>
+                        <span className="font-bold text-xs uppercase tracking-wider text-slate-800">Payment Estimate</span>
+                      </div>
+
                       {chargePreview ? (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm text-orange-800">
+                        <div className="space-y-2 pt-0.5">
+                          <div className="flex justify-between text-xs text-slate-600">
                             <span>Time Charge (Duration × Guests)</span>
-                            <span>LKR {chargePreview.timeCharge?.toFixed(2) || '0.00'}</span>
+                            <span className="font-semibold text-slate-900">LKR {chargePreview.timeCharge?.toFixed(2) || '0.00'}</span>
                           </div>
-                          <div className="flex justify-between text-sm text-orange-800 pb-2 border-b border-orange-200/50">
+
+                          <div className="flex justify-between text-xs text-slate-600">
                             <span>Handling Fee</span>
-                            <span>LKR {chargePreview.handlingFee?.toFixed(2) || '0.00'}</span>
+                            <span className="font-semibold text-slate-900">LKR {chargePreview.handlingFee?.toFixed(2) || '0.00'}</span>
                           </div>
-                          <div className="flex justify-between text-base font-bold text-orange-900 pt-1">
-                            <span>Total Due Upon Approval</span>
-                            <span>LKR {chargePreview.totalCharge?.toFixed(2) || '0.00'}</span>
+
+                          <div className="border-t border-dashed border-amber-200/80 pt-2 mt-1 flex justify-between items-center">
+                            <span className="font-bold text-sm text-slate-900">Total Due Upon Approval</span>
+                            <span className="text-lg font-black text-orange-600 tracking-tight">
+                              LKR {chargePreview.totalCharge?.toFixed(2) || '0.00'}
+                            </span>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center justify-center py-4">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500" />
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-500" />
                         </div>
                       )}
+
+                      {/* Reassurance banner */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-amber-200/40 text-[11px] text-slate-500">
+                        <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
+                        <span>Payment link is sent only after staff confirms table availability.</span>
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -489,28 +606,38 @@ export default function CreateReservationDrawer({ isOpen, onClose }) {
 
             <div className="p-4 border-t border-slate-100 bg-white flex items-center justify-between gap-3">
               {step > 1 ? (
-                <button 
+                <button
                   onClick={() => setStep(s => s - 1)}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors text-sm"
                 >
                   <ArrowLeft size={16} /> Back
                 </button>
               ) : <div />}
-              
+
               {step < 3 ? (
-                <button 
+                <button
                   onClick={handleNext}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-600 shadow-md shadow-orange-500/20 transition-all text-sm"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-600 shadow-md shadow-orange-500/20 transition-all text-sm active:scale-[0.98]"
                 >
                   Next <ArrowRight size={16} />
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={() => submitMutation.mutate()}
                   disabled={submitMutation.isPending}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 shadow-md shadow-green-500/20 transition-all disabled:opacity-70 text-sm"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all disabled:opacity-60 text-sm"
                 >
-                  {submitMutation.isPending ? 'Submitting...' : 'Submit Request'} <CheckCircle size={16} />
+                  {submitMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Submit Request</span>
+                      <CheckCircle size={16} />
+                    </>
+                  )}
                 </button>
               )}
             </div>
