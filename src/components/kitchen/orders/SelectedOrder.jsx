@@ -28,7 +28,7 @@ const statusColors = {
   ON_HOLD: 'bg-red-50 text-red-600',
 }
 
-const SelectedOrder = ({ orderId, setActiveTab, refreshKey }) => {
+const SelectedOrder = ({ orderId, setActiveTab, refreshKey, onCountsChange }) => {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isChefAssignModalOpen, setIsChefAssignModalOpen] = useState(false)
@@ -111,6 +111,7 @@ const SelectedOrder = ({ orderId, setActiveTab, refreshKey }) => {
       setIsHoldModalOpen(false)
       fetchOrderDetails(false)
       setActiveTab(4)
+      onCountsChange?.()
     } else {
       toast.error('Failed to hold order. Please try again.')
     }

@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { PackageCheck, Inbox } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { getMyInventoryRequestsAPI } from '../../apis/kitchen/inventory'
 import { getMyEditRequestsAPI } from '../../apis/kitchen/menu'
+import DatePicker from '../../components/kitchen/DatePicker'
+
+const PAGE_SIZE = 10
 
 // Status badge styles — shared by both tables, both use the same
 // PENDING/APPROVED/REJECTED status set
@@ -45,10 +48,14 @@ const InventoryRequestsPage = () => {
   // Which table is showing
   const [section, setSection] = useState('INVENTORY')
 
-  const [inventoryRequests, setInventoryRequests] = useState([])
-  const [editRequests, setEditRequests] = useState([])
+  const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('ALL')
+  const [dateFilter, setDateFilter] = useState('')
+
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalElements, setTotalElements] = useState(0)
 
   useEffect(() => {
     setHeaderInfo({
@@ -58,37 +65,36 @@ const InventoryRequestsPage = () => {
     })
   }, [setHeaderInfo])
 
-  // Load both lists once — the toggle just switches which one is displayed,
-  // so switching tabs doesn't need a fresh fetch or re-trigger the spinner
-  useEffect(() => {
-    const fetchAll = async () => {
-      setLoading(true)
-      const [inv, edits] = await Promise.all([getMyInventoryRequestsAPI(), getMyEditRequestsAPI()])
-      if (inv.error) toast.error('Failed to load inventory requests.')
-      else setInventoryRequests(inv.data || [])
-      if (edits.error) toast.error('Failed to load menu edit requests.')
-      else setEditRequests(edits.data || [])
+  const load = useCallback(() => {
+    setLoading(true)
+    const fetchApi = section === 'INVENTORY' ? getMyInventoryRequestsAPI : getMyEditRequestsAPI
+    fetchApi({ page, size: PAGE_SIZE, date: dateFilter || undefined, status: filter }).then(({ data, error }) => {
+      if (error) {
+        toast.error(section === 'INVENTORY' ? 'Failed to load inventory requests.' : 'Failed to load menu edit requests.')
+        setRequests([])
+        setTotalPages(1)
+        setTotalElements(0)
+      } else {
+        setRequests(data?.content || [])
+        setTotalPages(data?.totalPages || 1)
+        setTotalElements(data?.totalElements || 0)
+      }
       setLoading(false)
-    }
-    fetchAll()
-  }, [])
+    })
+  }, [section, page, dateFilter, filter])
 
-  // Switching sections resets the status filter so it doesn't carry over confusingly
+  useEffect(() => { load() }, [load])
+
+  // Switching sections resets filters/paging so the new list starts clean
   const switchSection = (key) => {
     setSection(key)
     setFilter('ALL')
+    setDateFilter('')
+    setPage(0)
   }
 
-  const requests = section === 'INVENTORY' ? inventoryRequests : editRequests
-
-  const counts = {
-    ALL: requests.length,
-    PENDING: requests.filter((r) => r.status === 'PENDING').length,
-    APPROVED: requests.filter((r) => r.status === 'APPROVED').length,
-    REJECTED: requests.filter((r) => r.status === 'REJECTED').length,
-  }
-
-  const visible = filter === 'ALL' ? requests : requests.filter((r) => r.status === filter)
+  const onFilter = (key) => { setPage(0); setFilter(key) }
+  const onDate = (v) => { setPage(0); setDateFilter(v) }
 
   return (
     <div className="p-4">
@@ -109,26 +115,32 @@ const InventoryRequestsPage = () => {
 
       {/* Filter bar */}
       <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="w-48">
+          <DatePicker value={dateFilter} onChange={onDate} disablePast={false} placeholder="All dates" bordered />
+        </div>
+        {dateFilter && (
+          <button
+            onClick={() => onDate('')}
+            className="rounded-2xl border border-gray-200 bg-white px-3 py-2.5 text-xs font-bold text-gray-500 shadow-sm hover:bg-gray-50"
+          >
+            Clear date
+          </button>
+        )}
+
         {FILTERS.map((f) => (
           <button
             key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+            onClick={() => onFilter(f.key)}
+            className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
               filter === f.key ? f.activeClass : 'border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50'
             }`}
           >
             {f.label}
-            <span
-              className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
-                filter === f.key ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-400'
-              }`}
-            >
-              {counts[f.key]}
-            </span>
           </button>
         ))}
+
         <span className="ml-auto text-sm font-bold text-gray-400">
-          {counts.ALL} request{counts.ALL !== 1 ? 's' : ''}
+          {totalElements} request{totalElements !== 1 ? 's' : ''}
         </span>
       </div>
 
@@ -136,11 +148,11 @@ const InventoryRequestsPage = () => {
         <div className="flex justify-center py-20">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
         </div>
-      ) : visible.length === 0 ? (
+      ) : requests.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 py-20 text-center">
           <Inbox size={40} className="mx-auto mb-3 text-gray-300" />
           <p className="text-sm font-bold text-gray-400">
-            {filter === 'ALL' ? "You haven't sent any requests yet" : `No ${filter.toLowerCase()} requests`}
+            {filter === 'ALL' && !dateFilter ? "You haven't sent any requests yet" : 'No requests match these filters'}
           </p>
         </div>
       ) : section === 'INVENTORY' ? (
@@ -158,7 +170,7 @@ const InventoryRequestsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {visible.map((r) => (
+              {requests.map((r) => (
                 <tr key={r.id} className="hover:bg-gray-50/60">
                   <td className="px-4 py-3 font-bold text-gray-800">{r.item}</td>
                   <td className="px-4 py-3 text-center">
@@ -193,7 +205,7 @@ const InventoryRequestsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {visible.map((r) => (
+              {requests.map((r) => (
                 <tr key={r.id} className="hover:bg-gray-50/60">
                   <td className="px-4 py-3 font-bold text-gray-800">{r.menuItemName}</td>
                   <td className="max-w-[260px] truncate px-4 py-3 text-gray-500">{r.chefNote || '-'}</td>
@@ -208,6 +220,32 @@ const InventoryRequestsPage = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <span className="text-xs font-semibold text-gray-400">
+            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalElements)} of {totalElements}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Prev
+            </button>
+            <span className="text-xs font-bold text-gray-500">Page {page + 1} of {totalPages}</span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>
