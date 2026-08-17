@@ -6,7 +6,7 @@ import CloudinaryImageUpload from '../CloudinaryImageUpload';
 import { getMenuItemByIdAPI, updateMenuItemAPI } from '../../../apis/admin/menu';
 import { getMenuCategoriesAPI, getMenuSubcategoriesAPI } from '../../../apis/staff/category';
 import IngredientPicker from '../../kitchen/menu/IngredientPicker';
-import { getMenuItemIngredientsAPI, saveMenuItemIngredientsAPI } from '../../../apis/kitchen/menu';
+import { getAdminMenuItemIngredientsAPI, saveAdminMenuItemIngredientsAPI } from '../../../apis/admin/menu';
 import { InventoryService } from '../../../apis/manager/InventoryService';
 
 const normalizeSubCategory = (value) => {
@@ -80,7 +80,7 @@ export default function AdminEditMenuItemModal({ request, onClose, onApprove, mo
 
   const { data: ingredientsData } = useQuery({
     queryKey: ['menuItemIngredients', itemId],
-    queryFn: () => getMenuItemIngredientsAPI(itemId),
+    queryFn: () => getAdminMenuItemIngredientsAPI(itemId),
   });
 
   const { data: inventoryData } = useQuery({
@@ -168,7 +168,7 @@ export default function AdminEditMenuItemModal({ request, onClose, onApprove, mo
 
     setIsSubmitting(true);
     try {
-      const updatedItem = await updateMenuItemAPI(itemId, {
+      const payloadToSend = {
         name: itemName.trim(),
         categoryId: Number(categoryId),
         categoryName,
@@ -179,15 +179,25 @@ export default function AdminEditMenuItemModal({ request, onClose, onApprove, mo
         status: mapVisibilityToStatus(visibility),
         imageUrl: imageData.secure_url,
         imagePublicId: imageData.public_id,
-      });
+      };
+      
+      const updatedItem = await updateMenuItemAPI(itemId, payloadToSend);
 
-      await saveMenuItemIngredientsAPI(itemId, ingredients);
+      await saveAdminMenuItemIngredientsAPI(itemId, ingredients);
 
       queryClient.setQueryData(['menuItems'], (oldData) => {
         if (!oldData) return oldData;
-        return oldData.map((item) => (String(item.id) === String(itemId) ? { ...item, ...updatedItem } : item));
+        return oldData.map((item) => (String(item.id) === String(itemId) ? { ...item, ...payloadToSend, ...updatedItem } : item));
       });
-      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      
+      queryClient.setQueryData(['menuItem', itemId], (oldItem) => {
+        if (!oldItem) return oldItem;
+        return { ...oldItem, ...payloadToSend, ...updatedItem };
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      await queryClient.invalidateQueries({ queryKey: ['menuItem', itemId] });
+      await queryClient.invalidateQueries({ queryKey: ['menuCounts'] });
 
       if (mode === 'direct') {
         toast.success('Menu item updated successfully!');
