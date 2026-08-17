@@ -168,7 +168,7 @@ export default function AdminEditMenuItemModal({ request, onClose, onApprove, mo
 
     setIsSubmitting(true);
     try {
-      const updatedItem = await updateMenuItemAPI(itemId, {
+      const payloadToSend = {
         name: itemName.trim(),
         categoryId: Number(categoryId),
         categoryName,
@@ -179,15 +179,25 @@ export default function AdminEditMenuItemModal({ request, onClose, onApprove, mo
         status: mapVisibilityToStatus(visibility),
         imageUrl: imageData.secure_url,
         imagePublicId: imageData.public_id,
-      });
+      };
+      
+      const updatedItem = await updateMenuItemAPI(itemId, payloadToSend);
 
       await saveMenuItemIngredientsAPI(itemId, ingredients);
 
       queryClient.setQueryData(['menuItems'], (oldData) => {
         if (!oldData) return oldData;
-        return oldData.map((item) => (String(item.id) === String(itemId) ? { ...item, ...updatedItem } : item));
+        return oldData.map((item) => (String(item.id) === String(itemId) ? { ...item, ...payloadToSend, ...updatedItem } : item));
       });
-      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      
+      queryClient.setQueryData(['menuItem', itemId], (oldItem) => {
+        if (!oldItem) return oldItem;
+        return { ...oldItem, ...payloadToSend, ...updatedItem };
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      await queryClient.invalidateQueries({ queryKey: ['menuItem', itemId] });
+      await queryClient.invalidateQueries({ queryKey: ['menuCounts'] });
 
       if (mode === 'direct') {
         toast.success('Menu item updated successfully!');

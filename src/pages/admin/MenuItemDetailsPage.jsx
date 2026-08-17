@@ -102,7 +102,16 @@ export default function MenuItemDetailsPage() {
       const action = await approveMenuItemAPI(item.id, {});
       const nextStatus = normalizeStatus(action?.type) || 'ACTIVE';
       queryClient.setQueryData(['menuItem', itemId], (old) => ({ ...old, status: nextStatus }));
-      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      
+      queryClient.setQueryData(['menuItems'], (old) =>
+        old?.map((entry) =>
+          String(entry.id) === String(item.id)
+            ? { ...entry, status: nextStatus }
+            : entry
+        )
+      );
+
+      await queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       toast.success('Item approved successfully.');
       // Optionally navigate back after approval
       setTimeout(() => navigate('/admin/menu'), 1000);
@@ -135,7 +144,16 @@ export default function MenuItemDetailsPage() {
       const action = await rejectMenuItemAPI(item.id, rejectionReason.trim());
       const nextStatus = normalizeStatus(action?.type) || 'REJECTED';
       queryClient.setQueryData(['menuItem', itemId], (old) => ({ ...old, status: nextStatus }));
-      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      
+      queryClient.setQueryData(['menuItems'], (old) =>
+        old?.map((entry) =>
+          String(entry.id) === String(item.id)
+            ? { ...entry, status: nextStatus }
+            : entry
+        )
+      );
+
+      await queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       setShowRejectModal(false);
       setRejectionReason('');
       toast.success('Item rejected successfully.');

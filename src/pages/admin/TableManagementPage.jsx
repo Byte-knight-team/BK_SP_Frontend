@@ -115,7 +115,16 @@ export default function TableManagementPage() {
     }
   };
 
-  const handleToggleClick = (table) => {
+    const handleToggleClick = (table) => {
+    if (table.isAvailable !== false && (table.status === 'OCCUPIED' || table.status === 'RESERVED')) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Error',
+        message: 'Occupied and reserved tables cannot be inactive.',
+        type: 'error',
+      });
+      return;
+    }
     setToggleConfirmModal({ isOpen: true, table: table });
   };
 
