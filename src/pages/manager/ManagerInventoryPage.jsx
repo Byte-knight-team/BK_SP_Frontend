@@ -97,6 +97,10 @@ export default function ManagerInventoryPage() {
     }
   }
 
+  const uniqueCategories = data?.stockItems
+    ? Array.from(new Set(data.stockItems.map((item) => item.category))).filter(Boolean)
+    : []
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <InventoryHeader
@@ -191,6 +195,7 @@ export default function ManagerInventoryPage() {
       <AddInventoryItemModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        existingCategories={uniqueCategories}
         onSave={async (itemData) => {
           const success = await handleSaveItem(itemData)
           if (success) {
@@ -205,6 +210,7 @@ export default function ManagerInventoryPage() {
       <UpdateInventoryItemModal
         isOpen={updateModal.open}
         item={updateModal.item}
+        existingCategories={uniqueCategories}
         onClose={() => {
           setUpdateModal({ open: false, item: null })
           refetch()

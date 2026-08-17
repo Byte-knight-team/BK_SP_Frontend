@@ -37,10 +37,14 @@ export default function AddInventoryItemModal({
   onClose,
   onSave,
   initialData,
+  existingCategories = [],
 }) {
   const [form, setForm] = useState(INITIAL_FORM)
+  const [customCategory, setCustomCategory] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+
+  const allCategories = Array.from(new Set([...CATEGORIES, ...existingCategories]))
 
   useEffect(() => {
     if (isOpen) {
@@ -49,6 +53,7 @@ export default function AddInventoryItemModal({
       } else {
         setForm(INITIAL_FORM)
       }
+      setCustomCategory('')
       setIsSuccess(false)
       setIsSaving(false)
     }
@@ -62,9 +67,11 @@ export default function AddInventoryItemModal({
     e.preventDefault()
     setIsSaving(true)
 
+    const finalCategory = form.category === 'Other' ? customCategory.trim() : form.category
+
     const success = await onSave({
       name: form.name,
-      category: form.category,
+      category: finalCategory,
       quantity: parseFloat(form.initialQuantity) || 0,
       unit: form.unit,
       reorderLevel: parseFloat(form.lowStockThreshold) || 0,
@@ -79,6 +86,7 @@ export default function AddInventoryItemModal({
 
   const handleClose = () => {
     setForm(INITIAL_FORM)
+    setCustomCategory('')
     setIsSuccess(false)
     onClose()
   }
@@ -123,12 +131,23 @@ export default function AddInventoryItemModal({
                 <option value="" disabled>
                   Select Category
                 </option>
-                {CATEGORIES.map((cat) => (
+                {allCategories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
                 ))}
+                <option value="Other">Other (Add New)</option>
               </select>
+              {form.category === 'Other' && (
+                <input
+                  type="text"
+                  className="modal-input mt-3"
+                  placeholder="Type new category..."
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  required
+                />
+              )}
             </div>
 
             <div>
