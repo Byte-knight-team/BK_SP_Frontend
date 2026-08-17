@@ -1,10 +1,10 @@
-import { authFetch } from '../apiHelper'
+import { authFetch, buildApiUrl } from '../apiHelper'
 
 // Get chef counts based on status
 export const getChefsStatsAPI = async () => {
   try {
     const response = await authFetch(
-      'http://localhost:8080/api/v1/kitchen/chefs/stats',
+      buildApiUrl('/api/v1/kitchen/chefs/stats'),
     )
     const result = await response.json()
 
@@ -21,7 +21,7 @@ export const getChefsStatsAPI = async () => {
 export const getAvailableChefsAPI = async () => {
   try {
     const response = await authFetch(
-      'http://localhost:8080/api/v1/kitchen/available-chefs',
+      buildApiUrl('/api/v1/kitchen/available-chefs'),
     )
 
     const result = await response.json()
@@ -37,7 +37,7 @@ export const getAvailableChefsAPI = async () => {
 export const getChefsAPI = async () => {
   try {
     const response = await authFetch(
-      'http://localhost:8080/api/v1/kitchen/chefs/today-details',
+      buildApiUrl('/api/v1/kitchen/chefs/today-details'),
     )
 
     const result = await response.json()
@@ -54,7 +54,7 @@ export const getChefsAPI = async () => {
 export const checkInChefAPI = async (chefId) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/chefs/${chefId}/check-in`,
+      buildApiUrl(`/api/v1/kitchen/chefs/${chefId}/check-in`),
       { method: 'POST' },
     )
     const result = await response.json()
@@ -70,7 +70,7 @@ export const checkInChefAPI = async (chefId) => {
 export const checkOutChefAPI = async (chefId) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/chefs/${chefId}/check-out`,
+      buildApiUrl(`/api/v1/kitchen/chefs/${chefId}/check-out`),
       { method: 'POST' },
     )
     const result = await response.json()
@@ -86,7 +86,7 @@ export const checkOutChefAPI = async (chefId) => {
 export const updateChefStatusAPI = async (chefId, newStatus) => {
   try {
     const response = await authFetch(
-      `http://localhost:8080/api/v1/kitchen/chefs/${chefId}/work-status`,
+      buildApiUrl(`/api/v1/kitchen/chefs/${chefId}/work-status`),
       {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

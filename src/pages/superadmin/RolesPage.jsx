@@ -760,7 +760,13 @@ export default function RolesPage() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Roles list */}
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white shadow-sm xl:col-span-1">
+        <div
+          className={`rounded-[1.5rem] border border-gray-100 bg-white shadow-sm xl:col-span-1 ${
+            initialLoading
+              ? "flex min-h-[clamp(24rem,calc(100vh-22rem),40rem)] flex-col"
+              : ""
+          }`}
+        >
           <div className="border-b border-gray-100 p-5">
             <div className="flex items-center gap-2">
               <RiUserSettingsLine size={20} className="text-gray-500" />
@@ -774,7 +780,11 @@ export default function RolesPage() {
             </p>
           </div>
 
-          <div className="p-3">
+          <div
+            className={`p-3 ${
+              initialLoading ? "flex flex-1 items-center justify-center" : ""
+            }`}
+          >
             {initialLoading ? (
               <PanelState
                 title="Loading roles"
@@ -882,7 +892,13 @@ export default function RolesPage() {
         </div>
 
         {/* Permissions panel */}
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white shadow-sm xl:col-span-2">
+        <div
+          className={`rounded-[1.5rem] border border-gray-100 bg-white shadow-sm xl:col-span-2 ${
+            initialLoading
+              ? "flex min-h-[clamp(24rem,calc(100vh-22rem),40rem)] items-center justify-center"
+              : ""
+          }`}
+        >
           {!selectedRole ? (
             <PanelState
               title="Select a role"

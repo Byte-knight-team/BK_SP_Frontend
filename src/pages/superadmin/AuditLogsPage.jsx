@@ -754,7 +754,13 @@ function AuditTableState({
   loading = false,
 }) {
   return (
-    <div className="p-8 text-center">
+    <div
+      className={`flex flex-col items-center justify-center p-8 text-center ${
+        loading
+          ? "min-h-[clamp(16rem,calc(100vh-38rem),28rem)]"
+          : ""
+      }`}
+    >
       <div
         className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${iconClassName}`}
       >

@@ -298,32 +298,54 @@ export default function OrdersPage() {
           <ArrowLeft size={16} /> Back to Menu
         </button>
 
-        <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] mb-6">
-          <div className="bg-orange-500 px-6 py-8 text-center text-white flex flex-col items-center">
-            <BrandLogo />
-            <h1 className="mt-3 text-3xl font-bold">My Orders</h1>
-          </div>
+        {/* Header Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 p-6 sm:p-8 text-white shadow-xl shadow-orange-500/15 mb-6">
+          {/* Subtle Clean Decorative White Glow Overlays */}
+          <div className="pointer-events-none absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/10 blur-2xl"></div>
+          <div className="pointer-events-none absolute right-1/4 -bottom-10 h-40 w-40 rounded-full bg-white/10 blur-xl"></div>
+          <div className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-black/5 blur-xl"></div>
 
-          <div className="p-4 flex flex-col md:flex-row gap-4 justify-between items-center bg-white">
-          <div className="flex w-full md:w-auto bg-slate-50 rounded-xl p-1">
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-inner border border-white/30">
+              <BrandLogo />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-xs">
+              My Orders
+            </h1>
+            <p className="text-xs sm:text-sm text-orange-100 font-medium max-w-sm mt-1.5 leading-relaxed">
+              Track your live dining preparation, deliveries & past order history
+            </p>
+          </div>
+        </div>
+
+        {/* Controls Bar: Active/History Tabs & Type Filters */}
+        <div className="rounded-2xl bg-white p-3 sm:p-4 shadow-sm border border-slate-100 mb-6 flex flex-col md:flex-row gap-3 sm:gap-4 justify-between items-center">
+          {/* Active / History Switch */}
+          <div className="flex w-full md:w-auto bg-slate-100/80 rounded-xl p-1">
             <button
               onClick={() => dispatch({ type: 'SET_TAB', payload: 'active' })}
-              className={`flex-1 md:w-[140px] py-2.5 text-sm font-bold rounded-lg transition-all ${
-                state.activeTab === 'active' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              className={`flex-1 md:w-[130px] py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${
+                state.activeTab === 'active' 
+                  ? 'bg-white text-orange-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Active
             </button>
             <button
               onClick={() => dispatch({ type: 'SET_TAB', payload: 'previous' })}
-              className={`flex-1 md:w-[140px] py-2.5 text-sm font-bold rounded-lg transition-all ${
-                state.activeTab === 'previous' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              className={`flex-1 md:w-[130px] py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${
+                state.activeTab === 'previous' 
+                  ? 'bg-white text-orange-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               History
             </button>
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 px-2 md:px-0">
+
+          {/* Order Type Chips */}
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 px-1 md:px-0 scrollbar-none">
             {[
               { id: 'ALL', label: 'All Types' },
               { id: 'QR', label: 'Dine-In' },
@@ -333,17 +355,16 @@ export default function OrdersPage() {
               <button
                 key={type.id}
                 onClick={() => dispatch({ type: 'SET_FILTER', payload: type.id })}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                   state.orderTypeFilter === type.id 
-                    ? 'bg-slate-900 text-white' 
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-slate-900 text-white shadow-xs' 
+                    : 'bg-slate-50 text-slate-600 border border-slate-200/80 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
                 {type.label}
               </button>
             ))}
           </div>
-        </div>
         </div>
 
         {state.loading ? (

@@ -8,7 +8,7 @@ import {
   BarChart, Bar
 } from 'recharts';
 import {
-  Wallet, BadgePercent, Package2, Award, Clock, Utensils, TrendingUp, AlertCircle, ArrowLeft
+  Wallet, BadgePercent, Package2, Award, Clock, Utensils, TrendingUp, AlertCircle, ArrowLeft, Calendar, Sparkles
 } from 'lucide-react';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
@@ -120,73 +120,66 @@ export default function StatisticsPage() {
           Back to Account
         </button>
 
-        {/* Header Section */}
-        <motion.div variants={itemVariants} className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
-          <div className="relative z-10 flex items-center justify-between">
+        {/* Header Section: VIP Member Passport Banner */}
+        <motion.div 
+          variants={itemVariants} 
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 p-6 sm:p-8 text-white shadow-xl shadow-orange-500/20"
+        >
+          {/* Subtle Clean Decorative White Glow Overlays (No Yellow/Amber) */}
+          <div className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-white/10 blur-2xl"></div>
+          <div className="pointer-events-none absolute right-1/4 -bottom-12 h-44 w-44 rounded-full bg-white/10 blur-xl"></div>
+          <div className="pointer-events-none absolute -left-10 bottom-0 h-36 w-36 rounded-full bg-black/5 blur-xl"></div>
+
+          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            {/* Left Side: Brand Logo, Title & Subtitle */}
             <div>
-              <div className="flex items-center gap-4 mb-2">
-                <BrandLogo />
-                <h1 className="text-3xl font-bold">
-                  Your CraveHouse Statistics
-                </h1>
+              <div className="flex items-center gap-3.5 mb-2">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-inner border border-white/30">
+                  <BrandLogo />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-xs">
+                    Your Dining Insights
+                  </h1>
+                </div>
               </div>
-              <p className="text-orange-100 flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Member since {new Date(data.memberSince).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              <p className="text-xs sm:text-sm text-orange-100 font-medium max-w-md leading-relaxed ml-0.5">
+                Your personal flavor journey, dining trends & rewards activity overview.
               </p>
             </div>
-            <TrendingUp className="w-16 h-16 opacity-80 hidden sm:block" />
+
+            {/* Right Side: Glassmorphic Passport Badges (Pure Brand Theme) */}
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+              <div className="inline-flex items-center gap-2 rounded-2xl bg-white/20 px-4 py-2 text-xs font-bold text-white backdrop-blur-md border border-white/30 shadow-xs">
+                <Sparkles className="w-4 h-4 text-white fill-white" />
+                <span>Active Member</span>
+              </div>
+
+              <div className="inline-flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 text-xs font-semibold text-orange-50 backdrop-blur-md border border-white/25 shadow-xs">
+                <Calendar className="w-4 h-4 text-orange-100" />
+                <span>Member since {new Date(data.memberSince).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+              </div>
+            </div>
           </div>
-          {/* Decorative background circle */}
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
         </motion.div>
 
-        {/* Top KPI Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex items-center gap-4">
-            <div className="bg-orange-100 p-4 rounded-2xl text-orange-600">
-              <Wallet className="w-8 h-8" />
+        {/* ROW 1: Spending Trend (2 cols) + 3 Summary KPI Cards (1 col) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          
+          {/* Columns 1 & 2: Spending Trend Graph */}
+          <motion.div variants={itemVariants} className="lg:col-span-2 bg-white rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-100 min-w-0 flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-orange-500" />
+                Spending Trend (Last 6 Months)
+              </h3>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:inline-block">Monthly Overview</span>
             </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">Total Lifetime Spend</p>
-              <h3 className="text-2xl font-bold text-slate-900">{formatCurrency(data.totalLifetimeSpend)}</h3>
-            </div>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex items-center gap-4">
-            <div className="bg-green-100 p-4 rounded-2xl text-green-600">
-              <BadgePercent className="w-8 h-8" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">Total Discounts Saved</p>
-              <h3 className="text-2xl font-bold text-slate-900">{formatCurrency(data.totalDiscountsSaved)}</h3>
-            </div>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex items-center gap-4">
-            <div className="bg-blue-100 p-4 rounded-2xl text-blue-600">
-              <Package2 className="w-8 h-8" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">Total Items Ordered</p>
-              <h3 className="text-2xl font-bold text-slate-900">{data.totalItemsOrdered}</h3>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Charts Row 1: Spending Trend & Top Items */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Spending Trend Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-orange-500" />
-              Spending Trend (Last 6 Months)
-            </h3>
 
             {hasSpendingTrend ? (
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.spendingTrend} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+              <div className="w-full h-[240px] sm:h-[260px] min-h-[240px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minHeight={240} minWidth={0}>
+                  <AreaChart data={data.spendingTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
@@ -198,15 +191,15 @@ export default function StatisticsPage() {
                       dataKey="month"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      tick={{ fill: '#64748b', fontSize: 11 }}
                       dy={10}
                     />
                     <YAxis
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      tick={{ fill: '#64748b', fontSize: 11 }}
                       tickFormatter={(value) => `Rs.${value}`}
-                      width={70}
+                      width={55}
                     />
                     <Tooltip
                       formatter={(value) => [formatCurrency(value), 'Spend']}
@@ -217,25 +210,63 @@ export default function StatisticsPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-[300px] flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-2xl">
+              <div className="h-[240px] flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-2xl">
                 <AlertCircle className="w-8 h-8 mb-2 opacity-50" />
                 <p>Not enough data to show trend.</p>
               </div>
             )}
           </motion.div>
 
-          {/* Top 3 Items */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+          {/* Column 3: 3 Summary Cards Stacked Vertically */}
+          <div className="lg:col-span-1 flex flex-col justify-between gap-4 min-w-0">
+            <motion.div variants={itemVariants} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center gap-4 flex-1 transition-all hover:border-orange-200 hover:shadow-md">
+              <div className="bg-orange-100 p-3.5 rounded-2xl text-orange-600 flex-shrink-0">
+                <Wallet className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">Total Lifetime Spend</p>
+                <h3 className="text-xl font-extrabold text-slate-900 truncate">{formatCurrency(data.totalLifetimeSpend)}</h3>
+              </div>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center gap-4 flex-1 transition-all hover:border-green-200 hover:shadow-md">
+              <div className="bg-green-100 p-3.5 rounded-2xl text-green-600 flex-shrink-0">
+                <BadgePercent className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">Total Discounts Saved</p>
+                <h3 className="text-xl font-extrabold text-slate-900 truncate">{formatCurrency(data.totalDiscountsSaved)}</h3>
+              </div>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center gap-4 flex-1 transition-all hover:border-blue-200 hover:shadow-md">
+              <div className="bg-blue-100 p-3.5 rounded-2xl text-blue-600 flex-shrink-0">
+                <Package2 className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">Total Items Ordered</p>
+                <h3 className="text-xl font-extrabold text-slate-900 truncate">{data.totalItemsOrdered}</h3>
+              </div>
+            </motion.div>
+          </div>
+
+        </div>
+
+        {/* ROW 2: 3 Columns -> 1: Favorite Dishes | 2: How You Order | 3: Loyalty Points */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+          
+          {/* Column 1: Your Favorite Dishes */}
+          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-w-0">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
               <Utensils className="w-5 h-5 text-orange-500" />
               Your Favorite Dishes
             </h3>
 
             {hasTopItems ? (
-              <div className="space-y-4">
+              <div className="space-y-3 flex-1 flex flex-col justify-between">
                 {data.topItems.map((item, index) => (
-                  <div key={index} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-orange-200 transition-colors">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-200 flex-shrink-0">
+                  <div key={index} className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100 hover:border-orange-200 transition-colors">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-200 flex-shrink-0">
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
@@ -245,43 +276,40 @@ export default function StatisticsPage() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-slate-900 truncate">{item.name}</h4>
-                      <p className="text-sm text-slate-500">Ordered {item.orderCount} time{item.orderCount > 1 ? 's' : ''}</p>
+                      <h4 className="font-semibold text-sm text-slate-900 truncate">{item.name}</h4>
+                      <p className="text-xs text-slate-500">Ordered {item.orderCount} time{item.orderCount > 1 ? 's' : ''}</p>
                     </div>
-                    <div className="bg-orange-100 text-orange-600 font-bold px-3 py-1 rounded-full text-sm">
+                    <div className="bg-orange-100 text-orange-600 font-bold px-2.5 py-0.5 rounded-full text-xs">
                       #{index + 1}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="h-[300px] flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-2xl">
+              <div className="h-[220px] flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-2xl">
                 <Utensils className="w-8 h-8 mb-2 opacity-50" />
                 <p>Order some food to see your favorites!</p>
               </div>
             )}
           </motion.div>
-        </div>
 
-        {/* Charts Row 2: Order Types & Loyalty */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Order Type Breakdown */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+          {/* Column 2: How You Order */}
+          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-w-0">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
               <Package2 className="w-5 h-5 text-orange-500" />
               How You Order
             </h3>
 
             {hasOrderTypes ? (
-              <div className="h-[250px] w-full flex items-center">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="w-full h-[220px] min-h-[220px] flex items-center justify-center min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minHeight={220} minWidth={0}>
                   <PieChart>
                     <Pie
                       data={orderTypeData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
+                      innerRadius={48}
+                      outerRadius={68}
                       paddingAngle={5}
                       dataKey="value"
                     >
@@ -298,38 +326,38 @@ export default function StatisticsPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-[250px] flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-2xl">
+              <div className="h-[220px] flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-2xl">
                 <Package2 className="w-8 h-8 mb-2 opacity-50" />
                 <p>No order history yet.</p>
               </div>
             )}
           </motion.div>
 
-          {/* Loyalty Points */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <div className="flex justify-between items-start mb-6">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          {/* Column 3: Loyalty Points */}
+          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-w-0">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Award className="w-5 h-5 text-orange-500" />
                 Loyalty Points
               </h3>
               <div className="text-right">
-                <p className="text-sm font-medium text-slate-500">Current Balance</p>
-                <p className="text-2xl font-bold text-orange-600">{data.currentLoyaltyPoints}</p>
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Current Balance</p>
+                <p className="text-xl font-bold text-orange-600">{data.currentLoyaltyPoints}</p>
               </div>
             </div>
 
-            <div className="h-[200px] w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={loyaltyData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
+            <div className="w-full h-[200px] min-h-[200px] mt-2 min-w-0">
+              <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={0}>
+                <BarChart data={loyaltyData} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 14, fontWeight: 500 }} />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} width={60} />
                   <Tooltip
                     cursor={{ fill: '#f8fafc' }}
                     formatter={(value) => [`${value} Points`, '']}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
-                  <Bar dataKey="points" radius={[0, 8, 8, 0]} barSize={32}>
+                  <Bar dataKey="points" radius={[0, 8, 8, 0]} barSize={26}>
                     {loyaltyData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
@@ -338,6 +366,7 @@ export default function StatisticsPage() {
               </ResponsiveContainer>
             </div>
           </motion.div>
+
         </div>
 
       </motion.div>

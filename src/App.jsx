@@ -54,6 +54,7 @@ import BranchDetailsPage from './pages/superadmin/BranchDetailsPage'
 import EditBranchPage from './pages/superadmin/EditBranchPage'
 import SystemConfigPage from './pages/superadmin/SystemConfigPage'
 import AuditLogsPage from './pages/superadmin/AuditLogsPage'
+import ReportsPage from './pages/superadmin/ReportsPage'
 import RolesPage from './pages/superadmin/RolesPage'
 import ComingSoonPage from './pages/superadmin/ComingSoonPage'
 import CustomerManagement from "./pages/superadmin/CustomerManagement";
@@ -120,6 +121,7 @@ import MenuItemPage from './pages/kitchen/MenuItemPage'
 
 // Line Chef pages
 import LineChefDashboard from './pages/line-chef/LineChefDashboard'
+import LineChefHistoryPage from './pages/line-chef/LineChefHistoryPage'
 
 // Receptionist pages
 import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
@@ -217,6 +219,7 @@ export default function App() {
               <MainLayout
                 Sidebar={SuperAdminSidebar}
                 Header={SuperAdminHeader}
+                contentClassName="[&>*]:mx-auto"
               />
             </ProtectedRoute>
           }
@@ -247,6 +250,7 @@ export default function App() {
 
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
 
           <Route path="*" element={<Navigate to="/staff" replace />} />
         </Route>
@@ -490,6 +494,7 @@ export default function App() {
           }
         >
           <Route index element={<LineChefDashboard />} />
+          <Route path="history" element={<LineChefHistoryPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/line-chef" replace />} />

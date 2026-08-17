@@ -47,13 +47,14 @@ export default function ReceptionistNotifier() {
     }
 
     // #2 Ready to serve — kitchen finished an item / the whole order.
+    // The order only moves to the Ready tab once EVERY item is done (it's served as one whole
+    // order, not item-by-item), so a single item going READY must not say "check the Ready tab".
     if (topic.endsWith('/kitchen-item-update')) {
       if (!msg?.orderId) return
-      if (msg.newStatus === 'READY') {
-        toast.info(`Item ready in Order ${msg.orderNumber}. Check the Ready tab.`, { autoClose: 5000 })
-      }
       if (msg.orderStatus === 'COMPLETED') {
         toast.success(`Order ${msg.orderNumber} is ready: kitchen completed all items.`, { autoClose: 6000 })
+      } else if (msg.newStatus === 'READY') {
+        toast.info(`${msg.itemName || 'An item'} is ready in Order ${msg.orderNumber}. Still preparing the rest.`, { autoClose: 5000 })
       }
       return
     }

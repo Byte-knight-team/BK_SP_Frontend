@@ -647,7 +647,7 @@ export default function EditBranchPage() {
   if (loading) {
     return (
       <div className="max-w-5xl">
-        <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+        <div className="flex min-h-[clamp(24rem,calc(100vh-15rem),44rem)] items-center justify-center rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm">
           <EditBranchState
             Icon={RiBuilding2Line}
             title="Loading branch edit form"

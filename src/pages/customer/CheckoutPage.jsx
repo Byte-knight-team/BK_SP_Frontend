@@ -27,6 +27,7 @@ import {
 import { getCustomerProfile } from '../../apis/customer/profile'
 import { toast } from 'react-toastify'
 import LocationPickerModal from '../../components/customer/LocationPickerModal'
+import BranchLocationModal from '../../components/customer/modal/BranchLocationModal'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 //checkout state savings
@@ -112,6 +113,7 @@ export default function CheckoutPage() {
     seed.selectedLocation,
   )
   const [showLocationPicker, setShowLocationPicker] = useState(false)
+  const [showBranchMap, setShowBranchMap] = useState(false)
   const hasGoogleMapsKey = Boolean(
     import.meta.env.VITE_GOOGLE_MAPS_CUSTOMER_API_KEY,
   )
@@ -540,14 +542,18 @@ export default function CheckoutPage() {
 
       const orderData = responseJson?.data || {}
       // Create a State to pass to the next page.
+      const confirmedOrderId = orderData.orderId || orderData.orderNumber
       const navState = {
-        orderId: orderData.orderId || orderData.orderNumber,
+        orderId: confirmedOrderId,
         finalAmount: orderData.finalAmount,
       }
 
       // Post-Order Cleanup
       clearCart()
       localStorage.removeItem(CHECKOUT_STORAGE_KEY)
+      if (confirmedOrderId) {
+        localStorage.setItem('last_placed_order_id', String(confirmedOrderId))
+      }
 
       //if card payement navgate to card details entring page
       if (paymentMethod === 'CARD') {
@@ -559,7 +565,7 @@ export default function CheckoutPage() {
       }
 
       toast.success('Order placed successfully!')
-      navigate('/order-confirmation', {
+      navigate(`/order-confirmation?orderId=${encodeURIComponent(confirmedOrderId)}`, {
         replace: true,
         state: navState,
       })
@@ -875,27 +881,51 @@ export default function CheckoutPage() {
               )}
               {/* Contextual Branch Details - Only show if Pickup */}
               {!isQrCustomer && isPickup && (
-                <div className="rounded-[14px] border border-orange-200 bg-orange-100 p-4 md:col-span-2">
-                  <div className="text-salte-800 mb-2 flex items-center gap-2">
-                    <Home size={16} />
-                    <span className="font-semibold">Pickup Location</span>
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:col-span-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                        <MapPin size={15} />
+                      </div>
+                      <span className="text-sm font-bold text-slate-900">Pickup Location</span>
+                    </div>
+                    {receipt?.branchDetails && (
+                      <button
+                        type="button"
+                        onClick={() => setShowBranchMap(true)}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-3.5 py-1.5 text-xs font-semibold text-orange-600 transition-colors hover:bg-orange-100 shrink-0"
+                      >
+                        <MapPin size={13} /> View Map
+                      </button>
+                    )}
                   </div>
-                  <div className="text-sm text-gray-500">
+
+                  <div className="mt-3 text-sm">
                     {receipt?.branchDetails ? (
-                      <>
-                        <div className="text-salte-600 font-semibold">
+                      <div>
+                        <div className="font-semibold text-slate-900">
                           {receipt.branchDetails.name}
                         </div>
-                        <div>{receipt.branchDetails.address}</div>
-                        <div className="mt-1 text-[0.8rem] text-gray-500">
-                          {receipt.branchDetails.contactNumber} •{' '}
-                          {receipt.branchDetails.email}
+                        <div className="mt-0.5 text-xs text-slate-600">{receipt.branchDetails.address}</div>
+                        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                          {receipt.branchDetails.contactNumber && (
+                            <span className="flex items-center gap-1.5">
+                              <Phone size={12} className="text-slate-400" />
+                              {receipt.branchDetails.contactNumber}
+                            </span>
+                          )}
+                          {receipt.branchDetails.email && (
+                            <span className="flex items-center gap-1.5">
+                              <Mail size={12} className="text-slate-400" />
+                              {receipt.branchDetails.email}
+                            </span>
+                          )}
                         </div>
-                      </>
+                      </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <Loader2 size={14} className="animate-spin" />
-                        Calculating order and fetching branch...
+                      <div className="flex items-center gap-2 text-xs text-slate-400 py-1">
+                        <Loader2 size={13} className="animate-spin text-orange-500" />
+                        Fetching branch details...
                       </div>
                     )}
                   </div>
@@ -1255,6 +1285,14 @@ export default function CheckoutPage() {
             : null
         }
       />
+
+      {/* Branch Location Modal */}
+      {showBranchMap && receipt?.branchDetails && (
+        <BranchLocationModal
+          branchDetails={receipt.branchDetails}
+          onClose={() => setShowBranchMap(false)}
+        />
+      )}
     </div>
   )
 }
