@@ -30,7 +30,7 @@ const CouponTable = ({ coupons, isLoading, onEdit, onToggleStatus, isToggling })
 
   // Memoized filtering
   const filteredCoupons = useMemo(() => {
-    return coupons.filter(c => {
+    const filtered = coupons.filter(c => {
       const matchesSearch = !search || 
         (c.code && c.code.toLowerCase().includes(search.toLowerCase())) ||
         (c.description && c.description.toLowerCase().includes(search.toLowerCase()));
@@ -52,6 +52,13 @@ const CouponTable = ({ coupons, isLoading, onEdit, onToggleStatus, isToggling })
       }
       
       return matchesSearch && matchesStatus;
+    });
+
+    // Sort newly created coupons first (descending by createdAt)
+    return filtered.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt.replace('T', ' ').replace(/-/g, '/').replace('Z', '')).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt.replace('T', ' ').replace(/-/g, '/').replace('Z', '')).getTime() : 0;
+      return dateB - dateA;
     });
   }, [coupons, search, statusFilter]);
 

@@ -6,7 +6,7 @@ import CloudinaryImageUpload from '../CloudinaryImageUpload';
 import { getMenuItemByIdAPI, updateMenuItemAPI } from '../../../apis/admin/menu';
 import { getMenuCategoriesAPI, getMenuSubcategoriesAPI } from '../../../apis/staff/category';
 import IngredientPicker from '../../kitchen/menu/IngredientPicker';
-import { getMenuItemIngredientsAPI, saveMenuItemIngredientsAPI } from '../../../apis/kitchen/menu';
+import { getAdminMenuItemIngredientsAPI, saveAdminMenuItemIngredientsAPI } from '../../../apis/admin/menu';
 import { InventoryService } from '../../../apis/manager/InventoryService';
 
 const normalizeSubCategory = (value) => {
@@ -80,7 +80,7 @@ export default function AdminEditMenuItemModal({ request, onClose, onApprove, mo
 
   const { data: ingredientsData } = useQuery({
     queryKey: ['menuItemIngredients', itemId],
-    queryFn: () => getMenuItemIngredientsAPI(itemId),
+    queryFn: () => getAdminMenuItemIngredientsAPI(itemId),
   });
 
   const { data: inventoryData } = useQuery({
@@ -183,7 +183,7 @@ export default function AdminEditMenuItemModal({ request, onClose, onApprove, mo
       
       const updatedItem = await updateMenuItemAPI(itemId, payloadToSend);
 
-      await saveMenuItemIngredientsAPI(itemId, ingredients);
+      await saveAdminMenuItemIngredientsAPI(itemId, ingredients);
 
       queryClient.setQueryData(['menuItems'], (oldData) => {
         if (!oldData) return oldData;
