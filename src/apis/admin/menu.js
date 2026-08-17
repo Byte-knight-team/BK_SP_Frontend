@@ -100,3 +100,20 @@ export const deleteMenuItemAPI = async (id) => {
 };
 
 
+
+// Admin APIs for Ingredients (added from MenuController)
+export const getAdminMenuItemIngredientsAPI = async (id) => {
+  const response = await authFetch(MENU_BASE + '/' + id + '/ingredients');
+  const data = await parseResponse(response, 'Failed to fetch ingredients');
+  return { data, error: null };
+};
+
+export const saveAdminMenuItemIngredientsAPI = async (id, ingredients) => {
+  const response = await authFetch(MENU_BASE + '/' + id + '/ingredients', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ingredients }),
+  });
+  const data = await parseResponse(response, 'Failed to save ingredients');
+  return { data, error: null };
+};

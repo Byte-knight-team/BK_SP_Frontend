@@ -610,7 +610,7 @@ export default function CreateStaffPage() {
                   ) : (
                     allowedRoles.map((role) => (
                       <option key={role.id || role.name} value={role.name}>
-                        {role.name}
+                        {formatRoleName(role.name)}
                       </option>
                     ))
                   )}
@@ -706,7 +706,7 @@ export default function CreateStaffPage() {
 
             {/* Info message */}
             <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
-              After staff creation, the backend will generate a temporary password
+              After staff creation, the system will generate a temporary password
               and send the invite email. If email sending fails, the temporary
               password will be shown once in the success modal.
             </div>
@@ -761,4 +761,11 @@ function Spinner({ className }) {
       className={`inline-flex animate-spin rounded-full border-2 ${className}`}
     />
   );
+}
+
+function formatRoleName(roleName) {
+  return String(roleName || "")
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

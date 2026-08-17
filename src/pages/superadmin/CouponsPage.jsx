@@ -23,7 +23,6 @@ export default function CouponsPage() {
   const isExpired = (c) => {
     if (!c?.endDate) return false;
     const end = new Date(c.endDate.replace('T', ' ').replace(/-/g, '/').replace('Z', ''));
-    end.setHours(23, 59, 59, 999);
     return end.getTime() < new Date().getTime();
   };
 
@@ -42,7 +41,7 @@ export default function CouponsPage() {
 
   const confirmToggleStatus = () => {
     if (!couponToToggle) return;
-    const newStatus = couponToToggle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    const newStatus = (couponToToggle.status === 'ACTIVE' || couponToToggle.status === 'SCHEDULED') ? 'INACTIVE' : 'ACTIVE';
     statusMutation.mutate({ id: couponToToggle.id, status: newStatus });
   };
 

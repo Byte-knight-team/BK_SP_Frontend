@@ -7,8 +7,9 @@ import {
 
 import { 
   getActiveQrCodeAPI, createQrCodeAPI, 
-  regenerateQrCodeAPI, revokeQrCodeAPI, downloadQrCodeAPI 
+  regenerateQrCodeAPI, revokeQrCodeAPI, downloadQrCodeAPI, getTableByIdAPI
 } from '../../apis/admin/table';
+import { showSuccessToast, showErrorToast } from '../../utils/toast';
 
 // Admin page for table-specific QR generation and lifecycle controls.
 export default function TableQrPage() {
@@ -18,6 +19,11 @@ export default function TableQrPage() {
 
   const [error, setError] = useState('');
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null, title: '', message: '', type: 'warning' });
+
+  const { data: tableData } = useQuery({
+    queryKey: ['table', tableId],
+    queryFn: () => getTableByIdAPI(tableId),
+  });
 
   const { data: qrData, isLoading } = useQuery({
     queryKey: ['qrCode', tableId],
@@ -39,8 +45,12 @@ export default function TableQrPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['qrCode', tableId] });
       setError('');
+      showSuccessToast('QR code generated successfully');
     },
-    onError: (err) => setError(err.message || 'Failed to generate QR code.')
+    onError: (err) => {
+      setError(err.message || 'Failed to generate QR code.');
+      showErrorToast(err.message || 'Failed to generate QR code.');
+    }
   });
 
   const regenerateMutation = useMutation({
@@ -48,8 +58,12 @@ export default function TableQrPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['qrCode', tableId] });
       setError('');
+      showSuccessToast('QR code regenerated successfully');
     },
-    onError: (err) => setError(err.message || 'Failed to regenerate QR code.')
+    onError: (err) => {
+      setError(err.message || 'Failed to regenerate QR code.');
+      showErrorToast(err.message || 'Failed to regenerate QR code.');
+    }
   });
 
   const deleteMutation = useMutation({
@@ -57,8 +71,12 @@ export default function TableQrPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['qrCode', tableId] });
       setError('');
+      showSuccessToast('QR code deleted successfully');
     },
-    onError: (err) => setError(err.message || 'Failed to delete QR code.')
+    onError: (err) => {
+      setError(err.message || 'Failed to delete QR code.');
+      showErrorToast(err.message || 'Failed to delete QR code.');
+    }
   });
 
   const isProcessing = generateMutation.isPending || regenerateMutation.isPending || deleteMutation.isPending;
@@ -106,8 +124,10 @@ export default function TableQrPage() {
       a.download = `table-${tableId}-qr.png`;
       a.click();
       window.URL.revokeObjectURL(url);
+      showSuccessToast('QR code downloaded successfully');
     } catch (err) {
       setError(err.message || 'Failed to download QR code.');
+      showErrorToast(err.message || 'Failed to download QR code.');
     }
   };
 
@@ -122,7 +142,9 @@ export default function TableQrPage() {
                 <ArrowLeft size={20} />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Table {tableId} QR Code</h1>
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                  Table {tableData?.tableNumber || tableId} (ID: {tableId}) QR Code
+                </h1>
                 <p className="text-gray-500 text-sm mt-1">Manage the ordering QR code for this table</p>
               </div>
             </div>

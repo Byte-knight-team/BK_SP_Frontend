@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Hash, Save, Users, X } from 'lucide-react';
+import { authFetch } from '../../../apis/apiHelper';
+import { showSuccessToast, showErrorToast } from '../../../utils/toast';
 
 const DEFAULT_FORM_DATA = {
   tableNumber: '01',
@@ -27,7 +29,8 @@ export default function AddTableModal({ isOpen, onClose, onCreated }) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:8080/api/tables', {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+      const response = await authFetch(`${baseUrl}/api/tables`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,17 +43,18 @@ export default function AddTableModal({ isOpen, onClose, onCreated }) {
       });
 
       if (response.ok) {
+        showSuccessToast('Table added successfully');
         if (onCreated) {
           await onCreated();
         }
         onClose();
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || errorData.error || 'Failed to create table. Please check your data.');
+        const errData = await response.json();
+        showErrorToast(errData.message || 'Failed to create table.');
       }
     } catch (error) {
       console.error('Error creating table:', error);
-      alert('Network error. Could not connect to the backend server.');
+      showErrorToast(error.message || 'Failed to create table. Please check your data.');
     } finally {
       setIsSubmitting(false);
     }

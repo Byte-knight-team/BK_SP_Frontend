@@ -33,8 +33,6 @@ export const getAuthHeaders = () => {
 
 /*
   Wrapper for authenticated fetch calls.
-
-  Purpose:
   - Adds JWT Authorization header automatically.
   - Handles expired/invalid session.
   - Handles inactive branch/user access problems.

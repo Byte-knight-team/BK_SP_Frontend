@@ -5,12 +5,13 @@ import { updateCouponAPI, updateCouponStatusAPI } from '../../../../apis/admin/c
 import { showSuccessToast, showErrorToast } from '../../../../utils/toast';
 
 const EditCouponModal = ({ coupon, onClose, isExpired }) => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   const tzoffset = new Date().getTimezoneOffset() * 60000;
   const currentDateTime = new Date(Date.now() - tzoffset).toISOString().slice(0, 16);
   const [formData, setFormData] = useState({
     description: coupon.description || '',
     discountValue: coupon.discountValue,
+    startDate: coupon.startDate ? coupon.startDate.slice(0, 16) : '',
     expirationDate: coupon.endDate ? coupon.endDate.slice(0, 16) : '',
     usageLimit: coupon.usageLimit || '',
   });
@@ -18,8 +19,21 @@ const EditCouponModal = ({ coupon, onClose, isExpired }) => {
   const mutation = useMutation({
     mutationFn: async (data) => {
       await updateCouponAPI(coupon.id, data);
-      if (isExpired || coupon.status !== 'ACTIVE') {
-        await updateCouponStatusAPI(coupon.id, 'ACTIVE');
+      
+      const startStr = data.startDate || coupon.startDate;
+      let isStartFuture = false;
+      if (startStr) {
+        const start = new Date(startStr.replace('T', ' ').replace(/-/g, '/').replace('Z', ''));
+        isStartFuture = start.getTime() > new Date().getTime();
+      }
+      let newStatus = isStartFuture ? 'SCHEDULED' : 'ACTIVE';
+      
+      if (!isExpired && coupon.status === 'INACTIVE') {
+        newStatus = 'INACTIVE';
+      }
+      
+      if (isExpired || coupon.status !== newStatus) {
+        await updateCouponStatusAPI(coupon.id, newStatus);
       }
     },
     onSuccess: () => {
@@ -32,14 +46,16 @@ const EditCouponModal = ({ coupon, onClose, isExpired }) => {
     }
   });
 
-  const handleSubmit = (e) => {
+    const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate({
+    const payload = {
       description: formData.description,
       discountValue: parseFloat(formData.discountValue),
+      ...(coupon.status === 'SCHEDULED' && formData.startDate && { startDate: formData.startDate }),
       expirationDate: formData.expirationDate,
       usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
-    });
+    };
+    mutation.mutate(payload);
   };
 
   return (
@@ -55,7 +71,7 @@ const EditCouponModal = ({ coupon, onClose, isExpired }) => {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div>
+          <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
             <textarea
               required
@@ -78,6 +94,16 @@ const EditCouponModal = ({ coupon, onClose, isExpired }) => {
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
             />
           </div>
+          {coupon.status === 'SCHEDULED' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Start Date & Time</label>
+              <input type="datetime-local" required
+                value={formData.startDate}
+                onChange={e => setFormData({...formData, startDate: e.target.value})}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+              />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Expiration Date & Time</label>
             <input type="datetime-local" min={currentDateTime} required
@@ -121,7 +147,3 @@ const EditCouponModal = ({ coupon, onClose, isExpired }) => {
 };
 
 export default EditCouponModal;
-
-
-
-
