@@ -9,7 +9,7 @@ export default function PurchaseOrderLogTable({ poLogs, loading }) {
     const matchesSearch = 
       (log.poNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (log.vendorName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (log.actionByName || '').toLowerCase().includes(searchQuery.toLowerCase())
+      (log.items || '').toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesStatus = statusFilter === 'ALL' || log.status === statusFilter
     
@@ -64,7 +64,7 @@ export default function PurchaseOrderLogTable({ poLogs, loading }) {
             <Search className="h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search PO, vendor, or user..."
+              placeholder="Search PO, vendor, or items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
@@ -80,7 +80,7 @@ export default function PurchaseOrderLogTable({ poLogs, loading }) {
               <th className="px-6 py-4 font-semibold">Date / Time</th>
               <th className="px-6 py-4 font-semibold">PO Number</th>
               <th className="px-6 py-4 font-semibold">Vendor</th>
-              <th className="px-6 py-4 font-semibold">Action By</th>
+              <th className="px-6 py-4 font-semibold">Item</th>
               <th className="px-6 py-4 font-semibold text-center">Status Update</th>
             </tr>
           </thead>
@@ -97,8 +97,8 @@ export default function PurchaseOrderLogTable({ poLogs, loading }) {
                   <td className="px-6 py-4 text-gray-600">
                     {log.vendorName}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {log.actionByName}
+                  <td className="px-6 py-4 text-gray-600 max-w-40 truncate" title={log.items}>
+                    {log.items}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusStyle(log.status)}`}>

@@ -10,11 +10,11 @@ export function useDashboardData() {
   const { user, hydrated } = useAuth()
   const branchId = user?.branchId
 
-  const fetchDashboardData = useCallback(async () => {
+  const fetchDashboardData = useCallback(async (silent = false) => {
     if (!hydrated) return
     
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
       setError(null)
       const summary = await ManagerDashboardService.getSummary(branchId)
       setData(summary)
@@ -22,7 +22,7 @@ export function useDashboardData() {
       console.error('Failed to fetch dashboard data:', err)
       setError(err.message || 'Failed to load dashboard data')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [branchId, hydrated])
 
@@ -34,7 +34,7 @@ export function useDashboardData() {
   // data whenever any event fires (new order, completed delivery, chef request etc.)
   const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
   useWebSocket(branchId, topic, () => {
-    fetchDashboardData()
+    fetchDashboardData(true)
   })
 
   return { data, loading, error, refetch: fetchDashboardData }

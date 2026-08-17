@@ -10,11 +10,11 @@ export function useSalesData() {
   const { user, hydrated } = useAuth()
   const branchId = user?.branchId
 
-  const fetchSalesData = useCallback(async () => {
+  const fetchSalesData = useCallback(async (silent = false) => {
     if (!hydrated) return
     
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
       setError(null)
       const summary = await ManagerSalesService.getSalesSummary(branchId)
       setData(summary)
@@ -22,7 +22,7 @@ export function useSalesData() {
       console.error('Failed to fetch sales summary:', err)
       setError(err.message || 'Failed to load sales data')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [branchId, hydrated])
 
@@ -34,7 +34,7 @@ export function useSalesData() {
   // whenever an event fires (e.g. a delivery order is completed, updating revenue)
   const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
   useWebSocket(branchId, topic, () => {
-    fetchSalesData()
+    fetchSalesData(true)
   })
 
   return { data, loading, error, refetch: fetchSalesData, user }

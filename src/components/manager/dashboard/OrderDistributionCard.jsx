@@ -30,7 +30,7 @@ export default function OrderDistributionCard({ total, dineIn, online }) {
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-block h-3 w-3 rounded-full bg-gray-800" />
-          <span className="text-sm text-gray-500">Online Delivery</span>
+          <span className="text-sm text-gray-500">Online Delivery/Pickup</span>
           <span className="text-base font-bold text-gray-800">{online}</span>
         </div>
       </div>

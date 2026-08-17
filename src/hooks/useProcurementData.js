@@ -11,9 +11,9 @@ export function useProcurementData() {
   const { user, hydrated } = useAuth()
   const branchId = user?.branchId
 
-  const fetchProcurement = async () => {
+  const fetchProcurement = async (silent = false) => {
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
       const [vendors, purchaseOrders, grns, summary, pendingChefRequests, poLogs] = await Promise.all([
         ProcurementService.getVendors(branchId),
         ProcurementService.getPurchaseOrders(branchId),
@@ -36,7 +36,7 @@ export function useProcurementData() {
       console.error('Failed to fetch procurement dashboard data:', err)
       setError(err.message || 'Failed to fetch data')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
@@ -54,7 +54,7 @@ export function useProcurementData() {
   // Optional: Subscribe to websocket events if needed for real-time updates on procurement
   const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
   useWebSocket(branchId, topic, () => {
-    fetchProcurement()
+    fetchProcurement(true)
   })
 
   return { data, loading, error, refetch: fetchProcurement }
