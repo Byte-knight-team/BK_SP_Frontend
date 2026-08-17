@@ -1,7 +1,7 @@
 import { ChefHat, Truck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-function StaffGroup({ icon, label, sublabel, total }) {
+function StaffGroup({ icon, label, sublabel, active, total }) {
   return (
     <div className="flex-1 rounded-xl border border-gray-100 p-5">
       <div className="flex items-center gap-3">
@@ -12,9 +12,11 @@ function StaffGroup({ icon, label, sublabel, total }) {
         </div>
         <div className="text-right">
           <span className="text-3xl font-extrabold text-gray-900">
-            {total}
+            {active}
           </span>
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Total Staff</p>
+          <p className="text-xs font-medium tracking-wider text-gray-400 uppercase">
+            Active Staff
+          </p>
         </div>
       </div>
     </div>
@@ -28,13 +30,11 @@ export default function StaffAvailability({ kitchen, fleet }) {
     <div className="card">
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-gray-900">
-            Branch Staff
-          </h2>
+          <h2 className="text-xl font-bold text-gray-900">Branch Staff</h2>
         </div>
-        <button 
+        <button
           onClick={() => navigate('/manager/staff')}
-          className="flex items-center gap-2 bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-brand-hover transition-colors"
+          className="bg-brand hover:bg-brand-hover flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors"
         >
           View Staff Details
         </button>
@@ -43,13 +43,15 @@ export default function StaffAvailability({ kitchen, fleet }) {
         <StaffGroup
           icon={<ChefHat className="text-brand h-6 w-6" />}
           label="Kitchen"
-          sublabel="Chefs & Assistants"
+          sublabel="Main Chefs & Line Chefs"
+          active={kitchen.active}
           total={kitchen.total}
         />
         <StaffGroup
           icon={<Truck className="text-brand h-6 w-6" />}
           label="Fleet"
           sublabel="Delivery Drivers"
+          active={fleet.active}
           total={fleet.total}
         />
       </div>

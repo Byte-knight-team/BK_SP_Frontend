@@ -7,7 +7,6 @@ import SalesTargetCard from '../../components/manager/dashboard/SalesTargetCard'
 import OrderDistributionCard from '../../components/manager/dashboard/OrderDistributionCard'
 import RecentOrdersTable from '../../components/manager/dashboard/RecentOrdersTable'
 import StaffAvailability from '../../components/manager/dashboard/StaffAvailability'
-import FleetTrackerBanner from '../../components/manager/dashboard/FleetTrackerBanner'
 
 // Import icons from the lucide-react library used in the header buttons
 import { Plus, UserCheck, Loader2 } from 'lucide-react'
@@ -143,9 +142,6 @@ export default function ManagerDashboardPage() {
         kitchen={data.staff.kitchen}
         fleet={data.staff.fleet}
       />
-
-      {/* Renders a banner showing how many drivers are currently out delivering orders */}
-      <FleetTrackerBanner activeDeliveries={data.fleetActiveDeliveries} />
     </div>
   )
 }
