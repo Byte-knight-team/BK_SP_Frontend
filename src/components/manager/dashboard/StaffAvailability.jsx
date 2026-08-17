@@ -1,4 +1,4 @@
-import { ChefHat, Truck } from 'lucide-react'
+import { ChefHat, Truck, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 function StaffGroup({ icon, label, sublabel, active, total }) {
@@ -23,7 +23,7 @@ function StaffGroup({ icon, label, sublabel, active, total }) {
   )
 }
 
-export default function StaffAvailability({ kitchen, fleet }) {
+export default function StaffAvailability({ kitchen, fleet, receptionist }) {
   const navigate = useNavigate()
 
   return (
@@ -54,6 +54,15 @@ export default function StaffAvailability({ kitchen, fleet }) {
           active={fleet.active}
           total={fleet.total}
         />
+        {receptionist && (
+          <StaffGroup
+            icon={<Users className="text-brand h-6 w-6" />}
+            label="Front Desk"
+            sublabel="Receptionists"
+            active={receptionist.active}
+            total={receptionist.total}
+          />
+        )}
       </div>
     </div>
   )

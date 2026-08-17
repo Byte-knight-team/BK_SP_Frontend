@@ -141,6 +141,7 @@ export default function ManagerDashboardPage() {
       <StaffAvailability
         kitchen={data.staff.kitchen}
         fleet={data.staff.fleet}
+        receptionist={data.staff.receptionist}
       />
     </div>
   )
