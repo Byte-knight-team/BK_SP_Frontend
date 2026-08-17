@@ -19,18 +19,33 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-[#f8f7f4] flex flex-col">
       {/* ───── Header ───── */}
-      <header className="flex items-center gap-3.5 px-6 h-[72px] bg-white border-b border-slate-200 sticky top-0 z-[100] max-md:px-4">
-        <button
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 text-slate-800 transition-colors duration-300 hover:bg-slate-200"
-          onClick={() => (navigate('/menu'))}
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h1 className="font-heading text-[1.25rem] font-bold text-slate-900 leading-[1.2]">Your Cart</h1>
-          <span className="text-[0.82rem] text-slate-500">
-            {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
-          </span>
+      <header className="relative overflow-hidden bg-gradient-to-r from-orange-500 via-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/10 sticky top-0 z-[100]">
+        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-xl pointer-events-none" />
+        <div className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full bg-black/10 blur-xl pointer-events-none" />
+        
+        <div className="relative z-10 mx-auto max-w-[800px] w-full px-4 sm:px-6 h-[72px] flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <button
+              type="button"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm transition-all border border-white/20 shadow-xs active:scale-95"
+              onClick={() => navigate('/menu')}
+              aria-label="Back to Menu"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="font-heading text-lg sm:text-xl font-extrabold text-white leading-tight">Your Cart</h1>
+              <p className="text-xs text-orange-100/90 font-medium">
+                {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} selected
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xs">
+              <ShoppingBag size={18} />
+            </div>
+          </div>
         </div>
       </header>
 
