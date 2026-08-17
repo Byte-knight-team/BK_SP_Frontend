@@ -10,16 +10,17 @@ const MainLayout = ({ Sidebar, Header, contentClassName = "" }) => {
       {/* Sidebar for every page */}
       <Sidebar />
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      {/* Main application area */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header for every page */}
         <Header />
 
-        {/* Main content for every page */}
-        <main className="custom-scrollbar flex-1 overflow-y-scroll">
+        {/* This is the ONLY vertical scroll area */}
+        <main className="custom-scrollbar min-h-0 flex-1 overflow-y-auto">
           <div
-            className={`min-h-[calc(100%+1px)] px-4 py-5 sm:px-6 lg:px-8 lg:py-7 ${contentClassName}`}
+            className={`min-h-full px-4 py-5 sm:px-6 lg:px-8 lg:py-7 ${contentClassName}`}
           >
-            {/* Show the SectionHeader if the page provides info */}
+            {/* Shared section header */}
             {headerInfo && (
               <SectionHeader
                 title={headerInfo.title}

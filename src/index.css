@@ -8,9 +8,25 @@
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
+/*
+  Important:
+  Do NOT use overflow-y: scroll here.
+
+  MainLayout already owns vertical scrolling.
+*/
 html {
   scroll-behavior: smooth;
-  overflow-y: scroll;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
 }
 
 section[id] {
@@ -87,6 +103,7 @@ section[id] {
 }
 
 /* ── Modal keyframe animations ── */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -126,38 +143,36 @@ section[id] {
 }
 
 /* ── Recharts Fixes ── */
+
 .recharts-wrapper:focus,
 .recharts-surface:focus {
   outline: none !important;
 }
 
-/* --- Toastify Customization --- */
+/* ── Toastify Customization ── */
 
-/* Global Container Styles */
 .Toastify__toast {
   border-radius: 16px !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 14px !important;
 }
 
-/* Success Toast (Emerald Green) */
+/* Success Toast */
 .Toastify__toast--success.Toastify__toast-theme--colored {
   background: linear-gradient(to right, #10b981, #059669) !important;
-  /*for a single color background*/
-  /*background-color: #10b981 !important;*/
 }
 
-/* Error Toast (Crimson Red) */
+/* Error Toast */
 .Toastify__toast--error.Toastify__toast-theme--colored {
   background: linear-gradient(to right, #ef4444, #dc2626) !important;
 }
 
-/* Warning Toast (Amber/Orange) */
+/* Warning Toast */
 .Toastify__toast--warning.Toastify__toast-theme--colored {
   background: linear-gradient(to right, #f59e0b, #d97706) !important;
 }
 
-/* Progress Bar Customization */
+/* Progress Bar */
 .Toastify__progress-bar {
   height: 4px !important;
   background: rgba(255, 255, 255, 0.5) !important;
@@ -174,6 +189,7 @@ section[id] {
 }
 
 /* ── React-Toastify Mobile Overrides ── */
+
 @media only screen and (max-width: 480px) {
   .Toastify__toast-container {
     width: 100vw;
@@ -184,7 +200,6 @@ section[id] {
 
   .Toastify__toast {
     border-radius: 0.75rem !important;
-    /* rounded-xl */
     margin-bottom: 0.75rem !important;
   }
 }
