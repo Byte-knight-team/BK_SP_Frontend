@@ -218,13 +218,15 @@ export default function Navbar() {
                 >
                   Orders
                 </LinkButton>
-                <LinkButton
-                  to="/reservations"
-                  variant="secondary"
-                  icon={Calendar}
-                >
-                  Reservations
-                </LinkButton>
+                {!auth.isQrCustomer && (
+                  <LinkButton
+                    to="/reservations"
+                    variant="secondary"
+                    icon={Calendar}
+                  >
+                    Reservations
+                  </LinkButton>
+                )}
 
                 {/* ONLY SHOW ACCOUNT IF NOT A QR CUSTOMER */}
                 {!auth.isQrCustomer && (
@@ -390,15 +392,17 @@ export default function Navbar() {
                 >
                   Orders
                 </LinkButton>
-                <LinkButton
-                  to="/reservations"
-                  onClick={toggleMenu}
-                  variant="secondary"
-                  icon={Calendar}
-                  className="w-full justify-start"
-                >
-                  Reservations
-                </LinkButton>
+                {!auth.isQrCustomer && (
+                  <LinkButton
+                    to="/reservations"
+                    onClick={toggleMenu}
+                    variant="secondary"
+                    icon={Calendar}
+                    className="w-full justify-start"
+                  >
+                    Reservations
+                  </LinkButton>
+                )}
                 {!auth.isQrCustomer && (
                   <LinkButton
                     to="/account"

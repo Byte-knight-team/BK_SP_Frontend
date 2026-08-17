@@ -23,6 +23,7 @@ export default function Footer() {
 							<a href="#online" className="transition-colors hover:text-orange-400">How It Works</a>
 							<a href="#testimonials" className="transition-colors hover:text-orange-400">Testimonials</a>
 							<Link to="/menu" className="transition-colors hover:text-orange-400">Get Started</Link>
+							<Link to="/staff/login" className="transition-colors hover:text-orange-400">Staff Portal</Link>
 						</div>
 					</div>
 

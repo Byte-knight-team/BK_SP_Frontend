@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Lock, ArrowRight, ShieldCheck, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck, CheckCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { resetPasswordSchema } from '../../lib/validations/auth';
 import { resetPasswordCustomer } from '../../apis/customer/auth';
 import BrandLogo from '../../components/customer/BrandLogo';
@@ -15,6 +15,8 @@ export default function ResetPasswordPage() {
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -31,23 +33,21 @@ export default function ResetPasswordPage() {
   }, [token]);
 
   const onSubmit = async (data) => {
-    setError('');
+    if (!token) {
+      setError('Missing reset token.');
+      return;
+    }
 
     try {
+      setError('');
       const res = await resetPasswordCustomer(token, data.password);
-      const payload = await res.json().catch(() => ({}));
-
+      
       if (!res.ok) {
-        throw new Error(payload?.message || 'Unable to reset password.');
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.message || 'Failed to reset password. Token might be expired.');
       }
 
       setSuccess(true);
-      
-      // Auto redirect after 3 seconds
-      setTimeout(() => {
-        navigate('/login', { replace: true });
-      }, 3000);
-      
     } catch (err) {
       setError(err.message || 'Unable to reset password.');
     }
@@ -80,10 +80,14 @@ export default function ResetPasswordPage() {
 
       <div className="relative z-10 mx-auto w-full max-w-[380px]">
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
-            <BrandLogo />
-            <h1 className="text-2xl font-bold mt-2">New Password</h1>
-            <p className="mt-2 text-sm text-orange-100">Secure your account with a new password</p>
+          <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-xl pointer-events-none" />
+            <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-black/10 blur-xl pointer-events-none" />
+            <div className="relative z-10 mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xs shrink-0">
+              <BrandLogo />
+            </div>
+            <h1 className="relative z-10 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">New Password</h1>
+            <p className="relative z-10 mt-1.5 text-xs sm:text-sm text-orange-50/90 font-medium">Secure your account with a new password</p>
           </div>
 
           <div className="px-6 py-8">
@@ -94,7 +98,7 @@ export default function ResetPasswordPage() {
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">Password Reset!</h3>
                 <p className="text-sm text-slate-600">
-                  Your password has been successfully updated. Redirecting you to the login page...
+                  Your password has been successfully updated.
                 </p>
                 <button
                   onClick={() => navigate('/login', { replace: true })}
@@ -116,13 +120,21 @@ export default function ResetPasswordPage() {
                   <div className="relative">
                     <ShieldCheck size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       {...register('password')}
                       placeholder="At least 8 characters"
-                      className={`w-full rounded-xl border bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors ${
+                      className={`w-full rounded-xl border bg-slate-50 py-3 pl-10 pr-11 text-sm text-slate-700 outline-none transition-colors ${
                         errors.password ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-orange-400'
                       }`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none p-0.5"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                   {errors.password && <p className="mt-1.5 text-xs text-red-500">{errors.password.message}</p>}
                 </div>
@@ -132,13 +144,21 @@ export default function ResetPasswordPage() {
                   <div className="relative">
                     <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       {...register('confirmPassword')}
                       placeholder="Repeat your password"
-                      className={`w-full rounded-xl border bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors ${
+                      className={`w-full rounded-xl border bg-slate-50 py-3 pl-10 pr-11 text-sm text-slate-700 outline-none transition-colors ${
                         errors.confirmPassword ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-orange-400'
                       }`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none p-0.5"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                   {errors.confirmPassword && (
                     <p className="mt-1.5 text-xs text-red-500">{errors.confirmPassword.message}</p>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import GlassBackground from '../../components/customer/GlassBackground';
@@ -7,10 +7,20 @@ import { forgotPasswordCustomer } from '../../apis/customer/auth';
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  const redirectParam = searchParams.get('redirect');
+  const redirectTo = redirectParam && !['/login', '/signup', '/signup/address', '/forgot-password', '/reset-password'].includes(redirectParam)
+    ? redirectParam
+    : '/menu';
+
+  const handleBack = () => {
+    navigate(redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login', { replace: true });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +57,7 @@ export default function ForgotPasswordPage() {
       <div className="relative z-10 mx-auto w-full max-w-[380px]">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="mb-5 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
         >
           <ArrowLeft size={16} />
@@ -55,10 +65,14 @@ export default function ForgotPasswordPage() {
         </button>
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-          <div className="bg-orange-500 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
-            <BrandLogo />
-            <h1 className="text-2xl font-bold mt-2">Reset Password</h1>
-            <p className="mt-2 text-sm text-orange-100">Enter your email to receive a reset link</p>
+          <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-xl pointer-events-none" />
+            <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-black/10 blur-xl pointer-events-none" />
+            <div className="relative z-10 mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xs shrink-0">
+              <BrandLogo />
+            </div>
+            <h1 className="relative z-10 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Reset Password</h1>
+            <p className="relative z-10 mt-1.5 text-xs sm:text-sm text-orange-50/90 font-medium">Enter your email to receive a reset link</p>
           </div>
 
           <div className="px-6 py-8">
