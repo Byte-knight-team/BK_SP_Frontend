@@ -542,14 +542,18 @@ export default function CheckoutPage() {
 
       const orderData = responseJson?.data || {}
       // Create a State to pass to the next page.
+      const confirmedOrderId = orderData.orderId || orderData.orderNumber
       const navState = {
-        orderId: orderData.orderId || orderData.orderNumber,
+        orderId: confirmedOrderId,
         finalAmount: orderData.finalAmount,
       }
 
       // Post-Order Cleanup
       clearCart()
       localStorage.removeItem(CHECKOUT_STORAGE_KEY)
+      if (confirmedOrderId) {
+        localStorage.setItem('last_placed_order_id', String(confirmedOrderId))
+      }
 
       //if card payement navgate to card details entring page
       if (paymentMethod === 'CARD') {
@@ -561,7 +565,7 @@ export default function CheckoutPage() {
       }
 
       toast.success('Order placed successfully!')
-      navigate('/order-confirmation', {
+      navigate(`/order-confirmation?orderId=${encodeURIComponent(confirmedOrderId)}`, {
         replace: true,
         state: navState,
       })

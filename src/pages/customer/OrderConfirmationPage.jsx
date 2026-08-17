@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -15,6 +15,7 @@ import {
   Phone,
   ShoppingBag,
   Truck,
+  Utensils,
   XCircle,
   Soup,
   HandCoins,
@@ -71,7 +72,16 @@ function isTerminalOrderStatus(status) {
 export default function OrderConfirmationPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { orderId } = location.state || {};
+  const [searchParams] = useSearchParams();
+
+  // Multi-source fallback resolution for orderId so refreshes/direct navigations never show a blank screen
+  const orderId =
+    location.state?.orderId ||
+    searchParams.get('orderId') ||
+    searchParams.get('id') ||
+    searchParams.get('order_id') ||
+    sessionStorage.getItem('last_viewed_order_id') ||
+    localStorage.getItem('last_placed_order_id');
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -83,8 +93,14 @@ export default function OrderConfirmationPage() {
   const [locationModalOpen, setLocationModalOpen] = useState(false);
 
   useEffect(() => {
+    if (orderId) {
+      sessionStorage.setItem('last_viewed_order_id', String(orderId));
+    }
+  }, [orderId]);
+
+  useEffect(() => {
     if (!orderId) {
-      setError('No order session found.');
+      setError('No active order session found.');
       setLoading(false);
       return;
     }
