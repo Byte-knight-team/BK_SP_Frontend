@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Hash, Save, Users, X } from 'lucide-react';
 import { authFetch } from '../../../apis/apiHelper';
+import { showSuccessToast, showErrorToast } from '../../../utils/toast';
 
 const DEFAULT_FORM_DATA = {
   tableNumber: '01',
@@ -42,14 +43,18 @@ export default function AddTableModal({ isOpen, onClose, onCreated }) {
       });
 
       if (response.ok) {
+        showSuccessToast('Table added successfully');
         if (onCreated) {
           await onCreated();
         }
         onClose();
+      } else {
+        const errData = await response.json();
+        showErrorToast(errData.message || 'Failed to create table.');
       }
     } catch (error) {
       console.error('Error creating table:', error);
-      alert(error.message || 'Failed to create table. Please check your data.');
+      showErrorToast(error.message || 'Failed to create table. Please check your data.');
     } finally {
       setIsSubmitting(false);
     }
