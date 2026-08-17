@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
   RiEyeLine,
   RiEyeOffLine,
@@ -8,21 +8,12 @@ import {
   RiRestaurantLine,
   RiHeartLine,
 } from "@remixicon/react";
-
 import { useAuth } from "../../context/AuthContext";
 import { getDashboardPathByRole } from "../../utils/authToken";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-
-  /*
-    We intentionally do NOT redirect authenticated users away from
-    /staff/login.
-
-    This allows staff to open the login page and switch accounts
-    even if an older valid session still exists in localStorage.
-  */
-  const { login, hydrated } = useAuth();
+  const { login, isAuthenticated, hydrated, user } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -33,9 +24,6 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  /*
-    Wait until AuthContext finishes restoring/checking auth state.
-  */
   if (!hydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -44,41 +32,30 @@ export default function LoginPage() {
     );
   }
 
+  if (isAuthenticated) {
+    return <Navigate to={getDashboardPathByRole(user?.roleName)} replace />;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setSubmitting(true);
 
     try {
       const data = await login(formData);
 
-      /*
-        Newly created staff using a temporary password
-        must change their password first.
-      */
       if (data.passwordChanged === false) {
         navigate("/staff/change-password", {
           replace: true,
           state: { mode: "first-time" },
         });
-
         return;
       }
 
-      /*
-        Redirect to dashboard according to role.
-      */
       const targetPath = getDashboardPathByRole(data.roleName);
-
-      navigate(targetPath, {
-        replace: true,
-      });
+      navigate(targetPath, { replace: true });
     } catch (err) {
-      setError(
-        err.message ||
-          "Unable to sign in. Please check your details."
-      );
+      setError(err.message || "Unable to sign in. Please check your details.");
     } finally {
       setSubmitting(false);
     }
@@ -86,7 +63,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f4ef] px-4 py-8 sm:p-6">
-      {/* Background gradient */}
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-30"
@@ -96,7 +72,6 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Background grid */}
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-20 opacity-45"
@@ -107,18 +82,15 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Decorative blobs */}
       <div
         aria-hidden="true"
         className="absolute -left-24 top-1/3 -z-10 h-72 w-72 rounded-full bg-orange-300/30 blur-3xl"
       />
-
       <div
         aria-hidden="true"
         className="absolute -right-20 bottom-1/4 -z-10 h-80 w-80 rounded-full bg-slate-700/15 blur-3xl"
       />
 
-      {/* Decorative store icon */}
       <div
         aria-hidden="true"
         className="absolute left-[5%] top-[17%] -z-10 hidden h-28 w-28 rotate-[-8deg] items-center justify-center rounded-[2rem] border border-orange-200/70 bg-white/45 text-orange-500/55 shadow-lg shadow-orange-100/40 backdrop-blur-sm xl:flex"
@@ -126,7 +98,6 @@ export default function LoginPage() {
         <RiStore2Line size={48} />
       </div>
 
-      {/* Decorative restaurant icon */}
       <div
         aria-hidden="true"
         className="absolute bottom-[10%] right-[5%] -z-10 hidden h-44 w-44 items-center justify-center rounded-full border border-slate-300/60 bg-white/35 shadow-xl shadow-slate-300/20 backdrop-blur-sm xl:flex"
@@ -136,7 +107,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Main login card */}
       <div className="relative z-10 grid w-full max-w-5xl overflow-hidden rounded-3xl bg-white/95 shadow-2xl shadow-slate-900/15 ring-1 ring-white/80 backdrop-blur-sm lg:grid-cols-[360px_1fr]">
         {/* Left brand panel */}
         <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-slate-800 p-10 text-white">
@@ -156,10 +126,7 @@ export default function LoginPage() {
                 <h2 className="font-bold leading-tight text-white">
                   Crave House
                 </h2>
-
-                <p className="text-xs text-gray-400">
-                  Staff Portal
-                </p>
+                <p className="text-xs text-gray-400">Staff Portal</p>
               </div>
             </div>
 
@@ -168,13 +135,12 @@ export default function LoginPage() {
             </h1>
 
             <p className="text-sm leading-relaxed text-gray-400">
-              Sign in to continue supporting our restaurant team and
-              delivering a smooth dining experience for every guest.
+              Sign in to continue supporting our restaurant team and delivering
+              a smooth dining experience for every guest.
             </p>
           </div>
 
           <div className="relative z-10 mt-10 space-y-4 text-sm text-gray-300">
-            {/* Premium Dining */}
             <div className="flex items-start gap-3">
               <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-orange-400">
                 <RiStore2Line size={17} />
@@ -184,7 +150,6 @@ export default function LoginPage() {
                 <p className="font-semibold text-white">
                   Premium Dining Experience
                 </p>
-
                 <p className="mt-0.5 text-xs leading-relaxed text-gray-400">
                   Serving guests with quality food, warm service, and a
                   comfortable atmosphere.
@@ -192,7 +157,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Fresh Food */}
             <div className="flex items-start gap-3">
               <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-orange-400">
                 <RiRestaurantLine size={17} />
@@ -202,25 +166,20 @@ export default function LoginPage() {
                 <p className="font-semibold text-white">
                   Fresh Food, Made Daily
                 </p>
-
                 <p className="mt-0.5 text-xs leading-relaxed text-gray-400">
-                  Our teams work together to prepare fresh meals and
-                  maintain consistent taste.
+                  Our teams work together to prepare fresh meals and maintain
+                  consistent taste.
                 </p>
               </div>
             </div>
 
-            {/* Guest first */}
             <div className="flex items-start gap-3">
               <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-orange-400">
                 <RiHeartLine size={17} />
               </span>
 
               <div>
-                <p className="font-semibold text-white">
-                  Guest-First Service
-                </p>
-
+                <p className="font-semibold text-white">Guest-First Service</p>
                 <p className="mt-0.5 text-xs leading-relaxed text-gray-400">
                   Every staff member helps create a smooth and welcoming
                   restaurant experience.
@@ -241,18 +200,13 @@ export default function LoginPage() {
               Use your staff email and password to continue.
             </p>
 
-            {/* Error message */}
             {error && (
               <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
                 {error}
               </div>
             )}
 
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-6"
-            >
-              {/* Email */}
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                   Email Address
@@ -273,7 +227,6 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Password */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                   Password
@@ -296,15 +249,9 @@ export default function LoginPage() {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowPassword((prev) => !prev)
-                    }
+                    onClick={() => setShowPassword((prev) => !prev)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
-                    aria-label={
-                      showPassword
-                        ? "Hide password"
-                        : "Show password"
-                    }
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
                       <RiEyeOffLine size={18} />
@@ -315,15 +262,12 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Sign in button */}
               <button
                 type="submit"
                 disabled={submitting}
                 className="w-full rounded-xl bg-orange-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {submitting
-                  ? "Signing in..."
-                  : "Sign In"}
+                {submitting ? "Signing in..." : "Sign In"}
               </button>
             </form>
 
