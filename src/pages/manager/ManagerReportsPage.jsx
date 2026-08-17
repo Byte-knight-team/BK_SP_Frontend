@@ -180,6 +180,7 @@ export default function ManagerReportsPage() {
                     type="date"
                     name="startDate"
                     value={dateRange.startDate}
+                    max={dateRange.endDate}
                     onChange={handleDateChange}
                     className="cursor-pointer bg-transparent text-sm font-bold text-gray-700 outline-none"
                   />
@@ -190,6 +191,8 @@ export default function ManagerReportsPage() {
                     type="date"
                     name="endDate"
                     value={dateRange.endDate}
+                    min={dateRange.startDate}
+                    max={new Date().toISOString().split('T')[0]}
                     onChange={handleDateChange}
                     className="cursor-pointer bg-transparent text-sm font-bold text-gray-700 outline-none"
                   />

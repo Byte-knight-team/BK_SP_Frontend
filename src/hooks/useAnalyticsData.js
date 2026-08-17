@@ -11,10 +11,11 @@ export function useAnalyticsData() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   
-  // Default date range: Today
+  // Default date range: Last 7 Days
   const [dateRange, setDateRange] = useState(() => {
     const end = new Date()
     const start = new Date()
+    start.setDate(end.getDate() - 6)
     
     return {
       startDate: start.toISOString().split('T')[0],
