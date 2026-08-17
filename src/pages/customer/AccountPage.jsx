@@ -376,11 +376,20 @@ export default function AccountPage() {
               
               <button 
                 onClick={() => navigate('/statistics')}
-                className="mt-3.5 w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs transition-all hover:bg-orange-50 hover:border-orange-200 hover:text-orange-600 active:scale-[0.99]"
+                className="group mt-3.5 w-full flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-orange-50/70 hover:border-orange-200 px-4 py-2.5 transition-all shadow-xs hover:shadow-sm active:scale-[0.99]"
               >
-                <BarChart3 size={15} className="text-slate-400 group-hover:text-orange-500" />
-                View Advanced Statistics
-                <ChevronRight size={14} className="text-slate-400" />
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white border border-slate-200/80 text-orange-500 shadow-xs group-hover:bg-orange-500 group-hover:text-white group-hover:border-transparent transition-all">
+                    <BarChart3 size={15} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-slate-900 group-hover:text-orange-950 transition-colors">View Dining Insights</p>
+                    <p className="text-[10px] text-slate-400 font-medium">Orders, spending & favorites</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-bold text-orange-600">
+                  <ChevronRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                </div>
               </button>
             </div>
 
