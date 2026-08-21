@@ -1,4 +1,4 @@
-import { X, Save, Loader2 } from 'lucide-react';
+import { X, Save, Loader2, AlertCircle } from 'lucide-react';
 
 export default function EditableSection({
   icon,
@@ -14,6 +14,10 @@ export default function EditableSection({
   onChange,
   type = 'text',
   isTextarea = false,
+  placeholder,
+  helperText,
+  error,
+  maxLength,
 }) {
   return (
     <div className="px-6 py-4 transition-colors hover:bg-slate-50/50">
@@ -49,7 +53,13 @@ export default function EditableSection({
               value={formValue || ''}
               onChange={onChange}
               rows="3"
-              className="w-full rounded-xl border border-orange-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition-all focus:border-orange-500 focus:ring-3 focus:ring-orange-100 placeholder:text-slate-400 shadow-xs"
+              placeholder={placeholder}
+              maxLength={maxLength}
+              className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition-all focus:ring-3 placeholder:text-slate-400 shadow-xs ${
+                error
+                  ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                  : 'border-orange-200 focus:border-orange-500 focus:ring-orange-100'
+              }`}
             />
           ) : (
             <input
@@ -57,9 +67,27 @@ export default function EditableSection({
               name={fieldName}
               value={formValue || ''}
               onChange={onChange}
-              className="w-full rounded-xl border border-orange-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition-all focus:border-orange-500 focus:ring-3 focus:ring-orange-100 placeholder:text-slate-400 shadow-xs"
+              placeholder={placeholder}
+              maxLength={maxLength}
+              className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition-all focus:ring-3 placeholder:text-slate-400 shadow-xs ${
+                error
+                  ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                  : 'border-orange-200 focus:border-orange-500 focus:ring-orange-100'
+              }`}
             />
           )}
+
+          {error && (
+            <div className="flex items-center gap-1.5 text-xs text-red-600 font-medium">
+              <AlertCircle size={14} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {helperText && !error && (
+            <p className="text-[11px] text-slate-500">{helperText}</p>
+          )}
+
           <div className="flex gap-2 justify-end pt-1">
             <button
               onClick={onCancel}

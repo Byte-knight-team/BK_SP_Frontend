@@ -42,13 +42,13 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const [editingSection, setEditingSection] = useState(null);
   const { clearCart } = useCart();
-  
+
   const [formData, setFormData] = useState({});
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  
+
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-  
+
   const fileInputRef = useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
@@ -131,7 +131,7 @@ export default function AccountPage() {
 
   const handleRemovePicture = async () => {
     if (!profile?.profilePictureUrl) return;
-    
+
     setIsUploadingImage(true);
     try {
       const res = await removeProfilePicture();
@@ -139,7 +139,7 @@ export default function AccountPage() {
         const payload = await res.json().catch(() => ({}));
         throw new Error(payload?.message || 'Failed to remove picture');
       }
-      
+
       await refetch();
       toast.success('Profile picture removed');
     } catch (err) {
@@ -163,6 +163,19 @@ export default function AccountPage() {
     }
   };
 
+  const SRI_LANKAN_PHONE_REGEX = /^(?:\+94|94|0)?7[0-9]{8}$/;
+
+  const normalizePhone = (rawPhone) => {
+    if (!rawPhone) return '';
+    let cleaned = rawPhone.replace(/[\s\-]/g, '').trim();
+    if (cleaned.startsWith('+94')) {
+      cleaned = '0' + cleaned.substring(3);
+    } else if (cleaned.startsWith('94')) {
+      cleaned = '0' + cleaned.substring(2);
+    }
+    return cleaned;
+  };
+
   const handleEdit = (section) => {
     setError('');
     setFormData(profile);
@@ -177,6 +190,7 @@ export default function AccountPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setError('');
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -187,14 +201,39 @@ export default function AccountPage() {
 
   // 2. Save Profile Updates (Email, Phone, Username, Address)
   const handleSaveProfile = async () => {
-    setIsSaving(true);
     setError('');
 
+    // Specific client-side validation for Phone Number
+    if (editingSection === 'phone') {
+      const rawPhone = formData.phone?.trim() || '';
+      if (!rawPhone) {
+        setError('Phone number is required.');
+        return;
+      }
+      const cleaned = rawPhone.replace(/[\s\-]/g, '');
+      if (!SRI_LANKAN_PHONE_REGEX.test(cleaned)) {
+        setError('Please enter a valid 10-digit Sri Lankan mobile number starting with 07 (e.g., 0712345678 or +94712345678).');
+        return;
+      }
+    }
+
+    // Specific client-side validation for Username
+    if (editingSection === 'username') {
+      const rawUsername = formData.username?.trim() || '';
+      if (!rawUsername) {
+        setError('Username cannot be empty.');
+        return;
+      }
+    }
+
+    setIsSaving(true);
+
     try {
+      const normalizedPhone = normalizePhone(formData.phone);
       const res = await updateCustomerProfile({
-        username: formData.username,
-        phone: formData.phone,
-        address: formData.address,
+        username: formData.username?.trim(),
+        phone: normalizedPhone,
+        address: formData.address?.trim(),
       });
 
       const payload = await res.json().catch(() => ({}));
@@ -206,9 +245,11 @@ export default function AccountPage() {
       await refetch();
       setEditingSection(null);
       toast.success('Profile updated successfully!');
-      
+
       // If they changed their username, update local storage so the Navbar reflects it
-      localStorage.setItem('customer_name', payload.data.username);
+      if (payload?.data?.username) {
+        localStorage.setItem('customer_name', payload.data.username);
+      }
 
     } catch (err) {
       setError(err.message);
@@ -254,7 +295,7 @@ export default function AccountPage() {
     localStorage.removeItem('customer_jwt');
     localStorage.removeItem('customer_user_id');
     localStorage.removeItem('customer_name');
-    clearCart(); 
+    clearCart();
     navigate('/menu', { replace: true });
   };
 
@@ -310,8 +351,8 @@ export default function AccountPage() {
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0">
                   {/* Avatar with Ring & Camera Button */}
-                  <div 
-                    className="relative group cursor-pointer shrink-0" 
+                  <div
+                    className="relative group cursor-pointer shrink-0"
                     onClick={handleAvatarClick}
                     title="Change profile picture"
                   >
@@ -328,10 +369,10 @@ export default function AccountPage() {
                     <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Camera size={18} className="text-white" />
                     </div>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
                       accept="image/png,image/jpeg,image/webp"
                       onChange={handleFileChange}
                     />
@@ -348,9 +389,9 @@ export default function AccountPage() {
                       )}
                     </div>
                     <p className="mt-0.5 text-xs text-slate-500 font-medium">Member since {profile.memberSince || '—'}</p>
-                    
+
                     {profile.profilePictureUrl && !isUploadingImage && (
-                      <button 
+                      <button
                         onClick={handleRemovePicture}
                         className="inline-flex items-center gap-1 mt-1 text-[11px] font-medium text-slate-400 hover:text-red-500 transition-colors"
                       >
@@ -378,8 +419,8 @@ export default function AccountPage() {
                   Active
                 </span>
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => navigate('/statistics')}
                 className="group mt-3.5 w-full flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-orange-50/70 hover:border-orange-200 px-4 py-2.5 transition-all shadow-xs hover:shadow-sm active:scale-[0.99]"
               >
@@ -419,7 +460,7 @@ export default function AccountPage() {
                     </p>
                   </div>
                 </div>
-                
+
                 {profile.email && !profile.emailVerified && (
                   <button
                     onClick={handleRequestVerification}
@@ -456,6 +497,10 @@ export default function AccountPage() {
                 formValue={formData.phone}
                 onChange={handleChange}
                 type="tel"
+                placeholder="e.g. 0712345678"
+                helperText="10 digits starting with 07"
+                error={editingSection === 'phone' ? error : ''}
+                maxLength={12}
               />
 
               <EditableSection
