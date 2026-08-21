@@ -5,7 +5,7 @@ import BrandLogo from '../../components/customer/BrandLogo';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { toast } from 'react-toastify';
-import { verifyCustomerOtp } from '../../apis/customer/auth';
+import { verifyCustomerOtp, sendCustomerOtp } from '../../apis/customer/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -18,7 +18,9 @@ export default function OtpVerificationPage() {
   const [otp, setOtp] = useState(['', '', '', '']);
   const inputRefs = useRef([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState('');
+  const [countdown, setCountdown] = useState(60);
 
   // If someone lands here without a phone number, send them back
   useEffect(() => {
@@ -26,6 +28,15 @@ export default function OtpVerificationPage() {
       navigate('/signup/qr', { replace: true });
     }
   }, [phone, navigate]);
+
+  // Countdown timer for 60s cooldown
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   // Auto-focus first input on load
   useEffect(() => {
@@ -54,6 +65,32 @@ export default function OtpVerificationPage() {
     }
   };
 
+  const handleResendCode = async () => {
+    if (countdown > 0 || isResending) return;
+    setIsResending(true);
+    setError('');
+
+    try {
+      const res = await sendCustomerOtp(phone);
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(payload?.message || 'Failed to resend verification code.');
+      }
+
+      toast.success('New verification code sent!');
+      setCountdown(60);
+      setOtp(['', '', '', '']);
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const handleVerify = async (e) => {
     e.preventDefault();
     const code = otp.join('');
@@ -65,7 +102,6 @@ export default function OtpVerificationPage() {
 
     try {
       // Decode the current QR session token on-demand.
-      // We no longer store the decoded session object in localStorage.
       const qrSessionToken = localStorage.getItem('qr_session_token');
       const qrClaims = qrSessionToken ? getQrSessionClaims(qrSessionToken) : null;
       const sessionId = qrClaims?.session_id || null;
@@ -127,7 +163,7 @@ export default function OtpVerificationPage() {
 
           <form className="space-y-8 px-6 pb-10 pt-8" onSubmit={handleVerify}>
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 text-center">
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 text-center leading-snug">
                 {error}
               </div>
             )}
@@ -150,9 +186,27 @@ export default function OtpVerificationPage() {
             <div className="text-center">
               <p className="text-sm text-slate-500">
                 Didn't receive the code?{' '}
-                <button type="button" onClick={() => navigate(-1)} className="font-semibold text-orange-500 hover:text-orange-600 transition-colors">
-                  Resend Code
-                </button>
+                {countdown > 0 ? (
+                  <span className="font-semibold text-slate-400">
+                    Resend in <span className="font-mono font-bold text-orange-500">{countdown}s</span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={isResending}
+                    className="font-bold text-orange-500 hover:text-orange-600 hover:underline underline-offset-4 decoration-orange-400 px-2 py-0.5 rounded-lg hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 inline-flex items-center gap-1.5"
+                  >
+                    {isResending ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <span>Resend Code</span>
+                    )}
+                  </button>
+                )}
               </p>
             </div>
 

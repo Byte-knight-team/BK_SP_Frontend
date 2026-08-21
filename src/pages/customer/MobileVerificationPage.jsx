@@ -55,6 +55,15 @@ export default function MobileVerificationPage() {
   return (
     <CustomerPageShell maxWidth="max-w-4xl" hasGlassBackground>
       <div className="mx-auto w-full max-w-[420px]">
+        <button
+          type="button"
+          onClick={() => navigate('/menu')}
+          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900 cursor-pointer"
+        >
+          <ArrowLeft size={16} />
+          Back to Menu
+        </button>
+
         <div className="overflow-hidden rounded-[2rem] bg-white shadow-[0_18px_42px_rgba(15,23,42,0.10)] border border-slate-100">
           <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 px-6 py-8 text-center text-white flex flex-col justify-center items-center">
             <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-xl pointer-events-none" />
