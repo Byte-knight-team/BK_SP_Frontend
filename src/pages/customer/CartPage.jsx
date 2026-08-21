@@ -100,14 +100,16 @@ export default function CartPage() {
                         </button>
                         <span className="text-[0.85rem] font-bold text-slate-800 min-w-[18px] text-center">{item.quantity}</span>
                         <button
-                          className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-slate-600 shadow-sm transition-colors hover:text-orange-500 hover:border-orange-200 border border-transparent"
+                          className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-slate-600 shadow-sm transition-colors hover:text-orange-500 hover:border-orange-200 border border-transparent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-600 disabled:hover:border-transparent"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          disabled={item.quantity >= 50}
+                          title={item.quantity >= 50 ? 'Maximum quantity is 50' : 'Add one more'}
                         >
                           <Plus size={13} />
                         </button>
                       </div>
                       <button
-                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                        className="text-slate-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
                         onClick={() => {
                           removeFromCart(item.id);
                           toast.info('Item removed');
@@ -123,7 +125,8 @@ export default function CartPage() {
               {/* Kitchen Note Input */}
               <input
                 type="text"
-                placeholder="Add a kitchen note (optional, e.g. no onions)"
+                maxLength={255}
+                placeholder="Add a kitchen note (optional, e.g. no onions - max 255 chars)"
                 className="w-full text-[0.8rem] px-3 py-2 rounded-[8px] border border-slate-200 bg-slate-50 focus:outline-none focus:border-orange-300 focus:bg-white text-slate-700 placeholder-slate-400 transition-colors"
                 value={item.kitchenNote || ''}
                 onChange={(e) => updateItemNote(item.id, e.target.value)}

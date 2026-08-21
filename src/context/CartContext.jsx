@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 const CartContext = createContext();
+export const MAX_ITEM_QUANTITY = 50;
 
 export function CartProvider({ children }) {
   // 1. Initialize cart from localStorage so items survive page refreshes and redirects!
@@ -23,6 +25,10 @@ export function CartProvider({ children }) {
     setCartItems((prev) => {
       const existing = prev.find((ci) => ci.id === item.id);
       if (existing) {
+        if (existing.quantity >= MAX_ITEM_QUANTITY) {
+          toast.warning(`Maximum of ${MAX_ITEM_QUANTITY} items allowed per dish.`);
+          return prev;
+        }
         return prev.map((ci) =>
           ci.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci
         );
@@ -38,6 +44,10 @@ export function CartProvider({ children }) {
   const updateQuantity = (id, quantity) => {
     if (quantity < 1) {
       removeFromCart(id);
+      return;
+    }
+    if (quantity > MAX_ITEM_QUANTITY) {
+      toast.warning(`Maximum of ${MAX_ITEM_QUANTITY} items allowed per dish.`);
       return;
     }
     setCartItems((prev) =>
