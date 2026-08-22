@@ -184,256 +184,256 @@ export default function MenuPage() {
 
       <main className="flex-1">
 
-      <div className="mx-3 sm:mx-6 mt-6 mb-6">
-        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 rounded-[24px] sm:rounded-full border border-orange-100 bg-gradient-to-r from-[#fff3eb] via-[#fff9f5] to-[#fff3eb] p-3 sm:p-4 shadow-[0_4px_20px_rgba(249,115,22,0.05)]">
+        <div className="mx-3 sm:mx-6 mt-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 rounded-[24px] sm:rounded-full border border-orange-100 bg-gradient-to-r from-[#fff3eb] via-[#fff9f5] to-[#fff3eb] p-3 sm:p-4 shadow-[0_4px_20px_rgba(249,115,22,0.05)]">
 
-          <div className="flex w-full sm:w-auto items-center gap-3 flex-1">
-            <button
-              className="shrink-0 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full border border-white bg-white text-slate-700 shadow-sm transition-colors hover:border-orange-200 hover:text-orange-600"
-              onClick={() => navigate(-1)}
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} />
-            </button>
+            <div className="flex w-full sm:w-auto items-center gap-3 flex-1">
+              <button
+                className="shrink-0 inline-flex h-[50px] w-[50px] items-center justify-center rounded-full border border-white bg-white text-slate-700 shadow-sm transition-colors hover:border-orange-200 hover:text-orange-600"
+                onClick={() => navigate(-1)}
+                aria-label="Go back"
+              >
+                <ArrowLeft size={20} />
+              </button>
 
-            <div className="relative flex-1">
-              <Search
-                size={18}
-                className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                type="text"
-                placeholder="Search menu items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-[50px] rounded-full border border-white bg-white py-2 pl-12 pr-12 sm:pr-16 text-[0.95rem] text-slate-800 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-orange-300 focus:ring-4 focus:ring-orange-100/50"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-[0.7rem] font-bold tracking-wider text-slate-400 hover:text-orange-500"
-                >
-                  CLEAR
-                </button>
+              <div className="relative flex-1">
+                <Search
+                  size={18}
+                  className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  placeholder="Search menu items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-[50px] rounded-full border border-white bg-white py-2 pl-12 pr-12 sm:pr-16 text-[0.95rem] text-slate-800 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-orange-300 focus:ring-4 focus:ring-orange-100/50"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-[0.7rem] font-bold tracking-wider text-slate-400 hover:text-orange-500"
+                  >
+                    CLEAR
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="relative w-full sm:w-auto sm:min-w-[220px]">
+              <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-orange-500">
+                <ArrowUpDown size={18} />
+              </div>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="appearance-none h-[50px] w-full cursor-pointer rounded-full border border-white bg-white pl-12 pr-12 text-[0.95rem] font-semibold text-slate-800 shadow-sm outline-none transition-all hover:border-orange-200 focus:border-orange-300 focus:ring-4 focus:ring-orange-100/50"
+              >
+                <option value="recommended">Sort by: Recommended</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="rating_desc">Highest Rated</option>
+              </select>
+              <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {!searchQuery && (
+          <section
+            className="relative mx-3 mt-2 mb-2 overflow-hidden rounded-[20px] md:rounded-[24px] bg-[length:100%_100%] md:bg-cover bg-center bg-no-repeat border border-orange-100/50 shadow-[0_4px_20px_rgba(249,115,22,0.03)] sm:mx-6"
+            style={{ backgroundImage: `url('${menuHeroBanner}')` }}
+          >
+            <div className="relative z-10 w-full flex flex-row items-center justify-between gap-1 md:gap-4 px-2 py-3 md:p-6 sm:px-10 sm:py-8 max-w-6xl mx-auto">
+
+              {/* Feature 1 */}
+              <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-3.5 text-center md:text-left md:border-r md:border-orange-300/40 md:pr-6 flex-1 md:flex-none">
+                <div className="shrink-0 p-2 md:p-2.5 rounded-full bg-white shadow-md shadow-orange-500/10 border border-orange-200/90 text-orange-600 transition-all duration-300 hover:scale-110">
+                  <Leaf strokeWidth={2.75} fill="currentColor" fillOpacity={0.18} className="w-5 h-5 md:w-[23px] md:h-[23px]" />
+                </div>
+                <div className="flex flex-col items-center md:items-start">
+                  <h3 className="font-heading text-[0.72rem] xs:text-[0.78rem] md:text-[1.05rem] font-extrabold text-slate-900 tracking-tight leading-tight">
+                    <span className="md:hidden">Fresh</span>
+                    <span className="hidden md:inline">Fresh Ingredients</span>
+                  </h3>
+                  <p className="hidden md:block text-[0.82rem] font-semibold text-slate-600 mt-0.5">Sourced daily</p>
+                </div>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-3.5 text-center md:text-left md:border-r md:border-orange-300/40 md:px-6 flex-1 md:flex-none">
+                <div className="shrink-0 p-2 md:p-2.5 rounded-full bg-white shadow-md shadow-orange-500/10 border border-orange-200/90 text-orange-600 transition-all duration-300 hover:scale-110">
+                  <ChefHat strokeWidth={2.75} fill="currentColor" fillOpacity={0.18} className="w-5 h-5 md:w-[23px] md:h-[23px]" />
+                </div>
+                <div className="flex flex-col items-center md:items-start">
+                  <h3 className="font-heading text-[0.72rem] xs:text-[0.78rem] md:text-[1.05rem] font-extrabold text-slate-900 tracking-tight leading-tight">
+                    <span className="md:hidden">Crafted</span>
+                    <span className="hidden md:inline">Chef Crafted</span>
+                  </h3>
+                  <p className="hidden md:block text-[0.82rem] font-semibold text-slate-600 mt-0.5">Made with passion</p>
+                </div>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-3.5 text-center md:text-left md:border-r md:border-orange-300/40 md:px-6 flex-1 md:flex-none">
+                <div className="shrink-0 p-2 md:p-2.5 rounded-full bg-white shadow-md shadow-orange-500/10 border border-orange-200/90 text-orange-600 transition-all duration-300 hover:scale-110">
+                  <Flame strokeWidth={2.75} fill="currentColor" fillOpacity={0.18} className="w-5 h-5 md:w-[23px] md:h-[23px]" />
+                </div>
+                <div className="flex flex-col items-center md:items-start">
+                  <h3 className="font-heading text-[0.72rem] xs:text-[0.78rem] md:text-[1.05rem] font-extrabold text-slate-900 tracking-tight leading-tight">
+                    <span className="md:hidden">Signature</span>
+                    <span className="hidden md:inline">Signature Flavors</span>
+                  </h3>
+                  <p className="hidden md:block text-[0.82rem] font-semibold text-slate-600 mt-0.5">Unforgettable taste</p>
+                </div>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-3.5 text-center md:text-left md:pl-6 flex-1 md:flex-none">
+                <div className="shrink-0 p-2 md:p-2.5 rounded-full bg-white shadow-md shadow-orange-500/10 border border-orange-200/90 text-orange-600 transition-all duration-300 hover:scale-110">
+                  <Heart strokeWidth={2.75} fill="currentColor" fillOpacity={0.18} className="w-5 h-5 md:w-[23px] md:h-[23px]" />
+                </div>
+                <div className="flex flex-col items-center md:items-start">
+                  <h3 className="font-heading text-[0.72rem] xs:text-[0.78rem] md:text-[1.05rem] font-extrabold text-slate-900 tracking-tight leading-tight">
+                    <span className="md:hidden">For You</span>
+                    <span className="hidden md:inline">Made for You</span>
+                  </h3>
+                  <p className="hidden md:block text-[0.82rem] font-semibold text-slate-600 mt-0.5">Every dish matters</p>
+                </div>
+              </div>
+
+            </div>
+          </section>
+        )}
+
+        {/* ───── Menu Grid ───── */}
+        <section className="px-6 pt-7 pb-9 max-md:px-4 max-md:py-5">
+          <div className="flex items-end justify-between mb-6">
+            <div>
+              <h2 className="font-heading text-[1.6rem] font-bold text-slate-800 mb-1">
+                {searchQuery ? "Search Results" : "Our Menu"}
+              </h2>
+              <p className="text-[0.875rem] text-gray-500">
+                {searchQuery
+                  ? `Found ${isFlat ? flatItems.length : Object.values(groupedCategories).flatMap((sub) => Object.values(sub)).flat().length} matches`
+                  : `${menuItems.length} handcrafted dishes`}
+              </p>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <CustomerStateCard
+              variant="loading"
+              title="Loading the menu"
+              description="We’re fetching fresh menu items for this branch."
+              className="mx-auto max-w-2xl"
+            />
+          ) : error ? (
+            <CustomerStateCard
+              variant="error"
+              title="Menu unavailable"
+              description={error}
+              primaryAction={{
+                label: 'Try Again',
+                onClick: () => window.location.reload(),
+              }}
+              className="mx-auto max-w-2xl"
+            />
+          ) : (isFlat && flatItems.length === 0) || (!isFlat && Object.keys(groupedCategories).length === 0) ? (
+            <CustomerStateCard
+              variant="empty"
+              icon={Search}
+              title="No matching items found"
+              description={`We couldn't find anything matching "${searchQuery}". Try a different term.`}
+              primaryAction={{
+                label: searchQuery ? 'Clear Search' : 'Browse Menu',
+                onClick: () => (searchQuery ? setSearchQuery('') : navigate('/menu')),
+              }}
+              className="mx-auto max-w-2xl"
+            />
+          ) : (
+            <div className="space-y-8">
+              {isFlat ? (
+                <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
+                  <AnimatePresence>
+                    {flatItems.map((item, idx) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.35, delay: Math.min(0.25, idx * 0.08) }}
+                        layout
+                      >
+                        {renderMenuCard(item)}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                Object.entries(groupedCategories).map(
+                  ([categoryName, subCategories]) => (
+                    <div key={categoryName} className="space-y-4">
+                      <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="inline-block h-8 w-1 rounded-full bg-orange-500" />
+                          <h3 className="font-heading text-[1.15rem] font-bold text-slate-800">
+                            {categoryName}
+                          </h3>
+                        </div>
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                          {Object.values(subCategories).flat().length} items
+                        </span>
+                      </div>
+
+                      <div className="space-y-5">
+                        {Object.entries(subCategories).map(
+                          ([subCategoryName, items]) => (
+                            <div
+                              key={`${categoryName}-${subCategoryName}`}
+                              className="space-y-3"
+                            >
+                              {subCategoryName !== "General" && (
+                                <div className="flex items-center justify-between">
+                                  <h4 className="flex items-center gap-2 font-heading text-[1rem] font-semibold text-slate-600">
+                                    <span className="inline-block h-2 w-2 rounded-full bg-orange-400" />
+                                    {subCategoryName}
+                                  </h4>
+                                  <span className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-600">
+                                    {items.length} items
+                                  </span>
+                                </div>
+                              )}
+
+                              <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
+                                <AnimatePresence>
+                                  {items.map((item, idx) => (
+                                    <motion.div
+                                      key={item.id}
+                                      initial={{ opacity: 0, y: 8 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -8 }}
+                                      transition={{ duration: 0.35, delay: Math.min(0.25, idx * 0.08) }}
+                                      layout
+                                    >
+                                      {renderMenuCard(item)}
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+                              </div>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  ),
+                )
               )}
             </div>
-          </div>
-
-          <div className="relative w-full sm:w-auto sm:min-w-[220px]">
-            <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-orange-500">
-              <ArrowUpDown size={18} />
-            </div>
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              className="appearance-none h-[50px] w-full cursor-pointer rounded-full border border-white bg-white pl-12 pr-12 text-[0.95rem] font-semibold text-slate-800 shadow-sm outline-none transition-all hover:border-orange-200 focus:border-orange-300 focus:ring-4 focus:ring-orange-100/50"
-            >
-              <option value="recommended">Sort by: Recommended</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="rating_desc">Highest Rated</option>
-            </select>
-            <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-slate-400">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {!searchQuery && (
-        <section
-          className="relative mx-3 mt-2 mb-2 overflow-hidden rounded-[20px] md:rounded-[24px] bg-[length:100%_100%] md:bg-cover bg-center bg-no-repeat border border-orange-100/50 shadow-[0_4px_20px_rgba(249,115,22,0.03)] sm:mx-6"
-          style={{ backgroundImage: `url('${menuHeroBanner}')` }}
-        >
-          <div className="relative z-10 w-full flex flex-row items-center justify-between gap-1 md:gap-4 px-2 py-3 md:p-6 sm:px-10 sm:py-8 max-w-6xl mx-auto">
-
-            {/* Feature 1 */}
-            <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-4 text-center md:text-left md:border-r md:border-orange-200/40 md:pr-6 flex-1 md:flex-none">
-              <div className="shrink-0 p-1.5 md:p-3 rounded-full bg-white shadow-sm border border-orange-100 text-orange-500 transition-transform hover:scale-110 duration-300">
-                <Leaf strokeWidth={1.5} className="w-[18px] h-[18px] md:w-[22px] md:h-[22px]" />
-              </div>
-              <div className="flex flex-col items-center md:items-start">
-                <h3 className="font-heading text-[0.65rem] xs:text-[0.7rem] md:text-[1rem] font-bold text-slate-800 leading-tight">
-                  <span className="md:hidden">Fresh</span>
-                  <span className="hidden md:inline">Fresh Ingredients</span>
-                </h3>
-                <p className="hidden md:block text-[0.85rem] font-medium text-slate-500 mt-0.5">Sourced daily</p>
-              </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-4 text-center md:text-left md:border-r md:border-orange-200/40 md:px-6 flex-1 md:flex-none">
-              <div className="shrink-0 p-1.5 md:p-3 rounded-full bg-white shadow-sm border border-orange-100 text-orange-500 transition-transform hover:scale-110 duration-300">
-                <ChefHat strokeWidth={1.5} className="w-[18px] h-[18px] md:w-[22px] md:h-[22px]" />
-              </div>
-              <div className="flex flex-col items-center md:items-start">
-                <h3 className="font-heading text-[0.65rem] xs:text-[0.7rem] md:text-[1rem] font-bold text-slate-800 leading-tight">
-                  <span className="md:hidden">Crafted</span>
-                  <span className="hidden md:inline">Chef Crafted</span>
-                </h3>
-                <p className="hidden md:block text-[0.85rem] font-medium text-slate-500 mt-0.5">Made with passion</p>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-4 text-center md:text-left md:border-r md:border-orange-200/40 md:px-6 flex-1 md:flex-none">
-              <div className="shrink-0 p-1.5 md:p-3 rounded-full bg-white shadow-sm border border-orange-100 text-orange-500 transition-transform hover:scale-110 duration-300">
-                <Flame strokeWidth={1.5} className="w-[18px] h-[18px] md:w-[22px] md:h-[22px]" />
-              </div>
-              <div className="flex flex-col items-center md:items-start">
-                <h3 className="font-heading text-[0.65rem] xs:text-[0.7rem] md:text-[1rem] font-bold text-slate-800 leading-tight">
-                  <span className="md:hidden">Signature</span>
-                  <span className="hidden md:inline">Signature Flavors</span>
-                </h3>
-                <p className="hidden md:block text-[0.85rem] font-medium text-slate-500 mt-0.5">Unforgettable taste</p>
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-4 text-center md:text-left md:pl-6 flex-1 md:flex-none">
-              <div className="shrink-0 p-1.5 md:p-3 rounded-full bg-white shadow-sm border border-orange-100 text-orange-500 transition-transform hover:scale-110 duration-300">
-                <Heart strokeWidth={1.5} className="w-[18px] h-[18px] md:w-[22px] md:h-[22px]" />
-              </div>
-              <div className="flex flex-col items-center md:items-start">
-                <h3 className="font-heading text-[0.65rem] xs:text-[0.7rem] md:text-[1rem] font-bold text-slate-800 leading-tight">
-                  <span className="md:hidden">For You</span>
-                  <span className="hidden md:inline">Made for You</span>
-                </h3>
-                <p className="hidden md:block text-[0.85rem] font-medium text-slate-500 mt-0.5">Every dish matters</p>
-              </div>
-            </div>
-
-          </div>
+          )}
         </section>
-      )}
-
-      {/* ───── Menu Grid ───── */}
-      <section className="px-6 pt-7 pb-9 max-md:px-4 max-md:py-5">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <h2 className="font-heading text-[1.6rem] font-bold text-slate-800 mb-1">
-              {searchQuery ? "Search Results" : "Our Menu"}
-            </h2>
-            <p className="text-[0.875rem] text-gray-500">
-              {searchQuery
-                ? `Found ${isFlat ? flatItems.length : Object.values(groupedCategories).flatMap((sub) => Object.values(sub)).flat().length} matches`
-                : `${menuItems.length} handcrafted dishes`}
-            </p>
-          </div>
-        </div>
-
-        {isLoading ? (
-          <CustomerStateCard
-            variant="loading"
-            title="Loading the menu"
-            description="We’re fetching fresh menu items for this branch."
-            className="mx-auto max-w-2xl"
-          />
-        ) : error ? (
-          <CustomerStateCard
-            variant="error"
-            title="Menu unavailable"
-            description={error}
-            primaryAction={{
-              label: 'Try Again',
-              onClick: () => window.location.reload(),
-            }}
-            className="mx-auto max-w-2xl"
-          />
-        ) : (isFlat && flatItems.length === 0) || (!isFlat && Object.keys(groupedCategories).length === 0) ? (
-          <CustomerStateCard
-            variant="empty"
-            icon={Search}
-            title="No matching items found"
-            description={`We couldn't find anything matching "${searchQuery}". Try a different term.`}
-            primaryAction={{
-              label: searchQuery ? 'Clear Search' : 'Browse Menu',
-              onClick: () => (searchQuery ? setSearchQuery('') : navigate('/menu')),
-            }}
-            className="mx-auto max-w-2xl"
-          />
-        ) : (
-          <div className="space-y-8">
-            {isFlat ? (
-              <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
-                <AnimatePresence>
-                  {flatItems.map((item, idx) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.35, delay: Math.min(0.25, idx * 0.08) }}
-                      layout
-                    >
-                      {renderMenuCard(item)}
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            ) : (
-              Object.entries(groupedCategories).map(
-                ([categoryName, subCategories]) => (
-                  <div key={categoryName} className="space-y-4">
-                    <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="inline-block h-8 w-1 rounded-full bg-orange-500" />
-                        <h3 className="font-heading text-[1.15rem] font-bold text-slate-800">
-                          {categoryName}
-                        </h3>
-                      </div>
-                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                        {Object.values(subCategories).flat().length} items
-                      </span>
-                    </div>
-
-                    <div className="space-y-5">
-                      {Object.entries(subCategories).map(
-                        ([subCategoryName, items]) => (
-                          <div
-                            key={`${categoryName}-${subCategoryName}`}
-                            className="space-y-3"
-                          >
-                            {subCategoryName !== "General" && (
-                              <div className="flex items-center justify-between">
-                                <h4 className="flex items-center gap-2 font-heading text-[1rem] font-semibold text-slate-600">
-                                  <span className="inline-block h-2 w-2 rounded-full bg-orange-400" />
-                                  {subCategoryName}
-                                </h4>
-                                <span className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-600">
-                                  {items.length} items
-                                </span>
-                              </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
-                              <AnimatePresence>
-                                {items.map((item, idx) => (
-                                  <motion.div
-                                    key={item.id}
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -8 }}
-                                    transition={{ duration: 0.35, delay: Math.min(0.25, idx * 0.08) }}
-                                    layout
-                                  >
-                                    {renderMenuCard(item)}
-                                  </motion.div>
-                                ))}
-                              </AnimatePresence>
-                            </div>
-                          </div>
-                        ),
-                      )}
-                    </div>
-                  </div>
-                ),
-              )
-            )}
-          </div>
-        )}
-      </section>
       </main>
 
       {/* Footer */}

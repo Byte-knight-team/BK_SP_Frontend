@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import Navbar from '../../components/customer/Navbar';
+import Footer from '../../components/customer/Footer';
 import { getReservationById, cancelReservation } from '../../apis/customer/reservations';
 import { 
   CheckCircle, Clock, XCircle, CreditCard, User, Calendar, MapPin, AlertCircle, FileText
@@ -150,20 +150,24 @@ export default function ReservationDetailPage() {
   const isCancellable = ['REQUESTED', 'CONFIRMED', 'PAID'].includes(reservation.status);
 
   return (
-    <CustomerPageShell maxWidth="max-w-[800px]" contentClassName="px-4 py-8">
+    <div className="min-h-screen bg-slate-50/40 flex flex-col justify-between">
       <Navbar />
 
-      <ReservationDetailContent 
-        reservation={reservation}
-        timeRemaining={timeRemaining}
-        handlePayNow={handlePayNow}
-        isCancellable={isCancellable}
-        showCancelModal={showCancelModal}
-        setShowCancelModal={setShowCancelModal}
-        cancelReason={cancelReason}
-        setCancelReason={setCancelReason}
-        cancelMutation={cancelMutation}
-      />
-    </CustomerPageShell>
+      <main className="flex-1 mx-auto w-full max-w-4xl px-4 sm:px-6 py-8">
+        <ReservationDetailContent 
+          reservation={reservation}
+          timeRemaining={timeRemaining}
+          handlePayNow={handlePayNow}
+          isCancellable={isCancellable}
+          showCancelModal={showCancelModal}
+          setShowCancelModal={setShowCancelModal}
+          cancelReason={cancelReason}
+          setCancelReason={setCancelReason}
+          cancelMutation={cancelMutation}
+        />
+      </main>
+
+      <Footer />
+    </div>
   );
 }
