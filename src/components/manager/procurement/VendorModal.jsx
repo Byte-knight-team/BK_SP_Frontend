@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
+import { z } from 'zod'
 import { X, Building2, Phone, Mail, MapPin, Tag } from 'lucide-react'
+import { nameSchema, phoneSchema, emailSchema } from '../../../utils/validators'
 import { toast } from 'react-toastify'
 import { ProcurementService } from '../../../apis/manager/ProcurementService'
 
 export default function VendorModal({ isOpen, onClose, vendorToEdit, onSuccess }) {
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState({})
   const [formData, setFormData] = useState({
     name: '',
     contactPerson: '',
@@ -40,6 +43,29 @@ export default function VendorModal({ isOpen, onClose, vendorToEdit, onSuccess }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setErrors({})
+    
+    const vendorSchema = z.object({
+      name: nameSchema,
+      contactPerson: z.string().optional(),
+      phone: phoneSchema.optional().or(z.literal('')),
+      email: emailSchema.optional().or(z.literal('')),
+      address: z.string().optional(),
+      category: z.string().optional(),
+    })
+
+    const result = vendorSchema.safeParse(formData)
+
+    if (!result.success) {
+      const fieldErrors = {}
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0]] = issue.message
+      })
+      setErrors(fieldErrors)
+      toast.error('Please fix the errors in the form')
+      return
+    }
+
     setLoading(true)
     try {
       if (vendorToEdit) {
@@ -97,6 +123,7 @@ export default function VendorModal({ isOpen, onClose, vendorToEdit, onSuccess }
               className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all"
               placeholder="e.g. Fresh Farms Co."
             />
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -110,6 +137,7 @@ export default function VendorModal({ isOpen, onClose, vendorToEdit, onSuccess }
                 className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all"
                 placeholder="John Doe"
               />
+              {errors.contactPerson && <p className="text-red-500 text-xs mt-1">{errors.contactPerson}</p>}
             </div>
             <div className="space-y-1">
               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -123,6 +151,7 @@ export default function VendorModal({ isOpen, onClose, vendorToEdit, onSuccess }
                 className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all"
                 placeholder="+1 234 567 890"
               />
+              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
             </div>
           </div>
 
@@ -138,6 +167,7 @@ export default function VendorModal({ isOpen, onClose, vendorToEdit, onSuccess }
               className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all"
               placeholder="contact@freshfarms.com"
             />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
 
           <div className="space-y-1">
@@ -152,6 +182,7 @@ export default function VendorModal({ isOpen, onClose, vendorToEdit, onSuccess }
               className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all"
               placeholder="123 Farm Lane, Rural County"
             />
+            {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
           </div>
 
           <div className="space-y-1">
@@ -173,6 +204,7 @@ export default function VendorModal({ isOpen, onClose, vendorToEdit, onSuccess }
               <option value="Packaging">Packaging</option>
               <option value="Other">Other</option>
             </select>
+            {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 mt-6 border-t border-gray-100">

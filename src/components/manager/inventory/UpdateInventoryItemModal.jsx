@@ -376,7 +376,32 @@ function RemoveForm({ form, onChange, currentStock, unit }) {
  * All fields are pre-filled with the current item data and fully editable.
  * This allows the manager to fix mistakes made during the initial "Add Item".
  */
-function CorrectionForm({ form, onChange }) {
+function CorrectionForm({ form, onChange, existingCategories = [] }) {
+  const allCategories = Array.from(new Set([...CATEGORIES, ...existingCategories]))
+  
+  const [dropdownValue, setDropdownValue] = useState(() => {
+    if (!form.category) return ''
+    return allCategories.includes(form.category) ? form.category : 'Other'
+  })
+
+  useEffect(() => {
+    if (form.category && allCategories.includes(form.category)) {
+      setDropdownValue(form.category)
+    } else if (form.category && !allCategories.includes(form.category)) {
+      setDropdownValue('Other')
+    }
+  }, [form.category, allCategories])
+
+  const handleDropdownChange = (e) => {
+    const val = e.target.value
+    setDropdownValue(val)
+    if (val !== 'Other') {
+      onChange('category')(e)
+    } else {
+      onChange('category')({ target: { value: '' } })
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Item Name */}
@@ -404,19 +429,30 @@ function CorrectionForm({ form, onChange }) {
           <select
             id="correct-category"
             className="modal-select"
-            value={form.category}
-            onChange={onChange('category')}
+            value={dropdownValue}
+            onChange={handleDropdownChange}
             required
           >
             <option value="" disabled>
               Select Category
             </option>
-            {CATEGORIES.map((cat) => (
+            {allCategories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>
             ))}
+            <option value="Other">Other (Add New)</option>
           </select>
+          {dropdownValue === 'Other' && (
+            <input
+              type="text"
+              className="modal-input mt-3"
+              placeholder="Type new category..."
+              value={form.category}
+              onChange={onChange('category')}
+              required
+            />
+          )}
         </div>
         <div>
           <label htmlFor="correct-unit" className="modal-label">
@@ -528,6 +564,7 @@ export default function UpdateInventoryItemModal({
   onClose,
   item,
   onUpdate,
+  existingCategories = [],
 }) {
   // Track which update type is currently selected (null = none)
   const [updateType, setUpdateType] = useState(null)
@@ -702,6 +739,7 @@ export default function UpdateInventoryItemModal({
               <CorrectionForm
                 form={correctionForm}
                 onChange={createChangeHandler(setCorrectionForm)}
+                existingCategories={existingCategories}
               />
             )}
           </div>

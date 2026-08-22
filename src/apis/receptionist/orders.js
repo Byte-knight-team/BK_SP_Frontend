@@ -106,3 +106,18 @@ export const serveOrderItemAPI = async (itemId) => {
     return { data: null, error: error.message }
   }
 }
+
+export const getOrderHistoryAPI = async ({ page = 0, size = 10, date, status, orderType, paymentStatus } = {}) => {
+  try {
+    const params = new URLSearchParams({ page, size })
+    if (date) params.set('date', date)
+    if (status && status !== 'ALL') params.set('status', status)
+    if (orderType && orderType !== 'ALL') params.set('orderType', orderType)
+    if (paymentStatus && paymentStatus !== 'ALL') params.set('paymentStatus', paymentStatus)
+    const response = await authFetch(buildApiUrl(`${BASE}/history?${params.toString()}`))
+    const result = await response.json()
+    return { data: result.data, error: null }
+  } catch (error) {
+    return { data: null, error: error.message }
+  }
+}

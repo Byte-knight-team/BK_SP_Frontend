@@ -11,9 +11,9 @@ export function useInventoryData() {
   const { user, hydrated } = useAuth()
   const branchId = user?.branchId
 
-  const fetchInventory = async () => {
+  const fetchInventory = async (silent = false) => {
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
       const [items, summary, logs] = await Promise.all([
         InventoryService.getAllItems(branchId),
         InventoryService.getSummary(branchId),
@@ -31,7 +31,7 @@ export function useInventoryData() {
       console.error('Failed to fetch inventory dashboard data:', err)
       setError(err.message || 'Failed to fetch data')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
@@ -66,7 +66,7 @@ export function useInventoryData() {
       });
 
       // Still call fetchInventory to keep everything perfectly in sync with backend
-      await fetchInventory() 
+      await fetchInventory(true) 
       return { success: true }
     } catch (err) {
       console.error('Failed to resolve chef request:', err)
@@ -78,7 +78,7 @@ export function useInventoryData() {
   // whenever an event fires (e.g. a new chef request is submitted from the kitchen)
   const topic = branchId ? `/topic/branch/${branchId}/manager-notifications` : null
   useWebSocket(branchId, topic, () => {
-    fetchInventory()
+    fetchInventory(true)
   })
 
   return { data, loading, error, refetch: fetchInventory, resolveChefRequest }

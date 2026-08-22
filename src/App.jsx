@@ -114,6 +114,7 @@ const CustomerReservationDetailPage = lazy(() => import('./pages/customer/Reserv
 // Kitchen pages
 const KitchenDashboardPage = lazy(() => import('./pages/kitchen/KitchenDashboardPage'))
 const KitchenOrdersPage = lazy(() => import('./pages/kitchen/KitchenOrdersPage'))
+const KitchenOrderHistoryPage = lazy(() => import('./pages/kitchen/KitchenOrderHistoryPage'))
 const ChefsPage = lazy(() => import('./pages/kitchen/ChefsPage'))
 const InventoryPage = lazy(() => import('./pages/kitchen/InventoryPage'))
 const InventoryRequestsPage = lazy(() => import('./pages/kitchen/InventoryRequestsPage'))
@@ -127,6 +128,7 @@ const LineChefHistoryPage = lazy(() => import('./pages/line-chef/LineChefHistory
 const ReceptionistDashboardPage = lazy(() => import('./pages/receptionist/ReceptionistDashboardPage'))
 const ReceptionistTablePage = lazy(() => import('./pages/receptionist/TableManagementPage'))
 const OrderManagementPage = lazy(() => import('./pages/receptionist/OrderManagementPage'))
+const OrderHistoryPage = lazy(() => import('./pages/receptionist/OrderHistoryPage'))
 const ReservationsPage = lazy(() => import('./pages/receptionist/ReservationsPage'))
 
 
@@ -452,6 +454,7 @@ export default function App() {
         >
           <Route index element={<KitchenDashboardPage />} />
           <Route path="orders" element={<KitchenOrdersPage />} />
+          <Route path="order-history" element={<KitchenOrderHistoryPage />} />
           <Route path="chefs" element={<ChefsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="requests" element={<InventoryRequestsPage />} />
@@ -477,6 +480,7 @@ export default function App() {
           <Route index element={<ReceptionistDashboardPage />} />
           <Route path="tables" element={<ReceptionistTablePage />} />
           <Route path="orders" element={<OrderManagementPage />} />
+          <Route path="order-history" element={<OrderHistoryPage />} />
           <Route path="reservations" element={<ReservationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
