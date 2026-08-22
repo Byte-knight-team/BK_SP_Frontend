@@ -13,6 +13,7 @@ import {
 
 import { useAuth } from "../context/AuthContext";
 import LogoutConfirmModal from "../components/common/LogoutConfirmModal";
+import { showSignOutToast } from "../utils/toast";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -82,6 +83,7 @@ export default function ProfilePage() {
     }
 
     setShowLogoutConfirm(false);
+    showSignOutToast();
     navigate("/staff/login", { replace: true });
   };
 

@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, Plus, Calendar, Clock, MapPin, Users, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import BrandLogo from '../../components/customer/BrandLogo';
 import Navbar from '../../components/customer/Navbar';
-import CustomerPageShell from '../../components/customer/CustomerPageShell';
+import Footer from '../../components/customer/Footer';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import CreateReservationDrawer from '../../components/customer/CreateReservationDrawer';
 import ReservationDetailModal from '../../components/customer/ReservationDetailModal';
@@ -130,15 +130,17 @@ export default function CustomerReservationsListPage() {
   };
 
   return (
-    <CustomerPageShell maxWidth="max-w-7xl">
+    <div className="min-h-screen bg-slate-50/40 flex flex-col justify-between">
       <Navbar />
-      <div className="mx-auto w-full px-4 py-8">
+
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <button
           onClick={() => navigate('/')}
-          className="mb-6 inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-slate-900"
+          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 transition-colors"
         >
           <ArrowLeft size={16} /> Back Home
         </button>
+
         {/* Header Banner */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 p-6 sm:p-8 text-white shadow-xl shadow-orange-500/15 mb-6">
           {/* Subtle Clean Decorative White Glow Overlays */}
@@ -330,7 +332,10 @@ export default function CustomerReservationsListPage() {
         <div ref={observerTargetRef} className="h-10 w-full mt-4 flex items-center justify-center">
           {isFetchingNextPage && reservations.length > 0 && <Loader2 className="animate-spin text-orange-500" size={24} />}
         </div>
-      </div>
+      </main>
+
+      {/* Full-bleed Footer */}
+      <Footer />
 
       <CreateReservationDrawer 
         isOpen={isDrawerOpen} 
@@ -347,6 +352,6 @@ export default function CustomerReservationsListPage() {
           }
         }}
       />
-    </CustomerPageShell>
+    </div>
   );
 }

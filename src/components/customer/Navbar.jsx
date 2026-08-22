@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen, BarChart3, Calendar } from 'lucide-react';
+import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen, Calendar } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { endQrSession } from '../../apis/customer/qrSessions';
+import { showSignOutToast, showLeaveTableToast } from '../../utils/toast';
 import BrandLogo from './BrandLogo';
-import LoginButton from './LoginCustomer';
-import SignupButton from './SignupCustomer';
-import Button from './buttons/Button';
-import IconButton from './buttons/IconButton';
-import LinkButton from './buttons/LinkButton';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 function getQrSessionClaim(claimName) {
   // Decode claim on-the-fly from token, never read from localStorage
@@ -22,7 +16,6 @@ function getQrSessionClaim(claimName) {
 }
 
 export default function Navbar() {
-  // 1. Grab clearCart from the context!
   const { cartCount, clearCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
@@ -47,7 +40,7 @@ export default function Navbar() {
         profilePic: localStorage.getItem('customer_profile_pic') || ''
       }));
     };
-    
+
     window.addEventListener('profile_picture_updated', handleProfileUpdate);
 
     setAuth({
@@ -63,7 +56,6 @@ export default function Navbar() {
     return () => window.removeEventListener('profile_picture_updated', handleProfileUpdate);
   }, [location.pathname]);
 
-  // 2. Add clearCart() to the logout sequence
   const handleLogout = () => {
     localStorage.removeItem('customer_jwt');
     localStorage.removeItem('customer_role');
@@ -71,33 +63,28 @@ export default function Navbar() {
     localStorage.removeItem('customer_name');
     localStorage.removeItem('customer_profile_pic');
 
-    //log outs qr session for more security
     localStorage.removeItem('qr_session');
     localStorage.removeItem('qr_session_token');
     localStorage.removeItem('qr_branch_id');
     localStorage.removeItem('qr_table_id');
 
-    // Wipe the cart memory!
     clearCart();
-
     setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '', profilePic: '', tableId: auth.tableId });
+    showSignOutToast();
     navigate('/');
   };
 
-  // ── Leave Table: end QR session (backend + frontend), wipe everything ──
   const handleLeaveTable = async () => {
     const sessionId = getQrSessionClaim('session_id');
 
-    // Call backend to formally end the session (fire-and-forget, don't block on failure)
     if (sessionId) {
       try {
         await endQrSession(sessionId);
       } catch {
-        // Silent — we still clear frontend regardless
+        // Silent
       }
     }
 
-    // Clear everything — both QR session AND customer auth
     localStorage.removeItem('qr_session');
     localStorage.removeItem('qr_session_token');
     localStorage.removeItem('qr_branch_id');
@@ -110,6 +97,7 @@ export default function Navbar() {
 
     clearCart();
     setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '', profilePic: '', tableId: null });
+    showLeaveTableToast();
     navigate('/');
   };
 
@@ -130,145 +118,156 @@ export default function Navbar() {
     const token = localStorage.getItem('customer_jwt');
     const qrSessionToken = localStorage.getItem('qr_session_token');
 
-    //f they are NOT logged in, intercept them:
     if (!token) {
       if (qrSessionToken) {
-        // Force OTP verify to link this new QR session to their old account
         navigate('/signup/qr?redirect=/orders', { replace: true });
       } else {
         navigate('/login?redirect=/orders', { replace: true });
       }
       return;
     }
-    //If they ARE logged in, put your normal button logic here:
     navigate('/orders');
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
-        
-        <div className="flex items-center gap-6 xl:gap-8">
-          <Link to="/" className="flex items-center gap-2.5">
-          <BrandLogo />
-          <div className="leading-tight min-w-0">
-            <p className="text-base font-bold text-slate-900 truncate flex items-center gap-2">
-              <span><span className="text-orange-500">Crave</span>House</span>
-              {auth.isQrCustomer && auth.tableNumber && (
-                <span className="sm:hidden inline-flex items-center rounded-md bg-orange-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
-                  Table {auth.tableNumber}
-                </span>
-              )}
-            </p>
-            <p className="hidden text-[11px] text-slate-500 sm:block">
-              Premium Dining Experience
-            </p>
-          </div>
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-[0_2px_15px_rgba(0,0,0,0.03)]">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+
+        {/* ── Brand Logo Group ── */}
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-2.5 transition-transform hover:scale-[1.02] active:scale-98">
+            <BrandLogo />
+            <div className="leading-tight min-w-0">
+              <p className="text-lg font-bold text-slate-900 truncate flex items-center gap-2">
+                <span><span className="text-orange-500">Crave</span>House</span>
+              </p>
+              <p className="hidden text-[11px] font-medium text-slate-400 sm:block">
+                Premium Dining Experience
+              </p>
+            </div>
           </Link>
 
-          {/* Desktop Table Badge (Larger, placed with distance from logo) */}
+          {/* Table Badge for QR Customer */}
           {auth.isQrCustomer && auth.tableNumber && (
-            <div className="hidden sm:flex items-center justify-center rounded-lg bg-orange-500 px-4 py-1.5 shadow-md transition-transform hover:scale-105">
-              <span className="text-white font-bold text-sm tracking-wide">Table {auth.tableNumber}</span>
+            <div className="flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3.5 py-1.5 shadow-sm border border-orange-400/40">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-300"></span>
+              </span>
+              <span className="text-xs sm:text-sm font-extrabold tracking-wide drop-shadow-xs">Table {auth.tableNumber}</span>
             </div>
           )}
         </div>
 
+        {/* ── Center Nav (Home Page) ── */}
         {isHomePage && (
-          <nav className="hidden items-center gap-7 text-sm font-medium text-slate-500 lg:flex">
+          <nav className="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex">
             <a
               href="#restuarent"
-              className="transition-colors hover:text-slate-900"
+              className="px-3 py-1.5 rounded-lg transition-colors hover:text-orange-600 hover:bg-orange-50/60"
             >
               How It Works
             </a>
             <a
               href="#testimonials"
-              className="transition-colors hover:text-slate-900"
+              className="px-3 py-1.5 rounded-lg transition-colors hover:text-orange-600 hover:bg-orange-50/60"
             >
               Testimonials
             </a>
           </nav>
         )}
 
-        <div className="flex items-center gap-2">
+        {/* ── Right Actions ── */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
           <div className="hidden items-center gap-2 xl:flex">
             {/* ───── GUEST VIEW ───── */}
             {!auth.isLoggedIn && !auth.isQrCustomer && (
               <>
-                <LinkButton
+                <Link
                   to="/reservations"
-                  variant="secondary"
-                  icon={Calendar}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-50/90 hover:bg-orange-50 border border-slate-200/80 hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95 shadow-2xs group"
                 >
-                  Book a Table
-                </LinkButton>
-                <LoginButton />
-                <SignupButton />
+                  <Calendar size={17} className="text-slate-500 group-hover:text-orange-500 transition-colors" />
+                  <span>Book a Table</span>
+                </Link>
+                <Link
+                  to="/login"
+                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-50/90 hover:bg-orange-50 border border-slate-200/80 hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95 shadow-2xs"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition-all active:scale-95"
+                >
+                  Sign Up
+                </Link>
               </>
             )}
 
             {/* ───── LOGGED IN VIEW ───── */}
             {auth.isLoggedIn && (
               <>
-                <LinkButton
+                <Link
                   to="/orders"
-                  variant="secondary"
-                  icon={Package}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-50/90 hover:bg-orange-50 border border-slate-200/80 hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95 shadow-2xs group"
                 >
-                  Orders
-                </LinkButton>
+                  <Package size={17} className="text-slate-500 group-hover:text-orange-500 transition-colors" />
+                  <span>Orders</span>
+                </Link>
+
                 {!auth.isQrCustomer && (
-                  <LinkButton
+                  <Link
                     to="/reservations"
-                    variant="secondary"
-                    icon={Calendar}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-50/90 hover:bg-orange-50 border border-slate-200/80 hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95 shadow-2xs group"
                   >
-                    Reservations
-                  </LinkButton>
+                    <Calendar size={17} className="text-slate-500 group-hover:text-orange-500 transition-colors" />
+                    <span>Reservations</span>
+                  </Link>
                 )}
 
-                {/* ONLY SHOW ACCOUNT IF NOT A QR CUSTOMER */}
+                {/* Account Profile Pill */}
                 {!auth.isQrCustomer && (
-                  <LinkButton
+                  <Link
                     to="/account"
-                    variant="secondary"
-                    icon={auth.profilePic ? null : UserCircle2}
+                    className="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full bg-slate-100/90 hover:bg-orange-50 border border-slate-200/80 hover:border-orange-200 text-slate-800 text-sm font-semibold transition-all shadow-2xs group"
                   >
-                    <span className="flex items-center">
-                      {auth.profilePic && (
-                        <img 
-                          src={auth.profilePic} 
-                          alt="Profile" 
-                          className="w-5 h-5 rounded-full object-cover -ml-1 mr-1.5" 
-                        />
-                      )}
-                      <span className="max-w-[100px] truncate leading-none pt-0.5">
-                        {auth.userName || "Account"}
-                      </span>
+                    {auth.profilePic ? (
+                      <img
+                        src={auth.profilePic}
+                        alt="Profile"
+                        className="w-7 h-7 rounded-full object-cover border border-white shadow-2xs"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white text-xs font-bold shadow-2xs">
+                        {(auth.userName || 'U')[0].toUpperCase()}
+                      </div>
+                    )}
+                    <span className="max-w-[100px] truncate group-hover:text-orange-600">
+                      {auth.userName || "Account"}
                     </span>
-                    </LinkButton>
+                  </Link>
                 )}
 
-                {/* LEAVE TABLE for QR + logged-in users */}
+                {/* Leave Table / Logout */}
                 {auth.isQrCustomer ? (
-                  <Button
+                  <button
                     onClick={handleLeaveTable}
-                    variant="accent"
-                    icon={DoorOpen}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-rose-600 bg-rose-50/90 hover:bg-rose-100 hover:text-rose-700 border border-rose-200/80 transition-all active:scale-95 shadow-2xs group"
                     title="Leave Table"
                   >
-                    Leave Table
-                  </Button>
+                    <DoorOpen size={16} className="text-rose-500 group-hover:text-rose-600 transition-colors" />
+                    <span>Leave Table</span>
+                  </button>
                 ) : (
-                  <Button
+                  <button
                     onClick={handleLogout}
-                    variant="danger"
-                    icon={LogOut}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-rose-600 hover:text-rose-700 bg-rose-50/80 hover:bg-rose-100 border border-rose-100 transition-all active:scale-95"
                     title="Logout"
                   >
-                    Logout
-                  </Button>
+                    <LogOut size={16} />
+                    <span className="hidden md:inline">Logout</span>
+                  </button>
                 )}
               </>
             )}
@@ -276,210 +275,209 @@ export default function Navbar() {
             {/* ───── QR CUSTOMER VIEW (not logged in) ───── */}
             {auth.isQrCustomer && !auth.isLoggedIn && (
               <>
-                <Button
+                <button
                   onClick={handleTableOrderClick}
-                  variant="secondary"
-                  icon={Package}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-50/90 hover:bg-orange-50 border border-slate-200/80 hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95 shadow-2xs group"
                 >
-                  Table Orders
-                </Button>
-                <Button
+                  <Package size={17} className="text-slate-500 group-hover:text-orange-500 transition-colors" />
+                  <span>Orders</span>
+                </button>
+                <button
                   onClick={handleLeaveTable}
-                  variant="accent"
-                  icon={DoorOpen}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-rose-600 bg-rose-50/90 hover:bg-rose-100 hover:text-rose-700 border border-rose-200/80 transition-all active:scale-95 shadow-2xs group"
                   title="Leave Table"
                 >
-                  Leave Table
-                </Button>
+                  <DoorOpen size={16} className="text-rose-500 group-hover:text-rose-600 transition-colors" />
+                  <span>Leave Table</span>
+                </button>
               </>
             )}
           </div>
 
+          {/* ── Menu Shortcut Link (when not on Menu page) ── */}
+          {!isMenuPage && (
+            <Link
+              to="/menu"
+              className="hidden sm:inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100/80 border border-orange-200/80 transition-all active:scale-95"
+            >
+              Menu
+            </Link>
+          )}
+
+          {/* ── Cart Button ── */}
           <Link
             to="/cart"
-            className="relative ml-2"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 hover:bg-orange-50 text-slate-700 hover:text-orange-600 border border-slate-200/80 hover:border-orange-200 transition-all active:scale-95 shadow-2xs"
             aria-label="Open cart"
           >
-            <IconButton icon={ShoppingBag} />
+            <ShoppingBag size={19} />
             {cartCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-bold text-white">
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-in zoom-in-50 duration-200">
                 {cartCount}
               </span>
             )}
           </Link>
 
-          {/* Mobile Menu Button */}
-          <IconButton
+          {/* ── Mobile Menu Toggle ── */}
+          <button
             onClick={toggleMenu}
-            className="inline-flex xl:hidden ml-2"
-            icon={isMenuOpen ? X : Menu}
-          />
-
-          {!isMenuPage && (
-            <LinkButton
-              to="/menu"
-              variant="secondary"
-              className="hidden ml-2 sm:inline-flex"
-            >
-              Menu
-            </LinkButton>
-          )}
+            className="inline-flex xl:hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-all active:scale-95 shadow-2xs"
+            aria-label="Toggle navigation"
+          >
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Menu Panel */}
+      {/* ── Mobile Menu Panel ── */}
       {isMenuOpen && (
-        <div className="absolute left-0 right-0 top-16 z-40 border-b border-slate-200 bg-white shadow-lg xl:hidden">
-          <div className="mx-auto max-h-[calc(100vh-4rem)] max-w-7xl space-y-2 overflow-y-auto px-4 py-4">
+        <div className="absolute left-0 right-0 top-16 z-40 border-b border-slate-200 bg-white/98 backdrop-blur-xl shadow-xl xl:hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="mx-auto max-h-[calc(100vh-4rem)] max-w-7xl space-y-2 overflow-y-auto px-4 py-5">
             {isHomePage && (
               <>
                 <a
                   href="#restuarent"
                   onClick={toggleMenu}
-                  className="block rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
+                  className="block rounded-xl px-4 py-2.5 font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                 >
                   How It Works
                 </a>
                 <a
                   href="#testimonials"
                   onClick={toggleMenu}
-                  className="block rounded-lg px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-100"
+                  className="block rounded-xl px-4 py-2.5 font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                 >
                   Testimonials
                 </a>
-                <div className="h-px bg-slate-200 my-3" />
+                <div className="h-px bg-slate-100 my-2" />
               </>
             )}
 
             {!auth.isLoggedIn && !auth.isQrCustomer && (
-              <>
-                <LinkButton
+              <div className="flex flex-col gap-2 pt-1">
+                <Link
                   to="/reservations"
                   onClick={toggleMenu}
-                  variant="secondary"
-                  icon={Calendar}
-                  className="w-full justify-start"
+                  className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                 >
-                  Book a Table
-                </LinkButton>
-                <LinkButton
-                  to="/login"
-                  onClick={toggleMenu}
-                  variant="secondary"
-                  className="w-full justify-start"
-                >
-                  Login
-                </LinkButton>
-                <LinkButton
-                  to="/signup"
-                  onClick={toggleMenu}
-                  variant="primary"
-                  className="w-full justify-start"
-                >
-                  Sign Up
-                </LinkButton>
-              </>
+                  <Calendar size={18} className="text-slate-500" />
+                  <span>Book a Table</span>
+                </Link>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <Link
+                    to="/login"
+                    onClick={toggleMenu}
+                    className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-2.5 font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={toggleMenu}
+                    className="flex items-center justify-center rounded-xl bg-orange-500 py-2.5 font-semibold text-white hover:bg-orange-600 shadow-sm transition-colors"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              </div>
             )}
 
             {auth.isLoggedIn && (
-              <>
-                <LinkButton
-                  to="/orders"
-                  onClick={toggleMenu}
-                  variant="secondary"
-                  icon={Package}
-                  className="w-full justify-start"
-                >
-                  Orders
-                </LinkButton>
+              <div className="flex flex-col gap-2">
                 {!auth.isQrCustomer && (
-                  <LinkButton
-                    to="/reservations"
-                    onClick={toggleMenu}
-                    variant="secondary"
-                    icon={Calendar}
-                    className="w-full justify-start"
-                  >
-                    Reservations
-                  </LinkButton>
-                )}
-                {!auth.isQrCustomer && (
-                  <LinkButton
+                  <Link
                     to="/account"
                     onClick={toggleMenu}
-                    variant="secondary"
-                    icon={auth.profilePic ? null : UserCircle2}
-                    className="w-full justify-start"
+                    className="flex items-center gap-3 rounded-xl bg-slate-50 border border-slate-200/80 p-3 mb-1"
                   >
-                  <span className="flex items-center">
-                    {auth.profilePic && (
-                      <img 
-                        src={auth.profilePic} 
-                        alt="Profile" 
-                        className="w-5 h-5 rounded-full object-cover mr-1.5" 
+                    {auth.profilePic ? (
+                      <img
+                        src={auth.profilePic}
+                        alt="Profile"
+                        className="w-10 h-10 rounded-full object-cover border border-white shadow-xs"
                       />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white font-bold shadow-xs">
+                        {(auth.userName || 'U')[0].toUpperCase()}
+                      </div>
                     )}
-                    <span className="truncate leading-none pt-0.5">
-                      {auth.userName || "Account"}
-                    </span>
-                    </span>
-                  </LinkButton>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-900 truncate">{auth.userName || "Customer"}</p>
+                      <p className="text-xs text-orange-600 font-medium">View Account Profile</p>
+                    </div>
+                  </Link>
                 )}
+
+                <Link
+                  to="/orders"
+                  onClick={toggleMenu}
+                  className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                >
+                  <Package size={18} className="text-slate-500" />
+                  <span>Orders</span>
+                </Link>
+
+                {!auth.isQrCustomer && (
+                  <Link
+                    to="/reservations"
+                    onClick={toggleMenu}
+                    className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                  >
+                    <Calendar size={18} className="text-slate-500" />
+                    <span>Reservations</span>
+                  </Link>
+                )}
+
                 {auth.isQrCustomer ? (
-                  <Button
+                  <button
                     onClick={() => { handleLeaveTable(); toggleMenu(); }}
-                    variant="accent"
-                    icon={DoorOpen}
-                    className="w-full justify-start"
+                    className="flex items-center gap-2.5 w-full rounded-xl bg-rose-50 border border-rose-200/80 px-4 py-2.5 font-semibold text-rose-600 hover:bg-rose-100 transition-colors mt-2"
                   >
-                    Leave Table
-                  </Button>
+                    <DoorOpen size={18} />
+                    <span>Leave Table</span>
+                  </button>
                 ) : (
-                  <Button
+                  <button
                     onClick={() => { handleLogout(); toggleMenu(); }}
-                    variant="danger"
-                    icon={LogOut}
-                    className="w-full justify-start"
+                    className="flex items-center gap-2.5 w-full rounded-xl bg-rose-50 border border-rose-100 px-4 py-2.5 font-semibold text-rose-600 hover:bg-rose-100 transition-colors mt-2"
                   >
-                    Logout
-                  </Button>
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </button>
                 )}
-              </>
+              </div>
             )}
 
             {/* Mobile: QR customer not logged in */}
             {auth.isQrCustomer && !auth.isLoggedIn && (
-              <>
-                <Button
+              <div className="flex flex-col gap-2">
+                <button
                   onClick={() => { handleTableOrderClick(); toggleMenu(); }}
-                  variant="secondary"
-                  icon={Package}
-                  className="w-full justify-start"
+                  className="flex items-center gap-2.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
                 >
-                  Table Orders
-                </Button>
-                <Button
+                  <Package size={18} />
+                  <span>Table Orders</span>
+                </button>
+                <button
                   onClick={() => { handleLeaveTable(); toggleMenu(); }}
-                  variant="accent"
-                  icon={DoorOpen}
-                  className="w-full justify-start"
+                  className="flex items-center gap-2.5 w-full rounded-xl bg-rose-50 border border-rose-200/80 px-4 py-2.5 font-semibold text-rose-600 hover:bg-rose-100 transition-colors"
                 >
-                  Leave Table
-                </Button>
-              </>
+                  <DoorOpen size={18} />
+                  <span>Leave Table</span>
+                </button>
+              </div>
             )}
 
             {!isMenuPage && (
               <>
-                <div className="h-px bg-slate-200 my-3" />
-                <LinkButton
+                <div className="h-px bg-slate-100 my-2" />
+                <Link
                   to="/menu"
                   onClick={toggleMenu}
-                  variant="secondary"
-                  className="w-full justify-center"
+                  className="flex items-center justify-center w-full rounded-xl bg-orange-500 py-3 font-bold text-white shadow-sm hover:bg-orange-600 transition-colors"
                 >
                   Open Menu
-                </LinkButton>
+                </Link>
               </>
             )}
           </div>

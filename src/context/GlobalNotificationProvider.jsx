@@ -17,6 +17,7 @@ import {
   Ban,
   Package
 } from 'lucide-react';
+import { decodeJwtPayload } from '../utils/authToken';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -72,14 +73,8 @@ export default function GlobalNotificationProvider() {
       return;
     }
 
-    let userId = null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      userId = payload.userId || payload.user_id || payload.sub;
-    } catch (e) {
-      console.error('[GlobalNotification] Failed to decode JWT', e);
-      return;
-    }
+    const payload = decodeJwtPayload(token);
+    const userId = payload?.userId || payload?.user_id || payload?.sub;
 
     if (!userId) return;
 
