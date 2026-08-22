@@ -555,6 +555,15 @@ export default function CheckoutPage() {
       const responseJson = await res.json().catch(() => ({}))
 
       if (!res.ok) {
+        if (res.status === 410 || (responseJson?.message && responseJson.message.toLowerCase().includes('session has ended'))) {
+          localStorage.removeItem('qr_session_token')
+          localStorage.removeItem('qr_session')
+          localStorage.removeItem('qr_branch_id')
+          localStorage.removeItem('qr_table_id')
+          toast.error('Your table session has ended. Please rescan the QR code on your table.')
+          navigate('/menu', { replace: true })
+          return
+        }
         throw new Error(
           responseJson?.message ||
           responseJson?.error ||
