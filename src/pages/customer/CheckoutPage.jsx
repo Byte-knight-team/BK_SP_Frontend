@@ -230,12 +230,12 @@ export default function CheckoutPage() {
         redeemLoyaltyPoints: redeemLoyaltyPoints || undefined,
         latitude:
           (overrides.orderType || orderType) === 'ONLINE_DELIVERY' &&
-          selectedLocation?.lat
+            selectedLocation?.lat
             ? selectedLocation.lat
             : undefined,
         longitude:
           (overrides.orderType || orderType) === 'ONLINE_DELIVERY' &&
-          selectedLocation?.lng
+            selectedLocation?.lng
             ? selectedLocation.lng
             : undefined,
         items: cartItems.map((item) => ({
@@ -251,8 +251,8 @@ export default function CheckoutPage() {
       if (!res.ok) {
         throw new Error(
           payloadJson?.message ||
-            payloadJson?.error ||
-            'Unable to calculate checkout totals.',
+          payloadJson?.error ||
+          'Unable to calculate checkout totals.',
         )
       }
 
@@ -464,6 +464,28 @@ export default function CheckoutPage() {
       return
     }
 
+    const cleanedPhone = contact.phone.replace(/[\s\-]/g, '').trim()
+    const sriLankanPhoneRegex = /^(?:\+94|94|0)?7[0-9]{8}$/
+    if (!sriLankanPhoneRegex.test(cleanedPhone)) {
+      setError('mobile number must be 10 digits starting with 07.')
+      toast.warning('Please enter a valid mobile number (e.g. 07XXXXXXXX).')
+      return
+    }
+
+    if (!isQrCustomer) {
+      if (!contact.email.trim()) {
+        setError('Email address is required.')
+        toast.warning('Please enter your email address.')
+        return
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(contact.email.trim())) {
+        setError('Please enter a valid email address.')
+        toast.warning('Please enter a valid email address.')
+        return
+      }
+    }
+
     if (!isQrCustomer && isDelivery && !contact.address.trim()) {
       setError('Delivery address is required.')
       toast.warning('Please provide your delivery address.')
@@ -535,8 +557,8 @@ export default function CheckoutPage() {
       if (!res.ok) {
         throw new Error(
           responseJson?.message ||
-            responseJson?.error ||
-            'Failed to place order.',
+          responseJson?.error ||
+          'Failed to place order.',
         )
       }
 
@@ -598,8 +620,8 @@ export default function CheckoutPage() {
   // Conditional text rendering for the loyalty points helper message
   const loyaltyHint =
     receipt &&
-    receipt.availableLoyaltyPoints > 0 &&
-    receipt.minPointsToRedeem > 0
+      receipt.availableLoyaltyPoints > 0 &&
+      receipt.minPointsToRedeem > 0
       ? `Balance ${receipt.availableLoyaltyPoints} pts. Minimum ${receipt.minPointsToRedeem}.`
       : receipt && receipt.availableLoyaltyPoints > 0
         ? `Balance ${receipt.availableLoyaltyPoints} pts.`
@@ -773,6 +795,7 @@ export default function CheckoutPage() {
                 </label>
                 <input
                   type="text"
+                  maxLength={100}
                   className={inputCls}
                   placeholder="Enter username"
                   value={contact.username}
@@ -797,6 +820,7 @@ export default function CheckoutPage() {
                     />
                     <input
                       type="email"
+                      maxLength={100}
                       className={`${inputCls} pl-10`}
                       placeholder="your@email.com"
                       value={contact.email}
@@ -822,6 +846,7 @@ export default function CheckoutPage() {
                   />
                   <input
                     type="tel"
+                    maxLength={20}
                     className={`${inputCls} pl-10 ${isQrCustomer ? 'cursor-not-allowed bg-gray-100 text-gray-500' : ''}`}
                     placeholder="077XXXXXXX"
                     value={contact.phone}
@@ -847,6 +872,7 @@ export default function CheckoutPage() {
                     Delivery Address
                   </label>
                   <textarea
+                    maxLength={500}
                     className={`${inputCls} min-h-[80px] resize-y`}
                     placeholder="Enter your delivery address (e.g. apartment, gate code)"
                     value={contact.address}
@@ -1013,7 +1039,7 @@ export default function CheckoutPage() {
                   <span>{loyaltyHint}</span>
                   {maxRedeemablePoints > 0 &&
                     receipt?.availableLoyaltyPoints >=
-                      receipt?.minPointsToRedeem && (
+                    receipt?.minPointsToRedeem && (
                       <span className="bg-orange-light text-orange rounded-full px-2.5 py-1">
                         Max redeemable now: {maxRedeemablePoints}
                       </span>
@@ -1026,7 +1052,7 @@ export default function CheckoutPage() {
                     className={`${inputCls} ${receipt && receipt.availableLoyaltyPoints < receipt.minPointsToRedeem ? 'cursor-not-allowed bg-gray-100 text-gray-400' : ''}`}
                     placeholder={
                       receipt &&
-                      receipt.availableLoyaltyPoints < receipt.minPointsToRedeem
+                        receipt.availableLoyaltyPoints < receipt.minPointsToRedeem
                         ? 'Locked'
                         : 'Amount to redeem'
                     }
@@ -1035,7 +1061,7 @@ export default function CheckoutPage() {
                     disabled={
                       receipt
                         ? receipt.availableLoyaltyPoints <
-                          receipt.minPointsToRedeem
+                        receipt.minPointsToRedeem
                         : false
                     }
                     min={receipt?.minPointsToRedeem || 0}
@@ -1051,7 +1077,7 @@ export default function CheckoutPage() {
                         isSubmitting ||
                         (receipt &&
                           receipt.availableLoyaltyPoints <
-                            receipt.minPointsToRedeem)
+                          receipt.minPointsToRedeem)
                       }
                     >
                       Redeem
@@ -1086,7 +1112,7 @@ export default function CheckoutPage() {
                 {/* Locked Points Alert Box */}
                 {receipt &&
                   receipt.availableLoyaltyPoints <
-                    receipt.minPointsToRedeem && (
+                  receipt.minPointsToRedeem && (
                     <div className="mt-3 flex items-center gap-2 rounded-[12px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                       <AlertCircle size={16} />
                       Loyalty redemption is locked until the balance reaches{' '}
