@@ -1,7 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import brandLogo from '../../assets/Crave House logo.png';
 
-export default function Footer() {
+export default function Footer({ showHomeLinks }) {
+	const location = useLocation();
+	const isHomePage = location.pathname === '/';
+	const displayHomeLinks = showHomeLinks !== undefined ? showHomeLinks : isHomePage;
+
 	return (
 		<footer className="bg-slate-950 px-4 py-10 sm:px-6">
 			<div className="mx-auto max-w-7xl">
@@ -20,9 +24,18 @@ export default function Footer() {
 					<div>
 						<p className="mb-3 text-sm font-semibold uppercase tracking-wide text-white">Quick Links</p>
 						<div className="flex flex-col gap-2 text-sm text-slate-400">
-							<a href="#online" className="transition-colors hover:text-orange-400">How It Works</a>
-							<a href="#testimonials" className="transition-colors hover:text-orange-400">Testimonials</a>
-							<Link to="/menu" className="transition-colors hover:text-orange-400">Get Started</Link>
+							{!isHomePage && (
+								<Link to="/" className="transition-colors hover:text-orange-400">Home</Link>
+							)}
+							{displayHomeLinks && (
+								<>
+									<a href="#online" className="transition-colors hover:text-orange-400">How It Works</a>
+									<a href="#testimonials" className="transition-colors hover:text-orange-400">Testimonials</a>
+								</>
+							)}
+							{location.pathname !== '/menu' && (
+								<Link to="/menu" className="transition-colors hover:text-orange-400">Menu</Link>
+							)}
 							<Link to="/staff/login" className="transition-colors hover:text-orange-400">Staff Portal</Link>
 						</div>
 					</div>

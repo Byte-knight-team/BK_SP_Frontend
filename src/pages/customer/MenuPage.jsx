@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/Navbar';
+import Footer from '../../components/customer/Footer';
 import CustomerPageShell from '../../components/customer/CustomerPageShell';
 import CustomerStateCard from '../../components/customer/CustomerStateCard';
 import MenuItemReviewsModal from '../../components/customer/modal/MenuItemReviewsModal';
@@ -178,8 +179,10 @@ export default function MenuPage() {
   );
 
   return (
-    <CustomerPageShell maxWidth="max-w-none" contentClassName="px-0 py-0">
+    <div className="min-h-screen bg-white flex flex-col justify-between">
       <Navbar />
+
+      <main className="flex-1">
 
       <div className="mx-3 sm:mx-6 mt-6 mb-6">
         <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 rounded-[24px] sm:rounded-full border border-orange-100 bg-gradient-to-r from-[#fff3eb] via-[#fff9f5] to-[#fff3eb] p-3 sm:p-4 shadow-[0_4px_20px_rgba(249,115,22,0.05)]">
@@ -431,11 +434,10 @@ export default function MenuPage() {
           </div>
         )}
       </section>
+      </main>
 
-      {/* Bottom Trust Bar */}
-      <div className="px-6 py-6 text-center text-sm text-slate-500 max-md:px-4">
-        Fresh ingredients, consistent plating, and a simpler experience.
-      </div>
+      {/* Footer */}
+      <Footer />
 
       {selectedItemForReviews && (
         <MenuItemReviewsModal
@@ -443,6 +445,6 @@ export default function MenuPage() {
           onClose={() => setSelectedItemForReviews(null)}
         />
       )}
-    </CustomerPageShell>
+    </div>
   );
 }
