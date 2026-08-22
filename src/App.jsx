@@ -1,5 +1,5 @@
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { isTokenExpired } from './utils/authToken'
 import { CartProvider } from './context/CartContext'
@@ -7,6 +7,9 @@ import GlobalNotificationProvider from './context/GlobalNotificationProvider'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import './index.css'
+
+// Fallback loader
+import PageLoader from './components/common/PageLoader'
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
@@ -33,103 +36,100 @@ import ReceptionistSidebar from './components/receptionist/ReceptionistSidebar'
 import ReceptionistHeader from './components/receptionist/ReceptionistHeader'
 import ReceptionistNotifier from './components/receptionist/ReceptionistNotifier'
 
-
 // Common staff auth pages
-import StaffLoginPage from './pages/auth/StaffLoginPage'
-import StaffChangePasswordPage from './pages/auth/StaffChangePasswordPage'
-import ProfilePage from './pages/ProfilePage'
+const StaffLoginPage = lazy(() => import('./pages/auth/StaffLoginPage'))
+const StaffChangePasswordPage = lazy(() => import('./pages/auth/StaffChangePasswordPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 
 // Common protected route component
 import ProtectedRoute from './components/common/ProtectedRoute'
 
 // Super Admin
-import SuperAdminDashboardPage from './pages/superadmin/DashboardPage'
-import StaffListPage from './pages/superadmin/StaffListPage'
-import CreateStaffPage from './pages/superadmin/CreateStaffPage'
-import StaffDetailsPage from './pages/superadmin/StaffDetailsPage'
-import EditStaffPage from './pages/superadmin/EditStaffPage'
-import BranchListPage from './pages/superadmin/BranchListPage'
-import CreateBranchPage from './pages/superadmin/CreateBranchPage'
-import BranchDetailsPage from './pages/superadmin/BranchDetailsPage'
-import EditBranchPage from './pages/superadmin/EditBranchPage'
-import SystemConfigPage from './pages/superadmin/SystemConfigPage'
-import AuditLogsPage from './pages/superadmin/AuditLogsPage'
-import ReportsPage from './pages/superadmin/ReportsPage'
-import RolesPage from './pages/superadmin/RolesPage'
-import ComingSoonPage from './pages/superadmin/ComingSoonPage'
-import CustomerManagement from "./pages/superadmin/CustomerManagement";
-import CustomerDetailsPage from "./pages/superadmin/CustomerDetailsPage";
-import CategoryManagementPage from "./pages/superadmin/CategoryManagementPage";
-import CreateCategoryPage from "./pages/superadmin/CreateCategoryPage";
-import EditCategoryPage from "./pages/superadmin/EditCategoryPage";
-import CategoryDetailsPage from "./pages/superadmin/CategoryDetailsPage";
+const SuperAdminDashboardPage = lazy(() => import('./pages/superadmin/DashboardPage'))
+const StaffListPage = lazy(() => import('./pages/superadmin/StaffListPage'))
+const CreateStaffPage = lazy(() => import('./pages/superadmin/CreateStaffPage'))
+const StaffDetailsPage = lazy(() => import('./pages/superadmin/StaffDetailsPage'))
+const EditStaffPage = lazy(() => import('./pages/superadmin/EditStaffPage'))
+const BranchListPage = lazy(() => import('./pages/superadmin/BranchListPage'))
+const CreateBranchPage = lazy(() => import('./pages/superadmin/CreateBranchPage'))
+const BranchDetailsPage = lazy(() => import('./pages/superadmin/BranchDetailsPage'))
+const EditBranchPage = lazy(() => import('./pages/superadmin/EditBranchPage'))
+const SystemConfigPage = lazy(() => import('./pages/superadmin/SystemConfigPage'))
+const AuditLogsPage = lazy(() => import('./pages/superadmin/AuditLogsPage'))
+const ReportsPage = lazy(() => import('./pages/superadmin/ReportsPage'))
+const RolesPage = lazy(() => import('./pages/superadmin/RolesPage'))
+const ComingSoonPage = lazy(() => import('./pages/superadmin/ComingSoonPage'))
+const CustomerManagement = lazy(() => import('./pages/superadmin/CustomerManagement'))
+const CustomerDetailsPage = lazy(() => import('./pages/superadmin/CustomerDetailsPage'))
+const CategoryManagementPage = lazy(() => import('./pages/superadmin/CategoryManagementPage'))
+const CreateCategoryPage = lazy(() => import('./pages/superadmin/CreateCategoryPage'))
+const EditCategoryPage = lazy(() => import('./pages/superadmin/EditCategoryPage'))
+const CategoryDetailsPage = lazy(() => import('./pages/superadmin/CategoryDetailsPage'))
 
 // Manager pages
-import ManagerDashboardPage from './pages/manager/ManagerDashboardPage'
-import ManagerSalesSummaryPage from './pages/manager/ManagerSalesSummaryPage'
-import ManagerInventoryPage from './pages/manager/ManagerInventoryPage'
-import ManagerDriversPage from './pages/manager/ManagerDriversPage'
-import ManagerStaffPage from './pages/manager/ManagerStaffPage'
-
-import ManagerReportsPage from './pages/manager/ManagerReportsPage'
-import ManagerProcurementPage from './pages/manager/ManagerProcurementPage'
-
-
+const ManagerDashboardPage = lazy(() => import('./pages/manager/ManagerDashboardPage'))
+const ManagerSalesSummaryPage = lazy(() => import('./pages/manager/ManagerSalesSummaryPage'))
+const ManagerInventoryPage = lazy(() => import('./pages/manager/ManagerInventoryPage'))
+const ManagerDriversPage = lazy(() => import('./pages/manager/ManagerDriversPage'))
+const ManagerStaffPage = lazy(() => import('./pages/manager/ManagerStaffPage'))
+const ManagerReportsPage = lazy(() => import('./pages/manager/ManagerReportsPage'))
+const ManagerProcurementPage = lazy(() => import('./pages/manager/ManagerProcurementPage'))
 
 // Admin pages
-import AdminDashboardPage from './pages/admin/AdminDashboardPage'
-import MenuManagementPage from './pages/admin/MenuManagementPage'
-import MenuUpdateRequestsPage from './pages/admin/MenuUpdateRequestsPage'
-import AddCategoryPage from './pages/admin/AddCategoryPage'
-import MenuItemDetailsPage from './pages/admin/MenuItemDetailsPage'
-import TableManagementPage from './pages/admin/TableManagementPage'
-import TableDetailsPage from './pages/admin/TableDetailsPage'
-import AddTablePage from './components/admin/AddTablePage'
-import TableQrPage from './pages/admin/TableQrPage'
-import CouponsPage from './pages/superadmin/CouponsPage'
-import CouponDetailsPage from './pages/superadmin/CouponDetailsPage'
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
+const MenuManagementPage = lazy(() => import('./pages/admin/MenuManagementPage'))
+const MenuUpdateRequestsPage = lazy(() => import('./pages/admin/MenuUpdateRequestsPage'))
+const AddCategoryPage = lazy(() => import('./pages/admin/AddCategoryPage'))
+const MenuItemDetailsPage = lazy(() => import('./pages/admin/MenuItemDetailsPage'))
+const TableManagementPage = lazy(() => import('./pages/admin/TableManagementPage'))
+const TableDetailsPage = lazy(() => import('./pages/admin/TableDetailsPage'))
+const AddTablePage = lazy(() => import('./components/admin/AddTablePage'))
+const TableQrPage = lazy(() => import('./pages/admin/TableQrPage'))
+const CouponsPage = lazy(() => import('./pages/superadmin/CouponsPage'))
+const CouponDetailsPage = lazy(() => import('./pages/superadmin/CouponDetailsPage'))
 
 // Customer pages
-import HomePage from './pages/customer/HomePage'
-import MenuPage from './pages/customer/MenuPage'
-import CartPage from './pages/customer/CartPage'
-import CheckoutPage from './pages/customer/CheckoutPage'
-import CardPaymentPage from './pages/customer/CardPaymentPage'
-import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'
-import CustomerLoginPage from './pages/customer/LoginPage'
-import ForgotPasswordPage from './pages/customer/ForgotPasswordPage'
-import ResetPasswordPage from './pages/customer/ResetPasswordPage'
-import SignupPersonalPage from './pages/customer/SignupPersonalPage'
-import SignupAddressPage from './pages/customer/SignupAddressPage'
-import MobileVerificationPage from './pages/customer/MobileVerificationPage'
-import OtpVerificationPage from './pages/customer/OtpVerificationPage'
-import AccountPage from './pages/customer/AccountPage'
-import OrdersPage from './pages/customer/OrdersPage'
-import VerifyEmailPage from './pages/customer/VerifyEmailPage'
-import StatisticsPage from './pages/customer/StatisticsPage'
-import ScanPage from './pages/customer/ScanPage'
+const HomePage = lazy(() => import('./pages/customer/HomePage'))
+const MenuPage = lazy(() => import('./pages/customer/MenuPage'))
+const CartPage = lazy(() => import('./pages/customer/CartPage'))
+const CheckoutPage = lazy(() => import('./pages/customer/CheckoutPage'))
+const CardPaymentPage = lazy(() => import('./pages/customer/CardPaymentPage'))
+const OrderConfirmationPage = lazy(() => import('./pages/customer/OrderConfirmationPage'))
+const CustomerLoginPage = lazy(() => import('./pages/customer/LoginPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/customer/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/customer/ResetPasswordPage'))
+const SignupPersonalPage = lazy(() => import('./pages/customer/SignupPersonalPage'))
+const SignupAddressPage = lazy(() => import('./pages/customer/SignupAddressPage'))
+const MobileVerificationPage = lazy(() => import('./pages/customer/MobileVerificationPage'))
+const OtpVerificationPage = lazy(() => import('./pages/customer/OtpVerificationPage'))
+const AccountPage = lazy(() => import('./pages/customer/AccountPage'))
+const OrdersPage = lazy(() => import('./pages/customer/OrdersPage'))
+const VerifyEmailPage = lazy(() => import('./pages/customer/VerifyEmailPage'))
+const StatisticsPage = lazy(() => import('./pages/customer/StatisticsPage'))
+const ScanPage = lazy(() => import('./pages/customer/ScanPage'))
 import CustomerProtectedRoute from './components/customer/CustomerProtectedRoute'
-import CustomerReservationsListPage from './pages/customer/CustomerReservationsListPage'
-import CustomerReservationDetailPage from './pages/customer/ReservationDetailPage'
+const CustomerReservationsListPage = lazy(() => import('./pages/customer/CustomerReservationsListPage'))
+const CustomerReservationDetailPage = lazy(() => import('./pages/customer/ReservationDetailPage'))
+
 // Kitchen pages
-import KitchenDashboardPage from './pages/kitchen/KitchenDashboardPage'
-import KitchenOrdersPage from './pages/kitchen/KitchenOrdersPage'
-import KitchenOrderHistoryPage from './pages/kitchen/KitchenOrderHistoryPage'
-import ChefsPage from './pages/kitchen/ChefsPage'
-import InventoryPage from './pages/kitchen/InventoryPage'
-import InventoryRequestsPage from './pages/kitchen/InventoryRequestsPage'
-import MenuItemPage from './pages/kitchen/MenuItemPage'
+const KitchenDashboardPage = lazy(() => import('./pages/kitchen/KitchenDashboardPage'))
+const KitchenOrdersPage = lazy(() => import('./pages/kitchen/KitchenOrdersPage'))
+const KitchenOrderHistoryPage = lazy(() => import('./pages/kitchen/KitchenOrderHistoryPage'))
+const ChefsPage = lazy(() => import('./pages/kitchen/ChefsPage'))
+const InventoryPage = lazy(() => import('./pages/kitchen/InventoryPage'))
+const InventoryRequestsPage = lazy(() => import('./pages/kitchen/InventoryRequestsPage'))
+const MenuItemPage = lazy(() => import('./pages/kitchen/MenuItemPage'))
 
 // Line Chef pages
-import LineChefDashboard from './pages/line-chef/LineChefDashboard'
-import LineChefHistoryPage from './pages/line-chef/LineChefHistoryPage'
+const LineChefDashboard = lazy(() => import('./pages/line-chef/LineChefDashboard'))
+const LineChefHistoryPage = lazy(() => import('./pages/line-chef/LineChefHistoryPage'))
 
 // Receptionist pages
-import ReceptionistDashboardPage from './pages/receptionist/ReceptionistDashboardPage'
-import ReceptionistTablePage from './pages/receptionist/TableManagementPage'
-import OrderManagementPage from './pages/receptionist/OrderManagementPage'
-import OrderHistoryPage from './pages/receptionist/OrderHistoryPage'
-import ReservationsPage from './pages/receptionist/ReservationsPage'
+const ReceptionistDashboardPage = lazy(() => import('./pages/receptionist/ReceptionistDashboardPage'))
+const ReceptionistTablePage = lazy(() => import('./pages/receptionist/TableManagementPage'))
+const OrderManagementPage = lazy(() => import('./pages/receptionist/OrderManagementPage'))
+const OrderHistoryPage = lazy(() => import('./pages/receptionist/OrderHistoryPage'))
+const ReservationsPage = lazy(() => import('./pages/receptionist/ReservationsPage'))
 
 
 
@@ -199,9 +199,10 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ScrollToTop />
-      <Routes>
-        {/* Public common staff login */}
-        <Route path="/staff/login" element={<StaffLoginPage />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public common staff login */}
+          <Route path="/staff/login" element={<StaffLoginPage />} />
 
         {/* Common password change page for all logged-in staff roles */}
         <Route
@@ -517,6 +518,7 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
       <ToastContainer
         position="bottom-right"
         autoClose={4000}
