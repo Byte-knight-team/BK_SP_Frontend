@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { showSignOutToast } from '../../utils/toast';
 import {
   ArrowLeft,
   User,
@@ -296,6 +297,7 @@ export default function AccountPage() {
     localStorage.removeItem('customer_user_id');
     localStorage.removeItem('customer_name');
     clearCart();
+    showSignOutToast();
     navigate('/menu', { replace: true });
   };
 

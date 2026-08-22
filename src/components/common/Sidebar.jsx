@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import { useAuth } from "../../context/AuthContext";
+import { showSignOutToast } from "../../utils/toast";
 
 /*
   Common Sidebar wrapper.
@@ -67,6 +68,7 @@ export default function Sidebar({
 
   const handleLogout = () => {
     logout();
+    showSignOutToast();
     navigate("/staff/login", { replace: true });
   };
 

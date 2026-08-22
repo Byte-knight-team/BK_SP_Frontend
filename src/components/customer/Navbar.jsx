@@ -4,6 +4,7 @@ import { ShoppingBag, UserCircle2, Menu, X, Package, LogOut, DoorOpen, Calendar 
 import { useCart } from '../../context/CartContext';
 import { getQrSessionClaims } from '../../utils/authToken';
 import { endQrSession } from '../../apis/customer/qrSessions';
+import { showSignOutToast, showLeaveTableToast } from '../../utils/toast';
 import BrandLogo from './BrandLogo';
 
 function getQrSessionClaim(claimName) {
@@ -69,6 +70,7 @@ export default function Navbar() {
 
     clearCart();
     setAuth({ isLoggedIn: false, isQrCustomer: auth.isQrCustomer, userName: '', profilePic: '', tableId: auth.tableId });
+    showSignOutToast();
     navigate('/');
   };
 
@@ -95,6 +97,7 @@ export default function Navbar() {
 
     clearCart();
     setAuth({ isLoggedIn: false, isQrCustomer: false, userName: '', profilePic: '', tableId: null });
+    showLeaveTableToast();
     navigate('/');
   };
 
